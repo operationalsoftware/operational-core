@@ -1,0 +1,23 @@
+@import "./reset.css";
+@import "./variables.css";
+@import "./components.css";
+@import "./layout/index.css";
+
+body {
+  font-family: var(--font-family);
+  font-weight: var(--font-weight);
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-heading);
+  color: var(--text-color);
+}
+

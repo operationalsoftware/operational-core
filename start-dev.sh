@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-hypercorn main:app --reload
+watchmedo auto-restart --directory=./ --patterns="*.py;*.scss;*.jinja2;*.json" --recursive -- hypercorn main:app 

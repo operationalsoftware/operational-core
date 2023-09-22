@@ -1,0 +1,13 @@
+@import "./navbar.css";
+@import "./footer.css";
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+#content {
+  flex-grow: 1;
+}

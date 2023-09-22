@@ -1,0 +1,22 @@
+{% extends "app.jinja2" %}
+{% from 'components/icon.jinja2' import icon %}
+
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/layout/index.css') }}">
+{% endblock %}
+
+{% block app %}
+
+{% include 'navbar.jinja2' %}
+
+<main id="content" class="sidebar-open">
+
+  {% block module %}{% endblock %}
+
+</main>
+
+{% include 'footer.jinja2' %}
+
+{% endblock %}
