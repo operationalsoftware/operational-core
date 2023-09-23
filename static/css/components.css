@@ -3,7 +3,7 @@
 /* BUTTON */
 button,
 button.primary {
-  border: 1px solid var(--primary-color);
+  border: var(--button-border-width) solid var(--primary-color);
   border-radius: var(--border-radius);
   color: var(--primary-color);
   background-color: var(--background-color-content);
@@ -12,22 +12,22 @@ button.primary {
 }
 
 button.secondary {
-  border: 1px solid var(--secondary-color);
+  border: var(--button-border-width) solid var(--secondary-color);
   color: var(--secondary-color);
 }
 
 button.danger {
-  border: 1px solid var(--danger-color);
+  border: var(--button-border-width) solid var(--danger-color);
   color: var(--danger-color);
 }
 
 button.success {
-  border: 1px solid var(--success-color);
+  border: var(--button-border-width) solid var(--success-color);
   color: var(--success-color);
 }
 
 button.warning {
-  border: 1px solid var(--warning-color);
+  border: var(--button-border-width) solid var(--warning-color);
   color: var(--warning-color);
 }
 
@@ -64,9 +64,39 @@ button:disabled:hover {
   color: var(--text-color-light);
 }
 
+/* FORM COMPONENTS */
+input,
+textarea,
+select {
+  border: 1.5px solid var(--border-color-dark);
+  border-radius: var(--border-radius);
+  background-color: var(--background-color-content);
+  padding: var(--spacing);
+  font-family: var(--font-family);
+  transition: border-color 0.2s ease-in-out;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: var(--disabled-color);
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* CARD */
 .card {
   background-color: var(--background-color-content);
   border-radius: var(--border-radius-md);
-  border: 1px solid var(--border-color);
+  border: var(--card-border-width) solid var(--border-color);
   padding: var(--spacing-md);
 }

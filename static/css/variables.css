@@ -13,8 +13,9 @@
   --text-color-contrast: #FFFFFF;
 
   --border-color: #E0E0E0;
+  --border-color-dark: #b9b9b9;
   
-  --disabled-color: #b9b9b9;
+  --disabled-color: #E0E0E0;
 
   --danger-color: #ED254E;
   --success-color: #21bc62;
@@ -40,6 +41,11 @@
   --border-radius-md: 8px;
   --border-radius-lg: 12px;
   --border-radius-xl: 16px;
+
+  --input-border-width: 1.25px;
+  --button-border-width: 1.25px;
+  --card-border-width: 1px;
+  --table-border-width: 1px;
 
   /* SPACING */
   --spacing: 8px;

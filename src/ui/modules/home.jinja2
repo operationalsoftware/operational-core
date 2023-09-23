@@ -1,39 +1,67 @@
 {% extends "authenticated.jinja2" %}
 
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/modules/home.css') }}">
+{% endblock %}
+
 {% block module %}
 <h1>
   Operational Core - Home
 </h1>
 
+<section id="home_content">
+  <div class="card">
+    <button class="primary">
+      Primary Button
+    </button>
 
-<div class="card">
-  <button class="primary">
-    Primary Button
-  </button>
+    <button class="primary" disabled>
+      Primary Disabled
+    </button>
 
-  <button class="primary" disabled>
-    Primary Disabled
-  </button>
+    <button class="secondary">
+      Secondary Button
+    </button>
 
-  <button class="secondary">
-    Secondary Button
-  </button>
+  </div>
 
-</div>
+  <div class="card">
+    <button class="danger">
+      Danger Button
+    </button>
 
-<div class="card">
-  <button class="danger">
-    Danger Button
-  </button>
+    <button class="success">
+      Success Button
+    </button>
 
-  <button class="success">
-    Success Button
-  </button>
+    <button class="warning">
+      Warning Button
+  </div>
 
-  <button class="warning">
-    Warning Button
-
-</div>
+  <div class="card">
+    <input type="text" placeholder="Text Input" />
+    <input type="text" placeholder="Text Input" disabled />
+    <input type="password" placeholder="Password" />
+    <input type="password" placeholder="Password" disabled />
+    <input type="email" placeholder="Email" />
+    <input type="email" placeholder="Email" disabled />
+    <input type="number" />
+    <input type="number" disabled />
+    <input type="date" />
+    <input type="date" disabled />
+    <textarea placeholder="Text Area"></textarea>
+    <textarea placeholder="Text Area" disabled></textarea>
+    <select>
+      <option>Option 1</option>
+      <option>Option 2</option>
+    </select>
+    <select disabled>
+      <option>Option 1</option>
+      <option>Option 2</option>
+    </select>
+  </div>
+</section>
 
 
 {% endblock %}
