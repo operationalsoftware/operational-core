@@ -40,7 +40,7 @@
   </div>
 
   <div class="card">
-    <input type="text" placeholder="Text Input" />
+    {# <input type="text" placeholder="Text Input" />
     <input type="text" placeholder="Text Input" disabled />
     <input type="password" placeholder="Password" />
     <input type="password" placeholder="Password" disabled />
@@ -59,8 +59,35 @@
     <select disabled>
       <option>Option 1</option>
       <option>Option 2</option>
-    </select>
+    </select> #}
+
+    <div style="display: flex;">
+      <input class="input-sm" type="text" placeholder="Text Input" />
+      <input type="text" placeholder="Text Input" />
+      <input class="input-large" type="text" placeholder="Text Input" />
+    </div>
+
+    <div>
+      <input type="range" min="1" max="10" id="myRange">
+      <input type="range" disabled id="myRange">
+    </div>
+
+    <div class="password-input">
+      <label class="inline" for="test">Test</label>
+      <input id="test" type="password" placeholder="Password input" />
+      <span class="toggle-icon" aria-hidden="true"></span>
+    </div>
+
+
+    <div class="checkbox-container">
+      <label class="inline-label" for="checkbox">Checkbox</label>
+      <input id="checkbox" type="checkbox">
+      <label class="inline-label" for="disabled-checkbox">Checkbox Disabled</label>
+      <input id="disabled-checkbox" disabled type="checkbox">
+    </div>
   </div>
+
+
 </section>
 
 
