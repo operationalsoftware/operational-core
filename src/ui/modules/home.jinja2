@@ -1,4 +1,6 @@
 {% extends "authenticated.jinja2" %}
+{% from 'components/icon.jinja2' import icon %}
+
 
 {% block head %}
 {{ super() }}
@@ -40,43 +42,33 @@
   </div>
 
   <div class="card">
-    {# <input type="text" placeholder="Text Input" />
-    <input type="text" placeholder="Text Input" disabled />
-    <input type="password" placeholder="Password" />
-    <input type="password" placeholder="Password" disabled />
-    <input type="email" placeholder="Email" />
-    <input type="email" placeholder="Email" disabled />
-    <input type="number" />
-    <input type="number" disabled />
-    <input type="date" />
-    <input type="date" disabled />
-    <textarea placeholder="Text Area"></textarea>
-    <textarea placeholder="Text Area" disabled></textarea>
-    <select>
-      <option>Option 1</option>
-      <option>Option 2</option>
-    </select>
-    <select disabled>
-      <option>Option 1</option>
-      <option>Option 2</option>
-    </select> #}
+    <div style="display: flex; gap:10px; flex-wrap:wrap;">
+      <div>
+        <input class="input-sm" type="text" placeholder="Text Input" />
+        <div class="input-helper success">Enter your first name</div>
+      </div>
+      <div>
+        <input type="password" placeholder="Text Input" />
+        <div class="input-helper warning">First name should be at least 2 charecters</div>
+        {# <span>{{ icon("eye-off") }}</span> #}
 
-    <div style="display: flex;">
-      <input class="input-sm" type="text" placeholder="Text Input" />
-      <input type="text" placeholder="Text Input" />
-      <input class="input-large" type="text" placeholder="Text Input" />
+      </div>
+      <div>
+        <input class="input-large" type="text" placeholder="Text Input" />
+        <div class="input-helper error">Password cannot be empty</div>
+      </div>
     </div>
 
-    <div>
+    <div style="display: flex; flex-direction:column; gap:10px; ">
+      <input type="number" placeholder="Number Input" />
+    </div>
+
+    <div style="display: flex; flex-direction:column; gap:10px; ">
       <input type="range" min="1" max="10" id="myRange">
       <input type="range" disabled id="myRange">
     </div>
 
-    <div class="password-input">
-      <label class="inline" for="test">Test</label>
-      <input id="test" type="password" placeholder="Password input" />
-      <span class="toggle-icon" aria-hidden="true"></span>
-    </div>
+
 
 
     <div class="checkbox-container">
@@ -85,7 +77,155 @@
       <label class="inline-label" for="disabled-checkbox">Checkbox Disabled</label>
       <input id="disabled-checkbox" disabled type="checkbox">
     </div>
+
+    <div style="display: flex; flex-direction:column; gap:10px; ">
+      <div class="custom-select">
+        <div role="combobox" aria-labelledby="select button" aria-haspopup="listbox" aria-expanded="false"
+          aria-controls="select-dropdown" class="select-button">
+          <span>Open this select menu</span>
+          <span class="arrow"></span>
+        </div>
+        <ul role="listbox" id="select-dropdown" class="select-dropdown">
+          <li role="option">
+            <input type="radio" id="github" name="social-account" />
+            <label for="github">GitHub</label>
+          </li>
+          <li role="option">
+            <input type="radio" id="instagram" name="social-account" />
+            <label for="instagram">Instagram</label>
+          </li>
+          <li role="option">
+            <input type="radio" id="google" name="social-account" />
+            <label for="google">Google</label>
+          </li>
+          <li role="option">
+            <input type="radio" id="slack" name="social-account" />
+            <label for="slack">Slack</label>
+          </li>
+          <li role="option">
+            <input type="radio" id="microsoft" name="social-account" />
+            <label for="microsoft">Microsoft</label>
+          </li>
+        </ul>
+      </div>
+
+      <div class="custom-select">
+        <div role="combobox" aria-labelledby="select button" aria-haspopup="listbox" aria-expanded="false"
+          aria-controls="select-dropdown" class="select-button">
+          <div class="selected-values">
+            <span class="selected-value">Github
+              {{ icon("close") }}
+            </span>
+            <span class="selected-value">Google {{ icon("close") }}
+            </span>
+            <span class="selected-value">Microsoft {{ icon("close") }}
+            </span>
+          </div>
+          <span class="arrow"></span>
+        </div>
+        <ul role="listbox" id="select-dropdown" class="select-dropdown">
+          <li role="option">
+            <input type="radio" id="github" name="social-account" />
+            <label for="github">GitHub</label>
+          </li>
+          <li role="option">
+            <input type="radio" id="instagram" name="social-account" />
+            <label for="instagram">Instagram</label>
+          </li>
+          <li role="option">
+            <input type="radio" id="google" name="social-account" />
+            <label for="google">Google</label>
+          </li>
+          <li role="option">
+            <input type="radio" id="slack" name="social-account" />
+            <label for="slack">Slack</label>
+          </li>
+          <li role="option">
+            <input type="radio" id="microsoft" name="social-account" />
+            <label for="microsoft">Microsoft</label>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-around; gap:10px; ">
+      <div class="loading-spinner loading-spinner-sm"></div>
+      <div class="loading-spinner"></div>
+      <div class="loading-spinner loading-spinner-lg"></div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between">
+      <span data-text="Thanks for hovering! I'm a tooltip" class="tooltip top">Top</span>
+
+      <span data-text="Thanks for hovering! I'm a tooltip" class="tooltip bottom">Bottom</span>
+
+      <span data-text="Thanks for hovering! I'm a tooltip" class="tooltip left">Left</span>
+
+      <span data-text="Thanks for hovering! I'm a tooltip" class="tooltip">Right</span>
+    </div>
+
+
+
   </div>
+
+  </div>
+
+
+
+  </div>
+
+
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th class="table-head">
+            <input type="checkbox" id="checkbox">
+          </th>
+          <th class="table-head">Header 2</th>
+          <th class="table-head">Header 3</th>
+          <th class="table-head">Header 4</th>
+          <th class="table-head">Header 5</th>
+          <th class="table-head">Header 6</th>
+          <th class="table-head">Header 7</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="table-row">
+          <td class="table-data">asdk;lasdk ;lask dl;kas;lk dl;kaslk dl;sakd l;sak d;lsakl; dk;las</td>
+          <td>Data 2</td>
+          <td>Data 3</td>
+          <td>Data 4</td>
+          <td>Data 5</td>
+          <td>Data 6</td>
+          <td>Data 7</td>
+        </tr>
+        <tr class="table-row">
+          <td>Data 1</td>
+          <td>Data 2</td>
+          <td>Data 3</td>
+          <td>Data 4</td>
+          <td>Data 5</td>
+          <td>Data 6</td>
+          <td>Data 7</td>
+        </tr>
+        <tr class="table-row">
+          <td>Data 1</td>
+          <td>Data 2</td>
+          <td>Data 3</td>
+          <td>Data 4</td>
+          <td>Data 5</td>
+          <td>Data 6</td>
+          <td>Data 7</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+
+
 
 
 </section>
