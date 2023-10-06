@@ -183,6 +183,8 @@
       </div>
     </div>
 
+
+
     <div style="display: flex; justify-content: space-around; gap:10px; ">
       <div class="loading-spinner loading-spinner-sm"></div>
       <div class="loading-spinner"></div>
@@ -247,6 +249,8 @@
       </div>
     </div>
 
+
+
     <div>
       <div class="progress-container" data-duration="30">
         <div class="progress-bar"></div>
@@ -271,6 +275,23 @@
     </div>
 
     <button id="toast-btn">Show Toast</button>
+
+    <button id="confirmButton">Click me</button>
+
+    <div id="popconfirm" class="popconfirm">
+      <div class="popconfirm-info">
+        <p class="popconfirm-icon">{{ icon("info") }}</p>
+        <p class="popconfirm-heading">Hello world</p>
+      </div>
+      <p class="popconfirm-text">Are you sure you want to do this!</p>
+      <div class="popconfirm-actions">
+        <button id="confirmYes" class="danger small">Yes</button>
+        <button id="confirmNo" class="primary small">No</button>
+      </div>
+    </div>
+
+
+  </div>
 
 
   </div>
@@ -300,6 +321,8 @@
       <button id="ok-btn" class="primary">Ok</button>
     </footer>
   </dialog>
+
+
 
 
 
@@ -441,19 +464,51 @@
 
     toastContainer.insertBefore(toast, toastContainer.firstChild);
 
-    toast.classList.add('show');
-
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 10);
 
     setTimeout(() => {
       toast.classList.remove('show');
       toast.addEventListener('transitionend', () => {
         toast.remove();
       });
-    }, 5000);
+    }, 3000);
   }
 
   toastBtn.addEventListener('click', () => {
     showToast('This is a toast message');
+  });
+
+
+  // Popconfirm logic
+  const confirmButton = document.getElementById('confirmButton');
+  const popConfirm = document.getElementById('popconfirm');
+  const confirmYes = document.getElementById('confirmYes');
+  const confirmNo = document.getElementById('confirmNo');
+
+  confirmButton.addEventListener('click', () => {
+    const buttonRect = confirmButton.getBoundingClientRect();
+    const bodyRect = document.body.getBoundingClientRect();
+
+    const top = buttonRect.top - bodyRect.top - popConfirm.offsetHeight - 10;
+    const left = buttonRect.left - bodyRect.left - (popConfirm.offsetWidth - buttonRect.width) / 2;
+
+    popConfirm.style.top = `${top}px`;
+    popConfirm.style.left = `${left}px`;
+
+    popConfirm.classList.add('show');
+
+  });
+
+  confirmYes.addEventListener('click', () => {
+    showToast('You clicked yes');
+    popConfirm.classList.remove('show');
+  });
+
+  confirmNo.addEventListener('click', () => {
+    showToast('You clicked no');
+    popConfirm.classList.remove('show');
   });
 
 </script>
