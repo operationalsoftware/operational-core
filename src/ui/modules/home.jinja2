@@ -12,33 +12,69 @@
   Operational Core - Home
 </h1>
 
+
+
 <section id="home_content">
-  <div class="card">
-    <button class="primary">
-      Primary Button
-    </button>
-
-    <button class="primary" disabled>
-      Primary Disabled
-    </button>
-
-    <button class="secondary">
-      Secondary Button
-    </button>
-
+  <div id="toastContainer" class="toast-container">
+    <div class="toast">
+      Hello world
+    </div>
   </div>
-
   <div class="card">
-    <button class="danger">
-      Danger Button
-    </button>
+    <div>
+      <button class="primary">
+        Primary Button
+      </button>
+    </div>
 
-    <button class="success">
-      Success Button
-    </button>
+    <div>
+      <button data-loading="true" class="primary button-small" disabled>
+        <div class="loading-spinner loading-spinner-xs"></div>
+        Primary Button with loader
+      </button>
+    </div>
 
-    <button class="warning">
-      Warning Button
+    <div>
+      <button data-icon="true" class="primary button-small">
+        <div>{{ icon("close") }}</div>
+        Primary Button with icon
+      </button>
+    </div>
+
+    <div>
+      <button class="primary" disabled>
+        Primary Disabled
+      </button>
+    </div>
+
+    <div>
+      <button class="secondary">
+        Secondary Button
+      </button>
+    </div>
+
+
+    <div class="card">
+      <div>
+        <button class="danger">
+          Danger Button
+        </button>
+      </div>
+
+
+      <div>
+        <button class="success">
+          Success Button
+        </button>
+
+      </div>
+      <div>
+        <button class="warning">
+          Warning Button
+        </button>
+      </div>
+    </div>
+  </div>
   </div>
 
   <div class="card">
@@ -50,7 +86,6 @@
       <div>
         <input type="password" placeholder="Text Input" />
         <div class="input-helper warning">First name should be at least 2 charecters</div>
-        {# <span>{{ icon("eye-off") }}</span> #}
 
       </div>
       <div>
@@ -148,6 +183,8 @@
       </div>
     </div>
 
+
+
     <div style="display: flex; justify-content: space-around; gap:10px; ">
       <div class="loading-spinner loading-spinner-sm"></div>
       <div class="loading-spinner"></div>
@@ -164,15 +201,129 @@
       <span data-text="Thanks for hovering! I'm a tooltip" class="tooltip">Right</span>
     </div>
 
+    <div style="display: flex; justify-content: center; align-items: center;">
+      <button id="open-modal" style="flex-grow: 1;" class="primary">Open modal</button>
+    </div>
+
+    <div>
+      <button>
+        {{ icon("upload") }}
+        <label for="file-input" class="upload-label">Choose a file</label>
+        <input type="file" id="file-input" class="file-input">
+        <div class="file-info">No file selected</div>
+      </button>
+    </div>
+
+    <div>
+      <div class="radio-container">
+        <input type="radio" id="radio1" name="radio" checked>
+        <label for="radio1">Radio 1</label>
+      </div>
+      <div class="radio-container">
+        <input type="radio" id="radio2" name="radio">
+        <label for="radio2">Radio 2</label>
+      </div>
+    </div>
+
+    <div>
+      <div class="stats-container">
+        <div class="stat-element">
+          <p class="stat-heading">Active users</p>
+          <div class="stat-value">
+            <span>1,234</span>
+          </div>
+        </div>
+        <div class="stat-element">
+          <p class="stat-heading">Account Balance</p>
+          <div class="stat-value">
+            <span>450000</span>
+          </div>
+        </div>
+        <div class="stat-element">
+          <p class="stat-heading">Withdraw Cost</p>
+          <div class="stat-value">
+            {{ icon("account") }}
+            <span>0.0001</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div>
+      <div class="progress-container" data-duration="30">
+        <div class="progress-bar"></div>
+        <div class="progress"></div>
+        <span class="progress-label">0%</span>
+      </div>
+      <div class="progress-container" data-type="success" data-duration="10">
+        <div class="progress-bar"></div>
+        <div class="progress"></div>
+        <span class="progress-label">0%</span>
+      </div>
+      <div class="progress-container" data-type="warning" data-duration="20">
+        <div class="progress-bar"></div>
+        <div class="progress"></div>
+        <span class="progress-label">0%</span>
+      </div>
+      <div class="progress-container" data-type="danger" data-duration="30">
+        <div class="progress-bar"></div>
+        <div class="progress"></div>
+        <span class="progress-label">0%</span>
+      </div>
+    </div>
+
+    <button id="toast-btn">Show Toast</button>
+
+    <button id="confirmButton">Click me</button>
+
+    <div id="popconfirm" class="popconfirm">
+      <div class="popconfirm-info">
+        <p class="popconfirm-icon">{{ icon("info") }}</p>
+        <p class="popconfirm-heading">Hello world</p>
+      </div>
+      <p class="popconfirm-text">Are you sure you want to do this!</p>
+      <div class="popconfirm-actions">
+        <button id="confirmYes" class="danger small">Yes</button>
+        <button id="confirmNo" class="primary small">No</button>
+      </div>
+    </div>
 
 
   </div>
 
+
+  </div>
   </div>
 
 
 
   </div>
+
+  {# Modal #}
+  <dialog class="modal">
+    <header class="modal-header">
+      <h3>Modal header</h3>
+      <span id="close-btn" class="primary close-btn">
+        {{ icon("close") }}
+      </span>
+    </header>
+    <div class="modal-content">
+      <h3>this is modal content</h3>
+      <p>lorem ipsum genrati lorem ipsum genrati lorem ipsum genrati lorem ipsum genrati lorem ipsum genrati lorem ipsum
+        genrati lorem ipsum genrati lorem ipsum genrati lorem ipsum genrati lorem ipsum genrati lorem ipsum genrati
+        lorem ipsum genrati lorem ipsum genrati lorem ipsum genrati lorem ipsum genrati lorem ipsum genrati lorem ipsum
+        genrati </p>
+    </div>
+    <footer class="modal-footer">
+      <button id="cancel-btn" class="danger">Cancel</button>
+      <button id="ok-btn" class="primary">Ok</button>
+    </footer>
+  </dialog>
+
+
+
 
 
 
@@ -230,5 +381,136 @@
 
 </section>
 
+
+<script>
+  // Modal Logic
+  const openModal = document.getElementById("open-modal");
+  const cancelBtn = document.getElementById("cancel-btn");
+  const okBtn = document.getElementById("ok-btn");
+  const closeModal = document.getElementById("close-btn");
+
+
+
+  openModal.addEventListener("click", () => {
+    const modal = document.querySelector(".modal");
+    document.body.style.overflow = "hidden";
+    modal.showModal();
+  });
+
+
+  closeModal.addEventListener("click", (e) => {
+    const modal = document.querySelector(".modal");
+    document.body.style.overflow = "auto";
+    modal.close();
+  });
+
+  cancelBtn.addEventListener("click", (e) => {
+    const modal = document.querySelector(".modal");
+    document.body.style.overflow = "auto";
+    modal.close();
+  });
+
+  okBtn.addEventListener("click", (e) => {
+    const modal = document.querySelector(".modal");
+    document.body.style.overflow = "auto";
+    modal.close();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const modal = document.querySelector(".modal");
+    if (e.key === "Escape") {
+      document.body.style.overflow = "auto";
+      modal.close();
+    }
+  });
+
+  // Progess bar logic
+  const progressContainers = document.querySelectorAll('.progress-container');
+
+  progressContainers.forEach(container => {
+    const progressBar = container.querySelector('.progress');
+    const progressLabel = container.querySelector('.progress-label');
+    const duration = parseInt(container.dataset.duration, 10);
+    const totalUpdates = 100; // Total updates to reach 100%
+    const maxWidth = 100; // Max width of progress bar
+
+    function updateProgressBar() {
+      let width = 0;
+      const interval = setInterval(() => {
+        if (width >= maxWidth) {
+          clearInterval(interval);
+        } else {
+          width++;
+          progressBar.style.width = `${width}%`;
+          progressLabel.textContent = `${width}%`;
+        }
+      }, duration * 1000 / totalUpdates);
+    }
+
+    updateProgressBar();
+  });
+
+  // Toast logic
+  const toastBtn = document.getElementById('toast-btn');
+
+  function showToast(message) {
+    const toastContainer = document.getElementById('toastContainer');
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = message;
+
+    toast.offsetHeight; // Force reflow, so CSS animation will run
+
+    toastContainer.insertBefore(toast, toastContainer.firstChild);
+
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 10);
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+      toast.addEventListener('transitionend', () => {
+        toast.remove();
+      });
+    }, 3000);
+  }
+
+  toastBtn.addEventListener('click', () => {
+    showToast('This is a toast message');
+  });
+
+
+  // Popconfirm logic
+  const confirmButton = document.getElementById('confirmButton');
+  const popConfirm = document.getElementById('popconfirm');
+  const confirmYes = document.getElementById('confirmYes');
+  const confirmNo = document.getElementById('confirmNo');
+
+  confirmButton.addEventListener('click', () => {
+    const buttonRect = confirmButton.getBoundingClientRect();
+    const bodyRect = document.body.getBoundingClientRect();
+
+    const top = buttonRect.top - bodyRect.top - popConfirm.offsetHeight - 10;
+    const left = buttonRect.left - bodyRect.left - (popConfirm.offsetWidth - buttonRect.width) / 2;
+
+    popConfirm.style.top = `${top}px`;
+    popConfirm.style.left = `${left}px`;
+
+    popConfirm.classList.add('show');
+
+  });
+
+  confirmYes.addEventListener('click', () => {
+    showToast('You clicked yes');
+    popConfirm.classList.remove('show');
+  });
+
+  confirmNo.addEventListener('click', () => {
+    showToast('You clicked no');
+    popConfirm.classList.remove('show');
+  });
+
+</script>
 
 {% endblock %}
