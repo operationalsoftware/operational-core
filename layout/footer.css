@@ -1,0 +1,12 @@
+me {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color-light);
+  font-size: var(--font-size-sm);
+}
+
+me sup {
+  font-size: var(--font-size-xs);
+}

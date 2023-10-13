@@ -1,7 +1,5 @@
 @import "./reset.css";
 @import "./variables.css";
-@import "./components.css";
-@import "./layout/index.css";
 
 body {
   font-family: var(--font-family);

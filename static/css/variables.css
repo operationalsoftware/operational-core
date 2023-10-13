@@ -6,6 +6,7 @@
   --secondary-color: #ed254e;
 
   --background-color: #f0f0f0;
+  --background-color-grey: #e0e0e0;
   --background-color-content: #ffffff;
 
   --text-color: #202020;
@@ -52,6 +53,7 @@
 
   /* SPACING */
   --spacing: 8px;
+  --spacing-xs: 2px;
   --spacing-sm: 4px;
   --spacing-md: 8px;
   --spacing-lg: 12px;
@@ -62,6 +64,7 @@
 /* override colours for dark theme */
 :root[data-theme="dark"] {
   --background-color: #1f1f1f;
+  --background-color-grey: #292929;
   --background-color-content: #0b0b0b;
 
   --text-color: #ffffff;

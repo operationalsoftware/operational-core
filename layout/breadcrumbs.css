@@ -1,0 +1,22 @@
+me {
+	background: var(--background-color-grey);
+	padding: var(--spacing-xs) var(--spacing-sm);
+	font-size: var(--font-size-sm);
+}
+
+me ol {
+	display: flex;
+}
+
+me ol li {
+	color: var(--text-color-light) !important;
+}
+
+/* me ol li a:visted { */
+/* 	color: var(--text-color-light) !important; */
+/* } */
+
+me ol li .separator {
+	color: var(--text-color-light);
+	padding: 0 var(--spacing-sm);
+}

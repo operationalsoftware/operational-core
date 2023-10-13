@@ -1,2 +1,7 @@
 #!/usr/bin/env bash
-watchmedo auto-restart --directory=./ --patterns="*.py;*.scss;*.jinja2;*.json" --recursive -- hypercorn main:app 
+CompileDaemon \
+	-pattern="(.+\.go|.+\.c|.+\.png|.+\.svg|.+\.css|.+\.js|.+\.env)$" \
+	-exclude-dir=".git" \
+	-exclude="assets.go" \
+	-build=./build.sh \
+	-command="./operationalcore"
