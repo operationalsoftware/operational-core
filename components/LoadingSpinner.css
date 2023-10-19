@@ -1,0 +1,37 @@
+/* Loading spinner */
+me {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: conic-gradient(#0000 10%, var(--primary-color));
+  mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+  animation: s3 1s infinite linear;
+}
+
+me.xs {
+  width: 20px;
+  height: 20px;
+  mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 0);
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 0);
+}
+
+me.sm {
+  width: 35px;
+  height: 35px;
+  mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);
+}
+
+me.lg {
+  width: 75px;
+  height: 75px;
+  mask: radial-gradient(farthest-side, #0000 calc(100% - 12px), #000 0);
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 12px), #000 0);
+}
+
+@keyframes s3 {
+  to {
+    transform: rotate(1turn);
+  }
+}

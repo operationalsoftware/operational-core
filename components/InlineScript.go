@@ -5,7 +5,7 @@ import (
 
 	"github.com/jessevdk/go-assets"
 	g "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/html"
+	h "github.com/maragudk/gomponents/html"
 )
 
 func InlineScript(fs *assets.FileSystem, assetPath string) g.Node {
@@ -23,8 +23,8 @@ func InlineScript(fs *assets.FileSystem, assetPath string) g.Node {
 	// Convert the byte slice to a string
 	fileContent := string(fileBytes)
 
-	return Script(
-		Type("text/javascript"),
+	return h.Script(
+		h.Type("text/javascript"),
 		g.Raw(fileContent),
 	)
 }

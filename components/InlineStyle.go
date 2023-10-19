@@ -5,7 +5,7 @@ import (
 
 	"github.com/jessevdk/go-assets"
 	g "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/html"
+	h "github.com/maragudk/gomponents/html"
 )
 
 func InlineStyle(fs *assets.FileSystem, assetPath string) g.Node {
@@ -24,8 +24,8 @@ func InlineStyle(fs *assets.FileSystem, assetPath string) g.Node {
 	// Convert the byte slice to a string
 	fileContent := string(fileBytes)
 
-	return StyleEl(
-		Type("text/css"),
+	return h.StyleEl(
+		h.Type("text/css"),
 		g.Raw(fileContent),
 	)
 }
