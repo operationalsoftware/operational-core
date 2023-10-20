@@ -1,3 +1,9 @@
 .vscode/
 .venv
 __pycache__/
+
+# compiled go binary
+operationalcore
+
+# built go assets
+**/assets.go
