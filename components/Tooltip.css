@@ -1,0 +1,104 @@
+/* Tooltip */
+me {
+  display: inline-block;
+  position: relative; /* making the .tooltip span a container for the tooltip text */
+}
+
+me::before {
+  z-index: 1;
+  content: attr(data-content);
+  position: absolute;
+
+  top: 50%;
+  transform: translateY(-50%);
+
+  /* move to right */
+  right: initial;
+  left: 100%;
+  margin-left: var(--spacing-md);
+
+  /* basic styles */
+  width: 200px;
+  padding: var(--spacing);
+  border-radius: var(--border-radius);
+  background: #000;
+  color: #fff;
+  text-align: center;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+me.left::before {
+  left: initial;
+  margin: initial;
+  right: 100%;
+  margin-right: var(--spacing-md);
+}
+
+me.top::before {
+  top: initial;
+  bottom: 100%;
+  margin-bottom: var(--spacing-md);
+  transform: translateX(-50%);
+}
+
+me.bottom::before {
+  top: 100%;
+  bottom: initial;
+  margin-top: var(--spacing-md);
+  transform: translateX(-50%);
+}
+
+me::after {
+  content: "";
+  position: absolute;
+
+  /* position tooltip correctly */
+  left: 100%;
+  margin-left: -5px;
+
+  /* vertically center */
+  top: 50%;
+  transform: translateY(-50%);
+
+  /* the arrow */
+  border: 10px solid #000;
+  border-color: transparent black transparent transparent;
+
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out, visibility 100ms ease-in-out;
+  pointer-events: none;
+}
+
+me.left::after {
+  left: initial;
+  right: 100%;
+  margin-right: -5px;
+  border-color: transparent transparent transparent black;
+}
+
+me.top::after {
+  top: initial;
+  bottom: 100%;
+  margin-bottom: -5px;
+  transform: translateX(-50%);
+  border-color: black transparent transparent transparent;
+}
+
+me.bottom::after {
+  top: 100%;
+  bottom: initial;
+  margin-top: -5px;
+  transform: translateX(-50%);
+  border-color: transparent transparent black transparent;
+}
+
+me:hover::before,
+me:hover::after {
+  display: inline-block;
+  visibility: visible;
+  opacity: 1;
+}

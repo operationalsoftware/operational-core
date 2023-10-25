@@ -1,0 +1,76 @@
+/* Modal */
+me {
+  display: flex;
+  flex-direction: column;
+  width: 500px;
+  max-width: 100%;
+  min-height: 250px;
+  padding: var(--spacing-lg);
+  background: var(--background-color-content);
+  color: var(--text-color);
+  border-radius: var(--border-radius);
+  transform-origin: center;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out, transform 0.35s ease-in-out;
+  border: none;
+}
+
+me:focus-within {
+  outline: none;
+}
+
+.open {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hidden {
+  opacity: 0;
+  transform: scale(0);
+}
+
+me[open] {
+  pointer-events: inherit;
+}
+
+me::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+}
+
+me .modal-header {
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+me .close-btn {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+me .close-btn .icon {
+  width: 20px;
+  height: 20px;
+  fill: black;
+}
+
+me .close-btn:hover {
+  background-color: var(--border-hover-color);
+}
+
+me .close-btn:hover .icon {
+  fill: white;
+}
+
+me .modal-content {
+  margin-bottom: var(--spacing-lg);
+  flex: 1;
+}

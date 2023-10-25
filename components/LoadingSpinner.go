@@ -9,18 +9,22 @@ import (
 type LoadingSpinnerSize string
 
 const (
-	LoadingSpinnerXs LoadingSpinnerSize = "xs"
 	LoadingSpinnerSm LoadingSpinnerSize = "sm"
+	LoadingSpinnerMd LoadingSpinnerSize = "md"
 	LoadingSpinnerLg LoadingSpinnerSize = "lg"
+	LoadingSpinnerXl LoadingSpinnerSize = "xl"
 )
 
 func LoadingSpinner(size LoadingSpinnerSize) g.Node {
 	classes := c.Classes{
 		"loading-spinner": true,
 	}
-	if size != "" {
-		classes[string(size)] = true
+
+	if size == "" {
+		size = LoadingSpinnerMd
 	}
+
+	classes[string(size)] = true
 	return h.Div(
 		InlineStyle(Assets, "/LoadingSpinner.css"),
 		classes,

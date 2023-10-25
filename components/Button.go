@@ -24,6 +24,7 @@ const (
 
 type ButtonProps struct {
 	Text       string
+	Id         string
 	ButtonType ButtonType
 	Size       ButtonSize
 	Loading    bool
@@ -41,11 +42,12 @@ func Button(p *ButtonProps) g.Node {
 		classes[string(p.Size)] = true
 	}
 	return h.Button(
-		InlineStyle(Assets, "/Button.css"),
-		g.If(p.Disabled || p.Loading, h.Disabled()),
-		g.If(p.Loading, LoadingSpinner(LoadingSpinnerXs)),
-		g.If(p.Loading, h.DataAttr("loading", "true")),
 		classes,
+		h.ID(p.Id),
+		g.If(p.Disabled || p.Loading, h.Disabled()),
+		g.If(p.Loading, LoadingSpinner(LoadingSpinnerSm)),
+		g.If(p.Loading, h.DataAttr("loading", "true")),
 		g.Text(p.Text),
+		InlineStyle(Assets, "/Button.css"),
 	)
 }
