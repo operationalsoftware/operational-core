@@ -1,27 +1,3 @@
-/*
-<div class="stats-container">
-<div class="stat-element">
-<p class="stat-heading">Active users</p>
-<div class="stat-value">
-	<span>1,234</span>
-</div>
-</div>
-<div class="stat-element">
-<p class="stat-heading">Account Balance</p>
-<div class="stat-value">
-	<span>450000</span>
-</div>
-</div>
-<div class="stat-element">
-<p class="stat-heading">Withdraw Cost</p>
-<div class="stat-value">
-	{{ icon("account") }}
-	<span>0.0001</span>
-</div>
-</div>
-</div>
-*/
-
 package components
 
 import (

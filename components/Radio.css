@@ -1,0 +1,45 @@
+me {
+  display: flex;
+}
+
+me label {
+  margin-right: var(--spacing-sm);
+}
+
+me input[type="radio"] {
+  /* Add if not using autoprefixer */
+  -webkit-appearance: none;
+  appearance: none;
+  /* For iOS < 15 to remove gradient background */
+  background-color: #fff;
+  /* Not removed via appearance */
+  margin: 0;
+  font: inherit;
+  color: var(--border-hover-color);
+  width: 1.15em;
+  height: 1.15em;
+  border: 0.15em solid currentColor;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+}
+
+me input[type="radio"]::before {
+  content: "";
+  width: 0.65em;
+  height: 0.65em;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: 200ms transform ease-in-out;
+  transform-origin: center;
+  box-shadow: inset 1em 1em var(--border-hover-color);
+}
+
+me input[type="radio"]:checked::before {
+  transform: scale(1) translateX(0.009em);
+}
+
+me input[type="radio"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}

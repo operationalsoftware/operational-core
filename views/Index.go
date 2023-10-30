@@ -31,44 +31,44 @@ func Index() g.Node {
 			}
 		</style>`),
 			o.Button(&o.ButtonProps{
-				Text:       "Button LG",
 				ButtonType: o.ButtonPrimary,
 				Size:       o.ButtonLg,
 				Loading:    false,
 				Disabled:   false,
 			},
+				g.Text("Primary"),
 			),
 			o.Button(&o.ButtonProps{
-				Text:       "Button MD",
 				ButtonType: o.ButtonSecondary,
 				Size:       "",
 				Loading:    false,
 				Disabled:   false,
 			},
+				g.Text("Secondary"),
 			),
 			o.Button(&o.ButtonProps{
-				Text:       "Button Warning",
 				ButtonType: o.ButtonWarning,
 				Size:       "",
 				Loading:    false,
 				Disabled:   false,
 			},
+				g.Text("Warning"),
 			),
 			o.Button(&o.ButtonProps{
-				Text:       "Button SM",
 				ButtonType: o.ButtonSuccess,
 				Size:       o.ButtonSm,
 				Loading:    false,
 				Disabled:   false,
 			},
+				g.Text("Success"),
 			),
 			o.Button(&o.ButtonProps{
-				Text:       "Button Loading Data Attribute",
 				ButtonType: o.ButtonSecondary,
 				Size:       o.ButtonSm,
 				Loading:    true,
 				Disabled:   false,
 			},
+				g.Text("Loading"),
 			),
 		),
 		// Loaders
@@ -96,16 +96,16 @@ func Index() g.Node {
 				}
 			</style>`),
 			o.Tooltip(&o.TooltipProps{
-				Text:     "Tooltip Right Content",
+				Text:     "Tooltip Top Content",
 				Position: "",
 			},
 				o.Button(&o.ButtonProps{
-					Text:       "Trigger Tooltip",
 					ButtonType: o.ButtonSecondary,
 					Size:       o.ButtonSm,
 					Loading:    false,
 					Disabled:   false,
 				},
+					g.Text("Tooltip Top"),
 				),
 			),
 		),
@@ -134,19 +134,68 @@ func Index() g.Node {
 		// Modal
 		o.Button(
 			&o.ButtonProps{
-				Text:       "Trigger Modal",
 				ButtonType: o.ButtonPrimary,
 				Size:       o.ButtonSm,
 				Loading:    false,
 				Disabled:   false,
-				Id:         "open-modal",
 			},
+			g.Text("Open Modal"),
+			h.ID("open-modal"),
 		),
 		o.Modal(&o.ModalProps{
 			Title:         "Sample Modal",
 			FooterContent: h.P(g.Text("This is modal footer")),
 		},
 			h.P(g.Text("This is modal content")),
+		),
+		// Progress
+		o.Card(
+			o.Progress(&o.ProgressProps{
+				Percentage: 0,
+			}, h.ID("progress-1")),
+			o.Progress(&o.ProgressProps{
+				Percentage: 0,
+				Type:       o.ProgressTypeWarning,
+			}, h.ID("progress-2")),
+			o.Progress(&o.ProgressProps{
+				Percentage: 0,
+				Type:       o.ProgressTypeDanger,
+			}, h.ID("progress-3")),
+		),
+		// Inputs
+		o.Card(
+			o.Input(&o.InputProps{
+				Size:        "",
+				Placeholder: "Small",
+				Name:        "small",
+				Label:       "Small Input",
+			}),
+			o.InputNumber(&o.InputNumberProps{
+				Size:        "",
+				Placeholder: "Small Input Number",
+				Label:       "Small Input Number",
+				Name:        "small-number",
+				HelperText:  "This is helper text",
+				HelperType:  "",
+			}),
+			o.Textarea(&o.TextareaProps{
+				Name:        "textarea",
+				Label:       "Textarea",
+				Placeholder: "Write anything",
+			}),
+			// Radio
+			o.Radio(&o.RadioProps{
+				Name:  "radio-1",
+				Label: "Radio 1",
+			}),
+			o.Radio(&o.RadioProps{
+				Name:  "radio-2",
+				Label: "Radio 2",
+			}),
+			o.Radio(&o.RadioProps{
+				Name:  "radio-3",
+				Label: "Radio 3",
+			}),
 		),
 	})
 
