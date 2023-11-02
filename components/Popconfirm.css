@@ -1,0 +1,81 @@
+/* Pop confirm */
+me {
+  position: relative;
+}
+
+me .popconfirm-content {
+  --arrow-left-position: 50%;
+  width: 300px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  opacity: 0;
+  transform: scale(0);
+  transform-origin: bottom;
+  transition: visibility 0.2s ease-in-out, opacity 0.2s ease-in-out,
+    transform 0.28s ease-in-out, box-shadow 100ms ease-in-out,
+    border 100ms ease-in-out;
+  background-color: var(--background-color-content);
+  color: var(--text-color);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-xl) var(--spacing-md);
+  box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+}
+
+me .popconfirm-content.show {
+  top: -50%;
+  left: 50%;
+  visibility: visible;
+  opacity: 1;
+  transform: scale(1) translate(-50%, -50%);
+}
+
+me .popconfirm-content:hover {
+  border: 1.5px solid var(--border-hover-color);
+  box-shadow: 0px 8px 10px rgba(0, 0, 0, 0.3);
+}
+
+me .popconfirm-content::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: var(--arrow-left-position);
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: var(--background-color-content);
+}
+
+me .popconfirm-content .popconfirm-info {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  column-gap: var(--spacing-md);
+}
+
+me .popconfirm-content .popconfirm-icon svg {
+  width: 25px;
+  height: 25px;
+  fill: var(--warning-color);
+}
+
+me .popconfirm-content .popconfirm-heading {
+  margin-bottom: var(--spacing-sm);
+  font-weight: bold;
+  font-size: var(--font-size-lg);
+}
+
+me .popconfirm-content .popconfirm-text {
+  margin-bottom: var(--spacing-md);
+  text-align: right;
+}
+
+me .popconfirm-content .popconfirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-md);
+}

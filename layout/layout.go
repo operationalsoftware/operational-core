@@ -15,6 +15,7 @@ type layoutParams struct {
 func layout(params layoutParams) []g.Node {
 	return []g.Node{
 		o.InlineStyle(Assets, "/layout.css"),
+		o.InlineScript(Assets, "/global.js"),
 		navbar(),
 		breadcrumbs(params.crumbs),
 		Main(Class("main"), params.content),

@@ -164,39 +164,82 @@ func Index() g.Node {
 		),
 		// Inputs
 		o.Card(
-			o.Input(&o.InputProps{
-				Size:        "",
-				Placeholder: "Small",
-				Name:        "small",
-				Label:       "Small Input",
-			}),
-			o.InputNumber(&o.InputNumberProps{
-				Size:        "",
-				Placeholder: "Small Input Number",
-				Label:       "Small Input Number",
-				Name:        "small-number",
-				HelperText:  "This is helper text",
-				HelperType:  "",
-			}),
-			o.Textarea(&o.TextareaProps{
-				Name:        "textarea",
-				Label:       "Textarea",
-				Placeholder: "Write anything",
-			}),
-			// Radio
-			o.Radio(&o.RadioProps{
-				Name:  "radio-1",
-				Label: "Radio 1",
-			}),
-			o.Radio(&o.RadioProps{
-				Name:  "radio-2",
-				Label: "Radio 2",
-			}),
-			o.Radio(&o.RadioProps{
-				Name:  "radio-3",
-				Label: "Radio 3",
-			}),
+			o.Form(
+				o.Input(&o.InputProps{
+					Size:        "",
+					Placeholder: "Small",
+					Name:        "small",
+					Label:       "Small Input",
+				}),
+				o.InputNumber(&o.InputNumberProps{
+					Size:        "",
+					Placeholder: "Small Input Number",
+					Label:       "Small Input Number",
+					Name:        "small-number",
+					HelperText:  "This is helper text",
+					HelperType:  "",
+				}),
+				o.Textarea(&o.TextareaProps{
+					Name:        "textarea",
+					Label:       "Textarea",
+					Placeholder: "Write anything",
+				}),
+				// Radio
+				o.Radio(&o.RadioProps{
+					Name:  "radio-1",
+					Label: "Radio 1",
+				}),
+				o.Radio(&o.RadioProps{
+					Name:  "radio-2",
+					Label: "Radio 2",
+				}),
+				o.Radio(&o.RadioProps{
+					Name:  "radio-3",
+					Label: "Radio 3",
+				}),
+				// Checkbox
+				o.Checkbox(
+					&o.CheckboxProps{
+						Name:    "checkbox-1",
+						Label:   "Checkbox 1",
+						Value:   "1",
+						Checked: true,
+					},
+				),
+			),
 		),
+		// Pop confirms
+		o.Card(
+			g.Raw(`<style>
+			  me {
+					display: flex;
+					justify-content: center;
+					align-items: center;
+				}
+			</style>`),
+			o.Popconfirm(&o.PopconfirmProps{
+				Id:      "popconfirm-1",
+				Icon:    "account",
+				Heading: "Hello world",
+				Text:    "Are you sure you want to do this!",
+				Yes:     "Yes",
+				No:      "No",
+			},
+				o.Button(
+					&o.ButtonProps{
+						ButtonType: o.ButtonPrimary,
+						Size:       o.ButtonSm,
+						Loading:    false,
+						Disabled:   false,
+						Attributes: []g.Node{
+							h.ID("open-popconfirm-1"),
+						},
+					},
+					g.Text("Open Popconfirm"),
+				),
+			),
+		),
+		o.InlineScript(Assets, "/Index.js"),
 	})
 
 	return layout.Page(layout.PageParams{

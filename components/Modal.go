@@ -38,6 +38,5 @@ func Modal(p *ModalProps, children ...g.Node) g.Node {
 			),
 		),
 		InlineStyle(Assets, "/Modal.css"),
-		InlineScript(Assets, "/Modal.js"),
 	)
 }
