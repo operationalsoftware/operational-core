@@ -23,29 +23,32 @@ const (
 )
 
 type ButtonProps struct {
+	Classes    c.Classes
 	ButtonType ButtonType
 	Size       ButtonSize
 	Loading    bool
 	Disabled   bool
-	Attributes []g.Node
 }
 
 func Button(p *ButtonProps, children ...g.Node) g.Node {
-	classes := c.Classes{
-		"primary": p.ButtonType == "", // default to primary
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
 	}
 	if p.ButtonType != "" {
-		classes[string(p.ButtonType)] = true
+		p.Classes[string(p.ButtonType)] = true
+	} else {
+		p.Classes["primary"] = true
 	}
+
 	if p.Size != "" {
-		classes[string(p.Size)] = true
+		p.Classes[string(p.Size)] = true
 	}
+
 	return h.Button(
-		classes,
+		p.Classes,
 		g.If(p.Disabled || p.Loading, h.Disabled()),
 		g.If(p.Loading, LoadingSpinner(LoadingSpinnerSm)),
 		g.If(p.Loading, h.DataAttr("loading", "true")),
-		g.Group(p.Attributes),
 		g.Group(children),
 		InlineStyle(Assets, "/Button.css"),
 	)

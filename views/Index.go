@@ -1,12 +1,89 @@
 package views
 
 import (
+	"fmt"
 	o "operationalcore/components"
 	"operationalcore/layout"
 
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
+
+type CustomDataRow struct {
+	col1 string
+	col2 string
+	col3 string
+	col4 int
+}
+
+func (t CustomDataRow) Render() map[string]o.RenderedCell {
+	return map[string]o.RenderedCell{
+		"col-1": {
+			Content: g.Text(t.col1),
+			Classes: c.Classes{
+				"table-cell": true,
+			},
+		},
+		"col-2": {
+			Content: g.Text(t.col2),
+			Classes: c.Classes{
+				"table-cell": true,
+			},
+		},
+		"col-3": {
+			Content: g.Text(t.col3),
+			Classes: c.Classes{
+				"table-cell": true,
+			},
+		},
+		"col-4": {
+			Content: g.Text(fmt.Sprint(t.col4)),
+			Classes: c.Classes{
+				"table-cell": true,
+			},
+		},
+	}
+}
+
+var columns = []o.TableColumn{
+	{
+		Name: "Column 1",
+		Key:  "col-1",
+	},
+	{
+		Name: "Column 2",
+		Key:  "col-2",
+	},
+	{
+		Name: "Column 3",
+		Key:  "col-3",
+	},
+	{
+		Name: "Column 4",
+		Key:  "col-4",
+	},
+}
+
+var props = &o.TableProps{
+	Columns: columns,
+	Data:    data,
+}
+
+var data = []o.TableRowRenderer{
+	CustomDataRow{
+		col1: "Data 1",
+		col2: "Data 2",
+		col3: "Data 3",
+		col4: 4,
+	},
+	CustomDataRow{
+		col1: "Data 1",
+		col2: "Data 2",
+		col3: "Data 3",
+		col4: 8,
+	},
+}
 
 var indexCrumb layout.Crumb = layout.Crumb{
 	Text:     "Home",
@@ -139,8 +216,10 @@ func Index() g.Node {
 				Loading:    false,
 				Disabled:   false,
 			},
-			g.Text("Open Modal"),
-			h.ID("open-modal"),
+			g.Group([]g.Node{
+				g.Text("Open Modal"),
+				h.ID("open-modal"),
+			}),
 		),
 		o.Modal(&o.ModalProps{
 			Title:         "Sample Modal",
@@ -151,14 +230,14 @@ func Index() g.Node {
 		// Progress
 		o.Card(
 			o.Progress(&o.ProgressProps{
-				Percentage: 0,
+				Percentage: 40,
 			}, h.ID("progress-1")),
 			o.Progress(&o.ProgressProps{
-				Percentage: 0,
+				Percentage: 50,
 				Type:       o.ProgressTypeWarning,
 			}, h.ID("progress-2")),
 			o.Progress(&o.ProgressProps{
-				Percentage: 0,
+				Percentage: 60,
 				Type:       o.ProgressTypeDanger,
 			}, h.ID("progress-3")),
 		),
@@ -213,7 +292,7 @@ func Index() g.Node {
 			g.Raw(`<style>
 			  me {
 					display: flex;
-					justify-content: center;
+					justify-content: flex-start;
 					align-items: center;
 				}
 			</style>`),
@@ -231,13 +310,32 @@ func Index() g.Node {
 						Size:       o.ButtonSm,
 						Loading:    false,
 						Disabled:   false,
-						Attributes: []g.Node{
-							h.ID("open-popconfirm-1"),
+						Classes: c.Classes{
+							"popconfirm-trigger": true,
 						},
 					},
 					g.Text("Open Popconfirm"),
 				),
 			),
+		),
+		// Upload button
+		o.Card(
+			o.UploadButton(
+				&o.UploadButtonProps{
+					Id: "upload-button-1",
+				},
+			),
+		),
+		// Table
+		o.Card(
+			o.Table(props),
+		),
+		// Slider
+		o.Card(
+			o.Slider(&o.SliderProps{
+				Min: "0",
+				Max: "10",
+			}),
 		),
 		o.InlineScript(Assets, "/Index.js"),
 	})

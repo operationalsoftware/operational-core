@@ -6,52 +6,43 @@ import (
 	"github.com/jessevdk/go-assets"
 )
 
-var _Assets092c1faf43196e909b1075f10477cb34abc7605c = "/* Statistic Component */\nme {\n  max-width: 300px;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  flex: 1;\n  padding: var(--spacing-xl);\n  border-radius: var(--border-radius);\n  background-color: var(--background-color-content);\n  color: var(--text-color);\n  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;\n  border: 1.5px solid var(--border-color);\n  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);\n}\n\nme:hover {\n  border-color: var(--border-hover-color);\n  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);\n}\n\nme .stat-element {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-start;\n  margin-bottom: var(--spacing-lg);\n}\n\nme .stat-heading {\n  font-size: var(--font-size-md);\n  color: var(--text-color-light);\n  margin-bottom: var(--spacing-xs);\n}\n\nme .stat-value {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\nme .stat-value .icon {\n  width: 30px;\n  height: 30px;\n  margin-right: var(--spacing-xs);\n}\n\nme .stat-value span {\n  font-size: var(--font-size-lg);\n  font-weight: bold;\n  text-align: left;\n}\n"
-var _Assets0fe6beb7fb3b7b64cd71ef16e3f8c7fd4c6954c4 = "/* Loading spinner */\nme {\n  width: 35px;\n  height: 35px;\n  mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);\n  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);\n  animation: s3 1s infinite linear;\n  border-radius: 50%;\n  background: conic-gradient(#0000 10%, var(--primary-color));\n}\n\nme.sm {\n  width: 20px;\n  height: 20px;\n  mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 0);\n  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 0);\n}\n\nme.lg {\n  width: 50px;\n  height: 50px;\n  mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);\n  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);\n}\n\nme.xl {\n  width: 75px;\n  height: 75px;\n  mask: radial-gradient(farthest-side, #0000 calc(100% - 12px), #000 0);\n  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 12px), #000 0);\n}\n\n@keyframes s3 {\n  to {\n    transform: rotate(1turn);\n  }\n}\n"
-var _Assets061d127b4f94ca3a1619f87889676b4788d16642 = "me {\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  width: 100%;\n  padding: var(--spacing-md);\n}\n"
-var _Assetsfd7b1c2498aef644472b6322502172f6deb5da8c = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z\" /></svg>"
-var _Assetsc8049e54d8c450e18295624c50106bf34a5bd072 = "me {\n  display: flex;\n  flex-direction: column;\n  gap: var(--spacing);\n  margin-bottom: var(--spacing-lg);\n}\n\nme textarea {\n  border: 1.5px solid var(--border-color-dark);\n  border-radius: var(--border-radius);\n  background-color: var(--background-color-content);\n  padding: var(--spacing);\n  font-family: var(--font-family);\n  resize: vertical;\n  transition: border-color 0.2s ease-in-out, border-width 0.2s ease-in-out,\n    box-shadow 0.2s ease-in-out;\n}\n\nme textarea:disabled {\n  background-color: var(--disabled-color);\n  cursor: not-allowed;\n}\n\nme textarea:focus-visible {\n  outline: none;\n  border-color: var(--primary-color);\n}\n"
-var _Assets8bd9efe3e913f3cfc8c2405a1ef3fab1c7e66a1f = "/* Tooltip */\nme {\n  display: inline-block;\n  position: relative; /* making the .tooltip span a container for the tooltip text */\n}\n\nme::before {\n  z-index: 1;\n  content: attr(data-content);\n  position: absolute;\n\n  top: 50%;\n  transform: translateY(-50%);\n\n  /* move to right */\n  right: initial;\n  left: 100%;\n  margin-left: var(--spacing-md);\n\n  /* basic styles */\n  width: 200px;\n  padding: var(--spacing);\n  border-radius: var(--border-radius);\n  background: #000;\n  color: #fff;\n  text-align: center;\n  visibility: hidden;\n  opacity: 0;\n  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;\n  pointer-events: none;\n}\n\nme.left::before {\n  left: initial;\n  margin: initial;\n  right: 100%;\n  margin-right: var(--spacing-md);\n}\n\nme.top::before {\n  top: initial;\n  bottom: 100%;\n  margin-bottom: var(--spacing-md);\n  transform: translateX(-50%);\n}\n\nme.bottom::before {\n  top: 100%;\n  bottom: initial;\n  margin-top: var(--spacing-md);\n  transform: translateX(-50%);\n}\n\nme::after {\n  content: \"\";\n  position: absolute;\n\n  /* position tooltip correctly */\n  left: 100%;\n  margin-left: -5px;\n\n  /* vertically center */\n  top: 50%;\n  transform: translateY(-50%);\n\n  /* the arrow */\n  border: 10px solid #000;\n  border-color: transparent black transparent transparent;\n\n  visibility: hidden;\n  opacity: 0;\n  transition: opacity 100ms ease-in-out, visibility 100ms ease-in-out;\n  pointer-events: none;\n}\n\nme.left::after {\n  left: initial;\n  right: 100%;\n  margin-right: -5px;\n  border-color: transparent transparent transparent black;\n}\n\nme.top::after {\n  top: initial;\n  bottom: 100%;\n  margin-bottom: -5px;\n  transform: translateX(-50%);\n  border-color: black transparent transparent transparent;\n}\n\nme.bottom::after {\n  top: 100%;\n  bottom: initial;\n  margin-top: -5px;\n  transform: translateX(-50%);\n  border-color: transparent transparent black transparent;\n}\n\nme:hover::before,\nme:hover::after {\n  display: inline-block;\n  visibility: visible;\n  opacity: 1;\n}\n"
-var _Assets1eb0157acf7a8aaff323f61ae64000a30cae3278 = "/* Input helper */\nme {\n  margin: var(--spacing-sm);\n  font-size: var(--font-size-xs);\n}\n\nme.success {\n  color: var(--success-color);\n}\n\nme.warning {\n  color: var(--warning-color);\n}\n\nme.error {\n  color: var(--danger-color);\n}\n"
-var _Assets1a2ff879c255da8bed76285cbc5323d0939e2c1d = "/* Pop confirm */\nme {\n  position: relative;\n}\n\nme .popconfirm-content {\n  --arrow-left-position: 50%;\n  width: 300px;\n  position: absolute;\n  top: 0;\n  left: 0;\n  visibility: hidden;\n  opacity: 0;\n  transform: scale(0);\n  transform-origin: bottom;\n  transition: visibility 0.2s ease-in-out, opacity 0.2s ease-in-out,\n    transform 0.28s ease-in-out, box-shadow 100ms ease-in-out,\n    border 100ms ease-in-out;\n  background-color: var(--background-color-content);\n  color: var(--text-color);\n  border: 1.5px solid var(--border-color);\n  border-radius: var(--border-radius);\n  padding: var(--spacing-xl) var(--spacing-md);\n  box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);\n  z-index: 9999;\n}\n\nme .popconfirm-content.show {\n  top: -50%;\n  left: 50%;\n  visibility: visible;\n  opacity: 1;\n  transform: scale(1) translate(-50%, -50%);\n}\n\nme .popconfirm-content:hover {\n  border: 1.5px solid var(--border-hover-color);\n  box-shadow: 0px 8px 10px rgba(0, 0, 0, 0.3);\n}\n\nme .popconfirm-content::after {\n  content: \"\";\n  position: absolute;\n  top: 100%;\n  left: var(--arrow-left-position);\n  transform: translateX(-50%);\n  border: 7px solid transparent;\n  border-top-color: var(--background-color-content);\n}\n\nme .popconfirm-content .popconfirm-info {\n  display: flex;\n  justify-content: flex-start;\n  align-items: center;\n  margin-bottom: var(--spacing-md);\n  column-gap: var(--spacing-md);\n}\n\nme .popconfirm-content .popconfirm-icon svg {\n  width: 25px;\n  height: 25px;\n  fill: var(--warning-color);\n}\n\nme .popconfirm-content .popconfirm-heading {\n  margin-bottom: var(--spacing-sm);\n  font-weight: bold;\n  font-size: var(--font-size-lg);\n}\n\nme .popconfirm-content .popconfirm-text {\n  margin-bottom: var(--spacing-md);\n  text-align: right;\n}\n\nme .popconfirm-content .popconfirm-actions {\n  display: flex;\n  justify-content: flex-end;\n  align-items: center;\n  gap: var(--spacing-md);\n}\n"
-var _Assets7a5e77e4cb373f48812845f452fe0498ca567170 = "/* BUTTON */\nme,\nme.primary {\n  border: var(--button-border-width) solid var(--primary-color);\n  border-radius: var(--border-radius);\n  color: var(--primary-color);\n  background-color: var(--background-color-content);\n  padding: var(--spacing-md) var(--spacing-lg);\n  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;\n  cursor: pointer;\n}\n\nme[data-loading=\"true\"] .loading-spinner {\n  margin-right: var(--spacing-sm);\n}\n\nme.secondary {\n  border: var(--button-border-width) solid var(--secondary-color);\n  color: var(--secondary-color);\n}\n\nme.danger {\n  border: var(--button-border-width) solid var(--danger-color);\n  color: var(--danger-color);\n}\n\nme.success {\n  border: var(--button-border-width) solid var(--success-color);\n  color: var(--success-color);\n}\n\nme.warning {\n  border: var(--button-border-width) solid var(--warning-color);\n  color: var(--warning-color);\n}\n\nme:hover,\nme.primary:hover {\n  background-color: var(--primary-color);\n  color: var(--text-color-contrast);\n}\n\nme.secondary:hover {\n  background-color: var(--secondary-color);\n  color: var(--text-color-contrast);\n}\n\nme.danger:hover {\n  background-color: var(--danger-color);\n  color: var(--text-color-contrast);\n}\n\nme.success:hover {\n  background-color: var(--success-color);\n  color: var(--text-color-contrast);\n}\n\nme.warning:hover {\n  background-color: var(--warning-color);\n  color: var(--text-color-contrast);\n}\n\nme:disabled,\nme:disabled:hover {\n  background-color: var(--disabled-color);\n  border-color: var(--disabled-color);\n  color: var(--text-color-light);\n  cursor: not-allowed;\n}\n\nme.small {\n  padding: var(--spacing-sm) var(--spacing-md);\n}\n\nme.large {\n  padding: var(--spacing-lg) var(--spacing-xl);\n}\n\nme[data-icon=\"true\"],\nme[data-loading=\"true\"] {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\nme .icon {\n  width: 20px;\n  height: 20px;\n  vertical-align: middle;\n}\n"
-var _Assetsa7729f94837aa0817093c5f73c6a846500ab4f72 = "me {\n  background-color: var(--background-color-content);\n  border-radius: var(--border-radius-md);\n  border: var(--card-border-width) solid var(--border-color);\n  padding: var(--spacing-md);\n}\n"
-var _Assetsa0084176b3c3ed34696e0c93f712ea4c10c94315 = "console.log(me().id);\nme().attribute(\"data-percentage\");\n"
+var _Assetsec1d45ec19ecdd18208f5902dd632ed289ca908b = "const localMe = generateMe(me());\n\nconst openPopconfirm = localMe(\".popconfirm-trigger\");\nconst popConfirmContent = localMe(\".popconfirm-content\");\nconst popConfirmYes = localMe(\".popconfirm-yes\");\nconst popConfirmNo = localMe(\".popconfirm-no\");\n\nfunction updatePopconfirmPosition() {\n  const buttonRect = openPopconfirm.getBoundingClientRect();\n  const bodyRect = document.body.getBoundingClientRect();\n  const popConfirmWidth = popConfirmContent.offsetWidth;\n\n  let left = buttonRect.left - bodyRect.left;\n  const top =\n    buttonRect.top -\n    bodyRect.top -\n    (popConfirmContent.offsetHeight * 3) / 2 -\n    10;\n  let arrowLeftPosition = popConfirmWidth / 2 + buttonRect.width / 2;\n\n  // Check if popconfirm is too close to the left edge\n  if (buttonRect.left < 10) {\n    left = popConfirmWidth / 2;\n    arrowLeftPosition = buttonRect.width / 2;\n  }\n\n  // Check if popconfirm is too close to the right edge\n  const rightEdgeDistance =\n    bodyRect.width - (buttonRect.left + buttonRect.width);\n  if (rightEdgeDistance < popConfirmWidth / 2) {\n    left = buttonRect.left - bodyRect.left - buttonRect.width / 2;\n    arrowLeftPosition = popConfirmWidth - buttonRect.width / 2;\n  }\n\n  popConfirmContent.style.setProperty(\n    \"--arrow-left-position\",\n    `${arrowLeftPosition}px`\n  );\n\n  popConfirmContent.styles({\n    left: `${left}px`,\n    top: `${top}px`,\n  });\n}\n\nopenPopconfirm.on(\"click\", () => {\n  updatePopconfirmPosition();\n  popConfirmContent.classRemove(\"hide\");\n  popConfirmContent.classAdd(\"show\");\n});\n\npopConfirmYes.on(\"click\", () => {\n  popConfirmContent.classRemove(\"show\");\n  popConfirmContent.classAdd(\"hide\");\n});\n\npopConfirmNo.on(\"click\", () => {\n  popConfirmContent.classRemove(\"show\");\n  popConfirmContent.classAdd(\"hide\");\n});\n\nwindow.addEventListener(\"resize\", () => {\n  updatePopconfirmPosition();\n});\n"
 var _Assets8350e932c9320eb7d70887a1b20e026f5d21b75b = "me {\n  display: flex;\n  flex-direction: column;\n  gap: var(--spacing);\n  margin-bottom: var(--spacing-lg);\n}\n\nme input {\n  border: 1.5px solid var(--border-color-dark);\n  border-radius: var(--border-radius);\n  background-color: var(--background-color-content);\n  padding: var(--spacing);\n  font-family: var(--font-family);\n  transition: border-color 0.2s ease-in-out, border-width 0.2s ease-in-out,\n    box-shadow 0.2s ease-in-out;\n  position: relative;\n  z-index: 1;\n}\n\nme input:hover {\n  border-color: var(--border-hover-color);\n}\n\nme input:focus-visible {\n  outline: none;\n  border-color: var(--border-hover-color);\n  box-shadow: 0 0 0.1px 0.5px var(--border-hover-color);\n}\n\nme input.sm {\n  font-size: var(--font-size-xs);\n}\n\nme input.md {\n  font-size: var(--font-size-sm);\n}\n\nme input.lg {\n  font-size: var(--font-size-md);\n}\n\nme input:disabled {\n  background-color: var(--disabled-color);\n  cursor: not-allowed;\n}\n"
-var _Assets900dec90ce34bda078405e1223b753edbd1dcb11 = "me {\n  border-radius: var(--border-radius-lg);\n  margin: var(--spacing) auto;\n  position: relative;\n}\n\nme .progress-bar {\n  width: 100%;\n  height: 12px;\n  border-radius: var(--border-radius-lg);\n  background-color: var(--border-color);\n  position: relative;\n  overflow: hidden;\n}\n\nme .progress-label {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  font-size: var(--font-size-xs);\n  font-weight: bold;\n  z-index: 1;\n}\n\nme .progress {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 0;\n  height: 100%;\n  background-color: var(--primary-color);\n  transition: width 0.2s ease-in-out;\n  border-radius: inherit;\n}\n\nme[data-type=\"success\"] .progress {\n  background-color: var(--success-color);\n}\n\nme[data-type=\"warning\"] .progress {\n  background-color: var(--warning-color);\n}\n\nme[data-type=\"danger\"] .progress {\n  background-color: var(--danger-color);\n}\n"
 var _Assets0b54eedfbd58bc6889720d70aa1d610bd11c4491 = "me {\n  display: flex;\n}\n\nme label {\n  margin-right: var(--spacing-sm);\n}\n\nme input[type=\"radio\"] {\n  /* Add if not using autoprefixer */\n  -webkit-appearance: none;\n  appearance: none;\n  /* For iOS < 15 to remove gradient background */\n  background-color: #fff;\n  /* Not removed via appearance */\n  margin: 0;\n  font: inherit;\n  color: var(--border-hover-color);\n  width: 1.15em;\n  height: 1.15em;\n  border: 0.15em solid currentColor;\n  border-radius: 50%;\n  display: grid;\n  place-content: center;\n}\n\nme input[type=\"radio\"]::before {\n  content: \"\";\n  width: 0.65em;\n  height: 0.65em;\n  border-radius: 50%;\n  transform: scale(0);\n  transition: 200ms transform ease-in-out;\n  transform-origin: center;\n  box-shadow: inset 1em 1em var(--border-hover-color);\n}\n\nme input[type=\"radio\"]:checked::before {\n  transform: scale(1) translateX(0.009em);\n}\n\nme input[type=\"radio\"]:focus {\n  outline: none;\n  border-color: var(--primary-color);\n}\n"
-var _Assets835ab29723abda1b6c53883e64bdb0a0df16131c = ""
 var _Assetsb9e42c3084e4aef44f97be2ecbeff94dfb111569 = "(function () {\n  me().on(\"mouseenter\", (ev) => {\n    const tooltip = ev.target;\n    const tooltipWidth = ev.target.offsetWidth;\n    const tooltipHeight = ev.target.offsetHeight;\n    const rect = tooltip.getBoundingClientRect();\n    // if (rect.left < tooltipWidth / 2) {\n    //   tooltip.styles({ left: \"0\" });\n    // } else if (window.innerWidth - rect.right < tooltipWidth / 2) {\n    //   tooltip.styles({ left: \"auto\", right: \"0\" });\n    // }\n    // if (rect.top < tooltipHeight) {\n    //   tooltip.style.top = \"0\";\n    // }\n  });\n})();\n"
+var _Assets1a2ff879c255da8bed76285cbc5323d0939e2c1d = "/* Pop confirm */\nme button {\n  position: relative;\n}\n\nme .popconfirm-content {\n  --arrow-left-position: 50%;\n  width: 300px;\n  position: absolute;\n  transition: visibility 0.2s ease-in-out, transform 0.2s ease-in-out,\n    opacity 0.1s ease-in-out, box-shadow 100ms ease-in-out,\n    border 100ms ease-in-out;\n  background-color: var(--background-color-content);\n  color: var(--text-color);\n  border: 1.5px solid var(--border-color);\n  border-radius: var(--border-radius);\n  padding: var(--spacing-xl) var(--spacing-md);\n  box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);\n  z-index: 9999;\n  transform-origin: var(--arrow-left-position, 50%);\n}\n\nme .popconfirm-content.hide {\n  visibility: hidden;\n  opacity: 0;\n  transform: translate(-50%, -50%) scale(0);\n}\n\nme .popconfirm-content.show {\n  visibility: visible;\n  opacity: 1;\n  transform: translate(-50%, 50%) scale(1);\n}\n\nme .popconfirm-content:hover {\n  border: 1.5px solid var(--border-hover-color);\n  box-shadow: 0px 8px 10px rgba(0, 0, 0, 0.3);\n}\n\nme .popconfirm-content::after {\n  content: \"\";\n  position: absolute;\n  top: 100%;\n  left: var(--arrow-left-position);\n  transform: translateX(-50%);\n  border: 7px solid transparent;\n  border-top-color: var(--background-color-content);\n}\n\nme .popconfirm-content .popconfirm-info {\n  display: flex;\n  justify-content: flex-start;\n  align-items: center;\n  margin-bottom: var(--spacing-md);\n  column-gap: var(--spacing-md);\n}\n\nme .popconfirm-content .popconfirm-icon svg {\n  width: 25px;\n  height: 25px;\n  fill: var(--warning-color);\n}\n\nme .popconfirm-content .popconfirm-heading {\n  margin-bottom: var(--spacing-sm);\n  font-weight: bold;\n  font-size: var(--font-size-lg);\n}\n\nme .popconfirm-content .popconfirm-text {\n  margin-bottom: var(--spacing-md);\n  text-align: right;\n}\n\nme .popconfirm-content .popconfirm-actions {\n  display: flex;\n  justify-content: flex-end;\n  align-items: center;\n  gap: var(--spacing-md);\n}\n"
+var _Assets061d127b4f94ca3a1619f87889676b4788d16642 = "me {\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  width: 100%;\n  padding: var(--spacing-md);\n}\n"
+var _Assets092c1faf43196e909b1075f10477cb34abc7605c = "/* Statistic Component */\nme {\n  max-width: 300px;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  flex: 1;\n  padding: var(--spacing-xl);\n  border-radius: var(--border-radius);\n  background-color: var(--background-color-content);\n  color: var(--text-color);\n  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;\n  border: 1.5px solid var(--border-color);\n  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);\n}\n\nme:hover {\n  border-color: var(--border-hover-color);\n  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);\n}\n\nme .stat-element {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-start;\n  margin-bottom: var(--spacing-lg);\n}\n\nme .stat-heading {\n  font-size: var(--font-size-md);\n  color: var(--text-color-light);\n  margin-bottom: var(--spacing-xs);\n}\n\nme .stat-value {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\nme .stat-value .icon {\n  width: 30px;\n  height: 30px;\n  margin-right: var(--spacing-xs);\n}\n\nme .stat-value span {\n  font-size: var(--font-size-lg);\n  font-weight: bold;\n  text-align: left;\n}\n"
+var _Assets92c600027764c39cf3a7dc827d16b4e327c7a034 = "/* Table */\nme {\n  width: 100%;\n  overflow-x: auto; /* Enable horizontal scrolling on small screens */\n}\n\nme table {\n  width: 100%;\n  border-collapse: collapse;\n}\n\n/* Optional: Add some basic styles for better readability */\nme thead {\n  background-color: var(--background-color-content);\n}\n\nme th {\n  cursor: pointer;\n}\n\nme th,\nme td {\n  padding: 8px;\n  text-align: left;\n  min-width: 70px;\n  max-width: 150px;\n  border: 1px solid #ccc;\n  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;\n}\n\nme .table-row {\n  transition: background-color 0.2s ease-in-out;\n}\n\nme .table-row:hover {\n  background-color: var(--background-color-content);\n}\n"
+var _Assets8bd9efe3e913f3cfc8c2405a1ef3fab1c7e66a1f = "/* Tooltip */\nme {\n  display: inline-block;\n  position: relative; /* making the .tooltip span a container for the tooltip text */\n}\n\nme::before {\n  z-index: 1;\n  content: attr(data-content);\n  position: absolute;\n\n  top: 50%;\n  transform: translateY(-50%);\n\n  /* move to right */\n  right: initial;\n  left: 100%;\n  margin-left: var(--spacing-md);\n\n  /* basic styles */\n  width: 200px;\n  padding: var(--spacing);\n  border-radius: var(--border-radius);\n  background: #000;\n  color: #fff;\n  text-align: center;\n  visibility: hidden;\n  opacity: 0;\n  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;\n  pointer-events: none;\n}\n\nme.left::before {\n  left: initial;\n  margin: initial;\n  right: 100%;\n  margin-right: var(--spacing-md);\n}\n\nme.top::before {\n  top: initial;\n  bottom: 100%;\n  margin-bottom: var(--spacing-md);\n  transform: translateX(-50%);\n}\n\nme.bottom::before {\n  top: 100%;\n  bottom: initial;\n  margin-top: var(--spacing-md);\n  transform: translateX(-50%);\n}\n\nme::after {\n  content: \"\";\n  position: absolute;\n\n  /* position tooltip correctly */\n  left: 100%;\n  margin-left: -5px;\n\n  /* vertically center */\n  top: 50%;\n  transform: translateY(-50%);\n\n  /* the arrow */\n  border: 10px solid #000;\n  border-color: transparent black transparent transparent;\n\n  visibility: hidden;\n  opacity: 0;\n  transition: opacity 100ms ease-in-out, visibility 100ms ease-in-out;\n  pointer-events: none;\n}\n\nme.left::after {\n  left: initial;\n  right: 100%;\n  margin-right: -5px;\n  border-color: transparent transparent transparent black;\n}\n\nme.top::after {\n  top: initial;\n  bottom: 100%;\n  margin-bottom: -5px;\n  transform: translateX(-50%);\n  border-color: black transparent transparent transparent;\n}\n\nme.bottom::after {\n  top: 100%;\n  bottom: initial;\n  margin-top: -5px;\n  transform: translateX(-50%);\n  border-color: transparent transparent black transparent;\n}\n\nme:hover::before,\nme:hover::after {\n  display: inline-block;\n  visibility: visible;\n  opacity: 1;\n}\n"
+var _Assetsfd7b1c2498aef644472b6322502172f6deb5da8c = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z\" /></svg>"
+var _Assets3a70fb3c0061dba20bda036478b10b24f0413b7d = "(function () {\n  const rangeInput = me(\"input[type='range']\");\n  const showValue = me(\".show-range-value\");\n\n  showValue.textContent = rangeInput.value;\n\n  rangeInput.on(\"input\", (e) => {\n    showValue.textContent = e.target.value;\n  });\n\n  // on(\n  //   any(\"input[type='range']\"),\n  //   \"input\",\n  //   (e) => (me(\".show-range-value\").textContent = e.target.value)\n  // );\n})();\n"
+var _Assets9e7fcbfacd49836a9a0a2f79c9d2f4eaba1a80c7 = "(function () {\n  const input = me(\".upload-button input[type=file]\");\n  const label = me(\".upload-button label\");\n  const info = me(\".upload-button .file-info\");\n  input.on(\"change\", (e) => {\n    const file = e.target.files[0];\n    if (file) {\n      label.textContent = file.name;\n      info.textContent = `${file.size} bytes`;\n    } else {\n      label.textContent = \"Choose file\";\n      info.textContent = \"No file chosen\";\n    }\n  });\n})();\n"
+var _Assets0fe6beb7fb3b7b64cd71ef16e3f8c7fd4c6954c4 = "/* Loading spinner */\nme {\n  width: 35px;\n  height: 35px;\n  mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);\n  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);\n  animation: s3 1s infinite linear;\n  border-radius: 50%;\n  background: conic-gradient(#0000 10%, var(--primary-color));\n}\n\nme.sm {\n  width: 20px;\n  height: 20px;\n  mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 0);\n  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 0);\n}\n\nme.lg {\n  width: 50px;\n  height: 50px;\n  mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);\n  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);\n}\n\nme.xl {\n  width: 75px;\n  height: 75px;\n  mask: radial-gradient(farthest-side, #0000 calc(100% - 12px), #000 0);\n  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 12px), #000 0);\n}\n\n@keyframes s3 {\n  to {\n    transform: rotate(1turn);\n  }\n}\n"
 var _Assets65ccf34f5260672bf1cf91e4b34ddfc7451bd453 = "/* Modal */\nme {\n  display: flex;\n  flex-direction: column;\n  width: 500px;\n  max-width: 100%;\n  min-height: 250px;\n  padding: var(--spacing-lg);\n  background: var(--background-color-content);\n  color: var(--text-color);\n  border-radius: var(--border-radius);\n  transform-origin: center;\n  pointer-events: none;\n  transition: opacity 0.2s ease-in-out, transform 0.35s ease-in-out;\n  border: none;\n}\n\nme:focus-within {\n  outline: none;\n}\n\n.open {\n  opacity: 1;\n  transform: scale(1);\n}\n\n.hidden {\n  opacity: 0;\n  transform: scale(0);\n}\n\nme[open] {\n  pointer-events: inherit;\n}\n\nme::backdrop {\n  background: rgba(0, 0, 0, 0.7);\n  backdrop-filter: blur(5px);\n}\n\nme .modal-header {\n  margin-bottom: var(--spacing-lg);\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\nme .close-btn {\n  cursor: pointer;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  width: 30px;\n  height: 30px;\n  border-radius: 50%;\n  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;\n}\n\nme .close-btn .icon {\n  width: 20px;\n  height: 20px;\n  fill: black;\n}\n\nme .close-btn:hover {\n  background-color: var(--border-hover-color);\n}\n\nme .close-btn:hover .icon {\n  fill: white;\n}\n\nme .modal-content {\n  margin-bottom: var(--spacing-lg);\n  flex: 1;\n}\n"
+var _Assetsa9b35e9b2956eebfe4291ec89921b4e6d221d4ad = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z\" /></svg>"
+var _Assets7a5e77e4cb373f48812845f452fe0498ca567170 = "/* BUTTON */\nme,\nme.primary {\n  border: var(--button-border-width) solid var(--primary-color);\n  border-radius: var(--border-radius);\n  color: var(--primary-color);\n  background-color: var(--background-color-content);\n  padding: var(--spacing-md) var(--spacing-lg);\n  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;\n  cursor: pointer;\n}\n\nme[data-loading=\"true\"] .loading-spinner {\n  margin-right: var(--spacing-sm);\n}\n\nme.secondary {\n  border: var(--button-border-width) solid var(--secondary-color);\n  color: var(--secondary-color);\n}\n\nme.danger {\n  border: var(--button-border-width) solid var(--danger-color);\n  color: var(--danger-color);\n}\n\nme.success {\n  border: var(--button-border-width) solid var(--success-color);\n  color: var(--success-color);\n}\n\nme.warning {\n  border: var(--button-border-width) solid var(--warning-color);\n  color: var(--warning-color);\n}\n\nme:hover,\nme.primary:hover {\n  background-color: var(--primary-color);\n  color: var(--text-color-contrast);\n}\n\nme.secondary:hover {\n  background-color: var(--secondary-color);\n  color: var(--text-color-contrast);\n}\n\nme.danger:hover {\n  background-color: var(--danger-color);\n  color: var(--text-color-contrast);\n}\n\nme.success:hover {\n  background-color: var(--success-color);\n  color: var(--text-color-contrast);\n}\n\nme.warning:hover {\n  background-color: var(--warning-color);\n  color: var(--text-color-contrast);\n}\n\nme:disabled,\nme:disabled:hover {\n  background-color: var(--disabled-color);\n  border-color: var(--disabled-color);\n  color: var(--text-color-light);\n  cursor: not-allowed;\n}\n\nme.small {\n  padding: var(--spacing-sm) var(--spacing-md);\n}\n\nme.large {\n  padding: var(--spacing-lg) var(--spacing-xl);\n}\n\nme[data-icon=\"true\"],\nme[data-loading=\"true\"] {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\nme .icon {\n  width: 20px;\n  height: 20px;\n  vertical-align: middle;\n}\n"
+var _Assets900dec90ce34bda078405e1223b753edbd1dcb11 = "me {\n  border-radius: var(--border-radius-lg);\n  margin: var(--spacing) auto;\n  position: relative;\n}\n\nme .progress-bar {\n  width: 100%;\n  height: 12px;\n  border-radius: var(--border-radius-lg);\n  background-color: var(--border-color);\n  position: relative;\n  overflow: hidden;\n}\n\nme .progress-label {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  font-size: var(--font-size-xs);\n  font-weight: bold;\n  z-index: 1;\n}\n\nme .progress {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 0;\n  height: 100%;\n  background-color: var(--primary-color);\n  transition: width 0.2s ease-in-out;\n  border-radius: inherit;\n}\n\nme[data-type=\"success\"] .progress {\n  background-color: var(--success-color);\n}\n\nme[data-type=\"warning\"] .progress {\n  background-color: var(--warning-color);\n}\n\nme[data-type=\"danger\"] .progress {\n  background-color: var(--danger-color);\n}\n"
+var _Assetsa7729f94837aa0817093c5f73c6a846500ab4f72 = "me {\n  background-color: var(--background-color-content);\n  border-radius: var(--border-radius-md);\n  border: var(--card-border-width) solid var(--border-color);\n  padding: var(--spacing-md);\n}\n"
+var _Assetsa0084176b3c3ed34696e0c93f712ea4c10c94315 = ""
+var _Assets2e99f49ece7533b50e4a08c364276a66a0684fca = "me:hover svg {\n  transform: scale(1.1) translateY(-2px);\n}\n\nme svg {\n  width: 30px;\n  height: 30px;\n  transition: transform 0.2s ease;\n}\n\nme label {\n  display: block;\n  font-size: 1.2em;\n  margin-bottom: 10px;\n  cursor: pointer;\n}\n\nme input[type=\"file\"] {\n  display: none;\n}\n\nme .file-info {\n  margin-top: 10px;\n  font-weight: bold;\n}\n"
 var _Assets473681434484be7c4a51f5324310e6cceb41f18e = "me {\n  display: flex;\n  align-items: center;\n}\n\nme input[type=\"checkbox\"] {\n  /* Add if not using autoprefixer */\n  -webkit-appearance: none;\n  appearance: none;\n  /* For iOS < 15 to remove gradient background */\n  background-color: #fff;\n  /* Not removed via appearance */\n  margin: 0;\n\n  font: inherit;\n  color: var(--border-hover-color);\n  width: 1.15em;\n  height: 1.15em;\n  border: 0.1em solid currentColor;\n  border-radius: 0.15em;\n  transform: translateY(-0.075em);\n  display: grid;\n  place-content: center;\n  cursor: pointer;\n}\n\nme input[type=\"checkbox\"]:focus {\n  outline: none;\n  border-color: var(--primary-color);\n}\n\nme input[type=\"checkbox\"]::before {\n  content: \"\";\n  width: 0.7em;\n  height: 0.7em;\n  transform: scale(0);\n  transition: 200ms transform ease-in-out;\n  box-shadow: inset 1em 1em white;\n  transform-origin: bottom left;\n  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);\n}\n\nme input[type=\"checkbox\"]:checked::before {\n  transform: scale(1);\n}\n\nme input[type=\"checkbox\"]:checked {\n  background-color: #1677ff;\n}\n\nme input[type=\"checkbox\"]:disabled {\n  cursor: not-allowed;\n  color: grey;\n}\n"
+var _Assets8daa18ba409980ee615d57f98eb2e269def38204 = "/*********** Baseline, reset styles ***********/\nme {\n  display: flex;\n  align-items: center;\n}\n\nme .show-range-value {\n  margin-left: var(--spacing-md);\n  font-size: var(--font-size-lg);\n  font-weight: var(--font-weight-heading);\n  color: var(--border-hover-color);\n}\n\nme input[type=\"range\"] {\n  -webkit-appearance: none;\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  width: 15rem;\n}\n\n/* Removes default focus */\nme input[type=\"range\"]:focus {\n  outline: none;\n}\n\n/******** Chrome, Safari, Opera and Edge Chromium styles ********/\n/* slider track */\nme input[type=\"range\"]::-webkit-slider-runnable-track {\n  background-color: var(--border-hover-color);\n  border-radius: 0.5rem;\n  height: 0.4rem;\n  transition: filter 0.2s ease-in-out;\n}\n\nme input[type=\"range\"]::-webkit-slider-runnable-track:hover {\n  filter: brightness(1.1);\n}\n\nme input[type=\"range\"]:disabled::-webkit-slider-runnable-track:hover {\n  filter: brightness(1);\n}\n\n/* slider thumb */\nme input[type=\"range\"]::-webkit-slider-thumb {\n  -webkit-appearance: none; /* Override default look */\n  appearance: none;\n  margin-top: -4px; /* Centers thumb on the track */\n  border: 3px solid var(--primary-color);\n  background-color: #fff;\n  border-radius: 0.5rem;\n  height: 1rem;\n  width: 1rem;\n  transition: transform 0.2s ease-in-out;\n}\n\nme input[type=\"range\"]::-webkit-slider-thumb:hover {\n  transform: scale(1.3);\n}\n\nme input[type=\"range\"]:focus::-webkit-slider-thumb {\n  transform: scale(1.3);\n}\n\nme input[type=\"range\"]:disabled::-webkit-slider-runnable-track {\n  background-color: var(--disabled-range-color);\n  cursor: not-allowed;\n}\n\nme input[type=\"range\"]:disabled::-webkit-slider-thumb {\n  border-color: grey;\n  cursor: not-allowed;\n}\n\nme input[type=\"range\"]:disabled::-webkit-slider-thumb:hover,\nme input[type=\"range\"]:disabled::-webkit-slider-thumb:focus {\n  transform: scale(1);\n}\n\n/*********** Firefox styles ***********/\n/* slider track */\nme input[type=\"range\"]::-moz-range-track {\n  background-color: var(--border-hover-color);\n  border-radius: 0.5rem;\n  height: 0.5rem;\n  transition: filter 0.2s ease-in-out;\n}\n\n/* slider thumb */\nme input[type=\"range\"]::-moz-range-thumb {\n  background-color: #808080;\n  border: none; /*Removes extra border that FF applies*/\n  border: 3px solid var(--primary-color);\n  background-color: #fff;\n  border-radius: 0.5rem;\n  height: 1rem;\n  width: 1rem;\n  transition: transform 0.2s ease-in-out;\n}\n\nme input[type=\"range\"]::-moz-range-thumb:hover {\n  transform: scale(1.3);\n}\n\nme input[type=\"range\"]:focus::-moz-range-thumb {\n  transform: scale(1.3);\n}\n\nme input[type=\"range\"]:disabled::-moz-range-track {\n  background-color: var(--disabled-range-color);\n  cursor: not-allowed;\n}\n\nme input[type=\"range\"]:disabled::-moz-range-thumb {\n  border-color: grey;\n  cursor: not-allowed;\n}\n\nme input[type=\"range\"]:disabled::-moz-range-thumb:hover,\nme input[type=\"range\"]:disabled::-moz-range-thumb:focus {\n  transform: scale(1);\n}\n"
+var _Assets1eb0157acf7a8aaff323f61ae64000a30cae3278 = "/* Input helper */\nme {\n  margin: var(--spacing-sm);\n  font-size: var(--font-size-xs);\n}\n\nme.success {\n  color: var(--success-color);\n}\n\nme.warning {\n  color: var(--warning-color);\n}\n\nme.error {\n  color: var(--danger-color);\n}\n"
+var _Assetsc8049e54d8c450e18295624c50106bf34a5bd072 = "me {\n  display: flex;\n  flex-direction: column;\n  gap: var(--spacing);\n  margin-bottom: var(--spacing-lg);\n}\n\nme textarea {\n  border: 1.5px solid var(--border-color-dark);\n  border-radius: var(--border-radius);\n  background-color: var(--background-color-content);\n  padding: var(--spacing);\n  font-family: var(--font-family);\n  resize: vertical;\n  transition: border-color 0.2s ease-in-out, border-width 0.2s ease-in-out,\n    box-shadow 0.2s ease-in-out;\n}\n\nme textarea:disabled {\n  background-color: var(--disabled-color);\n  cursor: not-allowed;\n}\n\nme textarea:focus-visible {\n  outline: none;\n  border-color: var(--primary-color);\n}\n"
 
 // Assets returns go-assets FileSystem
-var Assets = assets.NewFileSystem(map[string][]string{"/": []string{"Button.css", "Statistic.css", "Checkbox.css", "Radio.css", "placeholder.asset", "LoadingSpinner.css", "Tooltip.js", "Modal.css", "Tooltip.css", "InputHelper.css", "Popconfirm.css", "Form.css", "Progress.css", "Card.css", "Progress.js", "icon-svgs", "Textarea.css", "Input.css"}, "/icon-svgs": []string{"account.svg"}}, map[string]*assets.File{
-	"/Popconfirm.css": &assets.File{
-		Path:     "/Popconfirm.css",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698948724, 1698948724272404907),
-		Data:     []byte(_Assets1a2ff879c255da8bed76285cbc5323d0939e2c1d),
+var Assets = assets.NewFileSystem(map[string][]string{"/": []string{"UploadButton.css", "Button.css", "Slider.js", "UploadButton.js", "Statistic.css", "Table.css", "Checkbox.css", "Radio.css", "LoadingSpinner.css", "Tooltip.js", "Modal.css", "Tooltip.css", "Slider.css", "InputHelper.css", "Popconfirm.css", "Form.css", "Progress.css", "Card.css", "Progress.js", "icon-svgs", "Textarea.css", "Popconfirm.js", "Input.css"}, "/icon-svgs": []string{"upload.svg", "account.svg"}}, map[string]*assets.File{
+	"/": &assets.File{
+		Path:     "/",
+		FileMode: 0x800001fd,
+		Mtime:    time.Unix(1699542734, 1699542734137279529),
+		Data:     nil,
 	}, "/Button.css": &assets.File{
 		Path:     "/Button.css",
 		FileMode: 0x1b4,
 		Mtime:    time.Unix(1697648034, 1697648034021572542),
 		Data:     []byte(_Assets7a5e77e4cb373f48812845f452fe0498ca567170),
-	}, "/Tooltip.css": &assets.File{
-		Path:     "/Tooltip.css",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698159550, 1698159550113092816),
-		Data:     []byte(_Assets8bd9efe3e913f3cfc8c2405a1ef3fab1c7e66a1f),
-	}, "/InputHelper.css": &assets.File{
-		Path:     "/InputHelper.css",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698676036, 1698676036060755427),
-		Data:     []byte(_Assets1eb0157acf7a8aaff323f61ae64000a30cae3278),
-	}, "/Input.css": &assets.File{
-		Path:     "/Input.css",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698683098, 1698683098620153921),
-		Data:     []byte(_Assets8350e932c9320eb7d70887a1b20e026f5d21b75b),
 	}, "/Progress.css": &assets.File{
 		Path:     "/Progress.css",
 		FileMode: 0x1b4,
@@ -65,66 +56,111 @@ var Assets = assets.NewFileSystem(map[string][]string{"/": []string{"Button.css"
 	}, "/Progress.js": &assets.File{
 		Path:     "/Progress.js",
 		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698690370, 1698690370636077486),
+		Mtime:    time.Unix(1699542829, 1699542829521054221),
 		Data:     []byte(_Assetsa0084176b3c3ed34696e0c93f712ea4c10c94315),
-	}, "/Tooltip.js": &assets.File{
-		Path:     "/Tooltip.js",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698853929, 1698853929660188509),
-		Data:     []byte(_Assetsb9e42c3084e4aef44f97be2ecbeff94dfb111569),
-	}, "/Modal.css": &assets.File{
-		Path:     "/Modal.css",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698250367, 1698250367836375662),
-		Data:     []byte(_Assets65ccf34f5260672bf1cf91e4b34ddfc7451bd453),
 	}, "/icon-svgs": &assets.File{
 		Path:     "/icon-svgs",
 		FileMode: 0x800001fd,
-		Mtime:    time.Unix(1698852779, 1698852779138728783),
+		Mtime:    time.Unix(1699373621, 1699373621711462738),
 		Data:     nil,
+	}, "/UploadButton.css": &assets.File{
+		Path:     "/UploadButton.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1699374830, 1699374830258904450),
+		Data:     []byte(_Assets2e99f49ece7533b50e4a08c364276a66a0684fca),
 	}, "/Checkbox.css": &assets.File{
 		Path:     "/Checkbox.css",
 		FileMode: 0x1b4,
 		Mtime:    time.Unix(1698767296, 1698767296086142389),
 		Data:     []byte(_Assets473681434484be7c4a51f5324310e6cceb41f18e),
-	}, "/Radio.css": &assets.File{
-		Path:     "/Radio.css",
+	}, "/Slider.css": &assets.File{
+		Path:     "/Slider.css",
 		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698687352, 1698687352416475496),
-		Data:     []byte(_Assets0b54eedfbd58bc6889720d70aa1d610bd11c4491),
-	}, "/placeholder.asset": &assets.File{
-		Path:     "/placeholder.asset",
+		Mtime:    time.Unix(1699544656, 1699544656148992932),
+		Data:     []byte(_Assets8daa18ba409980ee615d57f98eb2e269def38204),
+	}, "/InputHelper.css": &assets.File{
+		Path:     "/InputHelper.css",
 		FileMode: 0x1b4,
-		Mtime:    time.Unix(1697643194, 1697643194260570599),
-		Data:     []byte(_Assets835ab29723abda1b6c53883e64bdb0a0df16131c),
-	}, "/LoadingSpinner.css": &assets.File{
-		Path:     "/LoadingSpinner.css",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698249131, 1698249131628670280),
-		Data:     []byte(_Assets0fe6beb7fb3b7b64cd71ef16e3f8c7fd4c6954c4),
-	}, "/Form.css": &assets.File{
-		Path:     "/Form.css",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698768433, 1698768433748297624),
-		Data:     []byte(_Assets061d127b4f94ca3a1619f87889676b4788d16642),
-	}, "/icon-svgs/account.svg": &assets.File{
-		Path:     "/icon-svgs/account.svg",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1698852779, 1698852779138728783),
-		Data:     []byte(_Assetsfd7b1c2498aef644472b6322502172f6deb5da8c),
+		Mtime:    time.Unix(1698676036, 1698676036060755427),
+		Data:     []byte(_Assets1eb0157acf7a8aaff323f61ae64000a30cae3278),
 	}, "/Textarea.css": &assets.File{
 		Path:     "/Textarea.css",
 		FileMode: 0x1b4,
 		Mtime:    time.Unix(1698684688, 1698684688078846389),
 		Data:     []byte(_Assetsc8049e54d8c450e18295624c50106bf34a5bd072),
-	}, "/": &assets.File{
-		Path:     "/",
-		FileMode: 0x800001fd,
-		Mtime:    time.Unix(1698855420, 1698855420333089674),
-		Data:     nil,
+	}, "/Popconfirm.js": &assets.File{
+		Path:     "/Popconfirm.js",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1699368064, 1699368064674141983),
+		Data:     []byte(_Assetsec1d45ec19ecdd18208f5902dd632ed289ca908b),
+	}, "/Input.css": &assets.File{
+		Path:     "/Input.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1698683098, 1698683098620153921),
+		Data:     []byte(_Assets8350e932c9320eb7d70887a1b20e026f5d21b75b),
+	}, "/Radio.css": &assets.File{
+		Path:     "/Radio.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1698687352, 1698687352416475496),
+		Data:     []byte(_Assets0b54eedfbd58bc6889720d70aa1d610bd11c4491),
+	}, "/Tooltip.js": &assets.File{
+		Path:     "/Tooltip.js",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1698853929, 1698853929660188509),
+		Data:     []byte(_Assetsb9e42c3084e4aef44f97be2ecbeff94dfb111569),
+	}, "/Popconfirm.css": &assets.File{
+		Path:     "/Popconfirm.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1699367021, 1699367021367397129),
+		Data:     []byte(_Assets1a2ff879c255da8bed76285cbc5323d0939e2c1d),
+	}, "/Form.css": &assets.File{
+		Path:     "/Form.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1698768433, 1698768433748297624),
+		Data:     []byte(_Assets061d127b4f94ca3a1619f87889676b4788d16642),
 	}, "/Statistic.css": &assets.File{
 		Path:     "/Statistic.css",
 		FileMode: 0x1b4,
 		Mtime:    time.Unix(1698156105, 1698156105762748615),
 		Data:     []byte(_Assets092c1faf43196e909b1075f10477cb34abc7605c),
+	}, "/Table.css": &assets.File{
+		Path:     "/Table.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1699539463, 1699539463608611709),
+		Data:     []byte(_Assets92c600027764c39cf3a7dc827d16b4e327c7a034),
+	}, "/Tooltip.css": &assets.File{
+		Path:     "/Tooltip.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1699540120, 1699540120740275043),
+		Data:     []byte(_Assets8bd9efe3e913f3cfc8c2405a1ef3fab1c7e66a1f),
+	}, "/icon-svgs/account.svg": &assets.File{
+		Path:     "/icon-svgs/account.svg",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1698852779, 1698852779138728783),
+		Data:     []byte(_Assetsfd7b1c2498aef644472b6322502172f6deb5da8c),
+	}, "/Slider.js": &assets.File{
+		Path:     "/Slider.js",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1699544465, 1699544465881624227),
+		Data:     []byte(_Assets3a70fb3c0061dba20bda036478b10b24f0413b7d),
+	}, "/UploadButton.js": &assets.File{
+		Path:     "/UploadButton.js",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1699377498, 1699377498618294058),
+		Data:     []byte(_Assets9e7fcbfacd49836a9a0a2f79c9d2f4eaba1a80c7),
+	}, "/LoadingSpinner.css": &assets.File{
+		Path:     "/LoadingSpinner.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1698249131, 1698249131628670280),
+		Data:     []byte(_Assets0fe6beb7fb3b7b64cd71ef16e3f8c7fd4c6954c4),
+	}, "/Modal.css": &assets.File{
+		Path:     "/Modal.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1698250367, 1698250367836375662),
+		Data:     []byte(_Assets65ccf34f5260672bf1cf91e4b34ddfc7451bd453),
+	}, "/icon-svgs/upload.svg": &assets.File{
+		Path:     "/icon-svgs/upload.svg",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1699373621, 1699373621711462738),
+		Data:     []byte(_Assetsa9b35e9b2956eebfe4291ec89921b4e6d221d4ad),
 	}}, "")

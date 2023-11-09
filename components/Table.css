@@ -1,0 +1,37 @@
+/* Table */
+me {
+  width: 100%;
+  overflow-x: auto; /* Enable horizontal scrolling on small screens */
+}
+
+me table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Optional: Add some basic styles for better readability */
+me thead {
+  background-color: var(--background-color-content);
+}
+
+me th {
+  cursor: pointer;
+}
+
+me th,
+me td {
+  padding: 8px;
+  text-align: left;
+  min-width: 70px;
+  max-width: 150px;
+  border: 1px solid #ccc;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+me .table-row {
+  transition: background-color 0.2s ease-in-out;
+}
+
+me .table-row:hover {
+  background-color: var(--background-color-content);
+}

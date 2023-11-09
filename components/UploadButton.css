@@ -1,0 +1,25 @@
+me:hover svg {
+  transform: scale(1.1) translateY(-2px);
+}
+
+me svg {
+  width: 30px;
+  height: 30px;
+  transition: transform 0.2s ease;
+}
+
+me label {
+  display: block;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+me input[type="file"] {
+  display: none;
+}
+
+me .file-info {
+  margin-top: 10px;
+  font-weight: bold;
+}
