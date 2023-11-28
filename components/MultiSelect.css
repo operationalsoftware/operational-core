@@ -1,0 +1,160 @@
+me {
+  position: relative;
+  width: 200px;
+  max-width: 100%;
+  color: #000;
+  margin-top: var(--spacing-lg);
+}
+
+me .multi-select-button {
+  width: 100%;
+  font-size: var(--font-size-md);
+  background-color: #fff;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid #caced1;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.2s ease;
+}
+
+me .multi-select-button:hover {
+  border: 1.5px solid var(--border-hover-color);
+}
+
+me .selected-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+me .selected-value {
+  background-color: var(--primary-color);
+  color: white;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+me .selected-value svg {
+  width: 17px;
+  height: 17px;
+  fill: var(--text-color-contrast);
+  transition: fill ease-in-out 0.3s;
+}
+
+me .selected-value svg:hover {
+  fill: var(--text-color-light);
+}
+
+me .arrow {
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #000;
+  transition: transform ease-in-out 0.3s;
+}
+
+me .multi-select-dropdown {
+  position: absolute;
+  list-style: none;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  border: 1px solid #caced1;
+  border-radius: var(--border-radius);
+  padding: var(--spacing);
+  margin-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  transition: 0.2s ease;
+  transform: scaleY(0);
+  opacity: 0;
+  visibility: hidden;
+  z-index: 1;
+}
+
+me.active .arrow {
+  transform: rotate(180deg);
+}
+
+me.active .multi-select-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: scaleY(1);
+}
+
+me .multi-select-dropdown:focus-within {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+me .multi-select-dropdown .option {
+  padding: var(--spacing-xs) 0;
+  margin-bottom: var(--spacing-sm);
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+me .multi-select-dropdown .option svg {
+  width: 20px;
+  height: 20px;
+  fill: white;
+  visibility: hidden;
+  margin-right: var(--spacing-md);
+}
+
+me .multi-select-dropdown .option.checked {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+me .multi-select-dropdown .option.checked svg {
+  visibility: visible;
+}
+
+me .multi-select-dropdown .option:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+me .multi-select-dropdown .option:last-child {
+  border-bottom: none;
+}
+
+me .multi-select-dropdown li label {
+  width: 100%;
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: var(--border-radius);
+}
+
+me .multi-select-dropdown::-webkit-scrollbar {
+  width: 5px;
+}
+
+me .multi-select-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 25px;
+}
+
+me .multi-select-dropdown::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 25px;
+}
+
+me .multi-select-dropdown input[type="checkbox"] {
+  position: absolute;
+  left: 0;
+  opacity: 0;
+}

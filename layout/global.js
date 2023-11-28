@@ -4,6 +4,13 @@ function generateMe(startEl) {
   };
 }
 
+function setAriaAttribute(el) {
+  el.setAttribute(
+    "aria-expanded",
+    el.getAttribute("aria-expanded") === "true" ? "false" : "true"
+  );
+}
+
 me().on("keydown", (e) => {
   if (e.key === "Escape") {
     const openModal = me("dialog.modal.open");
@@ -14,36 +21,11 @@ me().on("keydown", (e) => {
   }
 });
 
-/*
-// Popconfirm logic
-  const confirmButton = document.getElementById('confirmButton');
-  const popConfirm = document.getElementById('popconfirm');
-  const confirmYes = document.getElementById('confirmYes');
-  const confirmNo = document.getElementById('confirmNo');
-
-  confirmButton.addEventListener('click', () => {
-    const buttonRect = confirmButton.getBoundingClientRect();
-    const bodyRect = document.body.getBoundingClientRect();
-
-    const top = buttonRect.top - bodyRect.top - popConfirm.offsetHeight - 10;
-    const left = buttonRect.left - bodyRect.left - (popConfirm.offsetWidth - buttonRect.width) / 2;
-
-    popConfirm.style.top = `${top}px`;
-    popConfirm.style.left = `${left}px`;
-
-    popConfirm.classList.add('show');
-  });
-
-  confirmYes.addEventListener('click', () => {
-    showToast('You clicked yes');
-    popConfirm.classList.remove('show');
-  });
-
-  confirmNo.addEventListener('click', () => {
-    showToast('You clicked no');
-    popConfirm.classList.remove('show');
-  });
-*/
+function createIcon(iconString) {
+  const domParser = new DOMParser();
+  const iconDoc = domParser.parseFromString(iconString, "image/svg+xml");
+  return iconDoc.documentElement;
+}
 
 function openModal(el) {
   me("body").styles({ overflow: "hidden" });

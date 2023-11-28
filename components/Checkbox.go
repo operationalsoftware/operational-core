@@ -23,6 +23,7 @@ func Checkbox(p *CheckboxProps, children ...g.Node) g.Node {
 			h.ID(p.Name),
 			h.Value(p.Value),
 			g.If(p.Checked, g.Attr("checked", "true")),
+			g.If(!p.Checked, g.Attr("checked", "false")),
 		),
 		InlineStyle(Assets, "/Checkbox.css"),
 	)

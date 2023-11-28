@@ -7,7 +7,10 @@ require (
 	github.com/gorilla/mux v1.8.0
 )
 
-require github.com/maragudk/gomponents v0.20.1 // indirect
+require (
+	github.com/maragudk/gomponents v0.20.1 // indirect
+	github.com/maragudk/gomponents-htmx v0.4.0 // indirect
+)
 
 require (
 	github.com/felixge/httpsnoop v1.0.1 // indirect

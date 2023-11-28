@@ -16,6 +16,11 @@ func AppRouter() *mux.Router {
 		_ = views.Index().Render(w)
 	})
 
+	// Form router
+	r.HandleFunc("/form", func(w http.ResponseWriter, r *http.Request) {
+		_ = views.Form().Render(w)
+	})
+
 	// module routers
 	addContactsRouter(r)
 

@@ -337,6 +337,21 @@ func Index() g.Node {
 				Max: "10",
 			}),
 		),
+		// Select
+		o.Card(
+			o.Select(&o.SelectProps{
+				Options: []o.Option{
+					{
+						Label: "Option 1",
+						Value: "option-1",
+					},
+					{
+						Label: "Option 2",
+						Value: "option-2",
+					},
+				},
+			}),
+		),
 		o.InlineScript(Assets, "/Index.js"),
 	})
 

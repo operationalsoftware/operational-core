@@ -48,6 +48,7 @@ func Page(params PageParams) g.Node {
 	scriptUrls := []string{
 		"https://cdn.jsdelivr.net/gh/gnat/surreal/surreal.js",
 		"https://cdn.jsdelivr.net/gh/gnat/css-scope-inline/script.js",
+		"/js/htmx.min.js",
 	}
 	head = append(head, g.Map(scriptUrls, script)...)
 
