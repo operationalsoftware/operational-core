@@ -14,22 +14,7 @@ var _Assetsf2962b763da34337e494322f4ff6ea85a3cb804b = "me {\n  height: 30px;\n  
 
 // Assets returns go-assets FileSystem
 var Assets = assets.NewFileSystem(map[string][]string{"/": []string{"layout.css", "footer.css", "global.js", "navbar.css", "breadcrumbs.css"}}, map[string]*assets.File{
-	"/global.js": &assets.File{
-		Path:     "/global.js",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1700068564, 1700068564058438973),
-		Data:     []byte(_Assetsac50f5ae9fbaaf0afb9e8e49488ce346bbb994ed),
-	}, "/navbar.css": &assets.File{
-		Path:     "/navbar.css",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1697643194, 1697643194260570599),
-		Data:     []byte(_Assets4ced01a70d4c76f05f76b3ea328abe2356b805de),
-	}, "/breadcrumbs.css": &assets.File{
-		Path:     "/breadcrumbs.css",
-		FileMode: 0x1b4,
-		Mtime:    time.Unix(1697643194, 1697643194260570599),
-		Data:     []byte(_Assets8466ed20315f3bc808e945b0b594f15aad744e3c),
-	}, "/": &assets.File{
+	"/": &assets.File{
 		Path:     "/",
 		FileMode: 0x800001fd,
 		Mtime:    time.Unix(1698772547, 1698772547473844933),
@@ -44,4 +29,19 @@ var Assets = assets.NewFileSystem(map[string][]string{"/": []string{"layout.css"
 		FileMode: 0x1b4,
 		Mtime:    time.Unix(1697643194, 1697643194260570599),
 		Data:     []byte(_Assetsf2962b763da34337e494322f4ff6ea85a3cb804b),
+	}, "/global.js": &assets.File{
+		Path:     "/global.js",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1700068564, 1700068564058438973),
+		Data:     []byte(_Assetsac50f5ae9fbaaf0afb9e8e49488ce346bbb994ed),
+	}, "/navbar.css": &assets.File{
+		Path:     "/navbar.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1697643194, 1697643194260570599),
+		Data:     []byte(_Assets4ced01a70d4c76f05f76b3ea328abe2356b805de),
+	}, "/breadcrumbs.css": &assets.File{
+		Path:     "/breadcrumbs.css",
+		FileMode: 0x1b4,
+		Mtime:    time.Unix(1697643194, 1697643194260570599),
+		Data:     []byte(_Assets8466ed20315f3bc808e945b0b594f15aad744e3c),
 	}}, "")

@@ -26,21 +26,27 @@ func Form() g.Node {
 				Name:        "text",
 				Placeholder: "Enter text",
 			}),
-			o.Select(&o.SelectProps{
-				Options: []o.Option{
-					{Value: "1", Label: "One"},
-					{Value: "2", Label: "Two"},
-					{Value: "3", Label: "Three"},
-				},
-			}),
 
-			o.MultiSelect(&o.MultiSelectProps{
+			o.Select(&o.SelectProps{
+				Name: "single-select",
 				Options: []o.Option{
 					{Value: "1", Label: "One"},
 					{Value: "2", Label: "Two"},
 					{Value: "3", Label: "Three"},
 					{Value: "hello-world", Label: "Hello world"},
 				},
+				Multiple: false,
+			}),
+
+			o.Select(&o.SelectProps{
+				Name: "multi-select",
+				Options: []o.Option{
+					{Value: "1", Label: "One"},
+					{Value: "2", Label: "Two"},
+					{Value: "3", Label: "Three"},
+					{Value: "hello-world", Label: "Hello world"},
+				},
+				Multiple: true,
 			}),
 
 			o.SearchSelect(&o.SearchSelectProps{
@@ -51,6 +57,8 @@ func Form() g.Node {
 					{Value: "3", Label: "Three"},
 					{Value: "hello-world", Label: "Hello world"},
 				},
+				OptionUrl: "/options",
+				Multiple:  true,
 			}),
 
 			o.Button(&o.ButtonProps{}, h.Type("submit"), g.Text("Submit")),

@@ -2,26 +2,40 @@ package components
 
 import (
 	g "github.com/maragudk/gomponents"
+	ghtmx "github.com/maragudk/gomponents-htmx"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
 type SearchSelectProps struct {
-	Name    string
-	Options []Option
+	Name      string
+	Options   []Option
+	Classes   c.Classes
+	ID        string
+	OptionUrl string
+	Multiple  bool
 }
 
 func SearchSelect(p *SearchSelectProps) g.Node {
-	classes := c.Classes{
-		"search-select": true,
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
 	}
+
+	p.Classes["search-select"] = true
 
 	if p.Name == "" {
 		p.Name = "search-select"
 	}
 
+	if p.ID == "" {
+		p.ID = "search-select-dropdown"
+	} else {
+		p.ID = p.ID + "-search-select-dropdown"
+	}
+
 	return h.Div(
-		classes,
+		p.Classes,
+		g.If(p.Multiple, h.DataAttr("multiple", "true")),
 		h.Role("combobox"),
 		h.Aria("labelledby", "search-select button"),
 		h.Aria("haspopup", "listbox"),
@@ -36,30 +50,24 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 		h.Div(
 			h.Class("content-container"),
 			h.Div(
-			// h.Class("selected-values"),
-			// h.Div(
-			// 	h.Class("selected-value"),
-			// 	h.Span(
-			// 		g.Text("One"),
-			// 	),
-			// ),
+				h.Class("selected-values"),
 			),
 			h.Input(
 				h.Type("search"),
 				h.Aria("autocomplete", "off"),
 				h.Aria("label", "search-select button"),
-				h.Aria("controls", "search-select-dropdown"),
+				h.Aria("controls", p.ID),
 				h.Aria("haspopup", "listbox"),
 				h.Aria("expanded", "false"),
 				h.Aria("role", "combobox"),
+				h.Name("search-value"),
+				ghtmx.Post(p.OptionUrl),
+				ghtmx.Trigger("keyup changed delay:500ms"),
+				ghtmx.Target(".search-select-dropdown"),
+				ghtmx.Swap("outerHTML"),
 			),
 		),
-		h.Ul(
-			h.Class("search-select-dropdown"),
-			h.Role("listbox"),
-			h.ID("search-select-dropdown"),
-			g.Group(g.Map(p.Options, MultiSelectOptions)),
-		),
+		MultiSelectOptions(p.Options, "search-select-dropdown", p.ID),
 		InlineStyle(Assets, "/SearchSelect.css"),
 		InlineScript(Assets, "/SearchSelect.js"),
 	)

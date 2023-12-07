@@ -12,17 +12,58 @@ type Option struct {
 }
 
 type SelectProps struct {
-	Options []Option
-	Name    string
+	Options  []Option
+	Name     string
+	ID       string
+	Multiple bool
 }
 
-func renderOptions(o Option) g.Node {
-	return h.Li(
-		h.Role("option"),
-		Radio(&RadioProps{
-			Name:  o.Value,
-			Label: o.Label,
-		}),
+func SelectOptions(o []Option, class, ID string) g.Node {
+	return h.Ul(
+		h.Class(class),
+		h.Role("listbox"),
+		h.ID(ID),
+		g.Group(g.Map(o, func(o Option) g.Node {
+			return h.Li(
+				h.Role("option"),
+				h.Div(
+					h.Label(
+						h.For(o.Value),
+						g.Text(o.Label),
+					),
+					h.Input(
+						h.Type("radio"),
+						h.ID(o.Value),
+					),
+				),
+			)
+		})),
+	)
+}
+
+func MultiSelectOptions(o []Option, class, ID string) g.Node {
+	return h.Ul(
+		h.Class(class),
+		h.Role("listbox"),
+		h.ID(ID),
+		g.Group(g.Map(o, func(o Option) g.Node {
+			return h.Div(
+				h.Class("option"),
+				h.Li(
+					h.Role("option"),
+					h.Label(
+						h.For(o.Value),
+						g.Text(o.Label),
+					),
+					h.Input(
+						h.Type("checkbox"),
+						h.Value(o.Value),
+						g.Attr("checked", "false"),
+					),
+				),
+				Icon("check"),
+			)
+		})),
 	)
 }
 
@@ -31,34 +72,45 @@ func Select(p *SelectProps) g.Node {
 		"custom-select": true,
 	}
 
-	if p.Name == "" {
+	if p.Name == "" && !p.Multiple {
 		p.Name = "select"
+	} else if p.Name == "" && p.Multiple {
+		p.Name = "multi-select"
 	}
+
+	if p.ID == "" && !p.Multiple {
+		p.ID = "select"
+	} else if p.ID == "" && p.Multiple {
+		p.ID = "multi-select"
+	}
+
+	dropdownId := p.ID + "-dropdown"
 
 	return h.Div(
 		classes,
+		h.ID(p.ID),
+		g.If(p.Multiple, h.DataAttr("multiple", "true")),
 		h.Div(
-			h.Class("select-button"),
+			g.If(!p.Multiple, h.Class("select-button")),
+			g.If(p.Multiple, h.Class("multi-select-button")),
 			h.Role("combobox"),
-			h.Aria("labelledby", "select button"),
+			g.If(!p.Multiple, h.Aria("labelledby", "select button")),
+			g.If(p.Multiple, h.Aria("labelledby", "multi-select button")),
 			h.Aria("haspopup", "listbox"),
 			h.Aria("expanded", "false"),
-			h.Aria("controls", "select-dropdown"),
+			h.Aria("controls", dropdownId),
 			h.Input(
 				h.Type("hidden"),
 				h.Class("hidden-input"),
 				h.Name(p.Name),
 				h.Value(""),
 			),
-			h.Span(h.Class("default-value"), g.Text("")),
+			g.If(!p.Multiple, h.Span(h.Class("default-value"), g.Text(""))),
+			g.If(p.Multiple, h.Div(h.Class("selected-values"))),
 			h.Span(h.Class("arrow")),
 		),
-		h.Ul(
-			h.Class("select-dropdown"),
-			h.Role("listbox"),
-			h.ID("select-dropdown"),
-			g.Group(g.Map(p.Options, renderOptions)),
-		),
+		g.If(!p.Multiple, SelectOptions(p.Options, "select-dropdown", dropdownId)),
+		g.If(p.Multiple, MultiSelectOptions(p.Options, "multi-select-dropdown", dropdownId)),
 		InlineStyle(Assets, "/Select.css"),
 		InlineScript(Assets, "/Select.js"),
 	)
