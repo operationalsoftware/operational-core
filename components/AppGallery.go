@@ -1,0 +1,104 @@
+package components
+
+import (
+	g "github.com/maragudk/gomponents"
+	ghtmx "github.com/maragudk/gomponents-htmx"
+	c "github.com/maragudk/gomponents/components"
+	h "github.com/maragudk/gomponents/html"
+)
+
+type Items struct {
+	Icon string
+	Name string
+	Link string
+}
+
+func AppGallery() g.Node {
+	classes := c.Classes{
+		"app-gallery": true,
+	}
+
+	// icons array
+	icons := []Items{
+		{
+			Icon: "github",
+			Name: "Github",
+			Link: "https://www.github.com",
+		},
+		{
+			Icon: "twitter",
+			Name: "Twitter",
+			Link: "https://www.twitter.com",
+		},
+		{
+			Icon: "facebook",
+			Name: "Facebook",
+			Link: "https://www.facebook.com",
+		},
+		{
+			Icon: "twitter",
+			Name: "Twitter",
+			Link: "https://www.twitter.com",
+		},
+		{
+			Icon: "twitch",
+			Name: "Twitch",
+			Link: "https://www.twitch.com",
+		},
+		{
+			Icon: "youtube",
+			Name: "Youtube",
+			Link: "https://www.youtube.com",
+		},
+		{
+			Icon: "google-play",
+			Name: "Google Play",
+			Link: "https://www.google.com",
+		},
+		{
+			Icon: "google-drive",
+			Name: "Google Drive",
+			Link: "https://www.google.com",
+		},
+		{
+			Icon: "google-ads",
+			Name: "Google Ads",
+			Link: "https://www.google.com",
+		},
+		{
+			Icon: "google-analytics",
+			Name: "Google Analytics",
+			Link: "https://www.google.com",
+		},
+	}
+
+	return h.Div(
+		classes,
+		h.Div(
+			h.Class("app-gallery__button"),
+			Icon("dots"),
+			// use htmx to toggle class
+			ghtmx.On("click", "htmx.toggleClass(htmx.find('.app-gallery-content__container'), 'show')"),
+		),
+		h.Div(
+			h.Class("app-gallery-content__container"),
+			h.Div(
+				h.Class("app-gallery-content__items"),
+				g.Group(g.Map(icons, func(i Items) g.Node {
+					return h.A(
+						h.Class("app-gallery-content__item"),
+						h.Href(i.Link),
+						h.Target("_blank"),
+						Icon(i.Icon),
+						h.Div(
+							h.Class("app-gallery-content__item-name"),
+							g.Text(i.Name),
+						),
+					)
+				})),
+			),
+		),
+		InlineStyle(Assets, "/AppGallery.css"),
+		InlineScript(Assets, "/AppGallery.js"),
+	)
+}

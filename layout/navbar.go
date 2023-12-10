@@ -13,12 +13,19 @@ func navbar() g.Node {
 			Assets, "/navbar.css",
 		),
 		Div(
-			Class("logo-container"),
-			A(Href("/"),
-				Img(
-					Alt("Logo"),
-					Src("/img/logo.png"),
+			Class("nav_links-container"),
+			Div(
+				Class("logo-container"),
+				A(Href("/"),
+					Img(
+						Alt("Logo"),
+						Src("/img/logo.png"),
+					),
 				),
+			),
+			Div(
+				Class("nav_links"),
+				o.AppGallery(),
 			),
 		),
 	)

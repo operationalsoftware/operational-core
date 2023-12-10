@@ -1,9 +1,15 @@
 me {
   height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   background-color: var(--primary-color);
+}
+
+me .nav_links-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing);
 }
 
 me .logo-container {
@@ -13,5 +19,4 @@ me .logo-container {
 
 me .logo-container img {
   height: 100%;
-  width: auto;
 }
