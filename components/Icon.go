@@ -4,10 +4,23 @@ import (
 	"io"
 
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
+	h "github.com/maragudk/gomponents/html"
 )
 
-func Icon(identifier string) g.Node {
-	file, err := Assets.Open("/icon-svgs/" + identifier + ".svg")
+type IconProps struct {
+	Identifier string
+	Classes    c.Classes
+}
+
+func Icon(p *IconProps) g.Node {
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
+	}
+
+	p.Classes["icon"] = true
+
+	file, err := Assets.Open("/icon-svgs/" + p.Identifier + ".svg")
 	if err != nil {
 		panic(err)
 	}
@@ -21,5 +34,11 @@ func Icon(identifier string) g.Node {
 	// Convert the byte slice to a string
 	svgString := string(fileBytes)
 
-	return g.Raw(svgString)
+	// svg component
+	svg := h.SVG(
+		p.Classes,
+		g.Raw(svgString),
+	)
+
+	return svg
 }

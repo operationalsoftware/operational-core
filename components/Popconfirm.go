@@ -29,7 +29,9 @@ func Popconfirm(p *PopconfirmProps, children ...g.Node) g.Node {
 				h.Class("popconfirm-info"),
 				h.P(
 					h.Class("popconfirm-icon"),
-					Icon(p.Icon),
+					Icon(&IconProps{
+						Identifier: p.Icon,
+					}),
 				),
 				h.P(
 					h.Class("popconfirm-heading"),

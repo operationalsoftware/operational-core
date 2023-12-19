@@ -61,7 +61,9 @@ func MultiSelectOptions(o []Option, class, ID string) g.Node {
 						g.Attr("checked", "false"),
 					),
 				),
-				Icon("check"),
+				Icon(&IconProps{
+					Identifier: "check",
+				}),
 			)
 		})),
 	)

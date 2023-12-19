@@ -13,6 +13,7 @@ me .app-gallery__button {
 me .app-gallery__button svg {
   width: 50px;
   height: 50px;
+  fill: white;
   padding: var(--spacing-sm);
   border-radius: 50%;
   transition: background-color 0.2s ease-in-out;
@@ -28,13 +29,28 @@ me .app-gallery-content__container {
   transform: scale(0);
   transform-origin: top right;
   width: 300px;
+  max-height: 260px;
+  overflow-y: auto;
   padding: var(--spacing);
-  overflow: hidden;
   background-color: var(--background-color);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
   z-index: 10;
   transition: transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+me .app-gallery-content__container::-webkit-scrollbar {
+  width: 5px;
+}
+
+me .app-gallery-content__container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 25px;
+}
+
+me .app-gallery-content__container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 25px;
 }
 
 me .app-gallery-content__container.show {
@@ -48,7 +64,6 @@ me .app-gallery-content__items {
   border-radius: var(--border-radius);
   display: grid;
   justify-items: center;
-  /* align-items: center; */
   grid-template-columns: repeat(4, minmax(50px, 1fr));
   row-gap: var(--spacing-md);
   column-gap: var(--spacing-sm);

@@ -50,7 +50,19 @@ func Form() g.Node {
 			}),
 
 			o.SearchSelect(&o.SearchSelectProps{
-				Name: "search-select",
+				Name: "single-search-select",
+				Options: []o.Option{
+					{Value: "1", Label: "One"},
+					{Value: "2", Label: "Two"},
+					{Value: "3", Label: "Three"},
+					{Value: "hello-world", Label: "Hello world"},
+				},
+				OptionUrl: "/options",
+				Multiple:  false,
+			}),
+
+			o.SearchSelect(&o.SearchSelectProps{
+				Name: "multi-search-select",
 				Options: []o.Option{
 					{Value: "1", Label: "One"},
 					{Value: "2", Label: "Two"},

@@ -19,7 +19,9 @@ func UploadButton(p *UploadButtonProps) g.Node {
 			"upload-button": true,
 		},
 	}, g.Group([]g.Node{
-		Icon("upload"),
+		Icon(&IconProps{
+			Identifier: "upload",
+		}),
 		InputLabel(&InputLabelProps{
 			For: p.Id,
 		}, g.Text("Choose a file")),

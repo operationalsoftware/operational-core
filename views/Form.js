@@ -19,13 +19,16 @@
     const data = Object.fromEntries(formData);
     // Get the multi-select values
     const multiSelectValues = JSON.parse(data["multi-select"], reviver);
-    const searchSelectValues = JSON.parse(data["search-select"], reviver);
+    const multiSearchSelectValues = JSON.parse(
+      data["multi-search-select"],
+      reviver
+    );
     // Remove the multi-select from the form data
     delete data["multi-select"];
-    delete data["search-select"];
+    delete data["multi-search-select"];
     // Add the multi-select values to the form data
     data["multi-select"] = multiSelectValues;
-    data["search-select"] = searchSelectValues;
+    data["multi-search-select"] = multiSearchSelectValues;
     // Log the form data
     console.log(data);
   });

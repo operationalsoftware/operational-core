@@ -19,12 +19,22 @@ type InputProps struct {
 	Name        string
 	Label       string
 	Placeholder string
-	HelperType  InputHelperType
 	HelperText  string
+	InputType   string
+	HelperType  InputHelperType
+	InputProps  []g.Node
 }
 
 func Input(p *InputProps, children ...g.Node) g.Node {
 	classes := c.Classes{}
+
+	if p.InputType == "" {
+		p.InputType = "text"
+	}
+
+	if p.InputProps == nil {
+		p.InputProps = []g.Node{}
+	}
 
 	if p.Size == "" {
 		p.Size = InputSizeMedium
@@ -43,13 +53,14 @@ func Input(p *InputProps, children ...g.Node) g.Node {
 			h.Name(p.Name),
 			h.ID(p.Name),
 			h.Placeholder(p.Placeholder),
-			h.Type("text"),
-			g.Group(children),
+			h.Type(p.InputType),
+			g.Group(p.InputProps),
 		),
 		g.If(p.HelperText != "", InputHelper(&InputHelperProps{
 			Label: p.HelperText,
 			Type:  p.HelperType,
 		})),
+		g.Group(children),
 		InlineStyle(Assets, "/Input.css"),
 	)
 }

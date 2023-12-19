@@ -7,3 +7,6 @@ operationalcore
 
 # built go assets
 **/assets.go
+
+# sqlite database
+/db/*.db

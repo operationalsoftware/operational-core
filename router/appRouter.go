@@ -45,7 +45,7 @@ func AppRouter() *mux.Router {
 	})
 
 	// module routers
-	addContactsRouter(r)
+	AddUserRouter(r)
 
 	// static assets file server
 	staticFS := http.FileServer(static.Assets)

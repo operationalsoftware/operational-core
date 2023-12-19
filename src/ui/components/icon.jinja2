@@ -1,8 +1,0 @@
-{# Dynamically fetches an icon given the name of the filename (without ext) in icon-paths #}
-{# All icon paths are from https://pictogrammers.com/library/mdi/ #}
-
-{% macro icon(icon_name) -%}
-<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  {%- include "components/icon-paths/"+icon_name+".svg" -%}
-</svg>
-{%- endmacro %}

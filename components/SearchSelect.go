@@ -21,7 +21,11 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 		p.Classes = c.Classes{}
 	}
 
-	p.Classes["search-select"] = true
+	if p.Multiple {
+		p.Classes["search-select"] = true
+	} else {
+		p.Classes["search-select-single"] = true
+	}
 
 	if p.Name == "" {
 		p.Name = "search-select"
@@ -49,9 +53,9 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 		),
 		h.Div(
 			h.Class("content-container"),
-			h.Div(
+			g.If(p.Multiple, h.Div(
 				h.Class("selected-values"),
-			),
+			)),
 			h.Input(
 				h.Type("search"),
 				h.Aria("autocomplete", "off"),
@@ -66,6 +70,7 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 				ghtmx.Target(".search-select-dropdown"),
 				ghtmx.Swap("outerHTML"),
 			),
+			g.If(!p.Multiple, h.Span(h.Class("arrow"))),
 		),
 		MultiSelectOptions(p.Options, "search-select-dropdown", p.ID),
 		InlineStyle(Assets, "/SearchSelect.css"),
