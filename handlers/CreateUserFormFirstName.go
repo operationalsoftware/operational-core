@@ -19,7 +19,7 @@ func CreateUserFormFirstName(w http.ResponseWriter, r *http.Request) {
 	var helperText string
 
 	if err != nil {
-		helperText = err.Error()
+		helperText = "First name must be between 3 and 20 characters"
 	}
 
 	_ = partials.CreateUserFirstNameInput(&partials.CreateUserFirstNameInputProps{

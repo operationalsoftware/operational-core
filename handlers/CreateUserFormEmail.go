@@ -19,7 +19,7 @@ func CreateUserFormEmail(w http.ResponseWriter, r *http.Request) {
 	var helperText string
 
 	if err != nil {
-		helperText = "Email is required"
+		helperText = "Email must be a valid email address"
 	}
 
 	_ = partials.CreateUserEmailInput(&partials.CreateUserEmailInputProps{

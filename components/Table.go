@@ -26,7 +26,7 @@ type TableProps struct {
 	Data    []TableRowRenderer
 }
 
-func renderColumns(columns []TableColumn) g.Node {
+func renderHead(columns []TableColumn) g.Node {
 	return g.Group(g.Map(columns, func(c TableColumn) g.Node {
 		return h.Th(
 			h.Class("table-head"),
@@ -39,13 +39,19 @@ func renderRows(p *TableProps) g.Node {
 	return g.Group(g.Map(p.Data, func(d TableRowRenderer) g.Node {
 		return h.Tr(
 			h.Class("table-row"),
-			g.Group(g.Map(p.Columns, func(c TableColumn) g.Node {
-				renderKey := c.Key
+			g.Group(g.Map(p.Columns, func(col TableColumn) g.Node {
+				renderKey := col.Key
 				if renderKey == "" {
-					renderKey = c.Key
+					panic("TableColumn.Key must be set")
 				}
 
 				renderedCell := d.Render()[renderKey]
+
+				if renderedCell.Classes == nil {
+					renderedCell.Classes = c.Classes{}
+				}
+
+				renderedCell.Classes["table-cell"] = true
 
 				return h.Td(
 					renderedCell.Classes,
@@ -66,7 +72,7 @@ func Table(p *TableProps) g.Node {
 		h.Table(
 			h.THead(
 				h.Tr(
-					renderColumns(p.Columns),
+					renderHead(p.Columns),
 				),
 			),
 			h.TBody(

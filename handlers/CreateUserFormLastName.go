@@ -10,16 +10,14 @@ import (
 func CreateUserFormLastName(w http.ResponseWriter, r *http.Request) {
 	lastName := r.FormValue("last_name")
 
-	var validate *validator.Validate
+	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	validate = validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Var(lastName, "required,gte=3,lte=20")
+	err := validate.Var(lastName, `required,min=3,max=20`)
 
 	var helperText string
 
 	if err != nil {
-		helperText = "Last name is required"
+		helperText = "Last name must be between 3 and 20 characters"
 	}
 
 	_ = partials.CreateUserLastNameInput(&partials.CreateUserLastNameInputProps{

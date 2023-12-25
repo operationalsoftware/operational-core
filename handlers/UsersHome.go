@@ -6,5 +6,5 @@ import (
 )
 
 func UsersHome(w http.ResponseWriter, r *http.Request) {
-	_ = views.ViewUser().Render(w)
+	_ = views.Users().Render(w)
 }

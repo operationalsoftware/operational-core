@@ -14,12 +14,12 @@ func CreateUserFormUsername(w http.ResponseWriter, r *http.Request) {
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
-	err := validate.Var(username, "required,gte=3,lte=20")
+	err := validate.Var(username, "required,gte=3,lte=20,unique")
 
 	var helperText string
 
 	if err != nil {
-		helperText = "Username is required"
+		helperText = "Username must be between 3 and 20 characters"
 	}
 
 	_ = partials.CreateUserUsernameInput(&partials.CreateUserUsernameInputProps{

@@ -1,0 +1,39 @@
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit-btn {
+  display: block;
+  background-color: var(--primary-color);
+  margin-right: var(--spacing);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.edit-btn .icon {
+  width: 40px;
+  height: 40px;
+  fill: var(--text-color-contrast);
+  transition: fill 0.2s ease-in-out;
+}
+
+.edit-btn:hover {
+  background-color: var(--background-color-grey);
+}
+
+.edit-btn:hover .icon {
+  fill: var(--primary-color);
+}
+
+.grid-table {
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+}
+
+.grid-table > span {
+  padding: var(--spacing);
+}
