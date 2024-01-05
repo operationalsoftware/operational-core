@@ -10,9 +10,7 @@ import (
 func CreateUserFormEmail(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 
-	var validate *validator.Validate
-
-	validate = validator.New(validator.WithRequiredStructEnabled())
+	validate := validator.New(validator.WithRequiredStructEnabled())
 
 	err := validate.Var(email, "required,email")
 

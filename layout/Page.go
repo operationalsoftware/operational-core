@@ -28,14 +28,14 @@ func Page(params PageParams) g.Node {
 	head := []g.Node{
 		Meta(Charset("utf-8")),
 		Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
-		Link(Rel("manifest"), Href("/manifest.json")),
+		Link(Rel("manifest"), Href("/static/manifest.json")),
 	}
 
 	// Add common css
 	cssUrls := []string{
-		"/css/reset.css",
-		"/css/variables.css",
-		"/css/global.css",
+		"/static/css/reset.css",
+		"/static/css/variables.css",
+		"/static/css/global.css",
 	}
 	head = append(head, g.Map(cssUrls, stylesheet)...)
 
@@ -48,7 +48,7 @@ func Page(params PageParams) g.Node {
 	scriptUrls := []string{
 		"https://cdn.jsdelivr.net/gh/gnat/surreal/surreal.js",
 		"https://cdn.jsdelivr.net/gh/gnat/css-scope-inline/script.js",
-		"/js/htmx.min.js",
+		"/static/js/htmx.min.js",
 	}
 	head = append(head, g.Map(scriptUrls, script)...)
 

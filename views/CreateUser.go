@@ -45,6 +45,14 @@ func CreateUser() g.Node {
 			),
 
 			h.Div(
+				partials.CreateUserPasswordInput(&partials.CreateUserPasswordInputProps{}),
+			),
+
+			h.Div(
+				partials.CreateUserConfirmPasswordInput(&partials.CreateUserConfirmPasswordInputProps{}),
+			),
+
+			h.Div(
 				h.ID("submission-error"),
 				o.InputHelper(&o.InputHelperProps{
 					Label: "",

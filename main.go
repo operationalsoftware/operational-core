@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +13,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// TODO: Graceful shutdown
+
 func main() {
 	// Connect db
 	db.ConnectDB()
@@ -22,5 +25,6 @@ func main() {
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 
 	// Bind to a port and pass our router in
+	fmt.Println("http://localhost:3000")
 	log.Fatal(http.ListenAndServe(":3000", loggedRouter))
 }

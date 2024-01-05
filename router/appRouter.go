@@ -2,9 +2,9 @@ package router
 
 import (
 	"net/http"
-	"operationalcore/components"
+	"operationalcore/handlers"
+	"operationalcore/middlewares"
 	"operationalcore/static"
-	"operationalcore/views"
 
 	"github.com/gorilla/mux"
 )
@@ -12,44 +12,27 @@ import (
 func AppRouter() *mux.Router {
 	r := mux.NewRouter()
 
-	// homepage router
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_ = views.Index().Render(w)
-	})
+	// TODO: Logging middleware with error handling
 
-	// Form router
-	r.HandleFunc("/form", func(w http.ResponseWriter, r *http.Request) {
-		_ = views.Form().Render(w)
-	})
-
-	r.HandleFunc("/options", func(w http.ResponseWriter, r *http.Request) {
-		// Get the search value from the request
-		searchValue := r.FormValue("search-value")
-
-		var options = []components.Option{
-			{
-				Value: searchValue + searchValue,
-				Label: searchValue + searchValue,
-			},
-			{
-				Value: searchValue + searchValue + searchValue,
-				Label: searchValue + searchValue + searchValue,
-			},
-			{
-				Value: searchValue + searchValue + searchValue + searchValue,
-				Label: searchValue + searchValue + searchValue + searchValue,
-			},
-		}
-
-		_ = components.MultiSelectOptions(options, "search-select-dropdown", "").Render(w)
-	})
-
-	// module routers
-	AddUserRouter(r)
+	// TODO: general middleware
 
 	// static assets file server
 	staticFS := http.FileServer(static.Assets)
-	r.PathPrefix("/").Handler(staticFS)
+	r.PathPrefix("/static").Handler(http.StripPrefix("/static", staticFS))
+
+	// Unprotected  routes
+	AddLoginRouter(r)
+
+	// Authentication middleware
+	r.Use(middlewares.Authentication)
+	r.Use(middlewares.AuthRedirect)
+
+	// protected module routers
+	r.HandleFunc("/", handlers.HomePage).Methods("GET")
+	AddUserRouter(r)
+
+	// TODO: 404 page
+	r.NotFoundHandler = http.HandlerFunc(handlers.NotFoundPage)
 
 	return r
 }

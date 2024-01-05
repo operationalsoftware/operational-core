@@ -39,7 +39,12 @@ CREATE TABLE IF NOT EXISTS users (
 	username TEXT NOT NULL UNIQUE,
 	email TEXT NOT NULL UNIQUE, 
 	first_name TEXT NOT NULL, 
-	last_name TEXT NOT NULL
+	last_name TEXT NOT NULL,
+	created DATETIME DEFAULT CURRENT_TIMESTAMP,
+	last_login DATETIME NULL,
+	hashed_password TEXT NOT NULL,
+	failed_login_attempts INTEGER DEFAULT 0,
+	login_blocked_until DATETIME NULL 
 )`,
 		)
 		_, err = statement.Exec()

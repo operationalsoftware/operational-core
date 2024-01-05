@@ -29,7 +29,7 @@ func (u CustomUser) Render() map[string]components.RenderedCell {
 			Content: h.A(
 				g.Text(u.Username),
 				g.Attr("href",
-					fmt.Sprintf("/users/%d", u.UserId))),
+					fmt.Sprintf("/users/view/%d", u.UserId))),
 			Attributes: []g.Node{},
 			Classes: c.Classes{
 				"table-link": true,

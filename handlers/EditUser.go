@@ -45,7 +45,6 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbInstance := db.UseDB()
-	// defer dbInstance.Close()
 
 	if err != nil {
 		log.Fatal(err)

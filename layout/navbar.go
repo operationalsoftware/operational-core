@@ -19,7 +19,7 @@ func navbar() g.Node {
 				A(Href("/"),
 					Img(
 						Alt("Logo"),
-						Src("/img/logo.png"),
+						Src("/static/img/logo.png"),
 					),
 				),
 			),

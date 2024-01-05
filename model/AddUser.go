@@ -10,11 +10,11 @@ import (
 func AddUser(db *sql.DB, user User) error {
 	insertUserStmt := `
 INSERT INTO users 
-	(username, email, first_name, last_name)
-VALUES (?, ?, ?, ?)
+	(username, email, first_name, last_name, hashed_password)
+VALUES (?, ?, ?, ?, ?)
 	`
 
-	_, err := db.Exec(insertUserStmt, user.Username, user.Email, user.FirstName, user.LastName)
+	_, err := db.Exec(insertUserStmt, user.Username, user.Email, user.FirstName, user.LastName, user.HashedPassword)
 
 	if err != nil {
 		log.Fatal(err)

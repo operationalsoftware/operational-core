@@ -10,11 +10,9 @@ import (
 func CreateUserFormUsername(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 
-	var validate *validator.Validate
+	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	validate = validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Var(username, "required,gte=3,lte=20,unique")
+	err := validate.Var(username, "required,gte=3,lte=20")
 
 	var helperText string
 
