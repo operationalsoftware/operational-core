@@ -13,6 +13,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.16.0 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/maragudk/gomponents v0.20.1 // indirect
 	github.com/maragudk/gomponents-htmx v0.4.0 // indirect

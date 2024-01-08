@@ -10,6 +10,7 @@ import (
 	"operationalcore/router"
 
 	"github.com/gorilla/handlers"
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -19,6 +20,11 @@ func main() {
 	// Connect db
 	db.ConnectDB()
 	defer db.UseDB().Close()
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	r := router.AppRouter()
 

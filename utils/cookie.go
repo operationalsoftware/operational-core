@@ -1,11 +1,14 @@
 package utils
 
 import (
+	"os"
+
 	"github.com/gorilla/securecookie"
+	_ "github.com/joho/godotenv/autoload"
 )
 
-var hashKey = []byte("1234567890123456789012345678901234567890123456789012345678901234")
-var blockKey = []byte("12345678901234567890123456789012")
+var hashKey = []byte(os.Getenv("HASH_KEY"))
+var blockKey = []byte(os.Getenv("BLOCK_KEY"))
 
 var (
 	CookieInstance = securecookie.New(
