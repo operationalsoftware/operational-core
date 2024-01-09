@@ -21,4 +21,10 @@
   updateAppGalleryPosition();
 
   window.addEventListener("resize", updateAppGalleryPosition);
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".app-gallery")) {
+      appGalleryContent.classList.remove("show");
+    }
+  });
 })();

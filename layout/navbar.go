@@ -25,6 +25,7 @@ func navbar() g.Node {
 			),
 			Div(
 				Class("nav_links"),
+				o.AvatarDropdown(),
 				o.AppGallery(),
 			),
 		),

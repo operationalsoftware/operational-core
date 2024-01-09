@@ -12,6 +12,13 @@ me .nav_links-container {
   padding: var(--spacing);
 }
 
+me .nav_links {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
 me .logo-container {
   height: 100%;
   padding: var(--spacing);

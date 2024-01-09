@@ -30,6 +30,7 @@ func AppRouter() *mux.Router {
 	// protected module routers
 	r.HandleFunc("/", handlers.HomePage).Methods("GET")
 	AddUserRouter(r)
+	AddLogoutRouter(r)
 
 	// TODO: 404 page
 	r.NotFoundHandler = http.HandlerFunc(handlers.NotFoundPage)
