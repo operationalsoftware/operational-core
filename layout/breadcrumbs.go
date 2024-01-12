@@ -8,38 +8,30 @@ import (
 )
 
 type Crumb struct {
-	UrlToken string
-	Text     string
-	IconPath string
-}
-
-func breadcrumbsGenerator() func(Crumb, bool) g.Node {
-	url := ""
-	return func(item Crumb, active bool) g.Node {
-		url = url + "/" + item.UrlToken
-
-		return Li(
-			g.If(url != "/", Span(Class("separator"), g.Text("/"))),
-			g.If(active, Span(g.Text(item.Text))),
-			g.If(!active, A(Href(url), g.Text(item.Text))),
-		)
-	}
+	Title    string
+	LinkPart string
+	Icon     string
 }
 
 func breadcrumbs(items []Crumb) g.Node {
-
-	breadcrumb := breadcrumbsGenerator()
-
-	listItems := []g.Node{}
-	for i, item := range items {
-		listItems = append(listItems, breadcrumb(item, i == len(items)-1))
+	item := Crumb{
+		Title:    "Login",
+		LinkPart: "/login/password",
+		Icon:     "",
 	}
 
 	return Nav(
 		Aria("label", "breadcrumbs"),
+		Ol(
+			Li(
+				A(
+					Href(item.LinkPart),
+					g.Text(item.Title),
+				),
+			),
+		),
 		o.InlineStyle(
 			Assets, "/breadcrumbs.css",
 		),
-		Ol(listItems...),
 	)
 }

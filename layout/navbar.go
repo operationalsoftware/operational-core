@@ -2,12 +2,13 @@ package layout
 
 import (
 	o "operationalcore/components"
+	"operationalcore/model"
 
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
 )
 
-func navbar() g.Node {
+func navbar(user model.User) g.Node {
 	return Nav(ID("navbar"),
 		o.InlineStyle(
 			Assets, "/navbar.css",

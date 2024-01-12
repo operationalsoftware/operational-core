@@ -8,14 +8,13 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-var loginCrumb layout.Crumb = layout.Crumb{
-	Text:     "Login",
-	UrlToken: "login",
-}
-
 func Login() g.Node {
-	crumbs := []layout.Crumb{
-		loginCrumb,
+	var crumbs = []layout.Crumb{
+		{
+			Title:    "Login",
+			LinkPart: "/login",
+			Icon:     "",
+		},
 	}
 
 	loginContent := g.Group([]g.Node{

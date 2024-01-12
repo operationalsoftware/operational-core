@@ -10,15 +10,7 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-var createUserCrumb layout.Crumb = layout.Crumb{
-	Text:     "Create",
-	UrlToken: "create",
-}
-
 func CreateUser() g.Node {
-	crumbs := []layout.Crumb{
-		createUserCrumb,
-	}
 
 	createUserContent := g.Group([]g.Node{
 		h.H1(g.Text("Form Page")),
@@ -68,6 +60,5 @@ func CreateUser() g.Node {
 	return layout.Page(layout.PageParams{
 		Title:   "Create User",
 		Content: createUserContent,
-		Crumbs:  crumbs,
 	})
 }

@@ -11,14 +11,6 @@ import (
 )
 
 func User(id string) g.Node {
-	var userCrumb layout.Crumb = layout.Crumb{
-		Text:     "User",
-		UrlToken: "users/" + id,
-	}
-
-	crumbs := []layout.Crumb{
-		userCrumb,
-	}
 
 	dbInstance := db.UseDB()
 	user := model.GetUser(dbInstance, id)
@@ -68,6 +60,5 @@ func User(id string) g.Node {
 	return layout.Page(layout.PageParams{
 		Title:   "View User",
 		Content: userContent,
-		Crumbs:  crumbs,
 	})
 }

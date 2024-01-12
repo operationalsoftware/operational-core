@@ -12,15 +12,7 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-var editUserCrumb layout.Crumb = layout.Crumb{
-	Text:     "Edit",
-	UrlToken: "edit",
-}
-
 func EditUser(id string) g.Node {
-	crumbs := []layout.Crumb{
-		editUserCrumb,
-	}
 
 	dbInsance := db.UseDB()
 	user := model.GetUser(dbInsance, id)
@@ -71,6 +63,5 @@ func EditUser(id string) g.Node {
 	return layout.Page(layout.PageParams{
 		Title:   "Edit User",
 		Content: editUserContent,
-		Crumbs:  crumbs,
 	})
 }

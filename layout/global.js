@@ -27,6 +27,18 @@ function createIcon(iconString) {
   return iconDoc.documentElement;
 }
 
+function addUrlParams(url, params) {
+  let queryParams = new URLSearchParams(url.search);
+
+  params.forEach((param) => {
+    queryParams.set(param.name, param.value);
+  });
+  url.search = queryParams.toString();
+
+  // Use pushState to update the browser URL without reloading the page
+  window.history.pushState({ path: url.href }, "", url.href);
+}
+
 function openModal(el) {
   me("body").styles({ overflow: "hidden" });
   el.classRemove("hidden");

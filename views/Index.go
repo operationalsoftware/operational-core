@@ -85,15 +85,7 @@ var data = []o.TableRowRenderer{
 	},
 }
 
-var indexCrumb layout.Crumb = layout.Crumb{
-	Text:     "Home",
-	UrlToken: "",
-}
-
 func Index() g.Node {
-	crumbs := []layout.Crumb{
-		indexCrumb,
-	}
 
 	indexContent := g.Group([]g.Node{
 		h.H1(g.Text("Operational Core Home")),
@@ -351,6 +343,12 @@ func Index() g.Node {
 					},
 				},
 			}),
+
+			o.Pagination(&o.PaginationProps{
+				CurrentPage: 3,
+				TotalPages:  10,
+				PageSize:    10,
+			}),
 		),
 		o.InlineScript(Assets, "/Index.js"),
 	})
@@ -358,6 +356,5 @@ func Index() g.Node {
 	return layout.Page(layout.PageParams{
 		Title:   "Home",
 		Content: indexContent,
-		Crumbs:  crumbs,
 	})
 }

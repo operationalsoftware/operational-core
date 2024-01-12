@@ -10,13 +10,14 @@ import (
 type layoutParams struct {
 	crumbs  []Crumb
 	content g.Node
+	Ctx     ComponentCtx
 }
 
 func layout(params layoutParams) []g.Node {
 	return []g.Node{
 		o.InlineStyle(Assets, "/layout.css"),
 		o.InlineScript(Assets, "/global.js"),
-		navbar(),
+		navbar(params.Ctx.User),
 		breadcrumbs(params.crumbs),
 		Main(Class("main"), params.content),
 		footer(),

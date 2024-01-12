@@ -8,15 +8,7 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-var formCrumb layout.Crumb = layout.Crumb{
-	Text:     "Form",
-	UrlToken: "form",
-}
-
 func Form() g.Node {
-	crumbs := []layout.Crumb{
-		formCrumb,
-	}
 
 	formContent := g.Group([]g.Node{
 		h.H1(g.Text("Form Page")),
@@ -81,6 +73,5 @@ func Form() g.Node {
 	return layout.Page(layout.PageParams{
 		Title:   "Form",
 		Content: formContent,
-		Crumbs:  crumbs,
 	})
 }

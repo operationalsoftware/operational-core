@@ -12,11 +12,6 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-var usersCrumb layout.Crumb = layout.Crumb{
-	Text:     "View Users",
-	UrlToken: "users",
-}
-
 type UserRenderer interface {
 	Render() map[string]components.RenderedCell
 }
@@ -48,9 +43,6 @@ func (u CustomUser) Render() map[string]components.RenderedCell {
 }
 
 func Users() g.Node {
-	crumbs := []layout.Crumb{
-		usersCrumb,
-	}
 
 	dbInstance, _ := sql.Open("sqlite3", "./db/operationalcore.db")
 	users := model.GetUsers(dbInstance)
@@ -92,6 +84,5 @@ func Users() g.Node {
 	return layout.Page(layout.PageParams{
 		Title:   "View Users",
 		Content: viewUserContent,
-		Crumbs:  crumbs,
 	})
 }

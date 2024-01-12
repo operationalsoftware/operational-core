@@ -1,6 +1,8 @@
 package layout
 
 import (
+	"operationalcore/model"
+
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	. "github.com/maragudk/gomponents/html"
@@ -14,12 +16,17 @@ func stylesheet(src string) g.Node {
 	return Link(Rel("stylesheet"), Type("text/css"), Href(src))
 }
 
+type ComponentCtx struct {
+	User model.User
+}
+
 type PageParams struct {
 	Title   string
 	Crumbs  []Crumb
 	Content g.Node
 	Scripts []string
 	CSS     []string
+	Ctx     ComponentCtx
 }
 
 func Page(params PageParams) g.Node {
@@ -67,6 +74,7 @@ func Page(params PageParams) g.Node {
 			layoutParams{
 				content: params.Content,
 				crumbs:  params.Crumbs,
+				Ctx:     params.Ctx,
 			},
 		),
 	})
