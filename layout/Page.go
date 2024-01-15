@@ -2,6 +2,7 @@ package layout
 
 import (
 	"operationalcore/model"
+	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -20,16 +21,16 @@ type ComponentCtx struct {
 	User model.User
 }
 
-type PageParams struct {
+type PageProps struct {
 	Title   string
 	Crumbs  []Crumb
 	Content g.Node
 	Scripts []string
 	CSS     []string
-	Ctx     ComponentCtx
+	Ctx     utils.Context
 }
 
-func Page(params PageParams) g.Node {
+func Page(p PageProps) g.Node {
 
 	// Construct head
 	head := []g.Node{
@@ -47,8 +48,8 @@ func Page(params PageParams) g.Node {
 	head = append(head, g.Map(cssUrls, stylesheet)...)
 
 	// Add additional css
-	if params.CSS != nil {
-		head = append(head, g.Map(params.CSS, stylesheet)...)
+	if p.CSS != nil {
+		head = append(head, g.Map(p.CSS, stylesheet)...)
 	}
 
 	// Add common scripts
@@ -60,21 +61,21 @@ func Page(params PageParams) g.Node {
 	head = append(head, g.Map(scriptUrls, script)...)
 
 	// Add additional scripts
-	if params.Scripts != nil {
-		head = append(head, g.Map(params.Scripts, script)...)
+	if p.Scripts != nil {
+		head = append(head, g.Map(p.Scripts, script)...)
 	}
 
 	// HTML5 boilerplate document
 	return c.HTML5(c.HTML5Props{
-		Title:       params.Title,
+		Title:       p.Title,
 		Description: "",
 		Language:    "en",
 		Head:        head,
 		Body: layout(
-			layoutParams{
-				content: params.Content,
-				crumbs:  params.Crumbs,
-				Ctx:     params.Ctx,
+			&layoutProps{
+				content: p.Content,
+				crumbs:  p.Crumbs,
+				Ctx:     p.Ctx,
 			},
 		),
 	})

@@ -9,6 +9,7 @@ me input {
   border: 1.5px solid var(--border-color-dark);
   border-radius: var(--border-radius);
   background-color: var(--background-color-content);
+  color: var(--text-color);
   padding: var(--spacing);
   font-family: var(--font-family);
   transition: border-color 0.2s ease-in-out, border-width 0.2s ease-in-out,

@@ -5,15 +5,21 @@ import (
 	"operationalcore/db"
 	"operationalcore/layout"
 	"operationalcore/model"
+	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
-func User(id string) g.Node {
+type UserProps struct {
+	Id  string
+	Ctx utils.Context
+}
+
+func User(p *UserProps) g.Node {
 
 	dbInstance := db.UseDB()
-	user := model.GetUser(dbInstance, id)
+	user := model.GetUser(dbInstance, p.Id)
 
 	userContent := g.Group([]g.Node{
 		h.Div(
@@ -47,7 +53,7 @@ func User(id string) g.Node {
 			),
 			h.A(
 				h.Class("edit-btn"),
-				g.Attr("href", "/users/edit/"+id),
+				g.Attr("href", "/users/edit/"+p.Id),
 				components.Icon(&components.IconProps{
 					Identifier: "pencil",
 				}),
@@ -57,8 +63,9 @@ func User(id string) g.Node {
 		components.InlineStyle(Assets, "/User.css"),
 	})
 
-	return layout.Page(layout.PageParams{
+	return layout.Page(layout.PageProps{
 		Title:   "View User",
 		Content: userContent,
+		Ctx:     p.Ctx,
 	})
 }

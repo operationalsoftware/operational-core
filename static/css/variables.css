@@ -60,6 +60,13 @@
   --spacing-lg: 12px;
   --spacing-xl: 16px;
   --spacing-xxl: 24px;
+
+  /* Screen Sizes */
+  --screen-sm: 640px;
+  --screen-md: 768px;
+  --screen-lg: 1024px;
+  --screen-xl: 1280px;
+  --screen-2xl: 1536px;
 }
 
 /* override colours for dark theme */

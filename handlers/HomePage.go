@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"operationalcore/model"
+	"operationalcore/utils"
 	"operationalcore/views"
 )
 
 func HomePage(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(model.User)
-	fmt.Println("HomePage: ", user)
-	_ = views.Index().Render(w)
+	ctx := utils.GetContext(r)
+	_ = views.Index(&views.IndexProps{
+		Ctx: ctx,
+	}).Render(w)
 }

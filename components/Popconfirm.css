@@ -44,7 +44,7 @@ me .popconfirm-content::after {
   left: var(--arrow-left-position);
   transform: translateX(-50%);
   border: 7px solid transparent;
-  border-top-color: var(--background-color-content);
+  border-top-color: var(--background-color);
 }
 
 me .popconfirm-content .popconfirm-info {

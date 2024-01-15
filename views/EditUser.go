@@ -6,22 +6,28 @@ import (
 	"operationalcore/layout"
 	"operationalcore/model"
 	"operationalcore/partials"
+	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
 	ghtmx "github.com/maragudk/gomponents-htmx"
 	h "github.com/maragudk/gomponents/html"
 )
 
-func EditUser(id string) g.Node {
+type EditUserProps struct {
+	Id  string
+	Ctx utils.Context
+}
+
+func EditUser(p *EditUserProps) g.Node {
 
 	dbInsance := db.UseDB()
-	user := model.GetUser(dbInsance, id)
+	user := model.GetUser(dbInsance, p.Id)
 
 	editUserContent := g.Group([]g.Node{
 
 		o.Form(
 			h.ID("edit-user-form"),
-			ghtmx.Post("/users/edit/"+id),
+			ghtmx.Post("/users/edit/"+p.Id),
 
 			h.Div(
 				partials.CreateUserFirstNameInput(&partials.CreateUserFirstNameInputProps{
@@ -60,8 +66,9 @@ func EditUser(id string) g.Node {
 		),
 	})
 
-	return layout.Page(layout.PageParams{
+	return layout.Page(layout.PageProps{
 		Title:   "Edit User",
 		Content: editUserContent,
+		Ctx:     p.Ctx,
 	})
 }

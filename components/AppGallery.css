@@ -11,8 +11,8 @@ me .app-gallery__button {
 }
 
 me .app-gallery__button svg {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   fill: white;
   padding: var(--spacing-sm);
   border-radius: 50%;
@@ -83,6 +83,7 @@ me .app-gallery-content__item {
 me .app-gallery-content__item svg {
   width: 30px;
   height: 30px;
+  fill: var(--text-color);
   transition: fill 0.2s ease-in-out;
 }
 

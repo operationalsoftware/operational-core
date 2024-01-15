@@ -7,11 +7,19 @@ me .open-btn {
   height: 100%;
   position: relative;
   cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s ease-in-out;
 }
 
-me .open-btn .avatar {
+me .open-btn:hover {
+  background-color: var(--border-hover-color);
+}
+
+me .open-btn .icon {
   width: 40px;
   height: 40px;
+  padding: var(--spacing-sm);
+  fill: white;
   border-radius: 50%;
 }
 
@@ -90,11 +98,12 @@ me .footer-content .icon {
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  fill: var(--text-color);
   padding: var(--spacing-xs);
   transition: fill 0.2s ease-in-out, background-color 0.2s ease-in-out;
 }
 
-me .footer-content .dark {
+me .footer-content .icon {
   margin-left: var(--spacing-sm);
 }
 

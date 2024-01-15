@@ -2,9 +2,13 @@ package handlers
 
 import (
 	"net/http"
+	"operationalcore/utils"
 	"operationalcore/views"
 )
 
 func LoginPage(w http.ResponseWriter, r *http.Request) {
-	_ = views.Login().Render(w)
+	ctx := utils.GetContext(r)
+	_ = views.Login(&views.LoginProps{
+		Ctx: ctx,
+	}).Render(w)
 }

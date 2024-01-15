@@ -2,7 +2,7 @@ me {
   position: relative;
   width: 200px;
   max-width: 100%;
-  color: #000;
+  color: var(--text-color);
   margin-top: var(--spacing-lg);
 }
 
@@ -40,7 +40,7 @@ me .selected-value .remove-icon:hover {
 me .select-button {
   width: 100%;
   font-size: var(--font-size-md);
-  background-color: #fff;
+  background-color: var(--background-color-content);
   padding: var(--spacing-md) var(--spacing-lg);
   border: 1px solid #caced1;
   border-radius: var(--border-radius);
@@ -58,7 +58,8 @@ me .select-button:hover {
 me .arrow {
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 6px solid #000;
+  border-top: 6px solid;
+  border-color: var(--text-color);
   transition: transform ease-in-out 0.3s;
 }
 
@@ -67,7 +68,7 @@ me .select-dropdown {
   list-style: none;
   width: 100%;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
+  background-color: var(--background-color-content);
   border: 1px solid #caced1;
   border-radius: var(--border-radius);
   padding: var(--spacing);

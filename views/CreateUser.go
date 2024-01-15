@@ -4,13 +4,18 @@ import (
 	o "operationalcore/components"
 	"operationalcore/layout"
 	"operationalcore/partials"
+	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
 	ghtmx "github.com/maragudk/gomponents-htmx"
 	h "github.com/maragudk/gomponents/html"
 )
 
-func CreateUser() g.Node {
+type CreateUserProps struct {
+	Ctx utils.Context
+}
+
+func CreateUser(p *CreateUserProps) g.Node {
 
 	createUserContent := g.Group([]g.Node{
 		h.H1(g.Text("Form Page")),
@@ -57,8 +62,9 @@ func CreateUser() g.Node {
 		),
 	})
 
-	return layout.Page(layout.PageParams{
+	return layout.Page(layout.PageProps{
 		Title:   "Create User",
 		Content: createUserContent,
+		Ctx:     p.Ctx,
 	})
 }

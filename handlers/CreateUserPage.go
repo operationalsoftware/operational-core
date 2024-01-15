@@ -1,13 +1,15 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
+	"operationalcore/utils"
 	"operationalcore/views"
 )
 
 func CreateUserPage(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("CreateUserPage")
-	_ = views.CreateUser().Render(w)
+	ctx := utils.GetContext(r)
+	_ = views.CreateUser(&views.CreateUserProps{
+		Ctx: ctx,
+	}).Render(w)
 }

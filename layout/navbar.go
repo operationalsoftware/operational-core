@@ -2,13 +2,17 @@ package layout
 
 import (
 	o "operationalcore/components"
-	"operationalcore/model"
+	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
 )
 
-func navbar(user model.User) g.Node {
+type navbarProps struct {
+	Ctx utils.Context
+}
+
+func navbar(p *navbarProps) g.Node {
 	return Nav(ID("navbar"),
 		o.InlineStyle(
 			Assets, "/navbar.css",
@@ -26,8 +30,8 @@ func navbar(user model.User) g.Node {
 			),
 			Div(
 				Class("nav_links"),
-				o.AvatarDropdown(),
-				o.AppGallery(),
+				g.If(p.Ctx.User.UserId != 0, o.AvatarDropdown()),
+				g.If(p.Ctx.User.UserId != 0, o.AppGallery()),
 			),
 		),
 	)

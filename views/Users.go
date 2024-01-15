@@ -6,6 +6,7 @@ import (
 	"operationalcore/components"
 	"operationalcore/layout"
 	"operationalcore/model"
+	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -42,7 +43,11 @@ func (u CustomUser) Render() map[string]components.RenderedCell {
 	}
 }
 
-func Users() g.Node {
+type UsersProps struct {
+	Ctx utils.Context
+}
+
+func Users(p *UsersProps) g.Node {
 
 	dbInstance, _ := sql.Open("sqlite3", "./db/operationalcore.db")
 	users := model.GetUsers(dbInstance)
@@ -81,8 +86,9 @@ func Users() g.Node {
 		}),
 	})
 
-	return layout.Page(layout.PageParams{
+	return layout.Page(layout.PageProps{
 		Title:   "View Users",
 		Content: viewUserContent,
+		Ctx:     p.Ctx,
 	})
 }

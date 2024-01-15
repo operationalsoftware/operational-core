@@ -16,11 +16,9 @@ func AvatarDropdown() g.Node {
 		classes,
 		h.Div(
 			h.Class("open-btn"),
-			h.Img(
-				h.Class("avatar"),
-				h.Src("/static/img/avatar.jpg"),
-				h.Alt("Avatar"),
-			),
+			Icon(&IconProps{
+				Identifier: "account",
+			}),
 			// use htmx to toggle class
 			ghtmx.On("click", "htmx.toggleClass(htmx.find('.content-container'), 'show')"),
 		),
@@ -53,12 +51,7 @@ func AvatarDropdown() g.Node {
 					h.Div(
 						h.Class("footer-content"),
 						h.Div(
-							Icon(&IconProps{
-								Identifier: "dark",
-								Classes: c.Classes{
-									"dark": true,
-								},
-							}),
+							h.Class("theme-switcher"),
 						),
 						h.Div(
 							Icon(&IconProps{

@@ -9,6 +9,7 @@ me textarea {
   border: 1.5px solid var(--border-color-dark);
   border-radius: var(--border-radius);
   background-color: var(--background-color-content);
+  color: var(--text-color);
   padding: var(--spacing);
   font-family: var(--font-family);
   resize: vertical;

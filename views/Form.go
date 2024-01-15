@@ -70,7 +70,7 @@ func Form() g.Node {
 		o.InlineScript(Assets, "/Form.js"),
 	})
 
-	return layout.Page(layout.PageParams{
+	return layout.Page(layout.PageProps{
 		Title:   "Form",
 		Content: formContent,
 	})

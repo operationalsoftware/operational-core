@@ -54,3 +54,23 @@ function closeModal(el) {
     el.close();
   }, 250);
 }
+
+(function () {
+  // find if theme cookie exists
+  const cookies = document.cookie;
+  const themeCookie = cookies.split(";").find((cookie) => {
+    return cookie.trim().startsWith("theme=");
+  });
+
+  if (themeCookie) {
+    const theme = themeCookie.split("=")[1];
+    document.documentElement.setAttribute("data-theme", theme);
+  } else {
+    // if theme cookie doesn't exist, set it to dark
+    let theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+    document.cookie = `theme=${theme};path=/;max-age=31536000`;
+  }
+})();

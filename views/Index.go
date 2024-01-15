@@ -4,6 +4,7 @@ import (
 	"fmt"
 	o "operationalcore/components"
 	"operationalcore/layout"
+	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -85,7 +86,11 @@ var data = []o.TableRowRenderer{
 	},
 }
 
-func Index() g.Node {
+type IndexProps struct {
+	Ctx utils.Context
+}
+
+func Index(p *IndexProps) g.Node {
 
 	indexContent := g.Group([]g.Node{
 		h.H1(g.Text("Operational Core Home")),
@@ -353,8 +358,9 @@ func Index() g.Node {
 		o.InlineScript(Assets, "/Index.js"),
 	})
 
-	return layout.Page(layout.PageParams{
+	return layout.Page(layout.PageProps{
 		Title:   "Home",
 		Content: indexContent,
+		Ctx:     p.Ctx,
 	})
 }

@@ -9,9 +9,9 @@ import (
 func AddUserRouter(r *mux.Router) {
 	s := r.PathPrefix("/users").Subrouter()
 
-	s.HandleFunc("", handlers.UsersHome).Methods("GET")
+	s.HandleFunc("", handlers.UsersPage).Methods("GET")
 
-	s.HandleFunc("/view/{id}", handlers.ViewSingleUser).Methods("GET")
+	s.HandleFunc("/view/{id}", handlers.UserPage).Methods("GET")
 
 	s.HandleFunc("/create", handlers.CreateUserPage).Methods("GET")
 	s.HandleFunc("/create", handlers.CreateUser).Methods("POST")

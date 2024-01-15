@@ -3,12 +3,17 @@ package views
 import (
 	"operationalcore/layout"
 	"operationalcore/partials"
+	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
-func Login() g.Node {
+type LoginProps struct {
+	Ctx utils.Context
+}
+
+func Login(p *LoginProps) g.Node {
 	var crumbs = []layout.Crumb{
 		{
 			Title:    "Login",
@@ -24,9 +29,10 @@ func Login() g.Node {
 		partials.LoginForm(&partials.LoginFormProps{}),
 	})
 
-	return layout.Page(layout.PageParams{
+	return layout.Page(layout.PageProps{
 		Title:   "Login",
 		Content: loginContent,
 		Crumbs:  crumbs,
+		Ctx:     p.Ctx,
 	})
 }
