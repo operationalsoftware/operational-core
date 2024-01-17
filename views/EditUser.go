@@ -18,7 +18,17 @@ type EditUserProps struct {
 	Ctx utils.Context
 }
 
+func createEditUserCrumbs(userId string) []layout.Crumb {
+	existingCrumbs := createUserCrumbs(userId)
+	return append(existingCrumbs, layout.Crumb{
+		LinkPart: "edit",
+		Icon:     "",
+		Title:    "Edit",
+	})
+}
+
 func EditUser(p *EditUserProps) g.Node {
+	crumbs := createEditUserCrumbs(p.Id)
 
 	dbInsance := db.UseDB()
 	user := model.GetUser(dbInsance, p.Id)
@@ -27,7 +37,7 @@ func EditUser(p *EditUserProps) g.Node {
 
 		o.Form(
 			h.ID("edit-user-form"),
-			ghtmx.Post("/users/edit/"+p.Id),
+			ghtmx.Post(""),
 
 			h.Div(
 				partials.CreateUserFirstNameInput(&partials.CreateUserFirstNameInputProps{
@@ -70,5 +80,6 @@ func EditUser(p *EditUserProps) g.Node {
 		Title:   "Edit User",
 		Content: editUserContent,
 		Ctx:     p.Ctx,
+		Crumbs:  crumbs,
 	})
 }

@@ -90,7 +90,21 @@ type IndexProps struct {
 	Ctx utils.Context
 }
 
+func createIndexCrumbs() []layout.Crumb {
+	var crumbs = []layout.Crumb{
+		{
+			Title:    "Home",
+			LinkPart: "",
+			Icon:     "account",
+		},
+	}
+
+	return crumbs
+}
+
 func Index(p *IndexProps) g.Node {
+
+	crumbs := createIndexCrumbs()
 
 	indexContent := g.Group([]g.Node{
 		h.H1(g.Text("Operational Core Home")),
@@ -362,5 +376,6 @@ func Index(p *IndexProps) g.Node {
 		Title:   "Home",
 		Content: indexContent,
 		Ctx:     p.Ctx,
+		Crumbs:  crumbs,
 	})
 }

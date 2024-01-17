@@ -1,6 +1,6 @@
 me {
   background: var(--background-color-grey);
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--spacing-sm);
   font-size: var(--font-size-sm);
 }
 
@@ -8,18 +8,41 @@ me ol {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 
-me ol li {
-  display: inline-block;
+me ol .breadcrumb {
+  display: flex;
+  align-items: center;
   margin-right: var(--spacing-xs);
 }
 
-me ol li:last-child {
-  margin-right: 0;
+me ol .breadcrumb .icon {
+  width: 20px;
+  height: 20px;
+  fill: var(--text-color-light);
+  margin-right: var(--spacing-xs);
 }
 
-me ol li a {
-  color: var(--color-grey);
+me ol .breadcrumb .divider {
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-lg);
+  color: var(--text-color-light);
+}
+
+me ol .breadcrumb a {
+  display: flex;
+  align-items: center;
+  color: var(--text-color-light);
   text-decoration: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  transition: background-color 0.2s ease-in-out;
+}
+
+me ol .breadcrumb a:hover {
+  color: var(--text-color);
+  background-color: var(--background-color-content);
 }

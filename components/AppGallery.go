@@ -21,104 +21,9 @@ func AppGallery() g.Node {
 	// icons array
 	icons := []Items{
 		{
-			Icon: "github",
-			Name: "Github",
-			Link: "https://www.github.com",
-		},
-		{
-			Icon: "twitter",
-			Name: "Twitter",
-			Link: "https://www.twitter.com",
-		},
-		{
-			Icon: "facebook",
-			Name: "Facebook",
-			Link: "https://www.facebook.com",
-		},
-		{
-			Icon: "twitter",
-			Name: "Twitter",
-			Link: "https://www.twitter.com",
-		},
-		{
-			Icon: "twitch",
-			Name: "Twitch",
-			Link: "https://www.twitch.com",
-		},
-		{
-			Icon: "youtube",
-			Name: "Youtube",
-			Link: "https://www.youtube.com",
-		},
-		{
-			Icon: "google-play",
-			Name: "Google Play",
-			Link: "https://www.google.com",
-		},
-		{
-			Icon: "google-drive",
-			Name: "Google Drive",
-			Link: "https://www.google.com",
-		},
-		{
-			Icon: "google-ads",
-			Name: "Google Ads",
-			Link: "https://www.google.com",
-		},
-		{
-			Icon: "google-analytics",
-			Name: "Google Analytics",
-			Link: "https://www.google.com",
-		},
-		{
-			Icon: "github",
-			Name: "Github",
-			Link: "https://www.github.com",
-		},
-		{
-			Icon: "twitter",
-			Name: "Twitter",
-			Link: "https://www.twitter.com",
-		},
-		{
-			Icon: "facebook",
-			Name: "Facebook",
-			Link: "https://www.facebook.com",
-		},
-		{
-			Icon: "twitter",
-			Name: "Twitter",
-			Link: "https://www.twitter.com",
-		},
-		{
-			Icon: "twitch",
-			Name: "Twitch",
-			Link: "https://www.twitch.com",
-		},
-		{
-			Icon: "youtube",
-			Name: "Youtube",
-			Link: "https://www.youtube.com",
-		},
-		{
-			Icon: "google-play",
-			Name: "Google Play",
-			Link: "https://www.google.com",
-		},
-		{
-			Icon: "google-drive",
-			Name: "Google Drive",
-			Link: "https://www.google.com",
-		},
-		{
-			Icon: "google-ads",
-			Name: "Google Ads",
-			Link: "https://www.google.com",
-		},
-		{
-			Icon: "google-analytics",
-			Name: "Google Analytics",
-			Link: "https://www.google.com",
+			Icon: "account-group",
+			Name: "Users",
+			Link: "/users",
 		},
 	}
 
@@ -140,7 +45,6 @@ func AppGallery() g.Node {
 					return h.A(
 						h.Class("app-gallery-content__item"),
 						h.Href(i.Link),
-						h.Target("_blank"),
 						Icon(&IconProps{
 							Identifier: i.Icon,
 						}),

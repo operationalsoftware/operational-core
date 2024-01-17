@@ -25,7 +25,7 @@ func (u CustomUser) Render() map[string]components.RenderedCell {
 			Content: h.A(
 				g.Text(u.Username),
 				g.Attr("href",
-					fmt.Sprintf("/users/view/%d", u.UserId))),
+					fmt.Sprintf("/users/%d", u.UserId))),
 			Attributes: []g.Node{},
 			Classes: c.Classes{
 				"table-link": true,
@@ -47,7 +47,17 @@ type UsersProps struct {
 	Ctx utils.Context
 }
 
+func createUsersCrumbs() []layout.Crumb {
+	indexCrumbs := createIndexCrumbs()
+	return append(indexCrumbs, layout.Crumb{
+		LinkPart: "users",
+		Icon:     "",
+		Title:    "Users",
+	})
+}
+
 func Users(p *UsersProps) g.Node {
+	crumbs := createUsersCrumbs()
 
 	dbInstance, _ := sql.Open("sqlite3", "./db/operationalcore.db")
 	users := model.GetUsers(dbInstance)
@@ -90,5 +100,6 @@ func Users(p *UsersProps) g.Node {
 		Title:   "View Users",
 		Content: viewUserContent,
 		Ctx:     p.Ctx,
+		Crumbs:  crumbs,
 	})
 }

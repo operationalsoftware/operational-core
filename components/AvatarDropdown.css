@@ -43,7 +43,8 @@ me .content-container.show {
 }
 
 me .user-info {
-  text-align: center;
+  text-align: left;
+  padding: var(--spacing-sm) var(--spacing-md);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -68,10 +69,10 @@ me .user-actions {
 
 me .user-actions .action {
   width: 100%;
-  padding: var(--spacing-lg) 0;
+  padding: var(--spacing-sm) var(--spacing-md);
   cursor: pointer;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  text-align: center;
+  text-align: left;
   font-size: var(--font-size-md);
   color: var(--text-color);
 }
@@ -87,8 +88,8 @@ me .footer {
 
 me .footer-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   width: 100%;
   padding: var(--spacing-sm) 0;
   cursor: pointer;

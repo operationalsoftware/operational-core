@@ -16,7 +16,19 @@ type UserProps struct {
 	Ctx utils.Context
 }
 
+func createUserCrumbs(userId string) []layout.Crumb {
+	usersCrumbs := createUsersCrumbs()
+	dbInstance := db.UseDB()
+	user := model.GetUser(dbInstance, userId)
+	return append(usersCrumbs, layout.Crumb{
+		LinkPart: userId,
+		Icon:     "",
+		Title:    user.Username,
+	})
+}
+
 func User(p *UserProps) g.Node {
+	crumbs := createUserCrumbs(p.Id)
 
 	dbInstance := db.UseDB()
 	user := model.GetUser(dbInstance, p.Id)
@@ -53,7 +65,7 @@ func User(p *UserProps) g.Node {
 			),
 			h.A(
 				h.Class("edit-btn"),
-				g.Attr("href", "/users/edit/"+p.Id),
+				g.Attr("href", "/users/"+p.Id+"/edit"),
 				components.Icon(&components.IconProps{
 					Identifier: "pencil",
 				}),
@@ -67,5 +79,6 @@ func User(p *UserProps) g.Node {
 		Title:   "View User",
 		Content: userContent,
 		Ctx:     p.Ctx,
+		Crumbs:  crumbs,
 	})
 }

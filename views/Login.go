@@ -17,7 +17,7 @@ func Login(p *LoginProps) g.Node {
 	var crumbs = []layout.Crumb{
 		{
 			Title:    "Login",
-			LinkPart: "/login",
+			LinkPart: "login",
 			Icon:     "",
 		},
 	}

@@ -1,13 +1,19 @@
 package components
 
 import (
+	"operationalcore/utils"
+
 	g "github.com/maragudk/gomponents"
 	ghtmx "github.com/maragudk/gomponents-htmx"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
-func AvatarDropdown() g.Node {
+type AvatarDropdownProps struct {
+	Ctx utils.Context
+}
+
+func AvatarDropdown(p *AvatarDropdownProps) g.Node {
 	classes := c.Classes{
 		"avatar-dropdown": true,
 	}
@@ -30,11 +36,11 @@ func AvatarDropdown() g.Node {
 					h.Class("user-info"),
 					h.P(
 						h.Class("name"),
-						g.Text("John Doe"),
+						g.Text(p.Ctx.User.Username),
 					),
 					h.P(
 						h.Class("email"),
-						g.Text("nomanmani62@gmail.com"),
+						g.Text(p.Ctx.User.Email),
 					),
 				),
 				h.Div(
@@ -54,12 +60,7 @@ func AvatarDropdown() g.Node {
 							h.Class("theme-switcher"),
 						),
 						h.Div(
-							Icon(&IconProps{
-								Identifier: "fullscreen",
-								Classes: c.Classes{
-									"fullscreen": true,
-								},
-							}),
+							h.Class("fullscreen-switcher"),
 						),
 					),
 				),

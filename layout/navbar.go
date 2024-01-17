@@ -30,7 +30,9 @@ func navbar(p *navbarProps) g.Node {
 			),
 			Div(
 				Class("nav_links"),
-				g.If(p.Ctx.User.UserId != 0, o.AvatarDropdown()),
+				g.If(p.Ctx.User.UserId != 0, o.AvatarDropdown(&o.AvatarDropdownProps{
+					Ctx: p.Ctx,
+				})),
 				g.If(p.Ctx.User.UserId != 0, o.AppGallery()),
 			),
 		),

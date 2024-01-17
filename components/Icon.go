@@ -22,7 +22,7 @@ func Icon(p *IconProps) g.Node {
 
 	file, err := Assets.Open("/icon-svgs/" + p.Identifier + ".svg")
 	if err != nil {
-		panic(err)
+		return g.Text("")
 	}
 	defer file.Close()
 

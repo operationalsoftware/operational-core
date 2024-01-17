@@ -11,7 +11,7 @@ func AddUserRouter(r *mux.Router) {
 
 	s.HandleFunc("", handlers.UsersPage).Methods("GET")
 
-	s.HandleFunc("/view/{id}", handlers.UserPage).Methods("GET")
+	s.HandleFunc("/{id}", handlers.UserPage).Methods("GET")
 
 	s.HandleFunc("/create", handlers.CreateUserPage).Methods("GET")
 	s.HandleFunc("/create", handlers.CreateUser).Methods("POST")
@@ -23,7 +23,7 @@ func AddUserRouter(r *mux.Router) {
 	s.HandleFunc("/create/password", handlers.CreateUserFormPassword).Methods("POST")
 	s.HandleFunc("/create/confirm-password", handlers.CreateUserConfirmPassword).Methods("POST")
 
-	s.HandleFunc("/edit/{id}", handlers.EditUserPage).Methods("GET")
-	s.HandleFunc("/edit/{id}", handlers.EditUser).Methods("POST")
+	s.HandleFunc("/{id}/edit", handlers.EditUserPage).Methods("GET")
+	s.HandleFunc("/{id}/edit", handlers.EditUser).Methods("POST")
 
 }
