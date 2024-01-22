@@ -1,0 +1,15 @@
+[Unit]
+Description=App (Operational Software)
+After=network.target
+
+[Service]
+ExecStart=/app/app
+Restart=always
+User=nobody
+Group=nogroup
+EnvironmentFile=/app/.env
+WorkingDirectory=/app
+TimeoutStopSec=5s
+
+[Install]
+WantedBy=default.target

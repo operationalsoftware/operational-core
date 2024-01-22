@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/gorilla/securecookie"
-	_ "github.com/joho/godotenv/autoload"
 )
 
 var hashKey = []byte(os.Getenv("HASH_KEY"))
