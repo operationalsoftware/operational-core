@@ -32,6 +32,6 @@ func LoginForm(p *LoginFormProps) g.Node {
 			Message:   p.Error,
 		})),
 
-		components.Button(&components.ButtonProps{}, h.Type("submit"), g.Text("Submit")),
+		components.Button(&components.ButtonProps{}, h.Type("submit"), g.Text("Login")),
 	)
 }
