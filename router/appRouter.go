@@ -17,7 +17,7 @@ func AppRouter() *mux.Router {
 	r.PathPrefix("/static").Handler(http.StripPrefix("/static", staticFS))
 
 	// security middleware
-	r.Use(middlewares.SecurityHeaders)
+	r.Use(middlewares.Security)
 
 	// Authentication middleware
 	r.Use(middlewares.Authentication)
