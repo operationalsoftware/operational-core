@@ -6,6 +6,12 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
+# Check if there are any unpushed commits
+if [ -n "$(git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD)" ]; then
+  echo "Error: There are unpushed commits. Please push your changes before deploying."
+  exit 1
+fi
+
 # Exit if any command fails
 set -e
 
