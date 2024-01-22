@@ -15,6 +15,7 @@ type LoginFormProps struct {
 func LoginForm(p *LoginFormProps) g.Node {
 	return components.Form(
 		ghtmx.Post(""),
+		ghtmx.Swap("outerHTML"),
 		components.Input(&components.InputProps{
 			Label:       "Username",
 			Name:        "username",
