@@ -69,12 +69,14 @@ func Users(p *UsersProps) g.Node {
 
 	var columns = []components.TableColumn{
 		{
-			Name: "Username",
-			Key:  "username",
+			Name:     "Username",
+			Key:      "username",
+			Sortable: true,
 		},
 		{
-			Name: "First Name",
-			Key:  "firstName",
+			Name:     "First Name",
+			Key:      "firstName",
+			Sortable: true,
 		},
 		{
 			Name: "Last Name",

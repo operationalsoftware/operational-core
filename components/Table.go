@@ -17,8 +17,9 @@ type TableRowRenderer interface {
 }
 
 type TableColumn struct {
-	Name string
-	Key  string
+	Name     string
+	Key      string
+	Sortable bool
 }
 
 type TableProps struct {
@@ -29,8 +30,15 @@ type TableProps struct {
 func renderHead(columns []TableColumn) g.Node {
 	return g.Group(g.Map(columns, func(c TableColumn) g.Node {
 		return h.Th(
+			h.DataAttr("key", c.Key),
+			h.DataAttr("sort", ""),
 			h.Class("table-head"),
-			g.Text(c.Name),
+			h.Span(g.Text(c.Name)),
+			g.If(c.Sortable,
+				Icon(&IconProps{
+					Identifier: "default-arrow",
+				}),
+			),
 		)
 	}))
 }
@@ -80,5 +88,6 @@ func Table(p *TableProps) g.Node {
 			),
 		),
 		InlineStyle(Assets, "/Table.css"),
+		InlineScript(Assets, "/Table.js"),
 	)
 }

@@ -7,8 +7,6 @@
   let currentPageNumber = parseInt(pagination.dataset.currentPage);
   const totalPages = parseInt(pagination.dataset.totalPages);
 
-  let url = new URL(window.location.href);
-
   function updatePaginationState() {
     if (currentPageNumber === 1) {
       prevPageBtn.classList.add("pagination__btn--disabled");
@@ -25,7 +23,7 @@
 
   function initPagination() {
     updatePaginationState();
-    addUrlParams(url, [
+    addUrlParams([
       { name: "page", value: currentPageNumber },
       { name: "pageSize", value: 100 },
     ]);
@@ -44,7 +42,7 @@
       pages[nextPageNumber].classList.add("pagination__item--current");
       currentPageNumber++;
       updatePaginationState();
-      addUrlParams(url, [
+      addUrlParams([
         { name: "page", value: currentPageNumber },
         { name: "pageSize", value: 100 },
       ]);
@@ -64,7 +62,7 @@
       pages[prevPageNumber].classList.add("pagination__item--current");
       currentPageNumber--;
       updatePaginationState();
-      addUrlParams(url, [
+      addUrlParams([
         { name: "page", value: currentPageNumber },
         { name: "pageSize", value: 100 },
       ]);
@@ -93,7 +91,7 @@
       pages[pageNumber].classList.add("pagination__item--current");
       currentPageNumber = pageNumber;
       updatePaginationState();
-      addUrlParams(url, [
+      addUrlParams([
         { name: "page", value: currentPageNumber },
         { name: "pageSize", value: 100 },
       ]);

@@ -27,11 +27,53 @@ function createIcon(iconString) {
   return iconDoc.documentElement;
 }
 
-function addUrlParams(url, params) {
-  let queryParams = new URLSearchParams(url.search);
+function getUrlParams(specificParams) {
+  const url = window.location.href;
+  const params = {};
+  const queryString = url ? url.split("?")[1] : window.location.search.slice(1);
+
+  if (queryString) {
+    const keyValuePairs = queryString.split("&");
+
+    keyValuePairs.forEach((keyValue) => {
+      const [key, value] = keyValue.split("=");
+      params[key] = decodeURIComponent(value.replace(/\+/g, " "));
+    });
+
+    // Filter specific parameters if specified
+    if (specificParams && specificParams.length > 0) {
+      const filteredParams = {};
+      specificParams.forEach((param) => {
+        if (params.hasOwnProperty(param)) {
+          filteredParams[param] = params[param];
+        }
+      });
+      return filteredParams;
+    }
+  }
+
+  return params;
+}
+
+function addUrlParams(params) {
+  let url = new URL(window.location.href);
+  let queryParams = new URLSearchParams(window.location.search);
 
   params.forEach((param) => {
     queryParams.set(param.name, param.value);
+  });
+  url.search = queryParams.toString();
+
+  // Use pushState to update the browser URL without reloading the page
+  window.history.pushState({ path: url.href }, "", url.href);
+}
+
+function removeUrlParams(params) {
+  let url = new URL(window.location.href);
+  let queryParams = new URLSearchParams(window.location.search);
+
+  params.forEach((param) => {
+    queryParams.delete(param);
   });
   url.search = queryParams.toString();
 

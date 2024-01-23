@@ -39,6 +39,9 @@ func AvatarDropdown(p *AvatarDropdownProps) g.Node {
 						g.Text(p.Ctx.User.Username),
 					),
 					h.P(
+						g.Text(p.Ctx.User.FirstName+" "+p.Ctx.User.LastName),
+					),
+					h.P(
 						h.Class("email"),
 						g.Text(p.Ctx.User.Email),
 					),
