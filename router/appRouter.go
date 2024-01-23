@@ -12,27 +12,26 @@ import (
 func AppRouter() *mux.Router {
 	r := mux.NewRouter()
 
-	// TODO: Logging middleware with error handling
-
-	// TODO: general middleware
-
 	// static assets file server
 	staticFS := http.FileServer(static.Assets)
 	r.PathPrefix("/static").Handler(http.StripPrefix("/static", staticFS))
 
-	// Unprotected  routes
-	AddLoginRouter(r)
+	// security middleware
+	r.Use(middlewares.Security)
 
 	// Authentication middleware
 	r.Use(middlewares.Authentication)
 	r.Use(middlewares.AuthRedirect)
 
-	// protected module routers
+	// home page
 	r.HandleFunc("/", handlers.HomePage).Methods("GET")
+
+	// add subrouters
+	AddLoginRouter(r)
 	AddUserRouter(r)
 	AddLogoutRouter(r)
 
-	// TODO: 404 page
+	// 404
 	r.NotFoundHandler = http.HandlerFunc(handlers.NotFoundPage)
 
 	return r

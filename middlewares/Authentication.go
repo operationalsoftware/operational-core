@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"operationalcore/db"
 	"operationalcore/model"
@@ -18,7 +17,6 @@ func Authentication(next http.Handler) http.Handler {
 			return
 		} else {
 			if err = utils.CookieInstance.Decode("operationalcore-session", cookie.Value, &id); err != nil {
-				fmt.Println("")
 				next.ServeHTTP(w, r)
 				return
 			}

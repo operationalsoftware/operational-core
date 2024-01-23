@@ -15,6 +15,7 @@ type LoginFormProps struct {
 func LoginForm(p *LoginFormProps) g.Node {
 	return components.Form(
 		ghtmx.Post(""),
+		ghtmx.Swap("outerHTML"),
 		components.Input(&components.InputProps{
 			Label:       "Username",
 			Name:        "username",
@@ -32,6 +33,6 @@ func LoginForm(p *LoginFormProps) g.Node {
 			Message:   p.Error,
 		})),
 
-		components.Button(&components.ButtonProps{}, h.Type("submit"), g.Text("Submit")),
+		components.Button(&components.ButtonProps{}, h.Type("submit"), g.Text("Login")),
 	)
 }

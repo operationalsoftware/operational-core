@@ -1,6 +1,7 @@
 package views
 
 import (
+	"operationalcore/components"
 	"operationalcore/layout"
 	"operationalcore/partials"
 	"operationalcore/utils"
@@ -23,10 +24,13 @@ func Login(p *LoginProps) g.Node {
 	}
 
 	loginContent := g.Group([]g.Node{
-
-		h.H1(g.Text("Login Page")),
-
-		partials.LoginForm(&partials.LoginFormProps{}),
+		h.Div(
+			h.Class("container"),
+			h.H2(g.Text("Welcome")),
+			h.P(g.Text("Please login to begin")),
+			partials.LoginForm(&partials.LoginFormProps{}),
+		),
+		components.InlineStyle(Assets, "/Login.css"),
 	})
 
 	return layout.Page(layout.PageProps{

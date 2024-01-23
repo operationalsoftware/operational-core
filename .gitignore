@@ -1,13 +1,18 @@
+# for those using VSCode
 .vscode/
-.venv
-__pycache__/
+
+# local env vars
 .env
 
-# compiled go binary
-operationalcore
+# local deployment config
+deploy.config
+
+# compiled go binaries (dev and prod/staging)
+app-dev
+app
 
 # built go assets
 **/assets.go
 
 # sqlite database
-/db/*.db
+**/*.db

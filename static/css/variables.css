@@ -62,6 +62,7 @@
   --spacing-xxl: 24px;
 
   /* Screen Sizes */
+  --screen-xs: 320px;
   --screen-sm: 640px;
   --screen-md: 768px;
   --screen-lg: 1024px;

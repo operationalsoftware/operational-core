@@ -16,15 +16,23 @@ import (
 
 // TODO: Graceful shutdown
 
+func loadEnv() {
+	// Check if GO_ENV is "staging" or "production"
+	goEnv := os.Getenv("GO_ENV")
+	if goEnv != "staging" && goEnv != "production" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+	}
+}
+
 func main() {
 	// Connect db
 	db.ConnectDB()
 	defer db.UseDB().Close()
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	loadEnv()
 
 	r := router.AppRouter()
 
