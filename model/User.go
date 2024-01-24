@@ -1,16 +1,20 @@
 package model
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type User struct {
 	UserId              int
 	Username            string
-	Email               string
-	FirstName           string
-	LastName            string
+	IsAPIUser           bool
+	Email               sql.NullString
+	FirstName           sql.NullString
+	LastName            sql.NullString
 	Created             time.Time
-	LastLogin           time.Time
+	LastLogin           sql.NullTime
 	HashedPassword      string
 	FailedLoginAttempts int
-	LoginBlockedUntil   time.Time
+	LoginBlockedUntil   sql.NullTime
 }

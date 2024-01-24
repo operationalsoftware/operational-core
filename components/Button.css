@@ -8,6 +8,7 @@ me.primary {
   padding: var(--spacing-md) var(--spacing-lg);
   transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
   cursor: pointer;
+  display: inline-block;
 }
 
 me[data-loading="true"] .loading-spinner {

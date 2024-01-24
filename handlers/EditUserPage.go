@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"operationalcore/utils"
 	"operationalcore/views"
@@ -10,9 +12,9 @@ import (
 )
 
 func EditUserPage(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	if id == "" {
-		http.Error(w, "No ID provided", http.StatusBadRequest)
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Println("Error:", err)
 		return
 	}
 

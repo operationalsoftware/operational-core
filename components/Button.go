@@ -25,6 +25,7 @@ const (
 type ButtonProps struct {
 	Classes    c.Classes
 	ButtonType ButtonType
+	Link       string
 	Size       ButtonSize
 	Loading    bool
 	Disabled   bool
@@ -44,12 +45,23 @@ func Button(p *ButtonProps, children ...g.Node) g.Node {
 		p.Classes[string(p.Size)] = true
 	}
 
-	return h.Button(
-		p.Classes,
-		g.If(p.Disabled || p.Loading, h.Disabled()),
-		g.If(p.Loading, LoadingSpinner(LoadingSpinnerSm)),
-		g.If(p.Loading, h.DataAttr("loading", "true")),
-		g.Group(children),
-		InlineStyle(Assets, "/Button.css"),
+	content := g.Group(
+		[]g.Node{
+			p.Classes,
+			g.If(p.Disabled || p.Loading, h.Disabled()),
+			g.If(p.Loading, LoadingSpinner(LoadingSpinnerSm)),
+			g.If(p.Loading, h.DataAttr("loading", "true")),
+			g.Group(children),
+			InlineStyle(Assets, "/Button.css"),
+		},
 	)
+
+	var el g.Node
+	if p.Link != "" {
+		el = h.A(content, h.Href(p.Link))
+	} else {
+		el = h.Button(content)
+	}
+
+	return el
 }

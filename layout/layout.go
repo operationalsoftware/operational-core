@@ -5,13 +5,15 @@ import (
 	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/html"
+	c "github.com/maragudk/gomponents/components"
+	h "github.com/maragudk/gomponents/html"
 )
 
 type layoutProps struct {
-	crumbs  []Crumb
-	content g.Node
-	Ctx     utils.Context
+	crumbs    []Crumb
+	content   g.Node
+	Ctx       utils.Context
+	NoPadding bool
 }
 
 func layout(p *layoutProps) []g.Node {
@@ -22,7 +24,13 @@ func layout(p *layoutProps) []g.Node {
 			Ctx: p.Ctx,
 		}),
 		breadcrumbs(p.crumbs),
-		Main(Class("main"), p.content),
+		h.Main(
+			c.Classes{
+				"main":         true,
+				"main-padding": !p.NoPadding,
+			},
+			p.content,
+		),
 		footer(),
 	}
 }

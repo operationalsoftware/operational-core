@@ -12,49 +12,35 @@ import (
 var (
 	dbInstance *sql.DB
 	once       sync.Once
+	err        error
 )
 
-func ConnectDB() {
+func ConnectDB() error {
 	once.Do(func() {
 		// Connect db
-		db, err := sql.Open("sqlite3", "./app.db")
+		var db *sql.DB
+		db, err = sql.Open("sqlite3", "/home/will/github.com/operationalsoftware/operational-core/app.db")
 		if err != nil {
-			log.Fatal(err)
+			return
 		}
 
 		err = db.Ping()
 		if err != nil {
-			log.Fatal(err)
+			return
 		}
 
 		fmt.Println("Connected to db")
 
 		// Assign the connection to the package-level variable
 		dbInstance = db
-
-		// Create table
-		statement, _ := dbInstance.Prepare(`
-CREATE TABLE IF NOT EXISTS users (
-	user_id INTEGER PRIMARY KEY AUTOINCREMENT, 
-	username TEXT NOT NULL UNIQUE,
-	email TEXT NOT NULL UNIQUE, 
-	first_name TEXT NOT NULL, 
-	last_name TEXT NOT NULL,
-	created DATETIME DEFAULT CURRENT_TIMESTAMP,
-	last_login DATETIME NULL,
-	hashed_password TEXT NOT NULL,
-	failed_login_attempts INTEGER DEFAULT 0,
-	login_blocked_until DATETIME NULL 
-)`,
-		)
-		_, err = statement.Exec()
-		if err != nil {
-			log.Fatal(err)
-			statement.Close()
-		}
-		fmt.Println("Created users table")
-		statement.Close()
 	})
+
+	if err != nil {
+		log.Println("Error connecting to db: ", err)
+		return err
+	}
+
+	return nil
 }
 
 // UseDB returns the shared database connection

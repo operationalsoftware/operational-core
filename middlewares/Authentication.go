@@ -6,17 +6,16 @@ import (
 	"operationalcore/db"
 	"operationalcore/model"
 	"operationalcore/utils"
-	"strconv"
 )
 
 func Authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var id int
-		if cookie, err := r.Cookie("operationalcore-session"); err != nil {
+		if cookie, err := r.Cookie("login-session"); err != nil {
 			next.ServeHTTP(w, r)
 			return
 		} else {
-			if err = utils.CookieInstance.Decode("operationalcore-session", cookie.Value, &id); err != nil {
+			if err = utils.CookieInstance.Decode("login-session", cookie.Value, &id); err != nil {
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -28,7 +27,7 @@ func Authentication(next http.Handler) http.Handler {
 		}
 
 		dbInstance := db.UseDB()
-		user := model.GetUser(dbInstance, strconv.Itoa(id))
+		user := model.GetUser(dbInstance, id)
 
 		if user.UserId == 0 {
 			next.ServeHTTP(w, r)

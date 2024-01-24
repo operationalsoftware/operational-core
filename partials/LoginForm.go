@@ -18,12 +18,12 @@ func LoginForm(p *LoginFormProps) g.Node {
 		ghtmx.Swap("outerHTML"),
 		components.Input(&components.InputProps{
 			Label:       "Username",
-			Name:        "username",
+			Name:        "Username",
 			Placeholder: "Enter username",
 		}),
 		components.Input(&components.InputProps{
 			Label:       "Password",
-			Name:        "password",
+			Name:        "Password",
 			Placeholder: "Enter password",
 			InputType:   "password",
 		}),

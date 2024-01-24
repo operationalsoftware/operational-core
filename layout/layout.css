@@ -9,3 +9,7 @@ me {
 me main {
   flex-grow: 1;
 }
+
+me main.main-padding {
+  padding: var(--spacing-lg);
+}

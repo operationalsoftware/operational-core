@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"operationalcore/model"
 	"operationalcore/partials"
@@ -9,8 +10,8 @@ import (
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	username := r.FormValue("Username")
+	password := r.FormValue("Password")
 
 	// Verify user
 	user, err := model.VerifyUser(username, password)
@@ -22,24 +23,26 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.UserId != 0 {
-		// Set cookie
-		if encoded, err := utils.CookieInstance.Encode("operationalcore-session", user.UserId); err == nil {
-			cookie := &http.Cookie{
-				Name:     "operationalcore-session",
-				Value:    encoded,
-				HttpOnly: true,
-				Secure:   true,
-				Expires:  time.Now().Add(time.Hour * 24 * 30),
-				Path:     "/",
-				SameSite: http.SameSiteLaxMode,
-			}
-
-			http.SetCookie(w, cookie)
-			w.Header().Set("hx-redirect", "/")
-		} else {
+		// set cookie
+		encoded, err := utils.CookieInstance.Encode("login-session", user.UserId)
+		if err != nil {
+			fmt.Println(err)
 			_ = partials.LoginForm(&partials.LoginFormProps{
-				Error: "Something went wrong. Please try again later",
+				Error: "An unexpected error occurred. Please report this issue.",
 			}).Render(w)
+			return
 		}
+		cookie := &http.Cookie{
+			Name:     "login-session",
+			Value:    encoded,
+			HttpOnly: true,
+			Secure:   true,
+			Expires:  time.Now().Add(time.Hour * 24 * 30),
+			Path:     "/",
+			SameSite: http.SameSiteLaxMode,
+		}
+
+		http.SetCookie(w, cookie)
+		w.Header().Set("hx-redirect", "/")
 	}
 }

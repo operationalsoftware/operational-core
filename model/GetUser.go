@@ -7,33 +7,32 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func GetUser(db *sql.DB, id string) User {
-	user := User{}
+func GetUser(db *sql.DB, id int) User {
 	getUserQuery := `
-SELECT user_id, first_name, last_name, email, username FROM users WHERE user_id = ?
+SELECT
+	UserID,
+	IsAPIUser,
+	Username,
+	Email,
+	FirstName,
+	LastName
+FROM
+	User
+WHERE
+	UserID = ?
 	`
 
-	rows, err := db.Query(getUserQuery, id)
-
+	var user User
+	err := db.QueryRow(getUserQuery, id).Scan(
+		&user.UserId,
+		&user.IsAPIUser,
+		&user.Username,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+	)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer rows.Close()
-
-	for rows.Next() {
-		var dbUser User
-		err := rows.Scan(&dbUser.UserId, &dbUser.FirstName, &dbUser.LastName, &dbUser.Email, &dbUser.Username)
-		if err != nil {
-			log.Fatal(err)
-		}
-		user = dbUser
-	}
-
-	err = rows.Err()
-
-	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	return user

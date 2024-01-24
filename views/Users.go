@@ -1,9 +1,9 @@
 package views
 
 import (
-	"database/sql"
 	"fmt"
 	"operationalcore/components"
+	"operationalcore/db"
 	"operationalcore/layout"
 	"operationalcore/model"
 	"operationalcore/utils"
@@ -32,13 +32,13 @@ func (u CustomUser) Render() map[string]components.RenderedCell {
 			},
 		},
 		"firstName": {
-			Content: g.Text(u.FirstName),
+			Content: g.Text(u.FirstName.String),
 		},
 		"lastName": {
-			Content: g.Text(u.LastName),
+			Content: g.Text(u.LastName.String),
 		},
 		"email": {
-			Content: g.Text(u.Email),
+			Content: g.Text(u.Email.String),
 		},
 	}
 }
@@ -57,10 +57,11 @@ func createUsersCrumbs() []layout.Crumb {
 }
 
 func Users(p *UsersProps) g.Node {
+
+	db := db.UseDB()
 	crumbs := createUsersCrumbs()
 
-	dbInstance, _ := sql.Open("sqlite3", "./db/operationalcore.db")
-	users := model.GetUsers(dbInstance)
+	users := model.GetUsers(db)
 
 	var data []components.TableRowRenderer
 	for _, user := range users {
@@ -87,17 +88,27 @@ func Users(p *UsersProps) g.Node {
 	}
 
 	viewUserContent := g.Group([]g.Node{
-		h.H1(
-			g.Text("View Users"),
+		h.Div(
+			h.Class("add-button-container"),
+			components.Button(&components.ButtonProps{
+				ButtonType: "primary",
+				Link:       "/users/add",
+			},
+				components.Icon(&components.IconProps{
+					Identifier: "plus",
+				}),
+				g.Text("User"),
+			),
 		),
 		components.Table(&components.TableProps{
 			Columns: columns,
 			Data:    data,
 		}),
+		components.InlineStyle(Assets, "/Users.css"),
 	})
 
 	return layout.Page(layout.PageProps{
-		Title:   "View Users",
+		Title:   "Users",
 		Content: viewUserContent,
 		Ctx:     p.Ctx,
 		Crumbs:  crumbs,

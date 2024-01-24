@@ -15,24 +15,50 @@ func VerifyUser(username, password string) (User, error) {
 	// Query db for user
 	dbInstance := db.UseDB()
 
-	checkUserWithUsernameStmt := `SELECT * FROM users WHERE username = ?`
-
 	var user User
-
-	row := dbInstance.QueryRow(checkUserWithUsernameStmt, username)
-
-	err := row.Scan(&user.UserId, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.Created, &user.LastLogin, &user.HashedPassword, &user.FailedLoginAttempts, &user.LoginBlockedUntil)
+	err := dbInstance.QueryRow(`
+SELECT
+	UserId,
+	IsAPIUser,
+	Username,
+	Email,
+	FirstName,
+	LastName,
+	Created,
+	LastLogin,
+	HashedPassword,
+	FailedLoginAttempts,
+	LoginBlockedUntil
+FROM
+	User
+WHERE
+	Username = ?
+	`, username).Scan(
+		&user.UserId,
+		&user.IsAPIUser,
+		&user.Username,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Created,
+		&user.LastLogin,
+		&user.HashedPassword,
+		&user.FailedLoginAttempts,
+		&user.LoginBlockedUntil,
+	)
 
 	if err == sql.ErrNoRows {
 		return User{}, fmt.Errorf("incorrect username or password")
+	} else if err != nil {
+		log.Panic(err)
 	}
 
 	// Check if login blocked
-	if user.LoginBlockedUntil != (time.Time{}) {
+	if user.LoginBlockedUntil.Valid {
 		now := time.Now()
 
-		if now.Before(user.LoginBlockedUntil) {
-			return User{}, fmt.Errorf("login blocked until %s", user.LoginBlockedUntil.Format("15:04:05"))
+		if now.Before(user.LoginBlockedUntil.Time) {
+			return User{}, fmt.Errorf("login blocked until %s", user.LoginBlockedUntil.Time.Format("15:04:05"))
 		}
 	}
 
@@ -43,18 +69,17 @@ func VerifyUser(username, password string) (User, error) {
 		// Update failed login attempts
 		user.FailedLoginAttempts++
 
-		updateFailedLoginAttemptsStmt := `
+		_, err := dbInstance.Exec(`
 UPDATE 
-	users 
+	User 
 SET 
-	failed_login_attempts = ? 
+	FailedLoginAttempts = ? 
 WHERE 
-	user_id = ?
-`
-		_, err := dbInstance.Exec(updateFailedLoginAttemptsStmt, user.FailedLoginAttempts, user.UserId)
+	UserID = ?
+		`, user.FailedLoginAttempts, user.UserId)
 
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 
 		// Check if login blocked
@@ -67,7 +92,7 @@ UPDATE
 	users 
 SET 
 	login_blocked_until = ?, 
-	failed_login_attempts = 0 
+	failed_login_attempts = 0
 WHERE 
 	user_id = ?
 `
@@ -83,21 +108,20 @@ WHERE
 		}
 
 	} else if passwordErr != nil {
-		log.Fatal(passwordErr)
+		log.Panic(passwordErr)
 	}
 
 	// Successfull login
 	// Update last login
 	now := time.Now()
-	updateLastLoginStmt := `
+	_, err = dbInstance.Exec(`
 UPDATE 
-	users 
+	User 
 SET 
-	last_login = ? 
+	LastLogin = ? 
 WHERE 
-	user_id = ?
-`
-	_, err = dbInstance.Exec(updateLastLoginStmt, now, user.UserId)
+	UserID = ?
+	`, now, user.UserId)
 
 	if err != nil {
 		log.Fatal(err)
@@ -105,5 +129,4 @@ WHERE
 
 	// This means the user is verified
 	return user, nil
-
 }

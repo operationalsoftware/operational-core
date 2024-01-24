@@ -1,6 +1,7 @@
 package views
 
 import (
+	"fmt"
 	"operationalcore/components"
 	"operationalcore/db"
 	"operationalcore/layout"
@@ -12,16 +13,16 @@ import (
 )
 
 type UserProps struct {
-	Id  string
+	Id  int
 	Ctx utils.Context
 }
 
-func createUserCrumbs(userId string) []layout.Crumb {
+func createUserCrumbs(userId int) []layout.Crumb {
 	usersCrumbs := createUsersCrumbs()
 	dbInstance := db.UseDB()
 	user := model.GetUser(dbInstance, userId)
 	return append(usersCrumbs, layout.Crumb{
-		LinkPart: userId,
+		LinkPart: fmt.Sprintf("%d", user.UserId),
 		Icon:     "",
 		Title:    user.Username,
 	})
@@ -34,27 +35,46 @@ func User(p *UserProps) g.Node {
 	user := model.GetUser(dbInstance, p.Id)
 
 	userContent := g.Group([]g.Node{
-		h.Div(
-			h.Class("container"),
+		g.If(
+			user.UserId != 1,
 			h.Div(
-				h.Class("grid-table"),
-				h.Span(
-					h.Strong(g.Text("First Name")),
+				h.Class("edit-button-container"),
+				components.Button(&components.ButtonProps{
+					ButtonType: "primary",
+					Link:       fmt.Sprintf("/users/%d/edit", p.Id),
+				},
+					components.Icon(&components.IconProps{
+						Identifier: "pencil",
+					}),
 				),
-				h.Span(
-					g.Text(user.FirstName),
-				),
-				h.Span(
-					h.Strong(g.Text("Last Name")),
-				),
-				h.Span(
-					g.Text(user.LastName),
-				),
-				h.Span(
-					h.Strong(g.Text("Email")),
-				),
-				h.Span(
-					g.Text(user.Email),
+			),
+		),
+		h.Div(
+			h.Div(
+				h.Class("properties-grid"),
+				g.If(
+					!user.IsAPIUser,
+					g.Group([]g.Node{
+
+						h.Span(
+							h.Strong(g.Text("First Name")),
+						),
+						h.Span(
+							g.Text(user.FirstName.String),
+						),
+						h.Span(
+							h.Strong(g.Text("Last Name")),
+						),
+						h.Span(
+							g.Text(user.LastName.String),
+						),
+						h.Span(
+							h.Strong(g.Text("Email")),
+						),
+						h.Span(
+							g.Text(user.Email.String),
+						),
+					}),
 				),
 				h.Span(
 					h.Strong(g.Text("Username")),
@@ -62,13 +82,6 @@ func User(p *UserProps) g.Node {
 				h.Span(
 					g.Text(user.Username),
 				),
-			),
-			h.A(
-				h.Class("edit-btn"),
-				g.Attr("href", "/users/"+p.Id+"/edit"),
-				components.Icon(&components.IconProps{
-					Identifier: "pencil",
-				}),
 			),
 		),
 

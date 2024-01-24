@@ -8,17 +8,17 @@ import (
 
 func Logout(w http.ResponseWriter, r *http.Request) {
 	var id int
-	if cookie, err := r.Cookie("operationalcore-session"); err != nil {
+	if cookie, err := r.Cookie("login-session"); err != nil {
 		return
 	} else {
-		if err = utils.CookieInstance.Decode("operationalcore-session", cookie.Value, &id); err != nil {
+		if err = utils.CookieInstance.Decode("login-session", cookie.Value, &id); err != nil {
 			return
 		}
 	}
 
 	// Delete cookie
 	cookie := &http.Cookie{
-		Name:     "operationalcore-session",
+		Name:     "login-session",
 		Value:    "",
 		HttpOnly: true,
 		Secure:   true,

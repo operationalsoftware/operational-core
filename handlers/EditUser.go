@@ -6,6 +6,7 @@ import (
 	"operationalcore/components"
 	"operationalcore/db"
 	"operationalcore/model"
+	"operationalcore/utils"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -15,7 +16,7 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 
 	if id == "" {
-		log.Fatal("No id provided")
+		log.Panic("No id provided")
 		return
 	}
 
@@ -27,10 +28,10 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user User = User{
-		FirstName: r.FormValue("first_name"),
-		LastName:  r.FormValue("last_name"),
-		Email:     r.FormValue("email"),
-		Username:  r.FormValue("username"),
+		FirstName: r.FormValue("FirstName"),
+		LastName:  r.FormValue("LastName"),
+		Email:     r.FormValue("Email"),
+		Username:  r.FormValue("Username"),
 	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
@@ -51,9 +52,9 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := model.EditUser(dbInstance, model.User{
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
+		FirstName: utils.StringToNullString(user.FirstName),
+		LastName:  utils.StringToNullString(user.LastName),
+		Email:     utils.StringToNullString(user.Email),
 		Username:  user.Username,
 	}, id)
 

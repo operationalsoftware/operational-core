@@ -95,7 +95,7 @@ func createIndexCrumbs() []layout.Crumb {
 		{
 			Title:    "Home",
 			LinkPart: "",
-			Icon:     "account",
+			Icon:     "home",
 		},
 	}
 
