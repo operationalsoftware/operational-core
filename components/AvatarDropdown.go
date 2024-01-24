@@ -38,7 +38,21 @@ func AvatarDropdown(p *AvatarDropdownProps) g.Node {
 						h.Class("name"),
 						g.Text(p.Ctx.User.Username),
 					),
-					g.If(p.Ctx.User.Email.Valid,
+					g.If(
+						p.Ctx.User.Email.Valid,
+						h.P(
+							h.Class("email"),
+							g.Text(p.Ctx.User.Email.String),
+						),
+					),
+					g.If(
+						p.Ctx.User.FirstName.Valid && p.Ctx.User.LastName.Valid,
+						h.P(
+							g.Text(p.Ctx.User.FirstName.String+" "+p.Ctx.User.LastName.String),
+						),
+					),
+					g.If(
+						p.Ctx.User.Email.Valid,
 						h.P(
 							h.Class("email"),
 							g.Text(p.Ctx.User.Email.String),

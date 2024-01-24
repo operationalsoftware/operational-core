@@ -18,6 +18,19 @@ me th {
   cursor: pointer;
 }
 
+me th .icon {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  margin-left: var(--spacing-sm);
+  fill: var(--text-color-light);
+  transition: fill 0.2s ease-in-out;
+}
+
+me th .icon:hover {
+  fill: var(--text-color);
+}
+
 me th,
 me td {
   padding: 8px;

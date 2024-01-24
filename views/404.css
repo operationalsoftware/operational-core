@@ -1,0 +1,66 @@
+me {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+}
+
+me h1 {
+  margin-bottom: var(--spacing-xl);
+  background: linear-gradient(
+    90deg,
+    var(--primary-color) 0%,
+    var(--secondary-color) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+me .card {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+me .card .row {
+  display: flex;
+  align-items: center;
+}
+
+me .card .img-container {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  padding: var(--spacing);
+  overflow: hidden;
+  margin-right: var(--spacing-xl);
+}
+
+:root[data-theme="light"] me .card .img-container {
+  background-color: black;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+me .card .img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+me .card .text-404 {
+  font-size: var(--font-size-xl);
+  text-align: center;
+  color: var(--primary-color);
+}
+
+me .card .home-btn {
+  margin-top: var(--spacing);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
