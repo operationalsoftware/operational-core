@@ -1,11 +1,6 @@
 package model
 
-import (
-	"database/sql"
-	"log"
-
-	_ "github.com/mattn/go-sqlite3"
-)
+import "database/sql"
 
 func EditUser(db *sql.DB, user User, id int) error {
 	editUserQuery := `
