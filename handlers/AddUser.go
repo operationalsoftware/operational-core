@@ -8,7 +8,7 @@ import (
 	"operationalcore/utils"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func AddUser(w http.ResponseWriter, r *http.Request) {
 
 	// Create user in db
 	dbInstance := db.UseDB()

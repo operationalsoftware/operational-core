@@ -7,8 +7,8 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func CreateUserFormPassword(w http.ResponseWriter, r *http.Request) {
-	password := r.FormValue("password")
+func UserFormPassword(w http.ResponseWriter, r *http.Request) {
+	password := r.FormValue("Password")
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
@@ -20,9 +20,8 @@ func CreateUserFormPassword(w http.ResponseWriter, r *http.Request) {
 		helperText = "Password must be between 3 and 20 characters"
 	}
 
-	_ = partials.CreateUserPasswordInput(&partials.CreateUserPasswordInputProps{
+	_ = partials.UserFormPasswordInput(&partials.UserFormPasswordInputProps{
 		ValidationError: helperText,
 		Value:           password,
 	}).Render(w)
-
 }

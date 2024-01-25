@@ -13,16 +13,16 @@ func AddUserRouter(r *mux.Router) {
 	s.HandleFunc("", handlers.UsersPage).Methods("GET")
 
 	// Add user
-	s.HandleFunc("/add", handlers.CreateUserPage).Methods("GET")
-	s.HandleFunc("/add", handlers.CreateUser).Methods("POST")
+	s.HandleFunc("/add", handlers.AddUserPage).Methods("GET")
+	s.HandleFunc("/add", handlers.AddUser).Methods("POST")
 
-	// Create user form
-	s.HandleFunc("/add/first-name", handlers.CreateUserFormFirstName).Methods("POST")
-	s.HandleFunc("/add/last-name", handlers.CreateUserFormLastName).Methods("POST")
-	s.HandleFunc("/add/email", handlers.CreateUserFormEmail).Methods("POST")
-	s.HandleFunc("/add/username", handlers.CreateUserFormUsername).Methods("POST")
-	s.HandleFunc("/add/password", handlers.CreateUserFormPassword).Methods("POST")
-	s.HandleFunc("/add/confirm-password", handlers.CreateUserConfirmPassword).Methods("POST")
+	// User form partials
+	s.HandleFunc("/validate/first-name", handlers.UserFormFirstName).Methods("POST")
+	s.HandleFunc("/validate/last-name", handlers.UserFormLastName).Methods("POST")
+	s.HandleFunc("/validate/email", handlers.UserFormEmail).Methods("POST")
+	s.HandleFunc("/validate/username", handlers.UserFormUsername).Methods("POST")
+	s.HandleFunc("/validate/password", handlers.UserFormPassword).Methods("POST")
+	s.HandleFunc("/validate/confirm-password", handlers.UserFormConfirmPassword).Methods("POST")
 
 	// User page
 	s.HandleFunc("/{id}", handlers.UserPage).Methods("GET")

@@ -4,22 +4,23 @@ import (
 	o "operationalcore/components"
 
 	g "github.com/maragudk/gomponents"
-	ghtmx "github.com/maragudk/gomponents-htmx"
+	hx "github.com/maragudk/gomponents-htmx"
 	h "github.com/maragudk/gomponents/html"
 )
 
-type CreateUserFirstNameInputProps struct {
+type UserFormConfirmPasswordInputProps struct {
 	ValidationError string
 	Value           string
 }
 
-func CreateUserFirstNameInput(p *CreateUserFirstNameInputProps) g.Node {
+func UserFormConfirmPasswordInput(p *UserFormConfirmPasswordInputProps) g.Node {
 	inputProps := &o.InputProps{
-		Label:       "First Name",
-		Name:        "first_name",
-		Placeholder: "Enter first name",
+		Label:       "Confirm password",
+		Name:        "ConfirmPassword",
+		InputType:   "password",
+		Placeholder: "Confirm password",
 		InputProps: []g.Node{
-			ghtmx.Post("/users/create/first-name"),
+			hx.Post("/users/validate/confirm-password"),
 			h.Value(p.Value),
 		},
 	}
@@ -30,7 +31,7 @@ func CreateUserFirstNameInput(p *CreateUserFirstNameInputProps) g.Node {
 	}
 
 	return o.Input(inputProps,
-		ghtmx.Target("this"),
-		ghtmx.Swap("outerHTML"),
+		hx.Target("this"),
+		hx.Swap("outerHTML"),
 	)
 }

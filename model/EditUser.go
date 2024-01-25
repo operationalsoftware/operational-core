@@ -7,15 +7,32 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func EditUser(db *sql.DB, user User, id string) error {
+func EditUser(db *sql.DB, user User, id int) error {
 	editUserQuery := `
-UPDATE users SET first_name = ?, last_name = ?, email = ?, username = ? WHERE user_id = ?
+UPDATE
+	User
+
+SET
+	FirstName = ?,
+	LastName = ?,
+	Email = ?,
+	Username = ?
+
+WHERE
+	UserID = ?
 	`
 
-	_, err := db.Exec(editUserQuery, user.FirstName, user.LastName, user.Email, user.Username, id)
+	_, err := db.Exec(
+		editUserQuery,
+
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.Username,
+		id,
+	)
 
 	if err != nil {
-		log.Fatal(err)
 		return err
 	}
 

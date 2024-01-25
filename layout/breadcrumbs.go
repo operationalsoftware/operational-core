@@ -4,8 +4,6 @@ import (
 	o "operationalcore/components"
 
 	g "github.com/maragudk/gomponents"
-	c "github.com/maragudk/gomponents/components"
-	. "github.com/maragudk/gomponents/html"
 	h "github.com/maragudk/gomponents/html"
 )
 
@@ -33,19 +31,19 @@ func renderCrumb(crumbs []Crumb) g.Node {
 				link = link[:len(link)-1]
 			}
 
-			classes := c.Classes{
-				"breadcrumb": true,
-			}
-			return Li(
-				classes,
-				g.If(index != 1, Span(Class("divider"), g.Text("/"))),
-				g.If(index == len(crumbs), Span(g.Text(p.Title))),
-				g.If(index != len(crumbs), A(
+			var crumbContent = g.Group([]g.Node{
+				g.If(p.Icon != "", o.Icon(&o.IconProps{
+					Identifier: p.Icon,
+				})),
+				h.Span(g.Text(p.Title)),
+			})
+
+			return h.Li(
+				g.If(index > 1, h.Span(h.Class("divider"), g.Text("/"))),
+				g.If(index == len(crumbs), h.Div(crumbContent)),
+				g.If(index < len(crumbs), h.A(
 					h.Href(link),
-					g.If(p.Icon != "", o.Icon(&o.IconProps{
-						Identifier: p.Icon,
-					})),
-					Span(g.Text(p.Title)),
+					crumbContent,
 				)),
 			)
 		}),
@@ -53,10 +51,10 @@ func renderCrumb(crumbs []Crumb) g.Node {
 }
 
 func breadcrumbs(items []Crumb) g.Node {
-	return Nav(
-		Aria("label", "breadcrumbs"),
-		Ol(
-			Class("breadcrumbs"),
+	return h.Nav(
+		h.Aria("label", "breadcrumbs"),
+		h.Ol(
+			h.Class("breadcrumbs"),
 			renderCrumb(items),
 		),
 		o.InlineStyle(

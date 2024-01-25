@@ -7,8 +7,8 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func CreateUserFormLastName(w http.ResponseWriter, r *http.Request) {
-	lastName := r.FormValue("last_name")
+func UserFormLastName(w http.ResponseWriter, r *http.Request) {
+	lastName := r.FormValue("LastName")
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
@@ -20,9 +20,8 @@ func CreateUserFormLastName(w http.ResponseWriter, r *http.Request) {
 		helperText = "Last name must be between 3 and 20 characters"
 	}
 
-	_ = partials.CreateUserLastNameInput(&partials.CreateUserLastNameInputProps{
+	_ = partials.UserFormLastNameInput(&partials.UserFormLastNameInputProps{
 		ValidationError: helperText,
 		Value:           lastName,
 	}).Render(w)
-
 }

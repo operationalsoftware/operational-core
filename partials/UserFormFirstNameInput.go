@@ -8,19 +8,18 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-type CreateUserEmailInputProps struct {
+type UserFormFirstNameInputProps struct {
 	ValidationError string
 	Value           string
 }
 
-func CreateUserEmailInput(p *CreateUserEmailInputProps) g.Node {
+func UserFormFirstNameInput(p *UserFormFirstNameInputProps) g.Node {
 	inputProps := &o.InputProps{
-		Label:       "Email",
-		Name:        "email",
-		InputType:   "email",
-		Placeholder: "Enter email",
+		Label:       "First Name",
+		Name:        "FirstName",
+		Placeholder: "Enter first name",
 		InputProps: []g.Node{
-			ghtmx.Post("/users/create/email"),
+			ghtmx.Post("/users/validate/first-name"),
 			h.Value(p.Value),
 		},
 	}

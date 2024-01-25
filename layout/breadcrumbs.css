@@ -13,36 +13,40 @@ me ol {
   align-items: center;
 }
 
-me ol .breadcrumb {
+me ol li {
+  margin-right: var(--spacing-xs);
   display: flex;
   align-items: center;
-  margin-right: var(--spacing-xs);
 }
 
-me ol .breadcrumb .icon {
+me ol li .icon {
   width: 20px;
   height: 20px;
   fill: var(--text-color-light);
   margin-right: var(--spacing-xs);
 }
 
-me ol .breadcrumb .divider {
+me ol li .divider {
   padding: var(--spacing-sm);
   font-size: var(--font-size-lg);
   color: var(--text-color-light);
 }
 
-me ol .breadcrumb a {
+me ol li div,
+me ol li a {
   display: flex;
   align-items: center;
   color: var(--text-color-light);
-  text-decoration: none;
   padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+me ol li a {
+  text-decoration: none;
   border-radius: var(--border-radius-sm);
   transition: background-color 0.2s ease-in-out;
 }
 
-me ol .breadcrumb a:hover {
+me ol li a:hover {
   color: var(--text-color);
   background-color: var(--background-color-content);
 }

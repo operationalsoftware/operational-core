@@ -8,19 +8,19 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-type CreateUserConfirmPasswordInputProps struct {
+type UserFormPasswordInputProps struct {
 	ValidationError string
 	Value           string
 }
 
-func CreateUserConfirmPasswordInput(p *CreateUserConfirmPasswordInputProps) g.Node {
+func UserFormPasswordInput(p *UserFormPasswordInputProps) g.Node {
 	inputProps := &o.InputProps{
-		Label:       "Confirm password",
-		Name:        "confirmPassword",
+		Label:       "Password",
+		Name:        "Password",
 		InputType:   "password",
-		Placeholder: "Confirm password",
+		Placeholder: "Enter password",
 		InputProps: []g.Node{
-			ghtmx.Post("/users/create/confirm-password"),
+			ghtmx.Post("/users/validate/password"),
 			h.Value(p.Value),
 		},
 	}

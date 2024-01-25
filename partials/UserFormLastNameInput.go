@@ -8,19 +8,18 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-type CreateUserPasswordInputProps struct {
+type UserFormLastNameInputProps struct {
 	ValidationError string
 	Value           string
 }
 
-func CreateUserPasswordInput(p *CreateUserPasswordInputProps) g.Node {
+func UserFormLastNameInput(p *UserFormLastNameInputProps) g.Node {
 	inputProps := &o.InputProps{
-		Label:       "Password",
-		Name:        "password",
-		InputType:   "password",
-		Placeholder: "Enter Password",
+		Label:       "Last Name",
+		Name:        "LastName",
+		Placeholder: "Enter last name",
 		InputProps: []g.Node{
-			ghtmx.Post("/users/create/password"),
+			ghtmx.Post("/users/validate/last-name"),
 			h.Value(p.Value),
 		},
 	}

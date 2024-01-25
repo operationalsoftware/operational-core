@@ -1,29 +1,30 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"operationalcore/components"
 	"operationalcore/db"
 	"operationalcore/model"
 	"operationalcore/utils"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
 func EditUser(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-
-	if id == "" {
-		log.Panic("No id provided")
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Println("Error:", err)
 		return
 	}
 
 	type User struct {
 		FirstName string `validate:"required"`
 		LastName  string `validate:"required"`
-		Email     string `validate:"required,email"`
+		Email     string `validate:"email"`
 		Username  string `validate:"required,gte=3,lte=20"`
 	}
 
@@ -35,7 +36,7 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
-	err := validate.Struct(user)
+	err = validate.Struct(user)
 
 	if err != nil {
 		_ = components.InputHelper(&components.InputHelperProps{

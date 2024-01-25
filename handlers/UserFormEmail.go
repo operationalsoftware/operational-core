@@ -7,12 +7,12 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func CreateUserFormEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
+func UserFormEmail(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("Email")
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	err := validate.Var(email, "required,email")
+	err := validate.Var(email, "email")
 
 	var helperText string
 
@@ -20,7 +20,7 @@ func CreateUserFormEmail(w http.ResponseWriter, r *http.Request) {
 		helperText = "Email must be a valid email address"
 	}
 
-	_ = partials.CreateUserEmailInput(&partials.CreateUserEmailInputProps{
+	_ = partials.UserFormEmailInput(&partials.UserFormEmailInputProps{
 		ValidationError: helperText,
 		Value:           email,
 	}).Render(w)

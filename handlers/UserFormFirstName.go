@@ -7,8 +7,8 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func CreateUserFormFirstName(w http.ResponseWriter, r *http.Request) {
-	firstName := r.FormValue("first_name")
+func UserFormFirstName(w http.ResponseWriter, r *http.Request) {
+	firstName := r.FormValue("FirstName")
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
@@ -20,9 +20,8 @@ func CreateUserFormFirstName(w http.ResponseWriter, r *http.Request) {
 		helperText = "First name must be between 3 and 20 characters"
 	}
 
-	_ = partials.CreateUserFirstNameInput(&partials.CreateUserFirstNameInputProps{
+	_ = partials.UserFormFirstNameInput(&partials.UserFormFirstNameInputProps{
 		ValidationError: helperText,
 		Value:           firstName,
 	}).Render(w)
-
 }

@@ -9,7 +9,6 @@ import (
 	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
-	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
@@ -21,24 +20,26 @@ type CustomUser model.User
 
 func (u CustomUser) Render() map[string]components.RenderedCell {
 	return map[string]components.RenderedCell{
-		"username": {
+		"Username": {
 			Content: h.A(
 				g.Text(u.Username),
 				g.Attr("href",
 					fmt.Sprintf("/users/%d", u.UserId))),
-			Attributes: []g.Node{},
-			Classes: c.Classes{
-				"table-link": true,
-			},
 		},
-		"firstName": {
+		"FirstName": {
 			Content: g.Text(u.FirstName.String),
 		},
-		"lastName": {
+		"LastName": {
 			Content: g.Text(u.LastName.String),
 		},
-		"email": {
+		"Email": {
 			Content: g.Text(u.Email.String),
+		},
+		"Created": {
+			Content: g.Text(u.Created.Format("2006-01-02 15:04:05")),
+		},
+		"LastLogin": {
+			Content: g.If(u.LastLogin.Valid, g.Text(u.LastLogin.Time.Format("2006-01-02 15:04:05"))),
 		},
 	}
 }
@@ -71,21 +72,29 @@ func Users(p *UsersProps) g.Node {
 	var columns = []components.TableColumn{
 		{
 			Name:     "Username",
-			Key:      "username",
+			Key:      "Username",
 			Sortable: true,
 		},
 		{
 			Name:     "First Name",
-			Key:      "firstName",
+			Key:      "FirstName",
 			Sortable: true,
 		},
 		{
 			Name: "Last Name",
-			Key:  "lastName",
+			Key:  "LastName",
 		},
 		{
 			Name: "Email",
-			Key:  "email",
+			Key:  "Email",
+		},
+		{
+			Name: "Created",
+			Key:  "Created",
+		},
+		{
+			Name: "Last Login",
+			Key:  "LastLogin",
 		},
 	}
 

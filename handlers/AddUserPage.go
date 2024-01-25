@@ -7,9 +7,9 @@ import (
 	"operationalcore/views"
 )
 
-func CreateUserPage(w http.ResponseWriter, r *http.Request) {
+func AddUserPage(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	_ = views.CreateUser(&views.CreateUserProps{
+	_ = views.AddUser(&views.AddUserProps{
 		Ctx: ctx,
 	}).Render(w)
 }

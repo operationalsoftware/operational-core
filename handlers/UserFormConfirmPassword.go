@@ -7,9 +7,9 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func CreateUserConfirmPassword(w http.ResponseWriter, r *http.Request) {
-	confirmPassword := r.FormValue("confirmPassword")
-	password := r.FormValue("password")
+func UserFormConfirmPassword(w http.ResponseWriter, r *http.Request) {
+	confirmPassword := r.FormValue("ConfirmPassword")
+	password := r.FormValue("Password")
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
@@ -25,9 +25,8 @@ func CreateUserConfirmPassword(w http.ResponseWriter, r *http.Request) {
 		helperText = "Passwords do not match"
 	}
 
-	_ = partials.CreateUserConfirmPasswordInput(&partials.CreateUserConfirmPasswordInputProps{
+	_ = partials.UserFormConfirmPasswordInput(&partials.UserFormConfirmPasswordInputProps{
 		ValidationError: helperText,
 		Value:           confirmPassword,
 	}).Render(w)
-
 }

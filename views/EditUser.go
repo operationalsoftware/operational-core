@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"operationalcore/components"
 	o "operationalcore/components"
 	"operationalcore/db"
 	"operationalcore/layout"
@@ -34,54 +35,58 @@ func EditUser(p *EditUserProps) g.Node {
 	dbInsance := db.UseDB()
 	user := model.GetUser(dbInsance, p.Id)
 
-	editUserContent := o.Form(
-		h.ID("edit-user-form"),
-		ghtmx.Post(""),
+	editUserContent := g.Group([]g.Node{
+		o.Form(
+			h.ID("edit-user-form"),
+			ghtmx.Post(""),
 
-		g.If(
-			!user.IsAPIUser,
+			g.If(
+				!user.IsAPIUser,
+				h.Div(
+					partials.UserFormFirstNameInput(&partials.UserFormFirstNameInputProps{
+						Value: user.FirstName.String,
+					}),
+				),
+			),
+
+			g.If(
+				!user.IsAPIUser,
+				h.Div(
+					partials.UserFormLastNameInput(&partials.UserFormLastNameInputProps{
+						Value: user.LastName.String,
+					}),
+				),
+			),
+
 			h.Div(
-				partials.CreateUserFirstNameInput(&partials.CreateUserFirstNameInputProps{
-					Value: user.FirstName.String,
+				partials.UserFormUsernameInput(&partials.UserFormUsernameInputProps{
+					Value: user.Username,
 				}),
 			),
-		),
 
-		g.If(
-			!user.IsAPIUser,
+			g.If(
+				!user.IsAPIUser,
+				h.Div(
+					partials.UserFormEmailInput(&partials.UserFormEmailInputProps{
+						Value: user.Email.String,
+					}),
+				),
+			),
+
 			h.Div(
-				partials.CreateUserLastNameInput(&partials.CreateUserLastNameInputProps{
-					Value: user.LastName.String,
-				}),
+				h.ID("submission-error"),
+				o.InputHelper(&o.InputHelperProps{
+					Label: "",
+					Type:  o.InputHelperTypeError,
+				},
+				),
 			),
+
+			o.Button(&o.ButtonProps{}, h.Type("submit"), g.Text("Submit")),
 		),
 
-		h.Div(
-			partials.CreateUserUsernameInput(&partials.CreateUserUsernameInputProps{
-				Value: user.Username,
-			}),
-		),
-
-		g.If(
-			!user.IsAPIUser,
-			h.Div(
-				partials.CreateUserEmailInput(&partials.CreateUserEmailInputProps{
-					Value: user.Email.String,
-				}),
-			),
-		),
-
-		h.Div(
-			h.ID("submission-error"),
-			o.InputHelper(&o.InputHelperProps{
-				Label: "",
-				Type:  o.InputHelperTypeError,
-			},
-			),
-		),
-
-		o.Button(&o.ButtonProps{}, h.Type("submit"), g.Text("Submit")),
-	)
+		components.InlineStyle(Assets, "/AddUser.css"),
+	})
 
 	return layout.Page(layout.PageProps{
 		Title:   fmt.Sprintf("Edit User: %s", user.Username),

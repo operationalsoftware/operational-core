@@ -36,7 +36,7 @@ func renderHead(columns []TableColumn) g.Node {
 			h.Span(g.Text(c.Name)),
 			g.If(c.Sortable,
 				Icon(&IconProps{
-					Identifier: "default-arrow",
+					Identifier: "arrow-up-down",
 				}),
 			),
 		)

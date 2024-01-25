@@ -2,3 +2,7 @@ me .add-button-container {
   display: flex;
   justify-content: flex-end;
 }
+
+me .table-container {
+  margin-top: var(--spacing-lg);
+}
