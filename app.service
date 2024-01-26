@@ -5,8 +5,8 @@ After=network.target
 [Service]
 ExecStart=/app/app
 Restart=always
-User=nobody
-Group=nogroup
+User=root
+Group=root
 EnvironmentFile=/app/.env
 WorkingDirectory=/app
 TimeoutStopSec=5s
