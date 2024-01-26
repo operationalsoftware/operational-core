@@ -26,58 +26,48 @@ func AvatarDropdown(p *AvatarDropdownProps) g.Node {
 				Identifier: "account",
 			}),
 			// use htmx to toggle class
-			ghtmx.On("click", "htmx.toggleClass(htmx.find('.content-container'), 'show')"),
+			ghtmx.On("click", "htmx.toggleClass(htmx.find('.dropdown'), 'show')"),
 		),
 		h.Div(
-			h.Class("content-container"),
+			h.Class("dropdown"),
 			h.Div(
-				h.Class("content"),
-				h.Div(
-					h.Class("user-info"),
-					h.P(
-						h.Class("name"),
-						g.Text(p.Ctx.User.Username),
-					),
-					g.If(
-						p.Ctx.User.Email.Valid,
-						h.P(
-							h.Class("email"),
-							g.Text(p.Ctx.User.Email.String),
+				h.Class("dropdown-content"),
+				h.Section(
+					h.Class("username"),
+					g.Text(p.Ctx.User.Username),
+				),
+				g.If(
+					p.Ctx.User.Email.Valid || (p.Ctx.User.FirstName.Valid && p.Ctx.User.LastName.Valid),
+					h.Section(
+						g.If(
+							p.Ctx.User.FirstName.Valid && p.Ctx.User.LastName.Valid,
+							h.P(
+								h.Class("name"),
+								g.Text(p.Ctx.User.FirstName.String+" "+p.Ctx.User.LastName.String),
+							),
 						),
-					),
-					g.If(
-						p.Ctx.User.FirstName.Valid && p.Ctx.User.LastName.Valid,
-						h.P(
-							g.Text(p.Ctx.User.FirstName.String+" "+p.Ctx.User.LastName.String),
-						),
-					),
-					g.If(
-						p.Ctx.User.Email.Valid,
-						h.P(
-							h.Class("email"),
-							g.Text(p.Ctx.User.Email.String),
+						g.If(
+							p.Ctx.User.Email.Valid,
+							h.P(
+								h.Class("email"),
+								g.Text(p.Ctx.User.Email.String),
+							),
 						),
 					),
 				),
-				h.Div(
-					h.Class("user-actions"),
-					h.P(
-						ghtmx.Post("/logout"),
-						ghtmx.Swap("none"),
-						h.Class("action logout-btn"),
-						g.Text("Logout"),
-					),
+				h.Button(
+					h.Class("logout-btn"),
+					ghtmx.Post("/logout"),
+					ghtmx.Swap("none"),
+					g.Text("Logout"),
 				),
-				h.Footer(
-					h.Class("footer"),
-					h.Div(
-						h.Class("footer-content"),
-						h.Div(
-							h.Class("theme-switcher"),
-						),
-						h.Div(
-							h.Class("fullscreen-switcher"),
-						),
+				h.Section(
+					h.Class("actions"),
+					h.Button(
+						h.Class("theme-switcher"),
+					),
+					h.Button(
+						h.Class("fullscreen-switcher"),
 					),
 				),
 			),
