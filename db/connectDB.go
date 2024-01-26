@@ -19,7 +19,7 @@ func ConnectDB() error {
 	once.Do(func() {
 		// Connect db
 		var db *sql.DB
-		db, err = sql.Open("sqlite3", "/home/will/github.com/operationalsoftware/operational-core/app.db")
+		db, err = sql.Open("sqlite3", "./app.db")
 		if err != nil {
 			return
 		}
