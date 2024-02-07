@@ -1,7 +1,9 @@
 package router
 
 import (
+	"net/http"
 	"operationalcore/handlers"
+	"operationalcore/partials"
 
 	"github.com/gorilla/mux"
 )
@@ -15,6 +17,16 @@ func AddUserRouter(r *mux.Router) {
 	// Add user
 	s.HandleFunc("/add", handlers.AddUserPage).Methods("GET")
 	s.HandleFunc("/add", handlers.AddUser).Methods("POST")
+
+	// partial table
+	s.HandleFunc("/table", func(w http.ResponseWriter, r *http.Request) {
+		sort := r.URL.Query().Get("sort")
+		if sort == "" {
+			// /table/sort?Username=ASC
+			// set the header to this url
+		}
+		_ = partials.UsersTable().Render(w)
+	}).Methods("GET")
 
 	// User form partials
 	s.HandleFunc("/validate/first-name", handlers.UserFormFirstName).Methods("POST")

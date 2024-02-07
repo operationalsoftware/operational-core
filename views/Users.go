@@ -111,10 +111,16 @@ func Users(p *UsersProps) g.Node {
 				g.Text("User"),
 			),
 		),
-		components.Table(&components.TableProps{
-			Columns: columns,
-			Data:    data,
-		}),
+		h.Div(
+			h.ID("table"),
+			components.Table(&components.TableProps{
+				Columns: columns,
+				Data:    data,
+				HxGet:   "/users/table",
+				Sort:    []components.SortItem{},
+			}),
+		),
+
 		components.InlineStyle(Assets, "/Users.css"),
 	})
 

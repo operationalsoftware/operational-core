@@ -1,38 +1,75 @@
 (function () {
-  const ARROW_UP = createIcon(
-    `<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z" /></svg>`
-  );
-  const ARROW_DOWN = createIcon(
-    `<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4Z" /></svg>`
-  );
-  const DEFAULT_ICON = createIcon(
-    `<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8,19H11V23H13V19H16L12,15L8,19M16,5H13V1H11V5H8L12,9L16,5M4,11V13H20V11H4Z" /></svg>`
-  );
-
   const table = me("table");
   const tableHeads = any("table thead th", table);
   const tableRows = me("table tbody tr", table);
 
-  tableHeads.on("click", (e) => {
-    if (e.target.matches(".icon")) {
-      const parent = e.target.parentElement;
-      const key = parent.getAttribute("data-key");
-      const sortType = parent.getAttribute("data-sort");
+  /**
+   * Return a structured sort object from the url query params
+   *
+   * @returns {{key: string, sort: string}[]}
+   */
+  function getSortFromUrl() {
+    let sortParamsStr = new URLSearchParams(window.location.search).get("sort");
+    if (!sortParamsStr) return [];
+    let sortParams = [];
+    const sortParamsTokens = sortParamsStr.split("_");
+    sortParamsTokens.forEach((token) => {
+      const [key, sort] = token.split("-");
+      if (!key || !sort) return;
+      // case insensitive regex to check if sort is asc or desc
+      if (!/^(asc|desc)$/i.test(sort)) return;
+      sortParams.push({ key, sort: sort.toUpperCase() });
+    });
+    return sortParams;
+  }
 
-      if (sortType === "") {
-        parent.setAttribute("data-sort", "asc");
-        parent.appendChild(ARROW_UP.cloneNode(true));
-        addUrlParams([{ name: key, value: "asc" }]);
-      } else if (sortType === "asc") {
-        parent.setAttribute("data-sort", "desc");
-        parent.appendChild(ARROW_DOWN.cloneNode(true));
-        addUrlParams([{ name: key, value: "desc" }]);
-      } else if (sortType === "desc") {
-        parent.setAttribute("data-sort", "");
-        removeUrlParams([key]);
-        parent.appendChild(DEFAULT_ICON.cloneNode(true));
+  /**
+   * Update the url query params with the sort params
+   * @param {{key: string, sort: string}[]} sortParams
+   * @returns {void}
+   */
+  function updateSortInUrl(sortParams) {
+    let url = new URL(window.location.href);
+    const sortParamsStr = sortParams
+      .map((param) => `${param.key}-${param.sort}`)
+      .join("_");
+
+    url.searchParams.set("sort", sortParamsStr);
+
+    window.history.pushState({ path: url.href }, "", url.href);
+  }
+
+  document.body.addEventListener("htmx:beforeRequest", (ev) => {
+    console.log(ev);
+    const target = ev.detail.elt;
+    const key = target.getAttribute("data-key");
+    const currentSortDirection = target.getAttribute("data-sort");
+    const sortParams = getSortFromUrl();
+    const sortIndex = sortParams.findIndex((param) => param.key === key);
+    if (sortIndex === -1) {
+      const newSortParams = [...sortParams, { key, sort: "ASC" }];
+      updateSortInUrl(newSortParams);
+      return;
+    } else {
+      // Allow the user to remove the sort if it is currently descending and it is the last sort
+      if (
+        currentSortDirection === "DESC" &&
+        sortParams.length - 1 === sortIndex
+      ) {
+        const newSortParams = sortParams.slice(0, -1);
+        updateSortInUrl(newSortParams);
+        return;
+      } else if (currentSortDirection === "DESC") {
+        const newSortParams = [...sortParams];
+        newSortParams[sortIndex].sort = "ASC";
+        updateSortInUrl(newSortParams);
+        return;
+      } else {
+        const newSortParams = [...sortParams];
+        newSortParams[sortIndex].sort = "DESC";
+        updateSortInUrl(newSortParams);
+        return;
       }
-      parent.removeChild(e.target);
     }
   });
 })();

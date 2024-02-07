@@ -2,6 +2,7 @@ package components
 
 import (
 	g "github.com/maragudk/gomponents"
+	ghtmx "github.com/maragudk/gomponents-htmx"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
@@ -22,23 +23,48 @@ type TableColumn struct {
 	Sortable bool
 }
 
+type SortItem struct {
+	Key  string
+	Sort string
+}
+
 type TableProps struct {
 	Columns []TableColumn
 	Data    []TableRowRenderer
+	HxGet   string
+	Sort    []SortItem
 }
 
-func renderHead(columns []TableColumn) g.Node {
+func renderHead(columns []TableColumn, hxGet string, sort []SortItem) g.Node {
 	return g.Group(g.Map(columns, func(c TableColumn) g.Node {
+		sortDirection := ""
+		if c.Sortable {
+			for _, s := range sort {
+				if s.Key == c.Key {
+					sortDirection = s.Sort
+				}
+			}
+		}
 		return h.Th(
 			h.DataAttr("key", c.Key),
-			h.DataAttr("sort", ""),
+			g.If(sortDirection != "", h.DataAttr("sort", sortDirection)),
 			h.Class("table-head"),
 			h.Span(g.Text(c.Name)),
-			g.If(c.Sortable,
-				Icon(&IconProps{
+			g.Group([]g.Node{
+				g.If(sortDirection == "asc", Icon(&IconProps{
+					Identifier: "arrow-down",
+				})),
+				g.If(sortDirection == "desc", Icon(&IconProps{
+					Identifier: "arrow-up",
+				})),
+				g.If(sortDirection == "", Icon(&IconProps{
 					Identifier: "arrow-up-down",
-				}),
-			),
+				})),
+			}),
+			g.If(hxGet != "", g.Group([]g.Node{
+				ghtmx.Get(hxGet + "?sort=Username-ASC"), ghtmx.Target("closest table"),
+				ghtmx.Swap("outerHTML"),
+			})),
 		)
 	}))
 }
@@ -75,12 +101,18 @@ func Table(p *TableProps) g.Node {
 	classes := c.Classes{
 		"table-container": true,
 	}
+
+	if p.Sort == nil {
+		p.Sort = []SortItem{}
+	}
+
 	return h.Div(
 		classes,
 		h.Table(
+			ghtmx.PushURL("true"),
 			h.THead(
 				h.Tr(
-					renderHead(p.Columns),
+					renderHead(p.Columns, p.HxGet, p.Sort),
 				),
 			),
 			h.TBody(
