@@ -73,8 +73,8 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 			g.If(!p.Multiple, h.Span(h.Class("arrow"))),
 		),
 		MultiSelectOptions(p.Options, "search-select-dropdown", p.ID),
-		InlineStyle(Assets, "/SearchSelect.css"),
-		InlineScript(Assets, "/SearchSelect.js"),
+		InlineStyle("/components/SearchSelect.css"),
+		InlineScript("/components/SearchSelect.js"),
 	)
 
 }

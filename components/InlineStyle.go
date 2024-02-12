@@ -1,17 +1,19 @@
 package components
 
 import (
+	"fmt"
 	"io"
+	"operationalcore/assets"
 
-	"github.com/jessevdk/go-assets"
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
-func InlineStyle(fs *assets.FileSystem, assetPath string) g.Node {
+func InlineStyle(assetPath string) g.Node {
 
-	file, err := fs.Open(assetPath)
+	file, err := assets.Assets.Open(assetPath)
 	if err != nil {
+		fmt.Printf("Error opening file %s: %s\n", assetPath, err)
 		panic(err)
 	}
 	defer file.Close()

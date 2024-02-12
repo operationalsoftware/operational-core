@@ -14,9 +14,7 @@ type navbarProps struct {
 
 func navbar(p *navbarProps) g.Node {
 	return Nav(ID("navbar"),
-		o.InlineStyle(
-			Assets, "/navbar.css",
-		),
+		o.InlineStyle("/layout/navbar.css"),
 		Div(
 			Class("nav_links-container"),
 			Div(
@@ -30,10 +28,12 @@ func navbar(p *navbarProps) g.Node {
 			),
 			Div(
 				Class("nav_links"),
-				g.If(p.Ctx.User.UserId != 0, o.AvatarDropdown(&o.AvatarDropdownProps{
+				g.If(p.Ctx.User.UserID != 0, avatarDropdown(&avatarDropdownProps{
 					Ctx: p.Ctx,
 				})),
-				g.If(p.Ctx.User.UserId != 0, o.AppGallery()),
+				g.If(p.Ctx.User.UserID != 0, appGallery(&appGalleryProps{
+					Ctx: p.Ctx,
+				})),
 			),
 		),
 	)

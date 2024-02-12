@@ -12,7 +12,7 @@ app-dev
 app
 
 # built go assets
-**/assets.go
+assets/assets.go
 
 # sqlite database
 **/*.db

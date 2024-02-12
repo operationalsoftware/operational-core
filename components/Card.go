@@ -7,8 +7,8 @@ import (
 
 func Card(children ...g.Node) g.Node {
 	return h.Div(
-		InlineStyle(Assets, "/Card.css"),
 		h.Class("card"),
 		g.Group(children),
+		InlineStyle("/components/Card.css"),
 	)
 }

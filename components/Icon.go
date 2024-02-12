@@ -2,6 +2,7 @@ package components
 
 import (
 	"io"
+	"operationalcore/assets"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -20,7 +21,7 @@ func Icon(p *IconProps) g.Node {
 
 	p.Classes["icon"] = true
 
-	file, err := Assets.Open("/icon-svgs/" + p.Identifier + ".svg")
+	file, err := assets.Assets.Open("/components/icon-svgs/" + p.Identifier + ".svg")
 	if err != nil {
 		return g.Text("")
 	}

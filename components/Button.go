@@ -52,7 +52,7 @@ func Button(p *ButtonProps, children ...g.Node) g.Node {
 			g.If(p.Loading, LoadingSpinner(LoadingSpinnerSm)),
 			g.If(p.Loading, h.DataAttr("loading", "true")),
 			g.Group(children),
-			InlineStyle(Assets, "/Button.css"),
+			InlineStyle("/components/Button.css"),
 		},
 	)
 

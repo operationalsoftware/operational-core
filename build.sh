@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-# Build assets that can be served from memory
-packages=("static" "components" "layout" "views")
+# Fail on any error
+set -e
 
-for package in "${packages[@]}"
-do
-    go-assets-builder --package="$package" --strip-prefix=/"$package" --output="$package/assets.go" $(find ./"$package" -type f ! -name "*.go")
-done
+go-assets-builder --package=assets --output=assets/assets.go $(find ./components ./layout ./static ./src -type f ! -name "*.go")
 
 # error if executable name not provided as first argument
 if [ -z "$1" ]; then

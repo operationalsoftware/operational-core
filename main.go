@@ -8,7 +8,7 @@ import (
 
 	"operationalcore/db"
 	"operationalcore/migrate"
-	"operationalcore/router"
+	"operationalcore/src"
 	"operationalcore/utils"
 
 	"github.com/gorilla/handlers"
@@ -54,7 +54,7 @@ func main() {
 	utils.InitCookieInstance()
 
 	// Get router
-	r := router.AppRouter()
+	r := src.Router()
 
 	// Wrap router with Gorilla logging
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)

@@ -66,7 +66,7 @@ func Popconfirm(p *PopconfirmProps, children ...g.Node) g.Node {
 				),
 			),
 		),
-		InlineStyle(Assets, "/Popconfirm.css"),
-		InlineScript(Assets, "/Popconfirm.js"),
+		InlineStyle("/Popconfirm.css"),
+		InlineScript("/Popconfirm.js"),
 	)
 }

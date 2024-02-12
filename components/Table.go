@@ -119,7 +119,7 @@ func Table(p *TableProps) g.Node {
 				renderRows(p),
 			),
 		),
-		InlineStyle(Assets, "/Table.css"),
-		InlineScript(Assets, "/Table.js"),
+		InlineStyle("/components/Table.css"),
+		InlineScript("/components/Table.js"),
 	)
 }

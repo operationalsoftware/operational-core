@@ -1,7 +1,7 @@
 package layout
 
 import (
-	o "operationalcore/components"
+	"operationalcore/components"
 	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
@@ -10,7 +10,6 @@ import (
 )
 
 type layoutProps struct {
-	crumbs    []Crumb
 	content   g.Node
 	Ctx       utils.Context
 	NoPadding bool
@@ -18,12 +17,12 @@ type layoutProps struct {
 
 func layout(p *layoutProps) []g.Node {
 	return []g.Node{
-		o.InlineStyle(Assets, "/layout.css"),
-		o.InlineScript(Assets, "/global.js"),
 		navbar(&navbarProps{
 			Ctx: p.Ctx,
 		}),
-		breadcrumbs(p.crumbs),
+		g.If(p.Ctx.User.UserID != 0,
+			breadcrumbs(p.Ctx.Req.URL.Path),
+		),
 		h.Main(
 			c.Classes{
 				"main":         true,
@@ -32,5 +31,6 @@ func layout(p *layoutProps) []g.Node {
 			p.content,
 		),
 		footer(),
+		components.InlineStyle("/layout/layout.css"),
 	}
 }

@@ -8,6 +8,6 @@ import (
 func Form(children ...g.Node) g.Node {
 	return h.FormEl(
 		g.Group(children),
-		InlineStyle(Assets, "/Form.css"),
+		InlineStyle("/components/Form.css"),
 	)
 }

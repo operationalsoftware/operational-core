@@ -1,29 +1,23 @@
 package layout
 
 import (
-	"operationalcore/model"
 	"operationalcore/utils"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
-	. "github.com/maragudk/gomponents/html"
+	h "github.com/maragudk/gomponents/html"
 )
 
 func script(src string) g.Node {
-	return Script(Type("text/javascript"), Src(src))
+	return h.Script(h.Type("text/javascript"), h.Src(src))
 }
 
 func stylesheet(src string) g.Node {
-	return Link(Rel("stylesheet"), Type("text/css"), Href(src))
-}
-
-type ComponentCtx struct {
-	User model.User
+	return h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href(src))
 }
 
 type PageProps struct {
 	Title   string
-	Crumbs  []Crumb
 	Content g.Node
 	Scripts []string
 	CSS     []string
@@ -34,9 +28,9 @@ func Page(p PageProps) g.Node {
 
 	// Construct head
 	head := []g.Node{
-		Meta(Charset("utf-8")),
-		Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
-		Link(Rel("manifest"), Href("/static/manifest.json")),
+		h.Meta(h.Charset("utf-8")),
+		h.Meta(h.Name("viewport"), h.Content("width=device-width, initial-scale=1")),
+		h.Link(h.Rel("manifest"), h.Href("/static/manifest.json")),
 	}
 
 	// Add common css
@@ -57,6 +51,7 @@ func Page(p PageProps) g.Node {
 		"https://cdn.jsdelivr.net/gh/gnat/surreal/surreal.js",
 		"https://cdn.jsdelivr.net/gh/gnat/css-scope-inline/script.js",
 		"/static/js/htmx.min.js",
+		"/static/js/global.js",
 	}
 	head = append(head, g.Map(scriptUrls, script)...)
 
@@ -74,7 +69,6 @@ func Page(p PageProps) g.Node {
 		Body: layout(
 			&layoutProps{
 				content: p.Content,
-				crumbs:  p.Crumbs,
 				Ctx:     p.Ctx,
 			},
 		),

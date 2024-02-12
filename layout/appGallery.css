@@ -1,0 +1,96 @@
+me {
+  display: inline-block;
+  padding: var(--spacing);
+}
+
+me .app-gallery__button {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  cursor: pointer;
+}
+
+me .app-gallery__button svg {
+  width: 40px;
+  height: 40px;
+  fill: white;
+  padding: var(--spacing-sm);
+  border-radius: 50%;
+  transition: background-color 0.2s ease-in-out;
+}
+
+me .app-gallery__button:hover svg {
+  background-color: var(--primary-color);
+}
+
+me .app-gallery-content__container {
+  visibility: hidden;
+  position: absolute;
+  transform: scale(0);
+  transform-origin: top right;
+  width: 300px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: var(--spacing);
+  background-color: var(--background-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  z-index: 10;
+  transition: transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+me .app-gallery-content__container::-webkit-scrollbar {
+  width: 5px;
+}
+
+me .app-gallery-content__container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 25px;
+}
+
+me .app-gallery-content__container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 25px;
+}
+
+me .app-gallery-content__container.show {
+  visibility: visible;
+  transform: scale(1);
+}
+
+me .app-gallery-content__items {
+  background-color: var(--background-color-content);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  display: grid;
+  justify-items: center;
+  grid-template-columns: repeat(4, minmax(50px, 1fr));
+  row-gap: var(--spacing-md);
+  column-gap: var(--spacing-sm);
+  overflow: hidden;
+}
+
+me .app-gallery-content__item {
+  display: block;
+  text-decoration: none;
+  color: var(--text-color);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius);
+  text-align: center;
+  transition: background-color 0.2s ease-in-out;
+}
+
+me .app-gallery-content__item svg {
+  width: 30px;
+  height: 30px;
+  fill: var(--text-color);
+  transition: fill 0.2s ease-in-out;
+}
+
+me .app-gallery-content__item:hover {
+  background-color: var(--background-color);
+}
+
+me .app-gallery-content__item:hover svg {
+  fill: var(--primary-color);
+}

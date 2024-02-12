@@ -23,6 +23,6 @@ func Radio(p *RadioProps, children ...g.Node) g.Node {
 			h.ID(p.Name),
 			g.Group(children),
 		),
-		InlineStyle(Assets, "/Radio.css"),
+		InlineStyle("/components/Radio.css"),
 	)
 }

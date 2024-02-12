@@ -81,8 +81,8 @@ func Pagination(p *PaginationProps) g.Node {
 			),
 		),
 
-		InlineStyle(Assets, "/Pagination.css"),
-		InlineScript(Assets, "/Pagination.js"),
+		InlineStyle("/Pagination.css"),
+		InlineScript("/Pagination.js"),
 	)
 
 }

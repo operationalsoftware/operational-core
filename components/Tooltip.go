@@ -34,7 +34,7 @@ func Tooltip(p *TooltipProps, children ...g.Node) g.Node {
 		classes,
 		h.DataAttr("content", p.Text),
 		g.Group(children),
-		InlineStyle(Assets, "/Tooltip.css"),
-		InlineScript(Assets, "/Tooltip.js"),
+		InlineStyle("/components/Tooltip.css"),
+		InlineScript("/components/Tooltip.js"),
 	)
 }

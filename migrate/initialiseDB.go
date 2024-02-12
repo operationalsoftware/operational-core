@@ -5,7 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"operationalcore/db"
-	"operationalcore/model"
+	userModel "operationalcore/src/users/model"
 	"time"
 )
 
@@ -112,13 +112,13 @@ CREATE TABLE User (
 		panic(err)
 	}
 
-	var userToAdd = model.UserToAdd{
+	var userToAdd = userModel.NewUser{
 		Username:  "system",
 		IsAPIUser: true,
 		Password:  password,
 	}
 
-	err = model.AddUser(tx, userToAdd)
+	err = userModel.Add(tx, userToAdd)
 	if err != nil {
 		return err
 	}

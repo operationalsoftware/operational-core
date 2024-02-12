@@ -49,7 +49,7 @@ func Progress(p *ProgressProps, children ...g.Node) g.Node {
 			g.Text("0%"),
 		),
 		g.Group(children),
-		InlineStyle(Assets, "/Progress.css"),
-		InlineScript(Assets, "/Progress.js"),
+		InlineStyle("/components/Progress.css"),
+		InlineScript("/components/Progress.js"),
 	)
 }

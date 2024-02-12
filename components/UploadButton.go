@@ -7,7 +7,7 @@ import (
 )
 
 type UploadButtonProps struct {
-	Id string
+	ID string
 }
 
 func UploadButton(p *UploadButtonProps) g.Node {
@@ -23,17 +23,17 @@ func UploadButton(p *UploadButtonProps) g.Node {
 			Identifier: "upload",
 		}),
 		InputLabel(&InputLabelProps{
-			For: p.Id,
+			For: p.ID,
 		}, g.Text("Choose a file")),
 		h.Input(
 			g.Attr("type", "file"),
-			g.Attr("id", p.Id),
+			g.Attr("id", p.ID),
 		),
 		h.Div(
 			h.Class("file-info"),
 			g.Text("No file chosen"),
 		),
-		InlineStyle(Assets, "/UploadButton.css"),
-		InlineScript(Assets, "/UploadButton.js"),
+		InlineStyle("/components/UploadButton.css"),
+		InlineScript("/components/UploadButton.js"),
 	}))
 }

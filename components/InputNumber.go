@@ -48,6 +48,6 @@ func InputNumber(p *InputNumberProps, children ...g.Node) g.Node {
 			Label: p.HelperText,
 			Type:  p.HelperType,
 		})),
-		InlineStyle(Assets, "/Input.css"),
+		InlineStyle("/components/Input.css"),
 	)
 }

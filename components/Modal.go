@@ -37,6 +37,6 @@ func Modal(p *ModalProps, children ...g.Node) g.Node {
 				p.FooterContent,
 			),
 		),
-		InlineStyle(Assets, "/Modal.css"),
+		InlineStyle("/components/Modal.css"),
 	)
 }

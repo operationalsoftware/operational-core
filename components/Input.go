@@ -61,6 +61,6 @@ func Input(p *InputProps, children ...g.Node) g.Node {
 			Type:  p.HelperType,
 		})),
 		g.Group(children),
-		InlineStyle(Assets, "/Input.css"),
+		InlineStyle("/components/Input.css"),
 	)
 }

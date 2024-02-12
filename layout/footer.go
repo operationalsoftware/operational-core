@@ -9,9 +9,7 @@ import (
 
 func footer() g.Node {
 	return Footer(
-		o.InlineStyle(
-			Assets, "/footer.css",
-		),
+		o.InlineStyle("/layout/footer.css"),
 		Div(
 			g.Text("An OperationalPlatform"),
 			Sup(g.Text("TM")),

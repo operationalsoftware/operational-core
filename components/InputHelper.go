@@ -31,6 +31,6 @@ func InputHelper(p *InputHelperProps) g.Node {
 	return h.Div(
 		classes,
 		g.Text(p.Label),
-		InlineStyle(Assets, "/InputHelper.css"),
+		InlineStyle("/components/InputHelper.css"),
 	)
 }
