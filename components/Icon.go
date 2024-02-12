@@ -2,7 +2,7 @@ package components
 
 import (
 	"io"
-	"operationalcore/assets"
+	"app/assets"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"

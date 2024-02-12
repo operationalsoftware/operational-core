@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"operationalcore/db"
+	"app/db"
 
 	"golang.org/x/crypto/bcrypt"
 )

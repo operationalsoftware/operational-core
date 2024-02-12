@@ -2,7 +2,7 @@ package utils
 
 import (
 	"net/http"
-	userModel "operationalcore/src/users/model"
+	userModel "app/src/users/model"
 )
 
 type Context struct {

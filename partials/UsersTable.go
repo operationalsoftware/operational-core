@@ -1,7 +1,7 @@
 package partials
 
 import (
-	"operationalcore/components"
+	"app/components"
 
 	g "github.com/maragudk/gomponents"
 )

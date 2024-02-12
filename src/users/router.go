@@ -2,7 +2,7 @@ package users
 
 import (
 	"net/http"
-	"operationalcore/partials"
+	"app/partials"
 
 	"github.com/gorilla/mux"
 )

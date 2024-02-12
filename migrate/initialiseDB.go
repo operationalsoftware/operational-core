@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"operationalcore/db"
-	userModel "operationalcore/src/users/model"
+	"app/db"
+	userModel "app/src/users/model"
 	"time"
 )
 

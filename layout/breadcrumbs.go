@@ -1,9 +1,9 @@
 package layout
 
 import (
-	o "operationalcore/components"
-	"operationalcore/db"
-	userModel "operationalcore/src/users/model"
+	o "app/components"
+	"app/db"
+	userModel "app/src/users/model"
 	"strconv"
 	"strings"
 

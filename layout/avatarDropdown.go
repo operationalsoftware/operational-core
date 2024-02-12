@@ -1,8 +1,8 @@
 package layout
 
 import (
-	"operationalcore/components"
-	"operationalcore/utils"
+	"app/components"
+	"app/utils"
 
 	g "github.com/maragudk/gomponents"
 	ghtmx "github.com/maragudk/gomponents-htmx"

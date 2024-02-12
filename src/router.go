@@ -2,11 +2,11 @@ package src
 
 import (
 	"net/http"
-	"operationalcore/assets"
-	"operationalcore/middlewares"
-	"operationalcore/src/login"
-	"operationalcore/src/logout"
-	"operationalcore/src/users"
+	"app/assets"
+	"app/middlewares"
+	"app/src/login"
+	"app/src/logout"
+	"app/src/users"
 
 	"github.com/gorilla/mux"
 )

@@ -3,9 +3,9 @@ package middlewares
 import (
 	"context"
 	"net/http"
-	"operationalcore/db"
-	userModel "operationalcore/src/users/model"
-	"operationalcore/utils"
+	"app/db"
+	userModel "app/src/users/model"
+	"app/utils"
 )
 
 func Authentication(next http.Handler) http.Handler {

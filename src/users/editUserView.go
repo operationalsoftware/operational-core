@@ -2,11 +2,11 @@ package users
 
 import (
 	"fmt"
-	"operationalcore/components"
-	"operationalcore/db"
-	"operationalcore/layout"
-	userModel "operationalcore/src/users/model"
-	"operationalcore/utils"
+	"app/components"
+	"app/db"
+	"app/layout"
+	userModel "app/src/users/model"
+	"app/utils"
 
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"

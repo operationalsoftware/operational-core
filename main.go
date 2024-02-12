@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"os"
 
-	"operationalcore/db"
-	"operationalcore/migrate"
-	"operationalcore/src"
-	"operationalcore/utils"
+	"app/db"
+	"app/migrate"
+	"app/src"
+	"app/utils"
 
 	"github.com/gorilla/handlers"
 	_ "github.com/mattn/go-sqlite3"

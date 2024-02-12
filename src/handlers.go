@@ -2,7 +2,7 @@ package src
 
 import (
 	"net/http"
-	"operationalcore/utils"
+	"app/utils"
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {

@@ -2,7 +2,7 @@ package logout
 
 import (
 	"net/http"
-	"operationalcore/utils"
+	"app/utils"
 	"time"
 )
 

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"operationalcore/db"
+	"app/db"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
