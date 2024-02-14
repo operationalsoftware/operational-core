@@ -1,9 +1,9 @@
 package migrate
 
 import (
+	"app/db"
 	"fmt"
 	"log"
-	"operationalcore/db"
 )
 
 func migrate() bool {

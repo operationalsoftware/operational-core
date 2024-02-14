@@ -1,9 +1,9 @@
 package migrate
 
 import (
+	"app/db"
 	"errors"
 	"log"
-	"operationalcore/db"
 )
 
 func InitialiseOrMigrateDB() error {

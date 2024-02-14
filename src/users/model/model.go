@@ -1,16 +1,12 @@
 package userModel
 
 import (
+	"app/db"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
-<<<<<<< HEAD
-	"operationalcore/db"
 	"strings"
-=======
-	"app/db"
->>>>>>> d50cf32bca6530257d45ed0c9191bd56452658d0
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
