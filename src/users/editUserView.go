@@ -22,6 +22,17 @@ func editUserView(p *editUserViewProps) g.Node {
 
 	dbInsance := db.UseDB()
 	user, err := userModel.ByID(dbInsance, p.Id)
+	options := []components.CheckboxOption{}
+
+	for _, role := range user.Roles {
+		if role != "" {
+			options = append(options, components.CheckboxOption{
+				Value:   role,
+				Label:   role,
+				Checked: true,
+			})
+		}
+	}
 
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -62,6 +73,17 @@ func editUserView(p *editUserViewProps) g.Node {
 				h.Div(
 					emailInput(&emailInputProps{
 						Value: user.Email.String,
+					}),
+				),
+			),
+
+			g.If(
+				!user.IsAPIUser,
+				h.Div(
+					components.CheckboxGroup(&components.CheckboxGroupProps{
+						Name:    "roles",
+						Label:   "Roles",
+						Options: options,
 					}),
 				),
 			),

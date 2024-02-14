@@ -48,7 +48,7 @@ func generateRandomPassword(length int) (string, error) {
 	return string(password), nil
 }
 
-func Initialise() error {
+func initialise() bool {
 	db := db.UseDB()
 
 	// start a transaction
@@ -57,24 +57,6 @@ func Initialise() error {
 		log.Panic(err)
 	}
 	defer tx.Rollback()
-
-	// check if the users table exists
-	// if it does, return
-	var usersTableExists bool
-	query := fmt.Sprintf(`
-SELECT EXISTS (
-	SELECT 1 FROM sqlite_master WHERE type='table' AND name='User'
-)
-`)
-	err = db.QueryRow(query).Scan(&usersTableExists)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	if usersTableExists {
-		fmt.Println("Database already initialised")
-		return nil
-	}
 
 	//
 	// START OF INITIALISATION
@@ -96,11 +78,13 @@ CREATE TABLE User (
 	LastLogin DATETIME DEFAULT NULL,
 	HashedPassword TEXT NOT NULL,
 	FailedLoginAttempts INTEGER DEFAULT 0 NOT NULL,
-	LoginBlockedUntil DATETIME DEFAULT NULL
+	LoginBlockedUntil DATETIME DEFAULT NULL,
+	Roles JSON DEFAULT '[]' NOT NULL,
+	UserData JSON DEFAULT '{}' NOT NULL
 );
 `)
 	if err != nil {
-		return err
+		return false
 	}
 	fmt.Println("done")
 
@@ -116,11 +100,12 @@ CREATE TABLE User (
 		Username:  "system",
 		IsAPIUser: true,
 		Password:  password,
+		Roles:     []string{"User Admin"},
 	}
 
 	err = userModel.Add(tx, userToAdd)
 	if err != nil {
-		return err
+		return false
 	}
 
 	fmt.Println("done")
@@ -136,5 +121,5 @@ CREATE TABLE User (
 	}
 	fmt.Println("done")
 
-	return nil
+	return true
 }

@@ -3,9 +3,12 @@ me .edit-button-container {
   justify-content: flex-end;
 }
 
+:root[data-theme="dark"] .edit-button-container svg {
+  fill: white;
+}
+
 me .properties-grid {
   display: inline-grid;
   grid-template-columns: repeat(2, auto);
   grid-gap: var(--spacing-lg);
 }
-

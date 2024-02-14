@@ -43,8 +43,8 @@ func main() {
 	}
 	defer db.UseDB().Close()
 
-	// Run migrations
-	err = migrate.Initialise()
+	// Initialise or migrate database
+	err = migrate.InitialiseOrMigrateDB()
 	if err != nil {
 		retcode = 1
 		return

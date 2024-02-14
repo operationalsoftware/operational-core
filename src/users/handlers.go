@@ -9,6 +9,7 @@ import (
 	userModel "operationalcore/src/users/model"
 	"operationalcore/utils"
 	"strconv"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -234,11 +235,16 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	roles := r.FormValue("roles")
+	roles = strings.Trim(roles, "[]")
+	userRoles := []string{roles}
+
 	query := userModel.Update(db, id, userModel.UserUpdate{
 		FirstName: utils.StringToNullString(user.FirstName),
 		LastName:  utils.StringToNullString(user.LastName),
 		Email:     utils.StringToNullString(user.Email),
 		Username:  user.Username,
+		Roles:     userRoles,
 	})
 
 	if query != nil {

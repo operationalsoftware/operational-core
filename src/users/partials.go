@@ -172,3 +172,21 @@ func usernameInput(p *usernameInputProps) g.Node {
 		hx.Swap("outerHTML"),
 	)
 }
+
+// type rolesInputProps struct {
+// 	Roles []string
+// }
+
+// func rolesCheckBoxes(p *rolesInputProps) g.Node {
+// 	checkboxes := []g.Node{}
+// 	for _, role := range p.Roles {
+// 		checkboxes = append(checkboxes, components.Checkbox(&components.CheckboxProps{
+// 			Name:    role,
+// 			Label:   role,
+// 			Value:   role,
+// 			Checked: strings.Contains(strings.Join(p.Roles, ","), role),
+// 		}))
+// 	}
+
+// 	return h.Div(checkboxes...)
+// }

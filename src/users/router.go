@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"net/http"
 	"operationalcore/partials"
 
@@ -19,11 +20,12 @@ func AddRouter(r *mux.Router) {
 
 	// partial table
 	s.HandleFunc("/table", func(w http.ResponseWriter, r *http.Request) {
-		sort := r.URL.Query().Get("sort")
-		if sort == "" {
-			// /table/sort?Username=ASC
-			// set the header to this url
-		}
+		values := r.URL.Query()
+		sort := values.Get("sort")
+		fmt.Println("sort", sort)
+		// if sort == "" {
+		// 	w.Header().Set("hx-push-url", "/users/table?sort=Username-asc")
+		// }
 		_ = partials.UsersTable().Render(w)
 	}).Methods("GET")
 

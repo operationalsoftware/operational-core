@@ -47,10 +47,12 @@ func renderHead(columns []TableColumn, hxGet string, sort []SortItem) g.Node {
 		}
 		return h.Th(
 			h.DataAttr("key", c.Key),
+			ghtmx.Trigger("click"),
 			g.If(sortDirection != "", h.DataAttr("sort", sortDirection)),
+			ghtmx.PushURL("/users/table?sort="+c.Key+"-"+sortDirection),
 			h.Class("table-head"),
 			h.Span(g.Text(c.Name)),
-			g.Group([]g.Node{
+			g.If(c.Sortable, g.Group([]g.Node{
 				g.If(sortDirection == "asc", Icon(&IconProps{
 					Identifier: "arrow-down",
 				})),
@@ -60,9 +62,9 @@ func renderHead(columns []TableColumn, hxGet string, sort []SortItem) g.Node {
 				g.If(sortDirection == "", Icon(&IconProps{
 					Identifier: "arrow-up-down",
 				})),
-			}),
+			})),
 			g.If(hxGet != "", g.Group([]g.Node{
-				ghtmx.Get(hxGet + "?sort=Username-ASC"), ghtmx.Target("closest table"),
+				ghtmx.Get(hxGet), ghtmx.Target("closest table"),
 				ghtmx.Swap("outerHTML"),
 			})),
 		)
@@ -109,7 +111,6 @@ func Table(p *TableProps) g.Node {
 	return h.Div(
 		classes,
 		h.Table(
-			ghtmx.PushURL("true"),
 			h.THead(
 				h.Tr(
 					renderHead(p.Columns, p.HxGet, p.Sort),
@@ -120,6 +121,6 @@ func Table(p *TableProps) g.Node {
 			),
 		),
 		InlineStyle("/components/Table.css"),
-		InlineScript("/components/Table.js"),
+		// InlineScript("/components/Table.js"),
 	)
 }

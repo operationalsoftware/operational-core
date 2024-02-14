@@ -2,9 +2,11 @@ package userModel
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"operationalcore/db"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -19,6 +21,7 @@ type User struct {
 	LastName  sql.NullString
 	Created   time.Time
 	LastLogin sql.NullTime
+	Roles     []string
 }
 
 type NewUser struct {
@@ -28,11 +31,17 @@ type NewUser struct {
 	FirstName sql.NullString
 	LastName  sql.NullString
 	Password  string
+	Roles     []string
 }
 
 func Add(db db.SQLExecutor, user NewUser) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+
+	rolesJson, err := json.Marshal(user.Roles)
+	if err != nil {
+		return err
+	}
 
 	insertUserStmt := `
 INSERT INTO User (
@@ -41,9 +50,10 @@ INSERT INTO User (
 	Email,
 	FirstName,
 	LastName,
-	HashedPassword
+	HashedPassword,
+	Roles
 )
-VALUES (?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 	_, err = db.Exec(
 		insertUserStmt,
@@ -53,6 +63,7 @@ VALUES (?, ?, ?, ?, ?, ?)
 		user.FirstName,
 		user.LastName,
 		string(hashedPassword),
+		rolesJson,
 	)
 
 	if err != nil {
@@ -67,6 +78,7 @@ type UserUpdate struct {
 	Email     sql.NullString
 	FirstName sql.NullString
 	LastName  sql.NullString
+	Roles     []string
 }
 
 func Update(db db.SQLExecutor, id int, update UserUpdate) error {
@@ -78,19 +90,27 @@ SET
 	FirstName = ?,
 	LastName = ?,
 	Email = ?,
-	Username = ?
+	Username = ?,
+	Roles = ?
 
 WHERE
 	UserID = ?
 	`
 
-	_, err := db.Exec(
+	rolesJSON, err := json.Marshal(update.Roles)
+	rolesString := strings.Replace(string(rolesJSON), `\"`, ``, -1)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(
 		query,
 
 		update.FirstName,
 		update.LastName,
 		update.Email,
 		update.Username,
+		rolesString,
 		id,
 	)
 
@@ -110,7 +130,8 @@ SELECT
 	Email,
 	FirstName,
 	LastName,
-	Created
+	Created,
+	Roles
 FROM
 	User
 WHERE
@@ -118,6 +139,7 @@ WHERE
 	`
 
 	var user User
+	var rolesJSON string
 	err := db.QueryRow(query, id).Scan(
 		&user.UserID,
 		&user.IsAPIUser,
@@ -126,7 +148,14 @@ WHERE
 		&user.FirstName,
 		&user.LastName,
 		&user.Created,
+		&rolesJSON,
 	)
+
+	// Unmarshal the rolesJSON string into a []string
+	err = json.Unmarshal([]byte(rolesJSON), &user.Roles)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	if err == sql.ErrNoRows {
 		return user, fmt.Errorf("User not found")

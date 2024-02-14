@@ -1,0 +1,22 @@
+me {
+  margin: var(--spacing-sm) 0;
+}
+
+me label {
+  display: inline-block;
+  margin-bottom: var(--spacing-md);
+}
+
+me .checkbox-options {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+me .checkbox-option {
+  display: flex;
+  margin-right: var(--spacing-md);
+}
+
+me .checkbox-option:last-child {
+  margin-right: 0;
+}

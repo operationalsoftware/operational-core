@@ -39,5 +39,6 @@ func UsersTable() g.Node {
 	return components.Table(&components.TableProps{
 		Columns: columns,
 		Data:    []components.TableRowRenderer{},
+		HxGet:   "/users/table",
 	})
 }

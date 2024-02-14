@@ -3,6 +3,10 @@ me .add-button-container {
   justify-content: flex-end;
 }
 
+:root[data-theme="dark"] .add-button-container svg {
+  fill: white;
+}
+
 me .table-container {
   margin-top: var(--spacing-lg);
 }
