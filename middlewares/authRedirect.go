@@ -2,7 +2,7 @@ package middlewares
 
 import (
 	"net/http"
-	userModel "operationalcore/src/users/model"
+	userModel "app/src/users/model"
 	"strings"
 )
 

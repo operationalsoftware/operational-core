@@ -3,7 +3,7 @@ package users
 import (
 	"fmt"
 	"net/http"
-	"operationalcore/partials"
+	"app/partials"
 
 	"github.com/gorilla/mux"
 )

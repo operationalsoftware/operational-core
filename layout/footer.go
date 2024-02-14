@@ -1,7 +1,7 @@
 package layout
 
 import (
-	o "operationalcore/components"
+	o "app/components"
 
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"

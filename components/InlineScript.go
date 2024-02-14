@@ -3,7 +3,7 @@ package components
 import (
 	"fmt"
 	"io"
-	"operationalcore/assets"
+	"app/assets"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"

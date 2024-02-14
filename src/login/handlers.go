@@ -3,8 +3,8 @@ package login
 import (
 	"fmt"
 	"net/http"
-	"operationalcore/src/auth"
-	"operationalcore/utils"
+	"app/src/auth"
+	"app/utils"
 	"time"
 )
 

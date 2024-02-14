@@ -1,7 +1,7 @@
 package login
 
 import (
-	"operationalcore/components"
+	"app/components"
 
 	g "github.com/maragudk/gomponents"
 	ghtmx "github.com/maragudk/gomponents-htmx"

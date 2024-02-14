@@ -1,9 +1,9 @@
 package users
 
 import (
-	"operationalcore/components"
-	"operationalcore/layout"
-	"operationalcore/utils"
+	"app/components"
+	"app/layout"
+	"app/utils"
 
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
