@@ -1,16 +1,17 @@
 package users
 
 import (
-	"fmt"
 	"app/components"
 	"app/db"
 	"app/layout"
 	userModel "app/src/users/model"
 	"app/utils"
+	"fmt"
 
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
 	h "github.com/maragudk/gomponents/html"
+	"golang.org/x/exp/slices"
 )
 
 type editUserViewProps struct {
@@ -18,19 +19,23 @@ type editUserViewProps struct {
 	Ctx utils.Context
 }
 
+var userRoleOptions = []components.CheckboxOption{
+	{
+		Value: "User Admin",
+		Label: "User Admin",
+	},
+}
+
 func editUserView(p *editUserViewProps) g.Node {
 
 	dbInsance := db.UseDB()
 	user, err := userModel.ByID(dbInsance, p.Id)
-	options := []components.CheckboxOption{}
 
-	for _, role := range user.Roles {
-		if role != "" {
-			options = append(options, components.CheckboxOption{
-				Value:   role,
-				Label:   role,
-				Checked: true,
-			})
+	// update user role options, checked if user has the role
+	for idx, option := range userRoleOptions {
+		// check if user.Roles contains option.Value
+		if slices.Contains(user.Roles, option.Value) {
+			userRoleOptions[idx].Checked = true
 		}
 	}
 
@@ -77,15 +82,12 @@ func editUserView(p *editUserViewProps) g.Node {
 				),
 			),
 
-			g.If(
-				!user.IsAPIUser,
-				h.Div(
-					components.CheckboxGroup(&components.CheckboxGroupProps{
-						Name:    "roles",
-						Label:   "Roles",
-						Options: options,
-					}),
-				),
+			h.Div(
+				components.CheckboxGroup(&components.CheckboxGroupProps{
+					Name:    "roles",
+					Label:   "Roles",
+					Options: userRoleOptions,
+				}),
 			),
 
 			h.Div(

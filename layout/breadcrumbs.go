@@ -34,8 +34,9 @@ var breadcrumbsDef = breadcrumbsType{
 
 			children: []breadcrumbsType{
 				{
-					urlPart: "create",
-					title:   "Create",
+					urlPart:        "add",
+					title:          "Add New",
+					iconIdentifier: "account-plus",
 				},
 				{
 					urlPart: "*",
