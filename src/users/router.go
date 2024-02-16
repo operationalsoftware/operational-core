@@ -1,9 +1,9 @@
 package users
 
 import (
+	"app/partials"
 	"fmt"
 	"net/http"
-	"app/partials"
 
 	"github.com/gorilla/mux"
 )
@@ -39,6 +39,10 @@ func AddRouter(r *mux.Router) {
 
 	// User page
 	s.HandleFunc("/{id}", userViewHandler).Methods("GET")
+
+	// Reset password
+	s.HandleFunc("/{id}/reset-password", resetPasswordUserViewHandler).Methods("GET")
+	s.HandleFunc("/{id}/reset-password", resetPasswordUserHandler).Methods("POST")
 
 	// Edit user
 	s.HandleFunc("/{id}/edit", editUserViewHandler).Methods("GET")

@@ -8,11 +8,12 @@ me .open-btn {
   position: relative;
   cursor: pointer;
   border-radius: 50%;
-  transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, filter 0.2s ease-in-out;
 }
 
 me .open-btn:hover {
   background-color: var(--primary-color);
+  filter: brightness(1.2);
 }
 
 me .open-btn .icon {
@@ -59,7 +60,7 @@ me .dropdown-content section:not(.actions) {
 }
 
 /* apply a top border to all but the first immediate child */
-me .dropdown-content >:not(:first-child) {
+me .dropdown-content > :not(:first-child) {
   border-top: 1px solid var(--border-color);
 }
 
@@ -67,7 +68,6 @@ me .username {
 }
 
 me .email {
-
 }
 
 me .name {
@@ -131,4 +131,3 @@ me .actions button .icon {
 me .actions button .icon.show {
   display: block;
 }
-

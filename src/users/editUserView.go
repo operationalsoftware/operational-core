@@ -1,12 +1,12 @@
 package users
 
 import (
-	"fmt"
 	"app/components"
 	"app/db"
 	"app/layout"
 	userModel "app/src/users/model"
 	"app/utils"
+	"fmt"
 
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
@@ -22,15 +22,29 @@ func editUserView(p *editUserViewProps) g.Node {
 
 	dbInsance := db.UseDB()
 	user, err := userModel.ByID(dbInsance, p.Id)
-	options := []components.CheckboxOption{}
+	options := []components.CheckboxOption{
+		{
+			Value:   "User Admin",
+			Label:   "User Admin",
+			Checked: false,
+		},
+		{
+			Value:   "User",
+			Label:   "User",
+			Checked: false,
+		},
+		{
+			Value:   "Dummy",
+			Label:   "Dummy",
+			Checked: false,
+		},
+	}
 
-	for _, role := range user.Roles {
-		if role != "" {
-			options = append(options, components.CheckboxOption{
-				Value:   role,
-				Label:   role,
-				Checked: true,
-			})
+	for i, option := range options {
+		for _, role := range user.Roles {
+			if role == option.Value {
+				options[i].Checked = true
+			}
 		}
 	}
 

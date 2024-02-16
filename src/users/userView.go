@@ -1,14 +1,16 @@
 package users
 
 import (
-	"fmt"
 	"app/components"
 	"app/db"
 	"app/layout"
 	userModel "app/src/users/model"
 	"app/utils"
+	"fmt"
+	"strings"
 
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
@@ -30,14 +32,26 @@ func userView(p *userViewProps) g.Node {
 		g.If(
 			user.UserID != 1,
 			h.Div(
-				h.Class("edit-button-container"),
+				h.Class("button-container"),
 				components.Button(&components.ButtonProps{
 					ButtonType: "primary",
-					Link:       fmt.Sprintf("/users/%d/edit", p.Id),
+					Classes: c.Classes{
+						"edit-button": true,
+					},
+					Link: fmt.Sprintf("/users/%d/edit", p.Id),
 				},
 					components.Icon(&components.IconProps{
 						Identifier: "pencil",
 					}),
+				),
+				components.Button(&components.ButtonProps{
+					ButtonType: "primary",
+					Classes: c.Classes{
+						"reset-pw-button": true,
+					},
+					Link: fmt.Sprintf("/users/%d/reset-password", p.Id),
+				},
+					g.Text("Reset Password"),
 				),
 			),
 		),
@@ -65,6 +79,12 @@ func userView(p *userViewProps) g.Node {
 						),
 						h.Span(
 							g.Text(user.Email.String),
+						),
+						h.Span(
+							h.Strong(g.Text("Roles")),
+						),
+						h.Span(
+							g.Text(strings.Join(user.Roles, ", ")),
 						),
 					}),
 				),

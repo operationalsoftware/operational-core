@@ -1,11 +1,11 @@
 package migrate
 
 import (
+	"app/db"
+	userModel "app/src/users/model"
 	"fmt"
 	"log"
 	"math/rand"
-	"app/db"
-	userModel "app/src/users/model"
 	"time"
 )
 

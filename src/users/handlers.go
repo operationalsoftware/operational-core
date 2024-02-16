@@ -1,13 +1,13 @@
 package users
 
 import (
-	"fmt"
-	"log"
-	"net/http"
 	"app/components"
 	"app/db"
 	userModel "app/src/users/model"
 	"app/utils"
+	"fmt"
+	"log"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -17,6 +17,11 @@ import (
 
 func indexViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	_ = indexView(&indexViewProps{
 		Ctx: ctx,
 	}).Render(w)
@@ -30,7 +35,31 @@ func userViewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	_ = userView(&userViewProps{
+		Id:  id,
+		Ctx: ctx,
+	}).Render(w)
+}
+
+func resetPasswordUserViewHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	_ = resetPasswordUserView(&resetPasswordUserViewProps{
 		Id:  id,
 		Ctx: ctx,
 	}).Render(w)
@@ -38,6 +67,11 @@ func userViewHandler(w http.ResponseWriter, r *http.Request) {
 
 func addUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	_ = addUserView(&addUserViewProps{
 		Ctx: ctx,
 	}).Render(w)
@@ -51,6 +85,11 @@ func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	_ = editUserView(&editUserViewProps{
 		Id:  id,
 		Ctx: ctx,
@@ -177,7 +216,12 @@ func validateUsernameHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserHandler(w http.ResponseWriter, r *http.Request) {
-
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		fmt.Println("Error:", "Forbidden")
+		return
+	}
 	// Create user in db
 	db := db.UseDB()
 
@@ -199,6 +243,14 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func editUserHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+
+	if !isAdmin {
+		fmt.Println("Error:", "Forbidden")
+		return
+	}
+
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -237,7 +289,7 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	roles := r.FormValue("roles")
 	roles = strings.Trim(roles, "[]")
-	userRoles := []string{roles}
+	userRoles := strings.Split(roles, ",")
 
 	query := userModel.Update(db, id, userModel.UserUpdate{
 		FirstName: utils.StringToNullString(user.FirstName),
@@ -258,4 +310,30 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Redirect to user view
 	w.Header().Set("hx-redirect", "/users")
 
+}
+
+func resetPasswordUserHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	db := db.UseDB()
+
+	err = userModel.ResetPassword(db, id, r.FormValue("Password"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Redirect to user view
+	w.Header().Set("hx-redirect", fmt.Sprintf("/users/%d", id))
 }

@@ -58,6 +58,10 @@ var breadcrumbsDef = breadcrumbsType{
 							urlPart: "edit",
 							title:   "Edit",
 						},
+						{
+							urlPart: "reset-password",
+							title:   "Reset password",
+						},
 					},
 				},
 			},

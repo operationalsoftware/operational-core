@@ -5,6 +5,8 @@
   --primary-color: #2684ba;
   --secondary-color: #ed254e;
 
+  --navbar-color: var(--primary-color);
+
   --background-color: #f0f0f0;
   --background-color-grey: #e0e0e0;
   --background-color-content: #ffffff;

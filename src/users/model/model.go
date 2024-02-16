@@ -209,3 +209,26 @@ ORDER BY
 
 	return users, nil
 }
+
+func ResetPassword(db db.SQLExecutor, id int, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	query := `
+UPDATE
+	User
+SET
+	HashedPassword = ?
+WHERE
+	UserID = ?
+	`
+
+	_, err = db.Exec(query, string(hashedPassword), id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
