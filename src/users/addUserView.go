@@ -62,7 +62,7 @@ func addUserView(p *addUserViewProps) g.Node {
 
 	return layout.Page(layout.PageProps{
 		Ctx:     p.Ctx,
-		Title:   "Add User",
+		Title:   "Add New User",
 		Content: content,
 	})
 }
