@@ -1,17 +1,14 @@
 package users
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"app/components"
 	"app/db"
 	userModel "app/src/users/model"
 	"app/utils"
+	"fmt"
+	"log"
+	"net/http"
 	"strconv"
-	"strings"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -43,151 +40,58 @@ func addUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	}).Render(w)
 }
 
-func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
+	var newUser userModel.NewUser
+
+	err := r.ParseForm()
 	if err != nil {
-		fmt.Println("Error:", err)
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
 	}
 
-	ctx := utils.GetContext(r)
-	_ = editUserView(&editUserViewProps{
-		Id:  id,
-		Ctx: ctx,
-	}).Render(w)
-}
-
-func validateConfirmPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	confirmPassword := r.FormValue("ConfirmPassword")
-	password := r.FormValue("Password")
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Var(confirmPassword, "required,min=3,max=20")
-
-	var helperText string
-
+	err = utils.DecodeForm(r.Form, &newUser)
 	if err != nil {
-		helperText = "Passwords must be between 3 and 20 characters"
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
 	}
 
-	if confirmPassword != password {
-		helperText = "Passwords do not match"
-	}
+	_, validationErrors := userModel.ValidateNewUser(newUser)
 
-	_ = confirmPasswordInput(&confirmPasswordInputProps{
-		ValidationError: helperText,
-		Value:           confirmPassword,
+	_ = addUserForm(&addUserFormProps{
+		values:           r.Form,
+		validationErrors: validationErrors,
 	}).Render(w)
-}
 
-func validateEmailHandler(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("Email")
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Var(email, "email")
-
-	var helperText string
-
-	if err != nil {
-		helperText = "Email must be a valid email address"
-	}
-
-	_ = emailInput(&emailInputProps{
-		ValidationError: helperText,
-		Value:           email,
-	}).Render(w)
-}
-
-func validateFirstNameHandler(w http.ResponseWriter, r *http.Request) {
-	firstName := r.FormValue("FirstName")
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Var(firstName, "required,gte=3,lte=20")
-
-	var helperText string
-
-	if err != nil {
-		helperText = "First name must be between 3 and 20 characters"
-	}
-
-	_ = firstNameInput(&firstNameInputProps{
-		ValidationError: helperText,
-		Value:           firstName,
-	}).Render(w)
-}
-
-func validateLastNameHandler(w http.ResponseWriter, r *http.Request) {
-	lastName := r.FormValue("LastName")
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Var(lastName, `required,min=3,max=20`)
-
-	var helperText string
-
-	if err != nil {
-		helperText = "Last name must be between 3 and 20 characters"
-	}
-
-	_ = lastNameInput(&lastNameInputProps{
-		ValidationError: helperText,
-		Value:           lastName,
-	}).Render(w)
-}
-
-func validatePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	password := r.FormValue("Password")
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Var(password, "required,gte=3,lte=20")
-
-	var helperText string
-
-	if err != nil {
-		helperText = "Password must be between 3 and 20 characters"
-	}
-
-	_ = passwordInput(&passwordInputProps{
-		ValidationError: helperText,
-		Value:           password,
-	}).Render(w)
-}
-
-func validateUsernameHandler(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("Username")
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Var(username, "required,gte=3,lte=20")
-
-	var helperText string
-
-	if err != nil {
-		helperText = "Username must be between 3 and 20 characters"
-	}
-
-	_ = usernameInput(&usernameInputProps{
-		ValidationError: helperText,
-		Value:           username,
-	}).Render(w)
+	return
 }
 
 func addUserHandler(w http.ResponseWriter, r *http.Request) {
 
-	// Create user in db
-	db := db.UseDB()
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
 
-	err := userModel.Add(db, userModel.NewUser{
-		Username:  r.FormValue("Username"),
-		Email:     utils.StringToNullString(r.FormValue("Email")),
-		FirstName: utils.StringToNullString(r.FormValue("FirstName")),
-		LastName:  utils.StringToNullString(r.FormValue("LastName")),
-		Password:  r.FormValue("Password"),
-	})
+	var newUser userModel.NewUser
+	err = utils.DecodeForm(r.Form, &newUser)
+	if err != nil {
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	valid, validationErrors := userModel.ValidateNewUser(newUser)
+	if !valid {
+		_ = addUserForm(&addUserFormProps{
+			values:           r.Form,
+			validationErrors: validationErrors,
+			isSubmission:     true,
+		}).Render(w)
+		return
+	}
+
+	db := db.UseDB()
+	err = userModel.Add(db, newUser)
 
 	if err != nil {
 		log.Panic(err)
@@ -197,65 +101,112 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("hx-redirect", "/users")
 }
 
-func editUserHandler(w http.ResponseWriter, r *http.Request) {
+func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 
-	type User struct {
-		FirstName string `validate:"required"`
-		LastName  string `validate:"required"`
-		Email     string `validate:"email"`
-		Username  string `validate:"required,gte=3,lte=20"`
-	}
-
-	var user User = User{
-		FirstName: r.FormValue("FirstName"),
-		LastName:  r.FormValue("LastName"),
-		Email:     r.FormValue("Email"),
-		Username:  r.FormValue("Username"),
-	}
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	err = validate.Struct(user)
-
+	db := db.UseDB()
+	user, err := userModel.ByID(db, id)
 	if err != nil {
-		_ = components.InputHelper(&components.InputHelperProps{
-			Label: "Submission Error",
-			Type:  components.InputHelperTypeError,
-		}).Render(w)
+		http.Error(w, "Error getting user", http.StatusBadRequest)
+		return
+	}
+
+	ctx := utils.GetContext(r)
+	_ = editUserView(&editUserViewProps{
+		User: user,
+		Ctx:  ctx,
+	}).Render(w)
+}
+
+func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
 	}
 
 	db := db.UseDB()
-
+	user, err := userModel.ByID(db, id)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "Error getting user", http.StatusBadRequest)
+		return
 	}
 
-	roles := r.FormValue("roles")
-	roles = strings.Trim(roles, "[]")
-	userRoles := []string{roles}
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
 
-	query := userModel.Update(db, id, userModel.UserUpdate{
-		FirstName: utils.StringToNullString(user.FirstName),
-		LastName:  utils.StringToNullString(user.LastName),
-		Email:     utils.StringToNullString(user.Email),
-		Username:  user.Username,
-		Roles:     userRoles,
-	})
+	var userUpdate userModel.UserUpdate
 
-	if query != nil {
-		_ = components.InputHelper(&components.InputHelperProps{
-			Label: "Submission Error",
-			Type:  components.InputHelperTypeError,
+	err = utils.DecodeForm(r.Form, &userUpdate)
+	if err != nil {
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	_, validationErrors := userModel.ValidateUserUpdate(userUpdate)
+
+	_ = editUserForm(&editUserFormProps{
+		user:             user,
+		values:           r.Form,
+		validationErrors: validationErrors,
+	}).Render(w)
+
+	return
+}
+
+func editUserHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	db := db.UseDB()
+	user, err := userModel.ByID(db, id)
+	if err != nil {
+		http.Error(w, "Error getting user", http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var userUpdate userModel.UserUpdate
+	err = utils.DecodeForm(r.Form, &userUpdate)
+	if err != nil {
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	valid, validationErrors := userModel.ValidateUserUpdate(userUpdate)
+	if !valid {
+		_ = editUserForm(&editUserFormProps{
+			user:             user,
+			values:           r.Form,
+			validationErrors: validationErrors,
+			isSubmission:     true,
 		}).Render(w)
 		return
+	}
+
+	err = userModel.Update(db, id, userUpdate)
+
+	if err != nil {
+		log.Panic(err)
 	}
 
 	// Redirect to user view
 	w.Header().Set("hx-redirect", "/users")
 
+	return
 }

@@ -12,6 +12,7 @@ const (
 	InputHelperTypeSuccess InputHelperType = "success"
 	InputHelperTypeWarning InputHelperType = "warning"
 	InputHelperTypeError   InputHelperType = "error"
+	InputHelperTypeNone    InputHelperType = "none"
 )
 
 type InputHelperProps struct {

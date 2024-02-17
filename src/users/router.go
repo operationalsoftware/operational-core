@@ -1,9 +1,9 @@
 package users
 
 import (
+	"app/partials"
 	"fmt"
 	"net/http"
-	"app/partials"
 
 	"github.com/gorilla/mux"
 )
@@ -17,6 +17,7 @@ func AddRouter(r *mux.Router) {
 	// Add user
 	s.HandleFunc("/add", addUserViewHandler).Methods("GET")
 	s.HandleFunc("/add", addUserHandler).Methods("POST")
+	s.HandleFunc("/add/validate", validateAddUserHandler).Methods("POST")
 
 	// partial table
 	s.HandleFunc("/table", func(w http.ResponseWriter, r *http.Request) {
@@ -29,18 +30,11 @@ func AddRouter(r *mux.Router) {
 		_ = partials.UsersTable().Render(w)
 	}).Methods("GET")
 
-	// User form partials
-	s.HandleFunc("/validate/first-name", validateFirstNameHandler).Methods("POST")
-	s.HandleFunc("/validate/last-name", validateLastNameHandler).Methods("POST")
-	s.HandleFunc("/validate/email", validateEmailHandler).Methods("POST")
-	s.HandleFunc("/validate/username", validateUsernameHandler).Methods("POST")
-	s.HandleFunc("/validate/password", validatePasswordHandler).Methods("POST")
-	s.HandleFunc("/validate/confirm-password", validateConfirmPasswordHandler).Methods("POST")
-
 	// User page
 	s.HandleFunc("/{id}", userViewHandler).Methods("GET")
 
 	// Edit user
 	s.HandleFunc("/{id}/edit", editUserViewHandler).Methods("GET")
 	s.HandleFunc("/{id}/edit", editUserHandler).Methods("POST")
+	s.HandleFunc("/{id}/edit/validate", validateEditUserHandler).Methods("POST")
 }

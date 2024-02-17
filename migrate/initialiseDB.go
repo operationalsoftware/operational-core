@@ -1,11 +1,11 @@
 package migrate
 
 import (
+	"app/db"
+	userModel "app/src/users/model"
 	"fmt"
 	"log"
 	"math/rand"
-	"app/db"
-	userModel "app/src/users/model"
 	"time"
 )
 
@@ -96,14 +96,13 @@ CREATE TABLE User (
 		panic(err)
 	}
 
-	var userToAdd = userModel.NewUser{
-		Username:  "system",
-		IsAPIUser: true,
-		Password:  password,
-		Roles:     []string{"User Admin"},
+	var userToAdd = userModel.NewAPIUser{
+		Username: "system",
+		Password: password,
+		Roles:    []string{"User Admin"},
 	}
 
-	err = userModel.Add(tx, userToAdd)
+	err = userModel.AddAPIUser(tx, userToAdd)
 	if err != nil {
 		return false
 	}
