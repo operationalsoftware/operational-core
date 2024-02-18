@@ -37,4 +37,9 @@ func AddRouter(r *mux.Router) {
 	s.HandleFunc("/{id}/edit", editUserViewHandler).Methods("GET")
 	s.HandleFunc("/{id}/edit", editUserHandler).Methods("POST")
 	s.HandleFunc("/{id}/edit/validate", validateEditUserHandler).Methods("POST")
+
+	// Reset password
+	s.HandleFunc("/{id}/reset-password", resetPasswordViewHandler).Methods("GET")
+	s.HandleFunc("/{id}/reset-password", resetPasswordHandler).Methods("POST")
+	s.HandleFunc("/{id}/reset-password/validate", validateResetPasswordHandler).Methods("POST")
 }

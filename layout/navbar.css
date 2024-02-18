@@ -1,6 +1,6 @@
 me {
   height: 60px;
-  background-color: var(--background-colour);
+  background-color: var(--navbar-color);
 }
 
 me .nav_links-container {

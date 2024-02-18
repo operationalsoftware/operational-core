@@ -4,7 +4,7 @@ me .add-button-container {
 }
 
 :root[data-theme="dark"] .add-button-container svg {
-  fill: white;
+  fill: currentColor;
 }
 
 me .table-container {

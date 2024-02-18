@@ -1,7 +1,7 @@
 package src
 
 import (
-	o "app/components"
+	"app/components"
 	"app/layout"
 	"app/utils"
 
@@ -17,7 +17,10 @@ func indexView(p *indexViewProps) g.Node {
 
 	indexContent := g.Group([]g.Node{
 		h.H1(g.Text("Operational Core Home")),
-		o.InlineScript("/src/index.js"),
+		components.InlineScript("/src/index.js"),
+		components.Card(
+			h.H1(g.Text("Card Title")),
+		),
 	})
 
 	return layout.Page(layout.PageProps{

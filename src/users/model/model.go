@@ -236,6 +236,49 @@ WHERE
 	return nil
 }
 
+type PasswordReset struct {
+	Password        string
+	ConfirmPassword string
+}
+
+func ValidatePasswordReset(pr PasswordReset) (bool, validation.ValidationErrors) {
+
+	var validationErrors validation.ValidationErrors = make(map[string][]string)
+
+	// validate Password
+	validation.Password(pr.Password, &validationErrors, "Password")
+
+	// validate confirm password
+	if pr.Password != pr.ConfirmPassword {
+		validationErrors.Add("ConfirmPassword", "does not match")
+	}
+
+	return len(validationErrors) == 0, validationErrors
+}
+
+func ResetPassword(db db.SQLExecutor, id int, pr PasswordReset) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pr.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	query := `
+UPDATE
+	User
+SET
+	HashedPassword = ?
+WHERE
+	UserID = ?
+	`
+
+	_, err = db.Exec(query, string(hashedPassword), id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func ByID(db db.SQLExecutor, id int) (User, error) {
 	query := `
 SELECT

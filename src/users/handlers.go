@@ -14,19 +14,30 @@ import (
 
 func indexViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	_ = indexView(&indexViewProps{
 		Ctx: ctx,
 	}).Render(w)
 }
 
 func userViewHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		fmt.Println("Error:", err)
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
-	ctx := utils.GetContext(r)
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
 	_ = userView(&userViewProps{
 		Id:  id,
 		Ctx: ctx,
@@ -35,13 +46,23 @@ func userViewHandler(w http.ResponseWriter, r *http.Request) {
 
 func addUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	_ = addUserView(&addUserViewProps{
 		Ctx: ctx,
 	}).Render(w)
 }
 
 func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
-	var newUser userModel.NewUser
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 
 	err := r.ParseForm()
 	if err != nil {
@@ -49,11 +70,8 @@ func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var newUser userModel.NewUser
 	err = utils.DecodeForm(r.Form, &newUser)
-	if err != nil {
-		http.Error(w, "Error decoding form", http.StatusBadRequest)
-		return
-	}
 
 	_, validationErrors := userModel.ValidateNewUser(newUser)
 
@@ -66,6 +84,12 @@ func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		fmt.Println("Error:", "Forbidden")
+		return
+	}
 
 	err := r.ParseForm()
 	if err != nil {
@@ -94,7 +118,7 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 	err = userModel.Add(db, newUser)
 
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, "Error adding user", http.StatusInternalServerError)
 	}
 
 	// Redirect to users view
@@ -102,27 +126,13 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	db := db.UseDB()
-	user, err := userModel.ByID(db, id)
-	if err != nil {
-		http.Error(w, "Error getting user", http.StatusBadRequest)
-		return
-	}
-
 	ctx := utils.GetContext(r)
-	_ = editUserView(&editUserViewProps{
-		User: user,
-		Ctx:  ctx,
-	}).Render(w)
-}
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 
-func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -136,9 +146,36 @@ func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_ = editUserView(&editUserViewProps{
+		User: user,
+		Ctx:  ctx,
+	}).Render(w)
+}
+
+func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
 	err = r.ParseForm()
 	if err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	db := db.UseDB()
+	user, err := userModel.ByID(db, id)
+	if err != nil {
+		http.Error(w, "Error getting user", http.StatusBadRequest)
 		return
 	}
 
@@ -162,16 +199,16 @@ func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func editUserHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		http.Error(w, "Invalid user id", http.StatusBadRequest)
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
-	db := db.UseDB()
-	user, err := userModel.ByID(db, id)
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		http.Error(w, "Error getting user", http.StatusBadRequest)
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
 	}
 
@@ -191,7 +228,6 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 	valid, validationErrors := userModel.ValidateUserUpdate(userUpdate)
 	if !valid {
 		_ = editUserForm(&editUserFormProps{
-			user:             user,
 			values:           r.Form,
 			validationErrors: validationErrors,
 			isSubmission:     true,
@@ -199,6 +235,7 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db := db.UseDB()
 	err = userModel.Update(db, id, userUpdate)
 
 	if err != nil {
@@ -209,4 +246,120 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("hx-redirect", "/users")
 
 	return
+}
+
+func resetPasswordViewHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	db := db.UseDB()
+	user, err := userModel.ByID(db, id)
+	if err != nil {
+		http.Error(w, "Error getting user", http.StatusBadRequest)
+		return
+	}
+
+	_ = resetPasswordView(&resetPasswordViewProps{
+		User: user,
+		Ctx:  ctx,
+	}).Render(w)
+}
+
+func validateResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var passwordReset userModel.PasswordReset
+
+	err = utils.DecodeForm(r.Form, &passwordReset)
+	if err != nil {
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	_, validationErrors := userModel.ValidatePasswordReset(passwordReset)
+
+	_ = resetPasswordForm(&resetPasswordFormProps{
+		userID:           id,
+		values:           r.Form,
+		validationErrors: validationErrors,
+	}).Render(w)
+
+	return
+}
+
+func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var passwordReset userModel.PasswordReset
+	err = utils.DecodeForm(r.Form, &passwordReset)
+	if err != nil {
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	valid, validationErrors := userModel.ValidatePasswordReset(passwordReset)
+	if !valid {
+		_ = resetPasswordForm(&resetPasswordFormProps{
+			userID:           id,
+			values:           r.Form,
+			validationErrors: validationErrors,
+			isSubmission:     true,
+		}).Render(w)
+		return
+	}
+
+	db := db.UseDB()
+	err = userModel.ResetPassword(db, id, passwordReset)
+
+	if err != nil {
+		http.Error(w, "Error resetting password", http.StatusInternalServerError)
+		return
+	}
+
+	// Redirect to user view
+	w.Header().Set("hx-redirect", fmt.Sprintf("/users/%d", id))
 }

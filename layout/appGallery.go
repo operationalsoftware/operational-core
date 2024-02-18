@@ -14,6 +14,7 @@ type item struct {
 	icon string
 	name string
 	link string
+	role []string
 }
 
 type appGalleryProps struct {
@@ -31,6 +32,13 @@ func appGallery(p *appGalleryProps) g.Node {
 			icon: "account-group",
 			name: "Users",
 			link: "/users",
+			role: []string{"User Admin"},
+		},
+		{
+			icon: "github",
+			name: "Github",
+			link: "/github",
+			role: []string{"User", "Dummy"},
 		},
 	}
 
@@ -49,17 +57,22 @@ func appGallery(p *appGalleryProps) g.Node {
 			h.Div(
 				h.Class("app-gallery-content__items"),
 				g.Group(g.Map(icons, func(i item) g.Node {
-					return h.A(
-						h.Class("app-gallery-content__item"),
-						h.Href(i.link),
-						components.Icon(&components.IconProps{
-							Identifier: i.icon,
-						}),
-						h.Div(
-							h.Class("app-gallery-content__item-name"),
-							g.Text(i.name),
-						),
-					)
+					for _, role := range i.role {
+						if utils.CheckRole(p.Ctx.User.Roles, role) {
+							return h.A(
+								h.Class("app-gallery-content__item"),
+								h.Href(i.link),
+								components.Icon(&components.IconProps{
+									Identifier: i.icon,
+								}),
+								h.Div(
+									h.Class("app-gallery-content__item-name"),
+									g.Text(i.name),
+								),
+							)
+						}
+					}
+					return g.Text("")
 				})),
 			),
 		),

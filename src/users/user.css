@@ -1,10 +1,11 @@
-me .edit-button-container {
+me .button-container {
   display: flex;
   justify-content: flex-end;
+  column-gap: var(--spacing-md);
 }
 
-:root[data-theme="dark"] .edit-button-container svg {
-  fill: white;
+:root[data-theme="dark"] .button-container svg {
+  fill: currentColor;
 }
 
 me .properties-grid {

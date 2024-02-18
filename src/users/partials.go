@@ -102,6 +102,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 	return components.Form(
 		h.ID("add-user-form"),
 		hx.Post("/users/add"),
+		hx.Select("form > *"),
 
 		components.Input(&components.InputProps{
 			Label:       firstNameLabel,
@@ -290,6 +291,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 	return components.Form(
 		h.ID("edit-user-form"),
 		hx.Post(fmt.Sprintf("/users/%d/edit", p.user.UserID)),
+		hx.Select("form > *"),
 
 		components.Input(&components.InputProps{
 			Label:       firstNameLabel,
@@ -352,5 +354,79 @@ func editUserForm(p *editUserFormProps) g.Node {
 			h.Type("submit"),
 			g.Text("Submit"),
 		),
+	)
+}
+
+type resetPasswordFormProps struct {
+	userID           int
+	values           url.Values
+	validationErrors validation.ValidationErrors
+	isSubmission     bool
+}
+
+func resetPasswordForm(p *resetPasswordFormProps) g.Node {
+
+	passwordLabel := "Password"
+	passwordKey := "Password"
+	passwordValue := p.values.Get(passwordKey)
+	passwordError := ""
+	if p.isSubmission || passwordValue != "" {
+		passwordError = p.validationErrors.GetError(passwordKey, passwordLabel)
+	}
+	passwordHelperType := components.InputHelperTypeNone
+	if passwordError != "" {
+		passwordHelperType = components.InputHelperTypeError
+	}
+
+	confirmPasswordLabel := "Confirm Password"
+	confirmPasswordKey := "ConfirmPassword"
+	confirmPasswordValue := p.values.Get(confirmPasswordKey)
+	confirmPasswordError := ""
+	if p.isSubmission || confirmPasswordValue != "" {
+		confirmPasswordError = p.validationErrors.GetError(confirmPasswordKey, confirmPasswordLabel)
+	}
+	confirmPasswordHelperType := components.InputHelperTypeNone
+	if confirmPasswordError != "" {
+		confirmPasswordHelperType = components.InputHelperTypeError
+	}
+
+	commonHtmx := g.Group([]g.Node{
+		hx.Post(fmt.Sprintf("/users/%d/reset-password/validate", p.userID)),
+		hx.Target("closest form"),
+		hx.Select("form > *"),
+	})
+
+	return components.Form(
+		h.ID("reset-password-form"),
+		hx.Post(fmt.Sprintf("/users/%d/reset-password", p.userID)),
+		hx.Select("form > *"),
+
+		components.Input(&components.InputProps{
+			Label:       passwordLabel,
+			Name:        passwordKey,
+			InputType:   "password",
+			Placeholder: "Enter password",
+			HelperText:  passwordError,
+			HelperType:  passwordHelperType,
+			InputProps: []g.Node{
+				h.Value(passwordValue),
+				commonHtmx,
+			},
+		}),
+
+		components.Input(&components.InputProps{
+			Label:       confirmPasswordLabel,
+			Name:        confirmPasswordKey,
+			InputType:   "password",
+			Placeholder: "Confirm password",
+			HelperText:  confirmPasswordError,
+			HelperType:  confirmPasswordHelperType,
+			InputProps: []g.Node{
+				h.Value(confirmPasswordValue),
+				commonHtmx,
+			},
+		}),
+
+		components.Button(&components.ButtonProps{}, h.Type("submit"), g.Text("Submit")),
 	)
 }
