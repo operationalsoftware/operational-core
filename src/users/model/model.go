@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -35,6 +36,19 @@ type NewUser struct {
 	Roles           []string
 }
 
+func validateUsername(username string, ve *validation.ValidationErrors) {
+	pattern := "^[a-z0-9_]+$"
+
+	// Compile the regular expression
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		fmt.Println("Error compiling regex:", err)
+	}
+	if !re.MatchString(username) {
+		ve.Add("Username", "must contain only letters, numbers, and underscores")
+	}
+}
+
 func ValidateNewUser(user NewUser) (bool, validation.ValidationErrors) {
 
 	var validationErrors validation.ValidationErrors = make(map[string][]string)
@@ -43,6 +57,7 @@ func ValidateNewUser(user NewUser) (bool, validation.ValidationErrors) {
 	validation.MinLength(user.Username, 3, &validationErrors, "Username")
 	validation.MaxLength(user.Username, 20, &validationErrors, "Username")
 	validation.Lowercase(user.Username, &validationErrors, "Username")
+	validateUsername(user.Username, &validationErrors)
 	// check if username is already taken
 	db := db.UseDB()
 	if user.Username != "" {
@@ -79,6 +94,9 @@ func ValidateNewUser(user NewUser) (bool, validation.ValidationErrors) {
 func Add(db db.SQLExecutor, user NewUser) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
 
 	rolesJson, err := json.Marshal(user.Roles)
 	if err != nil {
@@ -128,6 +146,7 @@ func ValidateNewAPIUser(user NewAPIUser) (bool, validation.ValidationErrors) {
 	validation.MinLength(user.Username, 3, &validationErrors, "Username")
 	validation.MaxLength(user.Username, 20, &validationErrors, "Username")
 	validation.Lowercase(user.Username, &validationErrors, "Username")
+	validateUsername(user.Username, &validationErrors)
 	// check if username is already taken
 	db := db.UseDB()
 	if user.Username != "" {
@@ -143,7 +162,13 @@ func ValidateNewAPIUser(user NewAPIUser) (bool, validation.ValidationErrors) {
 func AddAPIUser(db db.SQLExecutor, user NewAPIUser) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
 	rolesJson, err := json.Marshal(user.Roles)
+	if err != nil {
+		return err
+	}
 
 	insertUserStmt := `
 INSERT INTO User (
@@ -186,6 +211,7 @@ func ValidateUserUpdate(update UserUpdate) (bool, validation.ValidationErrors) {
 	validation.MinLength(update.Username, 3, &validationErrors, "Username")
 	validation.MaxLength(update.Username, 20, &validationErrors, "Username")
 	validation.Lowercase(update.Username, &validationErrors, "Username")
+	validateUsername(update.Username, &validationErrors)
 
 	// validate FirstName
 	validation.MinLength(update.FirstName, 1, &validationErrors, "FirstName")

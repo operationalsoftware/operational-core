@@ -103,12 +103,12 @@ WHERE
 
 			updateLoginBlockedUntilStmt := `
 UPDATE 
-	users 
+	User
 SET 
-	login_blocked_until = ?, 
-	failed_login_attempts = 0
+	LoginBlockedUntil = ?, 
+	FailedLoginAttempts = 0
 WHERE 
-	user_id = ?
+	UserID = ?
 `
 			_, err := dbInstance.Exec(updateLoginBlockedUntilStmt, loginBlockedUntil, authUser.UserId)
 
