@@ -1,4 +1,4 @@
-(function () {
+(function() {
   const localMe = generateMe(me());
   const modal = localMe("dialog.modal");
 

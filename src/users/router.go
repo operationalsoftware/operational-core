@@ -18,6 +18,10 @@ func AddRouter(r *mux.Router) {
 	s.HandleFunc("/add", addUserViewHandler).Methods("GET")
 	s.HandleFunc("/add", addUserHandler).Methods("POST")
 	s.HandleFunc("/add/validate", validateAddUserHandler).Methods("POST")
+	// Add API user
+	s.HandleFunc("/add-api-user", addUserAPIViewHandler).Methods("GET")
+	s.HandleFunc("/add-api-user/validate", validateAddAPIUserHandler).Methods("POST")
+	s.HandleFunc("/add-api-user", addUserAPIHandler).Methods("POST")
 
 	// partial table
 	s.HandleFunc("/table", func(w http.ResponseWriter, r *http.Request) {

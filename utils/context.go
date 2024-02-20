@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"net/http"
 	userModel "app/src/users/model"
+	"net/http"
 )
 
 type Context struct {
@@ -10,9 +10,15 @@ type Context struct {
 	Req  *http.Request
 }
 
+type ContextKey string
+
+const (
+	ContextKeyUser ContextKey = "user"
+)
+
 func GetContext(r *http.Request) Context {
 	// Get the user from the context
-	user, ok := r.Context().Value("user").(userModel.User)
+	user, ok := r.Context().Value(ContextKeyUser).(userModel.User)
 	if !ok {
 		user = userModel.User{}
 	}

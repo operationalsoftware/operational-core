@@ -1,0 +1,44 @@
+me {
+  margin: 0 auto;
+}
+
+me .card {
+  max-width: 600px;
+}
+
+me .module-items {
+  background-color: var(--background-color-content);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  display: grid;
+  justify-items: center;
+  grid-template-columns: repeat(5, minmax(50px, 1fr));
+  row-gap: var(--spacing-md);
+  column-gap: var(--spacing-sm);
+  overflow: hidden;
+}
+
+me .module-item {
+  display: block;
+  text-decoration: none;
+  color: var(--text-color);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius);
+  text-align: center;
+  transition: background-color 0.2s ease-in-out;
+}
+
+me .module-item svg {
+  width: 30px;
+  height: 30px;
+  fill: var(--text-color);
+  transition: fill 0.2s ease-in-out;
+}
+
+me .module-item:hover {
+  background-color: var(--background-color);
+}
+
+me .module-item:hover svg {
+  fill: var(--primary-color);
+}

@@ -11,11 +11,23 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-type item struct {
-	icon string
-	name string
-	link string
-	show func(userModel.UserRoles) bool
+type AppGalleryModule struct {
+	Icon string
+	Name string
+	Link string
+	Show func(userModel.UserRoles) bool
+}
+
+// icons array
+var AppGalleryModules = []AppGalleryModule{
+	{
+		Icon: "account-group",
+		Name: "Users",
+		Link: "/users",
+		Show: func(roles userModel.UserRoles) bool {
+			return roles.UserAdmin.Access
+		},
+	},
 }
 
 type appGalleryProps struct {
@@ -25,18 +37,6 @@ type appGalleryProps struct {
 func appGallery(p *appGalleryProps) g.Node {
 	classes := c.Classes{
 		"app-gallery": true,
-	}
-
-	// icons array
-	icons := []item{
-		{
-			icon: "account-group",
-			name: "Users",
-			link: "/users",
-			show: func(roles userModel.UserRoles) bool {
-				return roles.UserAdmin.Access
-			},
-		},
 	}
 
 	return h.Div(
@@ -53,23 +53,23 @@ func appGallery(p *appGalleryProps) g.Node {
 			h.Class("app-gallery-content__container"),
 			h.Div(
 				h.Class("app-gallery-content__items"),
-				g.Group(g.Map(icons, func(i item) g.Node {
+				g.Group(g.Map(AppGalleryModules, func(i AppGalleryModule) g.Node {
 
 					// check if user has role
-					hasRole := i.show(p.Ctx.User.Roles)
-					if !hasRole {
+					show := i.Show(p.Ctx.User.Roles)
+					if !show {
 						return g.Text("")
 					}
 
 					return h.A(
 						h.Class("app-gallery-content__item"),
-						h.Href(i.link),
+						h.Href(i.Link),
 						components.Icon(&components.IconProps{
-							Identifier: i.icon,
+							Identifier: i.Icon,
 						}),
 						h.Div(
 							h.Class("app-gallery-content__item-name"),
-							g.Text(i.name),
+							g.Text(i.Name),
 						),
 					)
 				})),

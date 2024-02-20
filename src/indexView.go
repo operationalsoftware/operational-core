@@ -16,11 +16,36 @@ type indexViewProps struct {
 func indexView(p *indexViewProps) g.Node {
 
 	indexContent := g.Group([]g.Node{
-		h.H1(g.Text("Operational Core Home")),
-		components.InlineScript("/src/index.js"),
 		components.Card(
-			h.H1(g.Text("Card Title")),
+			h.Div(
+				h.Class("modules-container"),
+				h.Div(
+					h.Class("module-items"),
+					g.Group(g.Map(layout.AppGalleryModules, func(m layout.AppGalleryModule) g.Node {
+
+						// check if user has role
+						show := m.Show(p.Ctx.User.Roles)
+						if !show {
+							return g.Text("")
+						}
+
+						return h.A(
+							h.Class("module-item"),
+							h.Href(m.Link),
+							components.Icon(&components.IconProps{
+								Identifier: m.Icon,
+							}),
+							h.Div(
+								h.Class("module-item-name"),
+								g.Text(m.Name),
+							),
+						)
+					})),
+				),
+			),
 		),
+		components.InlineScript("/src/index.js"),
+		components.InlineStyle("/src/indexView.css"),
 	})
 
 	return layout.Page(layout.PageProps{
