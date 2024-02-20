@@ -79,7 +79,7 @@ CREATE TABLE User (
 	HashedPassword TEXT NOT NULL,
 	FailedLoginAttempts INTEGER DEFAULT 0 NOT NULL,
 	LoginBlockedUntil DATETIME DEFAULT NULL,
-	Roles JSON DEFAULT '[]' NOT NULL,
+	Roles JSON DEFAULT '{}' NOT NULL,
 	UserData JSON DEFAULT '{}' NOT NULL
 );
 `)
@@ -99,7 +99,11 @@ CREATE TABLE User (
 	var userToAdd = userModel.NewAPIUser{
 		Username: "system",
 		Password: password,
-		Roles:    []string{"User Admin"},
+		Roles: userModel.UserRoles{
+			UserAdmin: userModel.UsersAdminRoles{
+				Access: true,
+			},
+		},
 	}
 
 	err = userModel.AddAPIUser(tx, userToAdd)

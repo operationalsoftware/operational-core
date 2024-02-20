@@ -7,7 +7,6 @@ import (
 	userModel "app/src/users/model"
 	"app/utils"
 	"fmt"
-	"strings"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -56,6 +55,7 @@ func userView(p *userViewProps) g.Node {
 			),
 		),
 		h.Div(
+			h.H3(g.Text("User Details")),
 			h.Div(
 				h.Class("properties-grid"),
 				g.If(
@@ -80,12 +80,6 @@ func userView(p *userViewProps) g.Node {
 						h.Span(
 							g.Text(user.Email.String),
 						),
-						h.Span(
-							h.Strong(g.Text("Roles")),
-						),
-						h.Span(
-							g.Text(strings.Join(user.Roles, ", ")),
-						),
 					}),
 				),
 				h.Span(
@@ -93,6 +87,26 @@ func userView(p *userViewProps) g.Node {
 				),
 				h.Span(
 					g.Text(user.Username),
+				),
+			),
+		),
+
+		h.Div(
+			h.H3(g.Text("Roles")),
+			g.If(
+				user.Roles.UserAdmin.Access,
+				h.Div(
+					h.H4(h.Class("role-group-title"), g.Text("User Admin")),
+					h.Ul(
+						h.Class("role-group-list"),
+						h.Li(
+							h.Div(
+								g.Text("Access"),
+								h.Br(),
+								h.Span(h.Class("role-description"), g.Text("Can use the User Admin module")),
+							),
+						),
+					),
 				),
 			),
 		),

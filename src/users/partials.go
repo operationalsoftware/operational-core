@@ -10,7 +10,6 @@ import (
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
 	h "github.com/maragudk/gomponents/html"
-	"golang.org/x/exp/slices"
 )
 
 type addUserFormProps struct {
@@ -196,23 +195,20 @@ type editUserFormProps struct {
 	isSubmission     bool
 }
 
+func rolesCheckboxes(userRoles userModel.UserRoles) g.Node {
+
+	return g.Group([]g.Node{
+		components.Checkbox(&components.CheckboxProps{
+			Name:    "UserAdmin.Access",
+			Label:   "Able to manage users",
+			Checked: userRoles.UserAdmin.Access,
+		}),
+	})
+
+}
+
 // same as addUserForm, but no password fields
 func editUserForm(p *editUserFormProps) g.Node {
-
-	var userRoleOptions = []components.CheckboxOption{
-		{
-			Value: "User Admin",
-			Label: "User Admin",
-		},
-	}
-
-	// update user role options, checked if user has the role
-	for idx, option := range userRoleOptions {
-		// check if user.Roles contains option.Value
-		if slices.Contains(p.user.Roles, option.Value) {
-			userRoleOptions[idx].Checked = true
-		}
-	}
 
 	firstNameLabel := "First Name"
 	firstNameKey := "FirstName"
@@ -341,11 +337,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 			},
 		}),
 
-		components.CheckboxGroup(&components.CheckboxGroupProps{
-			Name:    "Roles",
-			Label:   "Roles",
-			Options: userRoleOptions,
-		}),
+		rolesCheckboxes(p.user.Roles),
 
 		components.Button(
 			&components.ButtonProps{

@@ -8,8 +8,25 @@ me .button-container {
   fill: currentColor;
 }
 
+me h3 {
+  margin-bottom: var(--spacing-md);
+}
+
 me .properties-grid {
   display: inline-grid;
   grid-template-columns: repeat(2, auto);
   grid-gap: var(--spacing-lg);
+}
+
+me .role-group-title {
+  margin: var(--spacing-sm) 0;
+}
+
+me .role-group-list {
+  margin-top: var(--spacing-md);
+}
+
+me .role-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
 }

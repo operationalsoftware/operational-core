@@ -22,7 +22,7 @@ type User struct {
 	LastName  sql.NullString
 	Created   time.Time
 	LastLogin sql.NullTime
-	Roles     []string
+	Roles     UserRoles
 }
 
 type NewUser struct {
@@ -32,7 +32,7 @@ type NewUser struct {
 	LastName        string
 	Password        string
 	ConfirmPassword string
-	Roles           []string
+	Roles           UserRoles
 }
 
 func ValidateNewUser(user NewUser) (bool, validation.ValidationErrors) {
@@ -72,6 +72,10 @@ func ValidateNewUser(user NewUser) (bool, validation.ValidationErrors) {
 	if user.Password != user.ConfirmPassword {
 		validationErrors.Add("ConfirmPassword", "does not match")
 	}
+
+	// user roles don't need to be validated, the struct will be populated with
+	// matching roles from the form data meaning any missing data will be
+	// zero-values and any extra data will be ignored
 
 	return len(validationErrors) == 0, validationErrors
 }
@@ -118,7 +122,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 type NewAPIUser struct {
 	Username string
 	Password string
-	Roles    []string
+	Roles    UserRoles
 }
 
 func AddAPIUser(db db.SQLExecutor, user NewAPIUser) error {
@@ -180,6 +184,8 @@ func ValidateUserUpdate(update UserUpdate) (bool, validation.ValidationErrors) {
 	if update.Email.String != "" {
 		validation.Email(update.Email.String, &validationErrors, "Email")
 	}
+
+	// user roles don't need to be validated. See description in ValidateNewUser
 
 	return len(validationErrors) == 0, validationErrors
 }

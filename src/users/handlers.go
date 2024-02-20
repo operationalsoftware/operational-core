@@ -14,8 +14,8 @@ import (
 
 func indexViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -26,8 +26,8 @@ func indexViewHandler(w http.ResponseWriter, r *http.Request) {
 
 func userViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -46,8 +46,8 @@ func userViewHandler(w http.ResponseWriter, r *http.Request) {
 
 func addUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -58,8 +58,8 @@ func addUserViewHandler(w http.ResponseWriter, r *http.Request) {
 
 func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -85,8 +85,8 @@ func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func addUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		fmt.Println("Error:", "Forbidden")
 		return
 	}
@@ -127,8 +127,8 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -154,8 +154,8 @@ func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
 
 func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -200,8 +200,8 @@ func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func editUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -250,8 +250,8 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func resetPasswordViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -277,8 +277,8 @@ func resetPasswordViewHandler(w http.ResponseWriter, r *http.Request) {
 
 func validateResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -316,8 +316,8 @@ func validateResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
-	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
-	if !isAdmin {
+	hasRole := ctx.User.Roles.UserAdmin.Access
+	if !hasRole {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
