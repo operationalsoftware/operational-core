@@ -10,11 +10,11 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-type item struct {
-	icon string
-	name string
-	link string
-	role []string
+type Item struct {
+	Icon string
+	Name string
+	Link string
+	Role []string
 }
 
 type appGalleryProps struct {
@@ -27,18 +27,18 @@ func appGallery(p *appGalleryProps) g.Node {
 	}
 
 	// icons array
-	icons := []item{
+	icons := []Item{
 		{
-			icon: "account-group",
-			name: "Users",
-			link: "/users",
-			role: []string{"User Admin"},
+			Icon: "account-group",
+			Name: "Users",
+			Link: "/users",
+			Role: []string{"User Admin"},
 		},
 		{
-			icon: "github",
-			name: "Github",
-			link: "/github",
-			role: []string{"User", "Dummy"},
+			Icon: "github",
+			Name: "Github",
+			Link: "/github",
+			Role: []string{"User", "Dummy"},
 		},
 	}
 
@@ -56,18 +56,18 @@ func appGallery(p *appGalleryProps) g.Node {
 			h.Class("app-gallery-content__container"),
 			h.Div(
 				h.Class("app-gallery-content__items"),
-				g.Group(g.Map(icons, func(i item) g.Node {
-					for _, role := range i.role {
+				g.Group(g.Map(icons, func(i Item) g.Node {
+					for _, role := range i.Role {
 						if utils.CheckRole(p.Ctx.User.Roles, role) {
 							return h.A(
 								h.Class("app-gallery-content__item"),
-								h.Href(i.link),
+								h.Href(i.Link),
 								components.Icon(&components.IconProps{
-									Identifier: i.icon,
+									Identifier: i.Icon,
 								}),
 								h.Div(
 									h.Class("app-gallery-content__item-name"),
-									g.Text(i.name),
+									g.Text(i.Name),
 								),
 							)
 						}

@@ -9,6 +9,7 @@ import (
 
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
+	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 	"golang.org/x/exp/slices"
 )
@@ -180,13 +181,104 @@ func addUserForm(p *addUserFormProps) g.Node {
 
 		components.Button(
 			&components.ButtonProps{
-				Disabled: p.validationErrors.HasErrors(),
+				Disabled: len(p.values) == 0 || p.validationErrors.HasErrors(),
 			},
 			h.Type("submit"),
 			g.Text("Submit"),
 		),
 	)
 
+}
+
+type addApiUserFormProps struct {
+	values           url.Values
+	validationErrors validation.ValidationErrors
+	isSubmission     bool
+}
+
+func addApiUserForm(p *addApiUserFormProps) g.Node {
+	usernameLabel := "Username"
+	usernameKey := "Username"
+	usernameValue := p.values.Get(usernameKey)
+	usernameError := ""
+	if p.isSubmission || usernameValue != "" {
+		usernameError = p.validationErrors.GetError(usernameKey, usernameLabel)
+	}
+	usernameHelperType := components.InputHelperTypeNone
+	if usernameError != "" {
+		usernameHelperType = components.InputHelperTypeError
+	}
+
+	commonHtmx := g.Group([]g.Node{
+		hx.Post("/users/add-api-user/validate"),
+		hx.Target("closest form"),
+		hx.Select("form > *"),
+	})
+
+	return components.Form(
+		h.ID("add-api-user-form"),
+		hx.Post("/users/add-api-user"),
+		// Default behaviour here assumes invalid form. Overridden with headers from the server
+		hx.Select("form > *"),
+		hx.Target("closest form"),
+
+		components.Input(&components.InputProps{
+			Label:       usernameLabel,
+			Name:        usernameKey,
+			Placeholder: "Enter username",
+			HelperText:  usernameError,
+			HelperType:  usernameHelperType,
+			InputProps: []g.Node{
+				h.Value(usernameValue),
+				commonHtmx,
+			},
+		}),
+
+		components.Button(
+			&components.ButtonProps{
+				Disabled: len(p.values) == 0 || p.validationErrors.HasErrors(),
+			},
+			h.Type("submit"),
+			g.Text("Submit"),
+		),
+
+		h.Div(
+			h.ID("result"),
+		),
+	)
+}
+
+type APIUserCredentialsProps struct {
+	Username string
+	Password string
+}
+
+func APIUserCredentials(p *APIUserCredentialsProps) g.Node {
+	return components.Card(
+		h.Div(
+			h.Class("api-user-credentials"),
+			h.Div(
+				h.Class("content"),
+				h.H2(
+					g.Text("API User Credentials"),
+				),
+				h.Span(g.Text("Username: ")),
+				h.Span(g.Text(p.Username)),
+				h.Br(),
+				h.Span(g.Text("Password: ")),
+				h.Span(g.Text(p.Password)),
+			),
+			components.Button(&components.ButtonProps{
+				ButtonType: components.ButtonPrimary,
+				Link:       "/users",
+				Classes: c.Classes{
+					"users-btn": true,
+				},
+			},
+				g.Text("Back to Users"),
+			),
+		),
+	)
 }
 
 type editUserFormProps struct {

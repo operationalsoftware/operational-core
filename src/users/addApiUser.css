@@ -1,0 +1,24 @@
+me {
+  display: flex;
+  justify-content: center;
+}
+
+me .card {
+  max-height: 200px;
+}
+
+me .api-user-credentials {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-md);
+}
+
+me .api-user-credentials .content {
+  margin-bottom: var(--spacing-md);
+}
+
+me form {
+  width: 100%;
+  max-width: 400px;
+}

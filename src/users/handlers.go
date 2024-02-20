@@ -56,6 +56,18 @@ func addUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	}).Render(w)
 }
 
+func addUserAPIViewHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	_ = addUserAPIView(&addUserAPIViewProps{
+		Ctx: ctx,
+	}).Render(w)
+}
+
 func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
 	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
@@ -71,7 +83,7 @@ func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newUser userModel.NewUser
-	err = utils.DecodeForm(r.Form, &newUser)
+	_ = utils.DecodeForm(r.Form, &newUser)
 
 	_, validationErrors := userModel.ValidateNewUser(newUser)
 
@@ -80,7 +92,32 @@ func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
 		validationErrors: validationErrors,
 	}).Render(w)
 
-	return
+}
+
+func validateAddAPIUserHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var newAPIUser userModel.NewAPIUser
+	_ = utils.DecodeForm(r.Form, &newAPIUser)
+
+	_, validationErrors := userModel.ValidateNewAPIUser(newAPIUser)
+
+	_ = addApiUserForm(&addApiUserFormProps{
+		values:           r.Form,
+		validationErrors: validationErrors,
+	}).Render(w)
+
 }
 
 func addUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,6 +160,61 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect to users view
 	w.Header().Set("hx-redirect", "/users")
+}
+
+func addUserAPIHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := utils.GetContext(r)
+	isAdmin := utils.CheckRole(ctx.User.Roles, "User Admin")
+	if !isAdmin {
+		fmt.Println("Error:", "Forbidden")
+		return
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var newAPIUser userModel.NewAPIUser
+	_ = utils.DecodeForm(r.Form, &newAPIUser)
+
+	password, err := GenerateRandomPassword(24)
+	if err != nil {
+		log.Panic(err)
+	}
+	newAPIUser.Password = password
+	newAPIUser.Roles = []string{"User Admin"}
+
+	if err != nil {
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	valid, validationErrors := userModel.ValidateNewAPIUser(newAPIUser)
+	if !valid {
+		_ = addApiUserForm(&addApiUserFormProps{
+			values:           r.Form,
+			validationErrors: validationErrors,
+			isSubmission:     true,
+		}).Render(w)
+		return
+	}
+
+	db := db.UseDB()
+	err = userModel.AddAPIUser(db, newAPIUser)
+
+	if err != nil {
+		http.Error(w, "Error adding API user", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("HX-Reswap", "outerHTML")
+	w.Header().Set("HX-Reselect", ".card")
+
+	_ = APIUserCredentials(&APIUserCredentialsProps{
+		Username: newAPIUser.Username,
+		Password: password,
+	}).Render(w)
 }
 
 func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
@@ -195,7 +287,6 @@ func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
 		validationErrors: validationErrors,
 	}).Render(w)
 
-	return
 }
 
 func editUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -245,7 +336,6 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Redirect to user view
 	w.Header().Set("hx-redirect", "/users")
 
-	return
 }
 
 func resetPasswordViewHandler(w http.ResponseWriter, r *http.Request) {
@@ -311,7 +401,6 @@ func validateResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		validationErrors: validationErrors,
 	}).Render(w)
 
-	return
 }
 
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {

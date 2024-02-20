@@ -1,14 +1,15 @@
 package users
 
 import (
-	"fmt"
 	"app/components"
 	"app/db"
 	"app/layout"
 	userModel "app/src/users/model"
 	"app/utils"
+	"fmt"
 
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
@@ -90,15 +91,30 @@ func indexView(p *indexViewProps) g.Node {
 
 	content := g.Group([]g.Node{
 		h.Div(
-			h.Class("add-button-container"),
+			h.Class("button-container"),
 			components.Button(&components.ButtonProps{
 				ButtonType: "primary",
 				Link:       "/users/add",
+				Classes: c.Classes{
+					"add-user-btn": true,
+				},
 			},
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
 				}),
 				g.Text("User"),
+			),
+			components.Button(&components.ButtonProps{
+				ButtonType: "primary",
+				Link:       "/users/add-api-user",
+				Classes: c.Classes{
+					"add-api-user-btn": true,
+				},
+			},
+				components.Icon(&components.IconProps{
+					Identifier: "plus",
+				}),
+				g.Text("API User"),
 			),
 		),
 		h.Div(

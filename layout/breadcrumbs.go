@@ -39,6 +39,11 @@ var breadcrumbsDef = breadcrumbsType{
 					iconIdentifier: "account-plus",
 				},
 				{
+					urlPart:        "add-api-user",
+					title:          "Add API User",
+					iconIdentifier: "account-plus",
+				},
+				{
 					urlPart: "*",
 					renderTitle: func(urlPart string) string {
 						userId, err := strconv.Atoi(urlPart)

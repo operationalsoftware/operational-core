@@ -121,6 +121,25 @@ type NewAPIUser struct {
 	Roles    []string
 }
 
+func ValidateNewAPIUser(user NewAPIUser) (bool, validation.ValidationErrors) {
+	var validationErrors validation.ValidationErrors = make(map[string][]string)
+
+	// validate Username
+	validation.MinLength(user.Username, 3, &validationErrors, "Username")
+	validation.MaxLength(user.Username, 20, &validationErrors, "Username")
+	validation.Lowercase(user.Username, &validationErrors, "Username")
+	// check if username is already taken
+	db := db.UseDB()
+	if user.Username != "" {
+		_, err := ByUsername(db, user.Username)
+		if err == nil {
+			validationErrors.Add("Username", fmt.Sprintf("'%s' is already taken", user.Username))
+		}
+	}
+
+	return len(validationErrors) == 0, validationErrors
+}
+
 func AddAPIUser(db db.SQLExecutor, user NewAPIUser) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)

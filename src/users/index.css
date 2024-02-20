@@ -1,9 +1,10 @@
-me .add-button-container {
+me .button-container {
   display: flex;
   justify-content: flex-end;
+  column-gap: var(--spacing-md);
 }
 
-:root[data-theme="dark"] .add-button-container svg {
+:root[data-theme="dark"] .button-container svg {
   fill: currentColor;
 }
 
