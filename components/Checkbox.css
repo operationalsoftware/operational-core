@@ -1,6 +1,7 @@
 me {
   display: flex;
   align-items: center;
+  gap: var(--spacing-md);
 }
 
 me input[type="checkbox"] {

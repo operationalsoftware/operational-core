@@ -204,7 +204,7 @@ type UserUpdate struct {
 	Email     sql.NullString
 	FirstName string
 	LastName  string
-	Roles     []string
+	Roles     UserRoles
 }
 
 func ValidateUserUpdate(update UserUpdate) (bool, validation.ValidationErrors) {
@@ -409,7 +409,6 @@ WHERE
 		log.Panic(err)
 	}
 
-	// Unmarshal the rolesJSON string into a []string
 	err = json.Unmarshal([]byte(rolesJSON), &user.Roles)
 	if err != nil {
 		log.Panic(err)
@@ -460,7 +459,6 @@ ORDER BY
 			return nil, err
 		}
 
-		// Unmarshal the rolesJSON string into a []string
 		err = json.Unmarshal([]byte(rolesJSON), &u.Roles)
 		if err != nil {
 			log.Panic(err)

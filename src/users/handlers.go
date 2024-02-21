@@ -57,7 +57,7 @@ func addUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	}).Render(w)
 }
 
-func addUserAPIViewHandler(w http.ResponseWriter, r *http.Request) {
+func addAPIUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
 	hasRole := ctx.User.Roles.UserAdmin.Access
 	if !hasRole {
@@ -126,7 +126,7 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
 	hasRole := ctx.User.Roles.UserAdmin.Access
 	if !hasRole {
-		fmt.Println("Error:", "Forbidden")
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -138,6 +138,7 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	var newUser userModel.NewUser
 	err = utils.DecodeForm(r.Form, &newUser)
+
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
@@ -164,7 +165,7 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("hx-redirect", "/users")
 }
 
-func addUserAPIHandler(w http.ResponseWriter, r *http.Request) {
+func addAPIUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := utils.GetContext(r)
 	hasRole := ctx.User.Roles.UserAdmin.Access
 	if !hasRole {
@@ -212,7 +213,7 @@ func addUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("HX-Reswap", "outerHTML")
 	w.Header().Set("HX-Reselect", ".card")
 
-	_ = APIUserCredentials(&APIUserCredentialsProps{
+	_ = apiUserCredentials(&apiUserCredentialsProps{
 		Username: newAPIUser.Username,
 		Password: password,
 	}).Render(w)

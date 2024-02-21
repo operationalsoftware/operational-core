@@ -13,6 +13,25 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
+func rolesCheckboxes(userRoles userModel.UserRoles) g.Node {
+	return components.Fieldset(
+		components.InputLabel(&components.InputLabelProps{}, g.Text("Roles")),
+		h.H4(h.Class("module-title"), g.Text("User Admin")),
+		components.Checkbox(
+			&components.CheckboxProps{
+				Name:    "Roles.UserAdmin.Access",
+				Label:   "Able to manage users",
+				Checked: userRoles.UserAdmin.Access,
+				Value:   "true",
+			},
+			h.Class("role-checkbox"),
+		),
+
+		components.InlineStyle("/src/users/roles.css"),
+	)
+
+}
+
 type addUserFormProps struct {
 	values           url.Values
 	validationErrors validation.ValidationErrors
@@ -178,6 +197,8 @@ func addUserForm(p *addUserFormProps) g.Node {
 			},
 		}),
 
+		rolesCheckboxes(userModel.UserRoles{}),
+
 		components.Button(
 			&components.ButtonProps{
 				Disabled: len(p.values) == 0 || p.validationErrors.HasErrors(),
@@ -233,6 +254,8 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 			},
 		}),
 
+		rolesCheckboxes(userModel.UserRoles{}),
+
 		components.Button(
 			&components.ButtonProps{
 				Disabled: len(p.values) == 0 || p.validationErrors.HasErrors(),
@@ -247,12 +270,12 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 	)
 }
 
-type APIUserCredentialsProps struct {
+type apiUserCredentialsProps struct {
 	Username string
 	Password string
 }
 
-func APIUserCredentials(p *APIUserCredentialsProps) g.Node {
+func apiUserCredentials(p *apiUserCredentialsProps) g.Node {
 	return components.Card(
 		h.Div(
 			h.Class("api-user-credentials"),
@@ -285,18 +308,6 @@ type editUserFormProps struct {
 	values           url.Values
 	validationErrors validation.ValidationErrors
 	isSubmission     bool
-}
-
-func rolesCheckboxes(userRoles userModel.UserRoles) g.Node {
-
-	return g.Group([]g.Node{
-		components.Checkbox(&components.CheckboxProps{
-			Name:    "UserAdmin.Access",
-			Label:   "Able to manage users",
-			Checked: userRoles.UserAdmin.Access,
-		}),
-	})
-
 }
 
 // same as addUserForm, but no password fields

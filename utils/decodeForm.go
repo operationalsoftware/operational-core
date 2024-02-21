@@ -17,149 +17,189 @@ func DecodeForm(form url.Values, v interface{}) error {
 		field := val.Type().Field(i)
 		fieldValue := val.Field(i)
 
-		switch field.Type.Kind() {
-		case reflect.String:
-			fieldValue.SetString(form.Get(field.Name))
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			value, err := strconv.ParseInt(form.Get(field.Name), 10, 64)
+		fTypeKind := field.Type.Kind()
+		fType := field.Type
+		fName := field.Name
+
+		if fTypeKind == reflect.String {
+			// string field
+			fieldValue.SetString(form.Get(fName))
+		} else if fTypeKind == reflect.Bool {
+			// bool field
+			var value bool
+			if form.Get(fName) == "" {
+				// the field is not present in the from e.g. unchecked checkbox
+				value = false
+			} else {
+				parsedValue, err := strconv.ParseBool(form.Get(fName))
+				if err != nil {
+					return err
+				}
+				value = parsedValue
+			}
+			fieldValue.SetBool(value)
+		} else if fTypeKind == reflect.Int ||
+			fTypeKind == reflect.Int8 ||
+			fTypeKind == reflect.Int16 ||
+			fTypeKind == reflect.Int32 ||
+			fTypeKind == reflect.Int64 {
+			// int field
+			value, err := strconv.ParseInt(form.Get(fName), 10, 64)
 			if err != nil {
 				return err
 			}
 			fieldValue.SetInt(value)
-		case reflect.Slice:
+		} else if fTypeKind == reflect.Uint ||
+			fTypeKind == reflect.Uint8 ||
+			fTypeKind == reflect.Uint16 ||
+			fTypeKind == reflect.Uint32 ||
+			fTypeKind == reflect.Uint64 {
+			// uint field
+			value, err := strconv.ParseUint(form.Get(fName), 10, 64)
+			if err != nil {
+				return err
+			}
+			fieldValue.SetUint(value)
+		} else if fTypeKind == reflect.Float32 ||
+			fTypeKind == reflect.Float64 {
+			// float field
+			value, err := strconv.ParseFloat(form.Get(fName), 64)
+			if err != nil {
+				return err
+			}
+			fieldValue.SetFloat(value)
+		} else if fTypeKind == reflect.Struct && fType == reflect.TypeOf(time.Time{}) {
+			// time field
+			timeValue, err := time.Parse(time.RFC3339, form.Get(fName))
+			if err != nil {
+				return err
+			}
+			fieldValue.Set(reflect.ValueOf(timeValue))
+		} else if fTypeKind == reflect.Struct && fType == reflect.TypeOf(sql.NullString{}) {
+			// sql.NullString field
+			strValue := form.Get(fName)
+			nullString := sql.NullString{String: strValue, Valid: strValue != ""}
+			fieldValue.Set(reflect.ValueOf(nullString))
+		} else if fTypeKind == reflect.Struct && fType == reflect.TypeOf(sql.NullBool{}) {
+			// sql.NullBool field
+			boolValue, err := strconv.ParseBool(form.Get(fName))
+			nullBool := sql.NullBool{}
+			if err == nil {
+				nullBool.Bool = boolValue
+				nullBool.Valid = true
+			}
+			fieldValue.Set(reflect.ValueOf(nullBool))
+		} else if fTypeKind == reflect.Struct && fType == reflect.TypeOf(sql.NullInt64{}) {
+			// sql.NullInt64 field
+			intValue, err := strconv.ParseInt(form.Get(fName), 10, 64)
+			nullInt64 := sql.NullInt64{}
+			if err == nil {
+				nullInt64.Int64 = intValue
+				nullInt64.Valid = true
+			}
+			fieldValue.Set(reflect.ValueOf(nullInt64))
+		} else if fTypeKind == reflect.Struct && fType == reflect.TypeOf(sql.NullInt32{}) {
+			// sql.NullInt32 field
+			intValue, err := strconv.ParseInt(form.Get(fName), 10, 32)
+			nullInt32 := sql.NullInt32{}
+			if err == nil {
+				nullInt32.Int32 = int32(intValue)
+				nullInt32.Valid = true
+			}
+			fieldValue.Set(reflect.ValueOf(nullInt32))
+		} else if fTypeKind == reflect.Struct && fType == reflect.TypeOf(sql.NullInt16{}) {
+			// sql.NullInt16 field
+			intValue, err := strconv.ParseInt(form.Get(fName), 10, 16)
+			nullInt16 := sql.NullInt16{}
+			if err == nil {
+				nullInt16.Int16 = int16(intValue)
+				nullInt16.Valid = true
+			}
+			fieldValue.Set(reflect.ValueOf(nullInt16))
+		} else if fTypeKind == reflect.Struct && fType == reflect.TypeOf(sql.NullFloat64{}) {
+			// sql.NullFloat64 field
+			floatValue, err := strconv.ParseFloat(form.Get(fName), 64)
+			nullFloat64 := sql.NullFloat64{}
+			if err == nil {
+				nullFloat64.Float64 = floatValue
+				nullFloat64.Valid = true
+			}
+			fieldValue.Set(reflect.ValueOf(nullFloat64))
+		} else if fTypeKind == reflect.Struct && fType == reflect.TypeOf(sql.NullTime{}) {
+			// sql.NullTime field
+			timeValue, err := time.Parse(time.RFC3339, form.Get(fName))
+			nullTime := sql.NullTime{}
+			if err == nil {
+				nullTime.Time = timeValue
+				nullTime.Valid = true
+			}
+			fieldValue.Set(reflect.ValueOf(nullTime))
+		} else if fTypeKind == reflect.Slice {
+			// slice field
 			elemType := field.Type.Elem()
-			if elemType.Kind() == reflect.String || elemType.Kind() == reflect.Int || elemType.Kind() == reflect.Int8 ||
-				elemType.Kind() == reflect.Int16 || elemType.Kind() == reflect.Int32 || elemType.Kind() == reflect.Int64 {
-				keyPrefix := fmt.Sprintf("%s[", field.Name)
-				var values []string
-				for k, v := range form {
-					if strings.HasPrefix(k, keyPrefix) {
-						values = append(values, v...)
-					}
-				}
-				slice := reflect.MakeSlice(field.Type, len(values), len(values))
-				for j, strValue := range values {
-					if elemType.Kind() == reflect.String {
-						slice.Index(j).SetString(strValue)
-					} else if elemType.Kind() == reflect.Int || elemType.Kind() == reflect.Int8 ||
-						elemType.Kind() == reflect.Int16 || elemType.Kind() == reflect.Int32 || elemType.Kind() == reflect.Int64 {
-						intValue, err := strconv.ParseInt(strValue, 10, 64)
-						if err != nil {
-							return err
-						}
-						slice.Index(j).SetInt(intValue)
-					}
-				}
-				fieldValue.Set(slice)
-			} else if elemType.Kind() == reflect.Struct && elemType == reflect.TypeOf(time.Time{}) {
-				keyPrefix := fmt.Sprintf("%s[", field.Name)
-				var values []string
-				for k, v := range form {
-					if strings.HasPrefix(k, keyPrefix) {
-						values = append(values, v...)
-					}
-				}
-				timeSlice := make([]time.Time, len(values))
-				for j, strValue := range values {
-					timeValue, err := time.Parse(time.RFC3339, strValue)
-					if err != nil {
-						return err
-					}
-					timeSlice[j] = timeValue
-				}
-				fieldValue.Set(reflect.ValueOf(timeSlice))
-			} else if elemType.Kind() == reflect.Struct {
-				keyPrefix := fmt.Sprintf("%s[", field.Name)
-				var indices []int
-				for k := range form {
-					if strings.HasPrefix(k, keyPrefix) {
-						indexStr := strings.TrimSuffix(strings.TrimPrefix(k, keyPrefix), "]")
-						index, err := strconv.Atoi(indexStr)
-						if err != nil {
-							return err
-						}
-						indices = append(indices, index)
-					}
-				}
-				// Ensure the slice has enough capacity
-				slice := reflect.MakeSlice(field.Type, len(indices), len(indices))
-				fieldValue.Set(reflect.AppendSlice(fieldValue, slice))
-				// Populate each struct in the slice
-				for _, index := range indices {
-					subForm := make(url.Values)
-					prefix := fmt.Sprintf("%s[%d].", field.Name, index)
-					for k, v := range form {
-						if strings.HasPrefix(k, prefix) {
-							subForm[strings.TrimPrefix(k, prefix)] = v
-						}
-					}
-					subValue := reflect.New(elemType).Elem()
-					if err := DecodeForm(subForm, subValue.Addr().Interface()); err != nil {
-						return err
-					}
-					fieldValue.Index(index).Set(subValue)
+			commonPrefix := fmt.Sprintf("%s[", fName)
+			// filter the form data based on this prefix
+			filteredForm := make(url.Values)
+			for k, v := range form {
+				if strings.HasPrefix(k, commonPrefix) {
+					filteredForm[k] = v
 				}
 			}
-		case reflect.Struct:
-			if field.Type == reflect.TypeOf(time.Time{}) {
-				timeValue, err := time.Parse(time.RFC3339, form.Get(field.Name))
-				if err != nil {
-					return err
+			// get the indices of the slice by removing the common prefix
+			// and then removing everything after the first ']' (inclusive)
+			indices := make([]int, 0)
+			for k := range filteredForm {
+				splitIndex := strings.Index(k, "]")
+				if splitIndex == -1 {
+					return fmt.Errorf("invalid key: %s", k)
 				}
-				fieldValue.Set(reflect.ValueOf(timeValue))
-			} else if field.Type == reflect.TypeOf(sql.NullString{}) {
-				strValue := form.Get(field.Name)
-				nullString := sql.NullString{String: strValue, Valid: strValue != ""}
-				fieldValue.Set(reflect.ValueOf(nullString))
-			} else if field.Type == reflect.TypeOf(sql.NullInt64{}) {
-				intValue, err := strconv.ParseInt(form.Get(field.Name), 10, 64)
+				indexStr := k[len(commonPrefix):splitIndex]
+				index, err := strconv.Atoi(indexStr)
 				if err != nil {
-					return err
+					return fmt.Errorf("invalid index parsing array form field: %s", indexStr)
 				}
-				nullInt64 := sql.NullInt64{Int64: intValue, Valid: true}
-				fieldValue.Set(reflect.ValueOf(nullInt64))
-			} else if field.Type == reflect.TypeOf(sql.NullInt32{}) {
-				intValue, err := strconv.ParseInt(form.Get(field.Name), 10, 32)
-				if err != nil {
-					return err
+				indices = append(indices, index)
+			}
+			// Ensure the slice has enough capacity, use the max index
+			maxIndex := 0
+			for _, index := range indices {
+				if index > maxIndex {
+					maxIndex = index
 				}
-				nullInt32 := sql.NullInt32{Int32: int32(intValue), Valid: true}
-				fieldValue.Set(reflect.ValueOf(nullInt32))
-			} else if field.Type == reflect.TypeOf(sql.NullFloat64{}) {
-				floatValue, err := strconv.ParseFloat(form.Get(field.Name), 64)
-				if err != nil {
-					return err
-				}
-				nullFloat64 := sql.NullFloat64{Float64: floatValue, Valid: true}
-				fieldValue.Set(reflect.ValueOf(nullFloat64))
-			} else if field.Type == reflect.TypeOf(sql.NullTime{}) {
-				timeValue, err := time.Parse(time.RFC3339, form.Get(field.Name))
-				if err != nil {
-					return err
-				}
-				nullTime := sql.NullTime{Time: timeValue, Valid: true}
-				fieldValue.Set(reflect.ValueOf(nullTime))
-			} else if field.Type == reflect.TypeOf(sql.NullBool{}) {
-				boolValue, err := strconv.ParseBool(form.Get(field.Name))
-				if err != nil {
-					return err
-				}
-				nullBool := sql.NullBool{Bool: boolValue, Valid: true}
-				fieldValue.Set(reflect.ValueOf(nullBool))
-			} else {
+			}
+			slice := reflect.MakeSlice(field.Type, maxIndex+1, maxIndex+1)
+			fieldValue.Set(slice)
+			// Populate the slice - we can use the indices data and call DecodeForm
+			// for each index
+			for _, index := range indices {
 				subForm := make(url.Values)
-				prefix := fmt.Sprintf("%s.", field.Name)
+				prefix := fmt.Sprintf("%s[%d]", fName, index)
 				for k, v := range form {
 					if strings.HasPrefix(k, prefix) {
 						subForm[strings.TrimPrefix(k, prefix)] = v
 					}
 				}
-				subValue := reflect.New(field.Type).Elem()
+				subValue := reflect.New(elemType).Elem()
 				if err := DecodeForm(subForm, subValue.Addr().Interface()); err != nil {
 					return err
 				}
-				fieldValue.Set(subValue)
+				fieldValue.Index(index).Set(subValue)
 			}
+		} else if fTypeKind == reflect.Struct {
+			// struct field
+			subForm := make(url.Values)
+			prefix := fmt.Sprintf("%s.", fName)
+			for k, v := range form {
+				if strings.HasPrefix(k, prefix) {
+					subForm[strings.TrimPrefix(k, prefix)] = v
+				}
+			}
+			if err := DecodeForm(subForm, fieldValue.Addr().Interface()); err != nil {
+				return err
+			}
+		} else {
+			// unknown field
+			return fmt.Errorf("unknown field type kind: %s and field type: %s", fTypeKind, fType)
 		}
 	}
 
