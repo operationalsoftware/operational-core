@@ -1,10 +1,6 @@
 package users
 
 import (
-	"app/partials"
-	"fmt"
-	"net/http"
-
 	"github.com/gorilla/mux"
 )
 
@@ -22,17 +18,6 @@ func AddRouter(r *mux.Router) {
 	s.HandleFunc("/add-api-user", addAPIUserViewHandler).Methods("GET")
 	s.HandleFunc("/add-api-user/validate", validateAddAPIUserHandler).Methods("POST")
 	s.HandleFunc("/add-api-user", addAPIUserHandler).Methods("POST")
-
-	// partial table
-	s.HandleFunc("/table", func(w http.ResponseWriter, r *http.Request) {
-		values := r.URL.Query()
-		sort := values.Get("sort")
-		fmt.Println("sort", sort)
-		// if sort == "" {
-		// 	w.Header().Set("hx-push-url", "/users/table?sort=Username-asc")
-		// }
-		_ = partials.UsersTable().Render(w)
-	}).Methods("GET")
 
 	// User page
 	s.HandleFunc("/{id}", userViewHandler).Methods("GET")

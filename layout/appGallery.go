@@ -55,10 +55,11 @@ func appGallery(p *appGalleryProps) g.Node {
 				h.Class("app-gallery-content__items"),
 				g.Group(g.Map(AppGalleryModules, func(i AppGalleryModule) g.Node {
 
-					// check if user has role
-					show := i.Show(p.Ctx.User.Roles)
-					if !show {
-						return g.Text("")
+					if i.Show != nil {
+						show := i.Show(p.Ctx.User.Roles)
+						if !show {
+							return g.Text("")
+						}
 					}
 
 					return h.A(

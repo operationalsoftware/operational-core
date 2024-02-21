@@ -23,10 +23,11 @@ func indexView(p *indexViewProps) g.Node {
 					h.Class("module-items"),
 					g.Group(g.Map(layout.AppGalleryModules, func(m layout.AppGalleryModule) g.Node {
 
-						// check if user has role
-						show := m.Show(p.Ctx.User.Roles)
-						if !show {
-							return g.Text("")
+						if m.Show != nil {
+							show := m.Show(p.Ctx.User.Roles)
+							if !show {
+								return g.Text("")
+							}
 						}
 
 						return h.A(
