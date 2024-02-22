@@ -60,7 +60,7 @@ CREATE TABLE User (
 		Username: "system",
 		Password: password,
 		Roles: userModel.UserRoles{
-			UserAdmin: userModel.UsersAdminRoles{
+			UserAdmin: userModel.UserAdminRoles{
 				Access: true,
 			},
 		},
