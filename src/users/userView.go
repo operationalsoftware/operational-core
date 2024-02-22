@@ -92,20 +92,14 @@ func userView(p *userViewProps) g.Node {
 		),
 
 		h.Div(
-			h.H3(g.Text("Roles")),
+			h.H3(g.Text("Permissions")),
 			g.If(
-				user.Roles.UserAdmin.Access,
+				user.Permissions.UserAdmin.Access,
 				h.Div(
-					h.H4(h.Class("role-group-title"), g.Text("User Admin")),
+					h.H4(h.Class("permission-group-title"), g.Text("User Admin")),
 					h.Ul(
-						h.Class("role-group-list"),
-						h.Li(
-							h.Div(
-								g.Text("Access"),
-								h.Br(),
-								h.Span(h.Class("role-description"), g.Text("Can use the User Admin module")),
-							),
-						),
+						h.Class("permission-group-list"),
+						h.Li(g.Text(getPermissionDescription("UserAdmin", "Access"))),
 					),
 				),
 			),

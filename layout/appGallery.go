@@ -15,7 +15,7 @@ type AppGalleryModule struct {
 	Icon string
 	Name string
 	Link string
-	Show func(userModel.UserRoles) bool
+	Show func(userModel.UserPermissions) bool
 }
 
 // icons array
@@ -24,8 +24,8 @@ var AppGalleryModules = []AppGalleryModule{
 		Icon: "account-group",
 		Name: "Users",
 		Link: "/users",
-		Show: func(roles userModel.UserRoles) bool {
-			return roles.UserAdmin.Access
+		Show: func(permissions userModel.UserPermissions) bool {
+			return permissions.UserAdmin.Access
 		},
 	},
 }
@@ -56,7 +56,7 @@ func appGallery(p *appGalleryProps) g.Node {
 				g.Group(g.Map(AppGalleryModules, func(i AppGalleryModule) g.Node {
 
 					if i.Show != nil {
-						show := i.Show(p.Ctx.User.Roles)
+						show := i.Show(p.Ctx.User.Permissions)
 						if !show {
 							return g.Text("")
 						}

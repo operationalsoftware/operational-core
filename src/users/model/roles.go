@@ -1,12 +1,12 @@
 package userModel
 
-// This file defines the roles for each module in the application.
+// This file defines the permissions for each module in the application.
 
-type UserAdminRoles struct {
-	Access bool
+type UserAdminPermissions struct {
+	Access bool `description:"Able to manage users and permissions"`
 }
 
-// Finally, group under the UserRoles struct
-type UserRoles struct {
-	UserAdmin UserAdminRoles
+// Finally, group under the UserPermissions struct
+type UserPermissions struct {
+	UserAdmin UserAdminPermissions
 }

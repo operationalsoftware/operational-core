@@ -18,15 +18,15 @@ me .properties-grid {
   grid-gap: var(--spacing-lg);
 }
 
-me .role-group-title {
+me .permission-group-title {
   margin: var(--spacing-sm) 0;
 }
 
-me .role-group-list {
+me .permission-group-list {
   margin-top: var(--spacing-md);
 }
 
-me .role-description {
+me .permission-description {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
 }

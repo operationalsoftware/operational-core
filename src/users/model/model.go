@@ -8,22 +8,21 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	UserID    int
-	Username  string
-	IsAPIUser bool
-	Email     sql.NullString
-	FirstName sql.NullString
-	LastName  sql.NullString
-	Created   time.Time
-	LastLogin sql.NullTime
-	Roles     UserRoles
+	UserID      int
+	Username    string
+	IsAPIUser   bool
+	Email       sql.NullString
+	FirstName   sql.NullString
+	LastName    sql.NullString
+	Created     time.Time
+	LastLogin   sql.NullTime
+	Permissions UserPermissions
 }
 
 type NewUser struct {
@@ -33,7 +32,7 @@ type NewUser struct {
 	LastName        string
 	Password        string
 	ConfirmPassword string
-	Roles           UserRoles
+	Permissions     UserPermissions
 }
 
 func validateUsername(username string, ve *validation.ValidationErrors) {
@@ -88,9 +87,9 @@ func ValidateNewUser(user NewUser) (bool, validation.ValidationErrors) {
 		validationErrors.Add("ConfirmPassword", "does not match")
 	}
 
-	// user roles don't need to be validated, the struct will be populated with
-	// matching roles from the form data meaning any missing data will be
-	// zero-values and any extra data will be ignored
+	// user permissions don't need to be validated, the struct will be populated with
+	// matching permissions from the form data meaning any missing data will be
+	// zero-valued (boolean, false) and any extra data will be ignored
 
 	return len(validationErrors) == 0, validationErrors
 }
@@ -102,7 +101,7 @@ func Add(db db.SQLExecutor, user NewUser) error {
 		return err
 	}
 
-	rolesJson, err := json.Marshal(user.Roles)
+	permissionsJson, err := json.Marshal(user.Permissions)
 	if err != nil {
 		return err
 	}
@@ -115,7 +114,7 @@ INSERT INTO User (
 	FirstName,
 	LastName,
 	HashedPassword,
-	Roles
+	Permissions
 )
 VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
@@ -127,7 +126,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 		user.FirstName,
 		user.LastName,
 		string(hashedPassword),
-		rolesJson,
+		permissionsJson,
 	)
 
 	if err != nil {
@@ -138,9 +137,9 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 }
 
 type NewAPIUser struct {
-	Username string
-	Password string
-	Roles    UserRoles
+	Username    string
+	Password    string
+	Permissions UserPermissions
 }
 
 func ValidateNewAPIUser(user NewAPIUser) (bool, validation.ValidationErrors) {
@@ -169,7 +168,7 @@ func AddAPIUser(db db.SQLExecutor, user NewAPIUser) error {
 	if err != nil {
 		return err
 	}
-	rolesJson, err := json.Marshal(user.Roles)
+	permissionsJson, err := json.Marshal(user.Permissions)
 	if err != nil {
 		return err
 	}
@@ -179,7 +178,7 @@ INSERT INTO User (
 	Username,
 	IsAPIUser,
 	HashedPassword,
-	Roles
+	Permissions
 )
 VALUES (?, ?, ?, ?)
 `
@@ -189,7 +188,7 @@ VALUES (?, ?, ?, ?)
 		user.Username,
 		true,
 		string(hashedPassword),
-		rolesJson,
+		permissionsJson,
 	)
 
 	if err != nil {
@@ -200,11 +199,11 @@ VALUES (?, ?, ?, ?)
 }
 
 type UserUpdate struct {
-	Username  string
-	Email     sql.NullString
-	FirstName string
-	LastName  string
-	Roles     UserRoles
+	Username    string
+	Email       sql.NullString
+	FirstName   string
+	LastName    string
+	Permissions UserPermissions
 }
 
 func ValidateUserUpdate(update UserUpdate) (bool, validation.ValidationErrors) {
@@ -230,7 +229,7 @@ func ValidateUserUpdate(update UserUpdate) (bool, validation.ValidationErrors) {
 		validation.Email(update.Email.String, &validationErrors, "Email")
 	}
 
-	// user roles don't need to be validated. See description in ValidateNewUser
+	// user permissions don't need to be validated. See description in ValidateNewUser
 
 	return len(validationErrors) == 0, validationErrors
 }
@@ -257,14 +256,14 @@ SET
 	LastName = ?,
 	Email = ?,
 	Username = ?,
-	Roles = ?
+	Permissions = ?
 
 WHERE
 	UserID = ?
 	`
 
-	rolesJSON, err := json.Marshal(update.Roles)
-	rolesString := strings.Replace(string(rolesJSON), `\"`, ``, -1)
+	permissionsJSON, err := json.Marshal(update.Permissions)
+
 	if err != nil {
 		return err
 	}
@@ -276,7 +275,7 @@ WHERE
 		update.LastName,
 		update.Email,
 		update.Username,
-		rolesString,
+		string(permissionsJSON),
 		id,
 	)
 
@@ -340,7 +339,7 @@ SELECT
 	FirstName,
 	LastName,
 	Created,
-	Roles
+	Permissions
 FROM
 	User
 WHERE
@@ -348,7 +347,7 @@ WHERE
 	`
 
 	var user User
-	var rolesJSON string
+	var permissionsJSON string
 	err := db.QueryRow(query, id).Scan(
 		&user.UserID,
 		&user.IsAPIUser,
@@ -357,7 +356,7 @@ WHERE
 		&user.FirstName,
 		&user.LastName,
 		&user.Created,
-		&rolesJSON,
+		&permissionsJSON,
 	)
 	if err == sql.ErrNoRows {
 		return user, fmt.Errorf("User not found")
@@ -365,8 +364,8 @@ WHERE
 		log.Panic(err)
 	}
 
-	// Unmarshal the rolesJSON string into a []string
-	err = json.Unmarshal([]byte(rolesJSON), &user.Roles)
+	// Unmarshal the permissionsJSON string into a []string
+	err = json.Unmarshal([]byte(permissionsJSON), &user.Permissions)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -384,7 +383,7 @@ SELECT
 	FirstName,
 	LastName,
 	Created,
-	Roles
+	Permissions
 FROM
 	User
 WHERE
@@ -392,7 +391,7 @@ WHERE
 	`
 
 	var user User
-	var rolesJSON string
+	var permissionsJSON string
 	err := db.QueryRow(query, username).Scan(
 		&user.UserID,
 		&user.IsAPIUser,
@@ -401,7 +400,7 @@ WHERE
 		&user.FirstName,
 		&user.LastName,
 		&user.Created,
-		&rolesJSON,
+		&permissionsJSON,
 	)
 	if err == sql.ErrNoRows {
 		return user, fmt.Errorf("User not found")
@@ -409,7 +408,7 @@ WHERE
 		log.Panic(err)
 	}
 
-	err = json.Unmarshal([]byte(rolesJSON), &user.Roles)
+	err = json.Unmarshal([]byte(permissionsJSON), &user.Permissions)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -427,7 +426,7 @@ SELECT
 	FirstName,
 	LastName,
 	Created,
-	Roles
+	Permissions
 FROM
 	User
 
@@ -444,7 +443,7 @@ ORDER BY
 	users := []User{}
 	for rows.Next() {
 		var u User
-		var rolesJSON string
+		var permissionsJSON string
 		err := rows.Scan(
 			&u.UserID,
 			&u.IsAPIUser,
@@ -453,13 +452,13 @@ ORDER BY
 			&u.FirstName,
 			&u.LastName,
 			&u.Created,
-			&rolesJSON,
+			&permissionsJSON,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		err = json.Unmarshal([]byte(rolesJSON), &u.Roles)
+		err = json.Unmarshal([]byte(permissionsJSON), &u.Permissions)
 		if err != nil {
 			log.Panic(err)
 		}

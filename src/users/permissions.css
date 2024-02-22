@@ -4,6 +4,6 @@ me .module-title {
   padding-left: var(--spacing-md);
 }
 
-me .role-checkbox {
+me .permission-checkbox {
   padding-left: var(--spacing-xl);
 }

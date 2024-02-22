@@ -39,7 +39,7 @@ CREATE TABLE User (
 	HashedPassword TEXT NOT NULL,
 	FailedLoginAttempts INTEGER DEFAULT 0 NOT NULL,
 	LoginBlockedUntil DATETIME DEFAULT NULL,
-	Roles JSON DEFAULT '{}' NOT NULL,
+	Permissions JSON DEFAULT '{}' NOT NULL,
 	UserData JSON DEFAULT '{}' NOT NULL
 );
 `)
@@ -59,8 +59,8 @@ CREATE TABLE User (
 	var userToAdd = userModel.NewAPIUser{
 		Username: "system",
 		Password: password,
-		Roles: userModel.UserRoles{
-			UserAdmin: userModel.UserAdminRoles{
+		Permissions: userModel.UserPermissions{
+			UserAdmin: userModel.UserAdminPermissions{
 				Access: true,
 			},
 		},

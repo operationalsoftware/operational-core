@@ -6,6 +6,7 @@ import (
 	"app/validation"
 	"fmt"
 	"net/url"
+	"reflect"
 
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
@@ -13,21 +14,41 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-func rolesCheckboxes(userRoles userModel.UserRoles) g.Node {
+func getPermissionDescription(module, permission string) string {
+	// Use reflection to get the description of
+	// Create an instance of UserPermissions
+	permissions := userModel.UserPermissions{}
+	permissionsType := reflect.TypeOf(permissions)
+	moduleField, found := permissionsType.FieldByName(module)
+	if found {
+		permissionField, found := moduleField.Type.FieldByName(permission)
+		if found {
+			description := permissionField.Tag.Get("description")
+			if description != "" {
+				return description
+			}
+		}
+	}
+
+	return ""
+}
+
+func permissionsCheckboxes(userPermissions userModel.UserPermissions) g.Node {
+
 	return components.Fieldset(
-		components.InputLabel(&components.InputLabelProps{}, g.Text("Roles")),
+		components.InputLabel(&components.InputLabelProps{}, g.Text("Permissions")),
 		h.H4(h.Class("module-title"), g.Text("User Admin")),
 		components.Checkbox(
 			&components.CheckboxProps{
-				Name:    "Roles.UserAdmin.Access",
-				Label:   "Able to manage users",
-				Checked: userRoles.UserAdmin.Access,
+				Name:    "Permissions.UserAdmin.Access",
+				Label:   getPermissionDescription("UserAdmin", "Access"),
+				Checked: userPermissions.UserAdmin.Access,
 				Value:   "true",
 			},
-			h.Class("role-checkbox"),
+			h.Class("permission-checkbox"),
 		),
 
-		components.InlineStyle("/src/users/roles.css"),
+		components.InlineStyle("/src/users/permissions.css"),
 	)
 
 }
@@ -197,7 +218,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 			},
 		}),
 
-		rolesCheckboxes(userModel.UserRoles{}),
+		permissionsCheckboxes(userModel.UserPermissions{}),
 
 		components.Button(
 			&components.ButtonProps{
@@ -254,7 +275,7 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 			},
 		}),
 
-		rolesCheckboxes(userModel.UserRoles{}),
+		permissionsCheckboxes(userModel.UserPermissions{}),
 
 		components.Button(
 			&components.ButtonProps{
@@ -440,7 +461,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 			},
 		}),
 
-		rolesCheckboxes(p.user.Roles),
+		permissionsCheckboxes(p.user.Permissions),
 
 		components.Button(
 			&components.ButtonProps{

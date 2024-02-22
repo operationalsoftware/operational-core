@@ -1,4 +1,4 @@
-(function () {
+(function() {
   me().on("mouseenter", (ev) => {
     const tooltip = ev.target;
     const tooltipWidth = ev.target.offsetWidth;

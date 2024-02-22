@@ -18,19 +18,19 @@ func migrate() bool {
 	//
 	// START OF MIGRATION
 	//
-	var rolesColumnExists bool
+	var permissionsColumnExists bool
 	query := `
 SELECT EXISTS (
-	SELECT 1 FROM sqlite_master WHERE type='table' AND name='User' AND sql LIKE '%Roles%'
+	SELECT 1 FROM sqlite_master WHERE type='table' AND name='User' AND sql LIKE '%Permissions%'
 )`
-	err = db.QueryRow(query).Scan(&rolesColumnExists)
+	err = db.QueryRow(query).Scan(&permissionsColumnExists)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	if !rolesColumnExists {
+	if !permissionsColumnExists {
 		var migrations = []string{
-			"ALTER TABLE User ADD COLUMN Roles JSON DEFAULT '[]' NOT NULL",
+			"ALTER TABLE User ADD COLUMN Permissions JSON DEFAULT '{}' NOT NULL",
 			"ALTER TABLE User ADD COLUMN UserData JSON DEFAULT '{}' NOT NULL",
 		}
 

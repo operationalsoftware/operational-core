@@ -24,7 +24,7 @@ func indexView(p *indexViewProps) g.Node {
 					g.Group(g.Map(layout.AppGalleryModules, func(m layout.AppGalleryModule) g.Node {
 
 						if m.Show != nil {
-							show := m.Show(p.Ctx.User.Roles)
+							show := m.Show(p.Ctx.User.Permissions)
 							if !show {
 								return g.Text("")
 							}
