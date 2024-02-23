@@ -1,15 +1,16 @@
 package login
 
 import (
-	"fmt"
-	"net/http"
+	reqContext "app/reqcontext"
 	"app/src/auth"
 	"app/utils"
+	"fmt"
+	"net/http"
 	"time"
 )
 
 func passwordLoginViewHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	_ = passwordLoginView(&passwordLoginViewProps{
 		Ctx: ctx,
 	}).Render(w)

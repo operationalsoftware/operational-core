@@ -4,6 +4,7 @@ import (
 	"app/components"
 	"app/db"
 	"app/layout"
+	reqContext "app/reqcontext"
 	userModel "app/src/users/model"
 	"app/utils"
 	"fmt"
@@ -42,14 +43,18 @@ func (u userWithRender) Render() map[string]components.RenderedCell {
 }
 
 type indexViewProps struct {
-	Ctx utils.Context
+	Ctx reqContext.ReqContext
 }
 
 func indexView(p *indexViewProps) g.Node {
 
 	db := db.UseDB()
 
-	users, err := userModel.List(db)
+	sort := utils.Sort{}
+	sort.ParseQueryParam(p.Ctx.Req.URL.Query().Get("sort"), userModel.ListSortableKeys)
+	users, err := userModel.List(db, userModel.ListQuery{
+		Sort: sort,
+	})
 	if err != nil {
 		fmt.Println("Error:", err)
 		return g.Text("Error")
@@ -60,16 +65,14 @@ func indexView(p *indexViewProps) g.Node {
 		data = append(data, userWithRender(user))
 	}
 
-	var columns = []components.TableColumn{
+	var columns = components.TableColumns{
 		{
-			Name:     "Username",
-			Key:      "Username",
-			Sortable: true,
+			Name: "Username",
+			Key:  "Username",
 		},
 		{
-			Name:     "First Name",
-			Key:      "FirstName",
-			Sortable: true,
+			Name: "First Name",
+			Key:  "FirstName",
 		},
 		{
 			Name: "Last Name",
@@ -117,16 +120,16 @@ func indexView(p *indexViewProps) g.Node {
 				g.Text("API User"),
 			),
 		),
-		h.Div(
-			h.ID("table"),
-			components.Table(&components.TableProps{
-				Columns: columns,
-				Data:    data,
-				HxGet:   "/users/table",
-				Sort:    []components.SortItem{},
-			}),
+		components.Table(&components.TableProps{
+			Columns:      columns,
+			SortableKeys: userModel.ListSortableKeys,
+			Data:         data,
+			HXGetPath:    "/users",
+			HXSelect:     ".table-container > *",
+			UrlQuery:     p.Ctx.Req.URL.Query(),
+		},
+			h.ID("users-table"),
 		),
-
 		components.InlineStyle("/src/users/index.css"),
 	})
 

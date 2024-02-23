@@ -1,7 +1,7 @@
 package layout
 
 import (
-	"app/utils"
+	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -21,7 +21,7 @@ type PageProps struct {
 	Content g.Node
 	Scripts []string
 	CSS     []string
-	Ctx     utils.Context
+	Ctx     reqContext.ReqContext
 }
 
 func Page(p PageProps) g.Node {

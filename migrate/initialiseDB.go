@@ -2,7 +2,6 @@ package migrate
 
 import (
 	"app/db"
-	"app/src/users"
 	userModel "app/src/users/model"
 	"fmt"
 	"log"
@@ -51,7 +50,7 @@ CREATE TABLE User (
 	// add the system user with a random password
 	fmt.Print("Creating system user... ")
 
-	password, err := users.GenerateRandomPassword(24)
+	password, err := userModel.GenerateRandomPassword(24)
 	if err != nil {
 		panic(err)
 	}

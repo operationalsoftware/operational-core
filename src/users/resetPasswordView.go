@@ -3,15 +3,15 @@ package users
 import (
 	"app/components"
 	"app/layout"
+	reqContext "app/reqcontext"
 	userModel "app/src/users/model"
-	"app/utils"
 
 	g "github.com/maragudk/gomponents"
 )
 
 type resetPasswordViewProps struct {
 	User userModel.User
-	Ctx  utils.Context
+	Ctx  reqContext.ReqContext
 }
 
 func resetPasswordView(p *resetPasswordViewProps) g.Node {

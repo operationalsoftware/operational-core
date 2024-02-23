@@ -3,14 +3,14 @@ package src
 import (
 	"app/components"
 	"app/layout"
-	"app/utils"
+	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
 type notFoundViewProps struct {
-	Ctx utils.Context
+	Ctx reqContext.ReqContext
 }
 
 func notFoundView(p *notFoundViewProps) g.Node {

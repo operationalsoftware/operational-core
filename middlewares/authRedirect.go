@@ -1,8 +1,8 @@
 package middlewares
 
 import (
+	reqContext "app/reqcontext"
 	userModel "app/src/users/model"
-	"app/utils"
 	"net/http"
 	"strings"
 )
@@ -12,7 +12,7 @@ func AuthRedirect(next http.Handler) http.Handler {
 		url := r.URL.Path
 		isLoginRoute := strings.HasPrefix(url, "/login")
 		isStaticRoute := strings.HasPrefix(url, "/static")
-		_, ok := r.Context().Value(utils.ContextKeyUser).(userModel.User)
+		_, ok := r.Context().Value(reqContext.ReqContextKeyUser).(userModel.User)
 
 		if ok && isLoginRoute {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

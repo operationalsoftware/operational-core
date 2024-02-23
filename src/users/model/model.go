@@ -2,6 +2,7 @@ package userModel
 
 import (
 	"app/db"
+	"app/utils"
 	"app/validation"
 	"database/sql"
 	"encoding/json"
@@ -416,8 +417,24 @@ WHERE
 	return user, nil
 }
 
-func List(db db.SQLExecutor) ([]User, error) {
-	query := `
+var ListSortableKeys = []string{
+	"Username",
+	"Email",
+	"FirstName",
+	"LastName",
+	"Created",
+	"LastLogin",
+}
+
+type ListQuery struct {
+	Sort utils.Sort
+}
+
+func List(db db.SQLExecutor, q ListQuery) ([]User, error) {
+
+	orderByClause := q.Sort.ToOrderByClause(map[string]string{})
+
+	query := fmt.Sprintf(`
 SELECT
 	UserID,
 	IsAPIUser,
@@ -430,9 +447,11 @@ SELECT
 FROM
 	User
 
-ORDER BY
-	Username ASC
-	`
+%s
+
+	`,
+		orderByClause,
+	)
 
 	rows, err := db.Query(query)
 	if err != nil {

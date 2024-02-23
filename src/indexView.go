@@ -3,14 +3,14 @@ package src
 import (
 	"app/components"
 	"app/layout"
-	"app/utils"
+	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
 type indexViewProps struct {
-	Ctx utils.Context
+	Ctx reqContext.ReqContext
 }
 
 func indexView(p *indexViewProps) g.Node {

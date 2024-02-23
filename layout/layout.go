@@ -2,7 +2,7 @@ package layout
 
 import (
 	"app/components"
-	"app/utils"
+	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -11,7 +11,7 @@ import (
 
 type layoutProps struct {
 	content   g.Node
-	Ctx       utils.Context
+	Ctx       reqContext.ReqContext
 	NoPadding bool
 }
 

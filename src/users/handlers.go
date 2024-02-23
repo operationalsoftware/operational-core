@@ -2,6 +2,7 @@ package users
 
 import (
 	"app/db"
+	reqContext "app/reqcontext"
 	userModel "app/src/users/model"
 	"app/utils"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 )
 
 func indexViewHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -26,7 +27,7 @@ func indexViewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func userViewHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -46,7 +47,7 @@ func userViewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserViewHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -58,7 +59,7 @@ func addUserViewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addAPIUserViewHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -71,7 +72,7 @@ func addAPIUserViewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -97,7 +98,7 @@ func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateAddAPIUserHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -123,7 +124,7 @@ func validateAddAPIUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -166,7 +167,7 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addAPIUserHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -182,7 +183,7 @@ func addAPIUserHandler(w http.ResponseWriter, r *http.Request) {
 	var newAPIUser userModel.NewAPIUser
 	_ = utils.DecodeForm(r.Form, &newAPIUser)
 
-	password, err := GenerateRandomPassword(24)
+	password, err := userModel.GenerateRandomPassword(24)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -220,7 +221,7 @@ func addAPIUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -247,7 +248,7 @@ func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -292,7 +293,7 @@ func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func editUserHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -341,7 +342,7 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func resetPasswordViewHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -368,7 +369,7 @@ func resetPasswordViewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -406,7 +407,7 @@ func validateResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := utils.GetContext(r)
+	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)

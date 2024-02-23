@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"app/db"
+	reqContext "app/reqcontext"
 	"app/src/auth"
 	userModel "app/src/users/model"
 	"app/utils"
@@ -61,7 +62,7 @@ func Authentication(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), utils.ContextKeyUser, user)
+		ctx := context.WithValue(r.Context(), reqContext.ReqContextKeyUser, user)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

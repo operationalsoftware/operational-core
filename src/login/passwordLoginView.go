@@ -3,14 +3,14 @@ package login
 import (
 	"app/components"
 	"app/layout"
-	"app/utils"
+	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
 type passwordLoginViewProps struct {
-	Ctx utils.Context
+	Ctx reqContext.ReqContext
 }
 
 func passwordLoginView(p *passwordLoginViewProps) g.Node {

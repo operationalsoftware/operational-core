@@ -2,7 +2,7 @@ package layout
 
 import (
 	"app/components"
-	"app/utils"
+	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	ghtmx "github.com/maragudk/gomponents-htmx"
@@ -11,7 +11,7 @@ import (
 )
 
 type avatarDropdownProps struct {
-	Ctx utils.Context
+	Ctx reqContext.ReqContext
 }
 
 func avatarDropdown(p *avatarDropdownProps) g.Node {

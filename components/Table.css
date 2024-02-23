@@ -14,8 +14,18 @@ me thead {
   background-color: var(--background-color-content);
 }
 
-me th {
+/* Table sort button is unstyled */
+me .table-sort-button {
+  background: none;
+  border: none;
   cursor: pointer;
+  padding: 0;
+  margin: 0;
+  margin-left: var(--spacing-sm);
+  align-items: center;
+  justify-content: flex-start;
+  color: var(--text-color-light);
+  transition: color 0.2s ease-in-out;
 }
 
 me th .icon {

@@ -3,13 +3,13 @@ package users
 import (
 	"app/components"
 	"app/layout"
-	"app/utils"
+	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 )
 
 type addUserAPIViewProps struct {
-	Ctx utils.Context
+	Ctx reqContext.ReqContext
 }
 
 func addUserAPIView(p *addUserAPIViewProps) g.Node {

@@ -2,8 +2,8 @@ package layout
 
 import (
 	"app/components"
+	reqContext "app/reqcontext"
 	userModel "app/src/users/model"
-	"app/utils"
 
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
@@ -31,7 +31,7 @@ var AppGalleryModules = []AppGalleryModule{
 }
 
 type appGalleryProps struct {
-	Ctx utils.Context
+	Ctx reqContext.ReqContext
 }
 
 func appGallery(p *appGalleryProps) g.Node {

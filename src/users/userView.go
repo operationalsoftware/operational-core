@@ -4,8 +4,8 @@ import (
 	"app/components"
 	"app/db"
 	"app/layout"
+	reqContext "app/reqcontext"
 	userModel "app/src/users/model"
-	"app/utils"
 	"fmt"
 
 	g "github.com/maragudk/gomponents"
@@ -15,7 +15,7 @@ import (
 
 type userViewProps struct {
 	Id  int
-	Ctx utils.Context
+	Ctx reqContext.ReqContext
 }
 
 func userView(p *userViewProps) g.Node {

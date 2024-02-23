@@ -2,14 +2,14 @@ package layout
 
 import (
 	o "app/components"
-	"app/utils"
+	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
 )
 
 type navbarProps struct {
-	Ctx utils.Context
+	Ctx reqContext.ReqContext
 }
 
 func navbar(p *navbarProps) g.Node {

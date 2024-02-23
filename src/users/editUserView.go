@@ -3,8 +3,8 @@ package users
 import (
 	"app/components"
 	"app/layout"
+	reqContext "app/reqcontext"
 	userModel "app/src/users/model"
-	"app/utils"
 	"fmt"
 
 	g "github.com/maragudk/gomponents"
@@ -12,7 +12,7 @@ import (
 
 type editUserViewProps struct {
 	User userModel.User
-	Ctx  utils.Context
+	Ctx  reqContext.ReqContext
 }
 
 func editUserView(p *editUserViewProps) g.Node {
