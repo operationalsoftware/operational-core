@@ -86,7 +86,7 @@ func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newUser userModel.NewUser
-	_ = utils.DecodeForm(r.Form, &newUser)
+	_ = utils.UnmarshalUrlValues(r.Form, &newUser)
 
 	_, validationErrors := userModel.ValidateNewUser(newUser)
 
@@ -112,7 +112,7 @@ func validateAddAPIUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newAPIUser userModel.NewAPIUser
-	_ = utils.DecodeForm(r.Form, &newAPIUser)
+	_ = utils.UnmarshalUrlValues(r.Form, &newAPIUser)
 
 	_, validationErrors := userModel.ValidateNewAPIUser(newAPIUser)
 
@@ -138,7 +138,7 @@ func addUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newUser userModel.NewUser
-	err = utils.DecodeForm(r.Form, &newUser)
+	err = utils.UnmarshalUrlValues(r.Form, &newUser)
 
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
@@ -181,7 +181,7 @@ func addAPIUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newAPIUser userModel.NewAPIUser
-	_ = utils.DecodeForm(r.Form, &newAPIUser)
+	_ = utils.UnmarshalUrlValues(r.Form, &newAPIUser)
 
 	password, err := userModel.GenerateRandomPassword(24)
 	if err != nil {
@@ -276,7 +276,7 @@ func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	var userUpdate userModel.UserUpdate
 
-	err = utils.DecodeForm(r.Form, &userUpdate)
+	err = utils.UnmarshalUrlValues(r.Form, &userUpdate)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
@@ -313,7 +313,7 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userUpdate userModel.UserUpdate
-	err = utils.DecodeForm(r.Form, &userUpdate)
+	err = utils.UnmarshalUrlValues(r.Form, &userUpdate)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
@@ -390,7 +390,7 @@ func validateResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 	var passwordReset userModel.PasswordReset
 
-	err = utils.DecodeForm(r.Form, &passwordReset)
+	err = utils.UnmarshalUrlValues(r.Form, &passwordReset)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
@@ -427,7 +427,7 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var passwordReset userModel.PasswordReset
-	err = utils.DecodeForm(r.Form, &passwordReset)
+	err = utils.UnmarshalUrlValues(r.Form, &passwordReset)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
