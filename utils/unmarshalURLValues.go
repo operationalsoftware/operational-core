@@ -10,6 +10,44 @@ import (
 	"time"
 )
 
+// settable field kinds
+var settableKinds = []reflect.Kind{
+	reflect.String,
+	reflect.Bool,
+	reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+	reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+	reflect.Float32, reflect.Float64,
+}
+
+// settable struct types
+var settableStructTypes = []reflect.Type{
+	reflect.TypeOf(time.Time{}),
+	reflect.TypeOf(sql.NullString{}),
+	reflect.TypeOf(sql.NullBool{}),
+	reflect.TypeOf(sql.NullInt64{}),
+	reflect.TypeOf(sql.NullInt32{}),
+	reflect.TypeOf(sql.NullInt16{}),
+	reflect.TypeOf(sql.NullFloat64{}),
+	reflect.TypeOf(sql.NullTime{}),
+}
+
+func isSettableField(field reflect.Value) bool {
+	fieldKind := field.Kind()
+	for _, kind := range settableKinds {
+		if fieldKind == kind {
+			return true
+		}
+	}
+	if fieldKind == reflect.Struct {
+		for _, t := range settableStructTypes {
+			if field.Type() == t {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func setField(field reflect.Value, strValue string) error {
 	if !field.IsValid() {
 		return fmt.Errorf("field is not valid")
@@ -95,48 +133,6 @@ func setField(field reflect.Value, strValue string) error {
 	return nil
 }
 
-// settable field kinds
-var settableKinds = []reflect.Kind{
-	reflect.String,
-	reflect.Bool,
-	reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-	reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-	reflect.Float32, reflect.Float64,
-}
-
-// settable struct types
-var settableStructTypes = []reflect.Type{
-	reflect.TypeOf(time.Time{}),
-	reflect.TypeOf(sql.NullString{}),
-	reflect.TypeOf(sql.NullBool{}),
-	reflect.TypeOf(sql.NullInt64{}),
-	reflect.TypeOf(sql.NullInt32{}),
-	reflect.TypeOf(sql.NullInt16{}),
-	reflect.TypeOf(sql.NullFloat64{}),
-	reflect.TypeOf(sql.NullTime{}),
-}
-
-func isSettableField(field reflect.Value) bool {
-
-	fieldKind := field.Kind()
-
-	for _, kind := range settableKinds {
-		if fieldKind == kind {
-			return true
-		}
-	}
-
-	if fieldKind == reflect.Struct {
-		for _, t := range settableStructTypes {
-			if field.Type() == t {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 func UnmarshalUrlValues(urlValues url.Values, v interface{}) error {
 	val := reflect.ValueOf(v).Elem()
 
@@ -153,7 +149,10 @@ func UnmarshalUrlValues(urlValues url.Values, v interface{}) error {
 
 		if isSettable {
 			strValue := urlValues.Get(fName)
-			setField(fieldValue, strValue)
+			err := setField(fieldValue, strValue)
+			if err != nil {
+				return err
+			}
 		} else if field.Type.Kind() == reflect.Slice {
 			// slice field
 			// we support square bracket/index notation and multiple form values under
@@ -186,7 +185,10 @@ func UnmarshalUrlValues(urlValues url.Values, v interface{}) error {
 				// Populate the slice
 				for i, strValue := range strValues {
 					subValue := reflect.New(elemType).Elem()
-					setField(subValue, strValue)
+					err := setField(subValue, strValue)
+					if err != nil {
+						return err
+					}
 					fieldValue.Index(i).Set(subValue)
 				}
 			} else {
