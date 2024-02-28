@@ -48,6 +48,31 @@ func isSettableField(field reflect.Value) bool {
 	return false
 }
 
+func parseTime(strValue string) (time.Time, error) {
+	formats := []string{
+		"2006-01-02",
+		"2006-01-02T15:04:05Z07:00",
+		"2006-01-02T15:04:05",
+		"02/01/2006", // assuming DD/MM/YYYY format
+		"02/01/2006 15:04:05",
+		// Add more formats as needed
+	}
+
+	var parsedValue time.Time
+	var err error
+
+	for _, format := range formats {
+		parsedValue, err = time.Parse(format, strValue)
+		if err == nil {
+			// Successfully parsed, return the result
+			return parsedValue, nil
+		}
+	}
+
+	// If none of the formats worked, return an error
+	return time.Time{}, fmt.Errorf("could not parse date: %s", strValue)
+}
+
 func setField(field reflect.Value, strValue string) error {
 	if !field.IsValid() {
 		return fmt.Errorf("field is not valid")
@@ -86,7 +111,7 @@ func setField(field reflect.Value, strValue string) error {
 		field.SetFloat(parsedValue)
 	case reflect.Struct:
 		if field.Type() == reflect.TypeOf(time.Time{}) {
-			parsedValue, err := time.Parse(time.RFC3339, strValue)
+			parsedValue, err := parseTime(strValue)
 			if err != nil {
 				return err
 			}
@@ -126,6 +151,22 @@ func setField(field reflect.Value, strValue string) error {
 				nullInt16.Valid = true
 			}
 			field.Set(reflect.ValueOf(nullInt16))
+		} else if field.Type() == reflect.TypeOf(sql.NullFloat64{}) {
+			parsedValue, err := strconv.ParseFloat(strValue, 64)
+			nullFloat64 := sql.NullFloat64{}
+			if err == nil {
+				nullFloat64.Float64 = parsedValue
+				nullFloat64.Valid = true
+			}
+			field.Set(reflect.ValueOf(nullFloat64))
+		} else if field.Type() == reflect.TypeOf(sql.NullTime{}) {
+			parsedValue, err := parseTime(strValue)
+			nullTime := sql.NullTime{}
+			if err == nil {
+				nullTime.Time = parsedValue
+				nullTime.Valid = true
+			}
+			field.Set(reflect.ValueOf(nullTime))
 		}
 
 	}
