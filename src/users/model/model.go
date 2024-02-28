@@ -487,3 +487,20 @@ FROM
 
 	return users, nil
 }
+
+func Count(db db.SQLExecutor) (int, error) {
+	query := `
+SELECT
+	COUNT(*)
+FROM
+	User
+	`
+
+	var count int
+	err := db.QueryRow(query).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}

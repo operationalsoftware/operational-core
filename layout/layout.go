@@ -15,8 +15,8 @@ type layoutProps struct {
 	NoPadding bool
 }
 
-func layout(p *layoutProps) []g.Node {
-	return []g.Node{
+func layout(p *layoutProps) g.Node {
+	return g.Group([]g.Node{
 		navbar(&navbarProps{
 			Ctx: p.Ctx,
 		}),
@@ -32,5 +32,5 @@ func layout(p *layoutProps) []g.Node {
 		),
 		footer(),
 		components.InlineStyle("/layout/layout.css"),
-	}
+	})
 }

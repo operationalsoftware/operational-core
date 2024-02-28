@@ -2,7 +2,6 @@ package users
 
 import (
 	"app/components"
-	"app/db"
 	"app/layout"
 	reqContext "app/reqcontext"
 	userModel "app/src/users/model"
@@ -10,6 +9,7 @@ import (
 	"fmt"
 
 	g "github.com/maragudk/gomponents"
+	hx "github.com/maragudk/gomponents-htmx"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
@@ -43,25 +43,18 @@ func (u userWithRender) Render() map[string]components.RenderedCell {
 }
 
 type indexViewProps struct {
-	Ctx reqContext.ReqContext
+	Ctx       reqContext.ReqContext
+	users     []userModel.User
+	userCount int
+	sort      utils.Sort
+	page      int
+	pageSize  int
 }
 
 func indexView(p *indexViewProps) g.Node {
 
-	db := db.UseDB()
-
-	sort := utils.Sort{}
-	sort.ParseQueryParam(p.Ctx.Req.URL.Query().Get("sort"), userModel.ListSortableKeys)
-	users, err := userModel.List(db, userModel.ListQuery{
-		Sort: sort,
-	})
-	if err != nil {
-		fmt.Println("Error:", err)
-		return g.Text("Error")
-	}
-
 	var data []components.TableRowRenderer
-	for _, user := range users {
+	for _, user := range p.users {
 		data = append(data, userWithRender(user))
 	}
 
@@ -120,22 +113,39 @@ func indexView(p *indexViewProps) g.Node {
 				g.Text("API User"),
 			),
 		),
-		components.Table(&components.TableProps{
-			Columns:      columns,
-			SortableKeys: userModel.ListSortableKeys,
-			Data:         data,
-			HXGetPath:    "/users",
-			HXSelect:     ".table-container > *",
-			UrlQuery:     p.Ctx.Req.URL.Query(),
-		},
-			h.ID("users-table"),
+
+		h.Div(
+			// htmx boundary for table interaction
+			h.ID("users-table-container"),
+			hx.Target("#users-table-container"),
+			hx.Select("#users-table-container > *"),
+			hx.Include("#users-table-container"),
+
+			components.Table(&components.TableProps{
+				Columns:      columns,
+				SortableKeys: userModel.ListSortableKeys,
+				Sort:         p.sort,
+				Data:         data,
+				HXGetPath:    "/users",
+				Pagination: components.TablePaginationProps{
+					TotalRecords:        p.userCount,
+					PageSize:            p.pageSize,
+					CurrentPage:         p.page,
+					CurrentPageQueryKey: "Page",
+					PageSizeQueryKey:    "PageSize",
+				},
+			},
+				h.ID("users-table"),
+			),
 		),
-		components.InlineStyle("/src/users/index.css"),
 	})
 
 	return layout.Page(layout.PageProps{
 		Title:   "Users",
 		Content: content,
 		Ctx:     p.Ctx,
+		AppendHead: []g.Node{
+			components.InlineStyle("/src/users/index.css"),
+		},
 	})
 }

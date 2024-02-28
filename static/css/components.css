@@ -402,44 +402,6 @@ input[type="range"]:disabled::-moz-range-thumb:focus {
   transform: scale(1);
 }
 
-/* Table */
-.table-container {
-  width: 100%;
-  overflow-x: auto; /* Enable horizontal scrolling on small screens */
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-/* Optional: Add some basic styles for better readability */
-thead {
-  background-color: var(--background-color-content);
-}
-
-th,
-td {
-  cursor: pointer;
-  border: 1px solid #ccc;
-}
-
-th,
-td {
-  padding: 8px;
-  text-align: left;
-  min-width: 70px;
-  max-width: 150px;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-}
-
-.table-row {
-  transition: background-color 0.2s ease-in-out;
-}
-
-.table-row:hover {
-  background-color: var(--background-color-content);
-}
 
 /* Select menu */
 
@@ -1009,4 +971,96 @@ dialog::backdrop {
   visibility: visible;
   opacity: 1;
   transform: scale(1);
+}
+
+
+
+
+
+
+/*
+ * TABLE
+ */
+div.table {
+  width: 100%;
+}
+div.table-scroll {
+  width: 100%;
+  overflow-x: auto; /* Enable horizontal scrolling on small screens */
+}
+
+div.table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+div.table-scroll thead {
+  background-color: var(--background-color-content);
+}
+div.table-scroll th label {
+  /* display: flex; */
+  /* align-items: center; */
+  /* gap: var(--spacing-xs); */
+  cursor: pointer;
+}
+div.table-scroll th input {
+  display: none;
+}
+div.table-scroll th label .icon {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  margin-left: var(--spacing-sm);
+  fill: var(--text-color-light);
+  transition: fill 0.2s ease-in-out;
+}
+div.table-scroll th label .icon:hover {
+  fill: var(--text-color);
+}
+
+div.table-scroll th,
+div.table-scroll td {
+  padding: 8px;
+  text-align: left;
+  min-width: 70px;
+  max-width: 150px;
+  border: 1px solid #ccc;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+div.table-scroll tr {
+  transition: background-color 0.2s ease-in-out;
+}
+
+div.table-scroll tr:hover {
+  background-color: var(--background-color-content);
+}
+
+div.table-pagination {
+  display: flex;
+  justify-content: end;
+  padding: var(--spacing-md) 0;
+}
+
+div.table-pagination-pages {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+div.table-pagination-pages label {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+}
+div.table-pagination-pages label:hover {
+  background-color: var(--primary-color);
+  cursor: pointer;
+}
+div.table-pagination-pages label.disabled {
+  background-color: var(--disabled-color);
+  cursor: not-allowed;
+}
+div.table-pagination-pages label.active {
+  background-color: var(--primary-color);
+  color: var(--text-color-contrast);
 }

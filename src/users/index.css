@@ -1,4 +1,4 @@
-me .button-container {
+.button-container {
   display: flex;
   justify-content: flex-end;
   column-gap: var(--spacing-md);
@@ -8,6 +8,6 @@ me .button-container {
   fill: currentColor;
 }
 
-me .table-container {
+#users-table-container {
   margin-top: var(--spacing-lg);
 }

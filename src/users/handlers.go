@@ -21,8 +21,30 @@ func indexViewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db := db.UseDB()
+	sort := utils.Sort{}
+	sort.ParseQueryParam(ctx.Req.URL.Query().Get("Sort"), userModel.ListSortableKeys)
+
+	users, err := userModel.List(db, userModel.ListQuery{
+		Sort: sort,
+	})
+	if err != nil {
+		http.Error(w, "Error listing users", http.StatusInternalServerError)
+		return
+	}
+	count, err := userModel.Count(db)
+	if err != nil {
+		http.Error(w, "Error counting users", http.StatusInternalServerError)
+		return
+	}
+
 	_ = indexView(&indexViewProps{
-		Ctx: ctx,
+		Ctx:       ctx,
+		users:     users,
+		userCount: count,
+		sort:      sort,
+		page:      1,
+		pageSize:  10,
 	}).Render(w)
 }
 
