@@ -27,6 +27,8 @@ func Page(p PageProps) g.Node {
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/variables.css")),
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/global.css")),
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/components.css")),
+		h.Script(h.Type("text/javascript"), h.Src("https://cdn.jsdelivr.net/gh/gnat/css-scope-inline/script.js")),
+		h.Script(h.Type("text/javascript"), h.Src("https://cdn.jsdelivr.net/gh/gnat/surreal/surreal.js")),
 	}
 
 	head = append(head, p.AppendHead...)
@@ -36,8 +38,6 @@ func Page(p PageProps) g.Node {
 			content: p.Content,
 			Ctx:     p.Ctx,
 		}),
-		h.Script(h.Type("text/javascript"), h.Src("https://cdn.jsdelivr.net/gh/gnat/surreal/surreal.js")),
-		h.Script(h.Type("text/javascript"), h.Src("https://cdn.jsdelivr.net/gh/gnat/css-scope-inline/script.js")),
 		h.Script(h.Type("text/javascript"), h.Src("/static/js/htmx.min.js")),
 		h.Script(h.Type("text/javascript"), h.Src("/static/js/global.js")),
 	}
