@@ -1,12 +1,12 @@
-me {
+.main {
   margin: 0 auto;
 }
 
-me .card {
+.main .card {
   max-width: 600px;
 }
 
-me .module-items {
+.main .module-items {
   background-color: var(--background-color-content);
   padding: var(--spacing-md);
   border-radius: var(--border-radius);
@@ -18,7 +18,7 @@ me .module-items {
   overflow: hidden;
 }
 
-me .module-item {
+.main .module-item {
   display: block;
   text-decoration: none;
   color: var(--text-color);
@@ -28,17 +28,17 @@ me .module-item {
   transition: background-color 0.2s ease-in-out;
 }
 
-me .module-item svg {
+.main .module-item svg {
   width: 30px;
   height: 30px;
   fill: var(--text-color);
   transition: fill 0.2s ease-in-out;
 }
 
-me .module-item:hover {
+.main .module-item:hover {
   background-color: var(--background-color);
 }
 
-me .module-item:hover svg {
+.main .module-item:hover svg {
   fill: var(--primary-color);
 }

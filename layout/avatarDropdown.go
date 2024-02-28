@@ -104,7 +104,6 @@ func avatarDropdown(p *avatarDropdownProps) g.Node {
 				),
 			),
 		),
-		components.InlineStyle("/layout/avatarDropdown.css"),
 		components.InlineScript("/layout/avatarDropdown.js"),
 	)
 }

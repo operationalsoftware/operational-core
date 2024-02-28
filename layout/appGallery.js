@@ -1,7 +1,9 @@
 (function () {
-  const appGalleryButton = me(".app-gallery__button");
-  const appGalleryContent = me(".app-gallery-content__container");
-  const navbar = me("#navbar");
+  const appGalleryButton = document.querySelector(".app-gallery__button");
+  const appGalleryContent = document.querySelector(
+    ".app-gallery-content__container"
+  );
+  const navbar = document.getElementById("navbar");
 
   function updateAppGalleryPosition() {
     const buttonRect = appGalleryButton.getBoundingClientRect();
@@ -12,10 +14,8 @@
     let left = buttonRect.left - bodyRect.left - appGalleryWidth;
     const top = navbarRect.bottom + 10;
 
-    appGalleryContent.styles({
-      left: `${left}px`,
-      top: `${top}px`,
-    });
+    appGalleryContent.style.left = `${left}px`;
+    appGalleryContent.style.top = `${top}px`;
   }
 
   updateAppGalleryPosition();

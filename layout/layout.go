@@ -1,7 +1,6 @@
 package layout
 
 import (
-	"app/components"
 	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
@@ -31,6 +30,5 @@ func layout(p *layoutProps) g.Node {
 			p.content,
 		),
 		footer(),
-		components.InlineStyle("/layout/layout.css"),
 	})
 }

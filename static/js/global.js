@@ -91,7 +91,6 @@ function closeModal(el) {
   }, 250);
 }
 
-
 /*
  * getTheme checks if a theme is stored in local storage and returns it.
  * If no theme is stored, it returns "system-default".
@@ -116,7 +115,9 @@ function getTheme() {
  */
 function updateThemeOnHtml() {
   const theme = localStorage.getItem("theme");
-  const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const prefersDarkMode = window.matchMedia(
+    "(prefers-color-scheme: dark)"
+  ).matches;
   if (theme === "dark" || (!theme && prefersDarkMode)) {
     document.documentElement.setAttribute("data-theme", "dark");
   } else {
@@ -147,16 +148,15 @@ function setTheme(theme) {
   updateThemeOnHtml();
 }
 
-
 /*
  * Fullscreen utilities
  * */
 function getIsFullScreen() {
   return Boolean(
     document.fullscreenElement ||
-    document.mozFullScreenElement ||
-    document.webkitFullscreenElement ||
-    document.msFullscreenElement
+      document.mozFullScreenElement ||
+      document.webkitFullscreenElement ||
+      document.msFullscreenElement
   );
 }
 
@@ -185,16 +185,14 @@ function exitFullScreen() {
   }
 }
 
-
-
-
-(function() {
+(function () {
   // deal with the theme
   // set on start
   updateThemeOnHtml();
   // listen for system theme changes
   // and update the theme accordingly
-  window.matchMedia("(prefers-color-scheme: dark)")
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
     .addEventListener("change", () => {
       if (!localStorage.getItem("theme")) {
         updateThemeOnHtml();

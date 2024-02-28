@@ -45,13 +45,15 @@ func indexView(p *indexViewProps) g.Node {
 				),
 			),
 		),
-		components.InlineScript("/src/index.js"),
-		components.InlineStyle("/src/indexView.css"),
 	})
 
 	return layout.Page(layout.PageProps{
 		Title:   "Home",
 		Content: indexContent,
 		Ctx:     p.Ctx,
+		AppendHead: []g.Node{
+			components.InlineScript("/src/index.js"),
+			components.InlineStyle("/src/indexView.css"),
+		},
 	})
 }

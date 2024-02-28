@@ -1,7 +1,6 @@
 package layout
 
 import (
-	o "app/components"
 	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
@@ -14,7 +13,6 @@ type navbarProps struct {
 
 func navbar(p *navbarProps) g.Node {
 	return Nav(ID("navbar"),
-		o.InlineStyle("/layout/navbar.css"),
 		Div(
 			Class("nav_links-container"),
 			Div(

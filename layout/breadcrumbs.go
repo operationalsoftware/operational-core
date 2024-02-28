@@ -184,11 +184,11 @@ func breadcrumbs(url string) g.Node {
 	)
 
 	return h.Nav(
+		h.Class("breadcrumbs"),
 		h.Aria("label", "breadcrumbs"),
 		h.Ol(
 			h.Class("breadcrumbs"),
 			crumbNodes,
 		),
-		o.InlineStyle("/layout/breadcrumbs.css"),
 	)
 }

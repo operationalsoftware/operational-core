@@ -76,7 +76,6 @@ func appGallery(p *appGalleryProps) g.Node {
 				})),
 			),
 		),
-		components.InlineStyle("/layout/appGallery.css"),
 		components.InlineScript("/layout/appGallery.js"),
 	)
 }
