@@ -1,10 +1,10 @@
-me {
+.progress-container {
   border-radius: var(--border-radius-lg);
   margin: var(--spacing) auto;
   position: relative;
 }
 
-me .progress-bar {
+.progress-container .progress-bar {
   width: 100%;
   height: 12px;
   border-radius: var(--border-radius-lg);
@@ -13,7 +13,7 @@ me .progress-bar {
   overflow: hidden;
 }
 
-me .progress-label {
+.progress-container .progress-label {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -23,7 +23,7 @@ me .progress-label {
   z-index: 1;
 }
 
-me .progress {
+.progress-container .progress {
   position: absolute;
   top: 0;
   left: 0;
@@ -34,14 +34,14 @@ me .progress {
   border-radius: inherit;
 }
 
-me[data-type="success"] .progress {
+.progress-container[data-type="success"] .progress {
   background-color: var(--success-color);
 }
 
-me[data-type="warning"] .progress {
+.progress-container[data-type="warning"] .progress {
   background-color: var(--warning-color);
 }
 
-me[data-type="danger"] .progress {
+.progress-container[data-type="danger"] .progress {
   background-color: var(--danger-color);
 }

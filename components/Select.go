@@ -16,6 +16,7 @@ type SelectProps struct {
 	Name     string
 	ID       string
 	Multiple bool
+	Classes  c.Classes
 }
 
 func SelectOptions(o []Option, class, ID string) g.Node {
@@ -70,9 +71,11 @@ func MultiSelectOptions(o []Option, class, ID string) g.Node {
 }
 
 func Select(p *SelectProps) g.Node {
-	classes := c.Classes{
-		"custom-select": true,
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
 	}
+
+	p.Classes["custom-select"] = true
 
 	if p.Name == "" && !p.Multiple {
 		p.Name = "select"
@@ -89,7 +92,7 @@ func Select(p *SelectProps) g.Node {
 	dropdownId := p.ID + "-dropdown"
 
 	return h.Div(
-		classes,
+		p.Classes,
 		h.ID(p.ID),
 		g.If(p.Multiple, h.DataAttr("multiple", "true")),
 		h.Div(

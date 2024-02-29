@@ -9,15 +9,18 @@ import (
 type ModalProps struct {
 	Title         string
 	FooterContent g.Node
+	Classes       c.Classes
 }
 
 func Modal(p *ModalProps, children ...g.Node) g.Node {
-	classes := c.Classes{
-		"modal":  true,
-		"hidden": true,
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
 	}
+
+	p.Classes["modal"] = true
+	p.Classes["hidden"] = true
 	return h.Dialog(
-		classes,
+		p.Classes,
 		h.Header(
 			h.Class("modal-header"),
 			h.H3(g.Text(p.Title)),

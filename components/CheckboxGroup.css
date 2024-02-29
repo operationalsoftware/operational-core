@@ -1,22 +1,22 @@
-me {
+.checkbox-group {
   margin: var(--spacing-sm) 0;
 }
 
-me label {
+.checkbox-group label {
   display: inline-block;
   margin-bottom: var(--spacing-md);
 }
 
-me .checkbox-options {
+.checkbox-group .checkbox-options {
   display: flex;
   flex-wrap: wrap;
 }
 
-me .checkbox-option {
+.checkbox-group .checkbox-option {
   display: flex;
   margin-right: var(--spacing-md);
 }
 
-me .checkbox-option:last-child {
+.checkbox-group .checkbox-option:last-child {
   margin-right: 0;
 }

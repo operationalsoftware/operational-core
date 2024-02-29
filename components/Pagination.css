@@ -1,11 +1,11 @@
-me {
+.pagination {
   display: inline-block;
   padding-left: 0;
   margin: var(--spacing) 0;
   border-radius: var(--border-radius);
 }
 
-me .pagination__list {
+.pagination .pagination__list {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,11 +14,11 @@ me .pagination__list {
   margin: 0;
 }
 
-me .pagination--hidden {
+.pagination .pagination--hidden {
   display: none;
 }
 
-me .pagination__btn {
+.pagination .pagination__btn {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -29,43 +29,48 @@ me .pagination__btn {
   border: 1px solid var(--border-color);
 }
 
-me .pagination__btn--left {
+.pagination .pagination__btn--left {
   margin-right: var(--spacing-xs);
 }
 
-me .pagination__btn--right {
+.pagination .pagination__btn--right {
   margin-left: var(--spacing-xs);
 }
 
-me .pagination__icon {
+.pagination .pagination__icon {
   width: 25px;
   height: 25px;
   fill: var(--primary-color);
 }
 
-me .pagination__item {
+.pagination .pagination__item {
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
 }
 
-me .pagination__item:hover {
+.pagination .pagination__item:hover {
   background-color: var(--background-color-grey);
 }
 
-me .pagination__item.pagination__item--current {
+.pagination .pagination__item.pagination__item--current {
   background-color: var(--primary-color);
   margin: 0 var(--spacing-xs);
   color: var(--text-color-contrast);
-  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
 }
 
-me .pagination__item--current:hover {
+.pagination .pagination__item.pagination__item--current a {
+  color: var(--text-color-contrast);
+}
+
+.pagination .pagination__item--current:hover {
   transform: scale(1.1) translateY(-1px);
 }
 
-me .pagination__btn--disabled {
+.pagination .pagination__btn--disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }

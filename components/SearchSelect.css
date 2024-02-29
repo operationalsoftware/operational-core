@@ -1,10 +1,10 @@
-me {
+.search-select-container {
   width: 200px;
   max-width: 100%;
   color: var(--text-color);
   margin-top: var(--spacing-lg);
   font-size: var(--font-size-md);
-  background-color: #fff;
+  background-color: var(--background-color);
   padding: var(--spacing-md) var(--spacing-lg);
   border: 1px solid #caced1;
   border-radius: var(--border-radius);
@@ -13,7 +13,7 @@ me {
 }
 
 /* Conflicting styles */
-me .remove-icon {
+.search-select-container .remove-icon {
   width: 15px;
   height: 15px;
   cursor: pointer;
@@ -25,11 +25,11 @@ me .remove-icon {
   transition: background-color 0.2s ease;
 }
 
-me .remove-icon:hover {
+.search-select-container .remove-icon:hover {
   background-color: var(--border-hover-color);
 }
 
-me .content-container .selected-value .remove-icon {
+.search-select-container .content-container .selected-value .remove-icon {
   width: 17px;
   height: 17px;
   fill: var(--text-color-contrast);
@@ -37,13 +37,13 @@ me .content-container .selected-value .remove-icon {
   transition: fill ease-in-out 0.3s;
 }
 
-me .content-container .selected-value .remove-icon:hover {
+.search-select-container .content-container .selected-value .remove-icon:hover {
   fill: var(--text-color-light);
   background-color: transparent;
 }
 /* End Conflicting Styles */
 
-me .arrow {
+.search-select-container .arrow {
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   border-top: 6px solid #000;
@@ -51,27 +51,27 @@ me .arrow {
   justify-self: flex-end;
 }
 
-me:focus {
+.search-select-container:focus {
   border: 1.5px solid var(--primary-color);
 }
 
-me:hover {
+.search-select-container:hover {
   border: 1.5px solid var(--border-hover-color);
 }
 
-me[data-multiple="true"] .content-container {
+.search-select-container[data-multiple="true"] .content-container {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
 }
 
-me .content-container {
+.search-select-container .content-container {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
 }
 
-me .content-container .selected-values {
+.search-select-container .content-container .selected-values {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -80,7 +80,7 @@ me .content-container .selected-values {
   white-space: nowrap;
 }
 
-me .content-container .selected-value {
+.search-select-container .content-container .selected-value {
   background-color: var(--primary-color);
   color: white;
   padding: var(--spacing-sm);
@@ -89,7 +89,9 @@ me .content-container .selected-value {
   align-items: center;
 }
 
-me[data-multiple="true"] .content-container input[type="search"] {
+.search-select-container[data-multiple="true"]
+  .content-container
+  input[type="search"] {
   width: 50px;
   height: 100%;
   border: none;
@@ -101,7 +103,7 @@ me[data-multiple="true"] .content-container input[type="search"] {
   overflow: hidden;
 }
 
-me .content-container input[type="search"] {
+.search-select-container .content-container input[type="search"] {
   height: 100%;
   border: none;
   outline: none;
@@ -111,12 +113,16 @@ me .content-container input[type="search"] {
   overflow: hidden;
 }
 
-me .search-select-dropdown {
+.search-select-container .content-container input[type="search"]:focus-visible {
+  border: none;
+}
+
+.search-select-container .search-select-dropdown {
   position: absolute;
   list-style: none;
   width: 100%;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
+  background-color: var(--background-color);
   border: 1px solid #caced1;
   border-radius: var(--border-radius);
   padding: var(--spacing);
@@ -130,17 +136,17 @@ me .search-select-dropdown {
   z-index: 1;
 }
 
-me.active .search-select-dropdown {
+.search-select-container.active .search-select-dropdown {
   opacity: 1;
   visibility: visible;
   transform: scaleY(1);
 }
 
-me .search-select-dropdown:focus-within {
+.search-select-container .search-select-dropdown:focus-within {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-me .search-select-dropdown .option {
+.search-select-container .search-select-dropdown .option {
   padding: var(--spacing-md) 0;
   margin-bottom: var(--spacing-sm);
   position: relative;
@@ -154,7 +160,7 @@ me .search-select-dropdown .option {
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
-me .search-select-dropdown .option svg {
+.search-select-container .search-select-dropdown .option svg {
   width: 20px;
   height: 20px;
   fill: white;
@@ -162,47 +168,47 @@ me .search-select-dropdown .option svg {
   margin-right: var(--spacing-md);
 }
 
-me .search-select-dropdown .option.checked {
+.search-select-container .search-select-dropdown .option.checked {
   background-color: var(--primary-color);
   color: white;
 }
 
-me .search-select-dropdown .option.checked svg {
+.search-select-container .search-select-dropdown .option.checked svg {
   visibility: visible;
 }
 
-me .search-select-dropdown .option:hover {
+.search-select-container .search-select-dropdown .option:hover {
   background-color: var(--primary-color);
   color: white;
 }
 
-me .search-select-dropdown .option:last-child {
+.search-select-container .search-select-dropdown .option:last-child {
   border-bottom: none;
 }
 
-me .search-select-dropdown li label {
+.search-select-container .search-select-dropdown li label {
   width: 100%;
   padding: 8px 10px;
   cursor: pointer;
   border-radius: var(--border-radius);
 }
 
-me .search-select-dropdown::-webkit-scrollbar {
+.search-select-container .search-select-dropdown::-webkit-scrollbar {
   width: 5px;
   height: 10px;
 }
 
-me .search-select-dropdown::-webkit-scrollbar-track {
+.search-select-container .search-select-dropdown::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: var(--border-radius);
 }
 
-me .search-select-dropdown::-webkit-scrollbar-thumb {
+.search-select-container .search-select-dropdown::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: var(--border-radius);
 }
 
-me .search-select-dropdown input[type="checkbox"] {
+.search-select-container .search-select-dropdown input[type="checkbox"] {
   position: absolute;
   left: 0;
   opacity: 0;

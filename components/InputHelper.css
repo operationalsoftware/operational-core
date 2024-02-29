@@ -1,17 +1,17 @@
 /* Input helper */
-me {
+.input-helper {
   margin: 0 var(--spacing-sm);
   font-size: var(--font-size-xs);
 }
 
-me.success {
+.input-helper.success {
   color: var(--success-color);
 }
 
-me.warning {
+.input-helper.warning {
   color: var(--warning-color);
 }
 
-me.error {
+.input-helper.error {
   color: var(--danger-color);
 }

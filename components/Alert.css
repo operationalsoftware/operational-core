@@ -1,4 +1,4 @@
-me {
+.alert {
   padding: var(--spacing);
   margin-bottom: var(--spacing);
   display: flex;
@@ -7,23 +7,23 @@ me {
   border-radius: var(--border-radius);
 }
 
-me.hide {
+.alert.hide {
   display: none;
 }
 
-me.success {
+.alert.success {
   background-color: #b7eb8f;
 }
 
-me.warning {
+.alert.warning {
   background-color: #ffe58f;
 }
 
-me.error {
+.alert.error {
   background-color: #ffccc7;
 }
 
-me .icon {
+.alert .icon {
   margin-left: var(--spacing);
   width: 20px;
   height: 20px;

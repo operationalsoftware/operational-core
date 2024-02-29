@@ -21,7 +21,9 @@ type InputHelperProps struct {
 }
 
 func InputHelper(p *InputHelperProps) g.Node {
-	classes := c.Classes{}
+	classes := c.Classes{
+		"input-helper": true,
+	}
 
 	if p.Type == "" {
 		p.Type = InputHelperTypeWarning

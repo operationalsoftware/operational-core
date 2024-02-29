@@ -17,18 +17,24 @@ type InputNumberProps struct {
 	Max         int
 	HelperType  InputHelperType
 	HelperText  string
+	Classes     c.Classes
 }
 
 func InputNumber(p *InputNumberProps, children ...g.Node) g.Node {
 	classes := c.Classes{}
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
+	}
 
 	if p.Size == "" {
 		p.Size = InputSizeMedium
 	}
 
+	p.Classes["input-container"] = true
 	classes[string(p.Size)] = true
 
 	return h.Div(
+		p.Classes,
 		InputLabel(&InputLabelProps{
 			For: p.Name,
 		},

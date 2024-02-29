@@ -2,6 +2,7 @@ package components
 
 import (
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
@@ -10,10 +11,17 @@ type CheckboxProps struct {
 	Label   string
 	Value   string
 	Checked bool
+	Classes c.Classes
 }
 
 func Checkbox(p *CheckboxProps, children ...g.Node) g.Node {
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
+	}
+	p.Classes["checkbox"] = true
+
 	return h.Div(
+		p.Classes,
 		InputLabel(&InputLabelProps{
 			For: p.Name,
 		}, g.Text(p.Label)),

@@ -2,6 +2,7 @@ package components
 
 import (
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
@@ -9,10 +10,17 @@ type TextareaProps struct {
 	Name        string
 	Label       string
 	Placeholder string
+	Classes     c.Classes
 }
 
 func Textarea(p *TextareaProps, children ...g.Node) g.Node {
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
+	}
+
+	p.Classes["textarea-container"] = true
 	return h.Div(
+		p.Classes,
 		InputLabel(&InputLabelProps{
 			For: p.Name,
 		},

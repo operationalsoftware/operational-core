@@ -1,11 +1,11 @@
-me {
+.input-container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing);
   margin-bottom: var(--spacing-lg);
 }
 
-me input {
+.input-container input {
   border: 1.5px solid var(--border-color-dark);
   border-radius: var(--border-radius);
   background-color: var(--background-color-content);
@@ -18,29 +18,29 @@ me input {
   z-index: 1;
 }
 
-me input:hover {
+.input-container input:hover {
   border-color: var(--border-hover-color);
 }
 
-me input:focus-visible {
+.input-container input:focus-visible {
   outline: none;
   border-color: var(--border-hover-color);
   box-shadow: 0 0 0.1px 0.5px var(--border-hover-color);
 }
 
-me input.sm {
+.input-container input.sm {
   font-size: var(--font-size-xs);
 }
 
-me input.md {
+.input-container input.md {
   font-size: var(--font-size-sm);
 }
 
-me input.lg {
+.input-container input.lg {
   font-size: var(--font-size-md);
 }
 
-me input:disabled {
+.input-container input:disabled {
   background-color: var(--disabled-color);
   cursor: not-allowed;
 }

@@ -11,7 +11,6 @@ import (
 type PaginationProps struct {
 	CurrentPage int
 	TotalPages  int
-	PageSize    int
 }
 
 func Pagination(p *PaginationProps) g.Node {
@@ -81,8 +80,8 @@ func Pagination(p *PaginationProps) g.Node {
 			),
 		),
 
-		InlineStyle("/Pagination.css"),
-		InlineScript("/Pagination.js"),
+		InlineStyle("/components/Pagination.css"),
+		InlineScript("/components/Pagination.js"),
 	)
 
 }

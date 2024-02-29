@@ -1,5 +1,5 @@
 /* Modal */
-me {
+.modal {
   display: flex;
   flex-direction: column;
   width: 500px;
@@ -15,7 +15,7 @@ me {
   border: none;
 }
 
-me:focus-within {
+.modal:focus-within {
   outline: none;
 }
 
@@ -29,23 +29,23 @@ me:focus-within {
   transform: scale(0);
 }
 
-me[open] {
+.modal[open] {
   pointer-events: inherit;
 }
 
-me::backdrop {
+.modal::backdrop {
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(5px);
 }
 
-me .modal-header {
+.modal .modal-header {
   margin-bottom: var(--spacing-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-me .close-btn {
+.modal .close-btn {
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -56,21 +56,21 @@ me .close-btn {
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
-me .close-btn .icon {
+.modal .close-btn .icon {
   width: 20px;
   height: 20px;
   fill: black;
 }
 
-me .close-btn:hover {
+.modal .close-btn:hover {
   background-color: var(--border-hover-color);
 }
 
-me .close-btn:hover .icon {
+.modal .close-btn:hover .icon {
   fill: white;
 }
 
-me .modal-content {
+.modal .modal-content {
   margin-bottom: var(--spacing-lg);
   flex: 1;
 }

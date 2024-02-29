@@ -1,9 +1,8 @@
-const localMe = generateMe(me());
-
-const openPopconfirm = localMe(".popconfirm-trigger");
-const popConfirmContent = localMe(".popconfirm-content");
-const popConfirmYes = localMe(".popconfirm-yes");
-const popConfirmNo = localMe(".popconfirm-no");
+const popconfirm = document.querySelector(".popconfirm");
+const openPopconfirm = popconfirm.querySelector(".popconfirm-trigger");
+const popConfirmContent = popconfirm.querySelector(".popconfirm-content");
+const popConfirmYes = popconfirm.querySelector(".popconfirm-yes");
+const popConfirmNo = popconfirm.querySelector(".popconfirm-no");
 
 function updatePopconfirmPosition() {
   const buttonRect = openPopconfirm.getBoundingClientRect();
@@ -37,26 +36,26 @@ function updatePopconfirmPosition() {
     `${arrowLeftPosition}px`
   );
 
-  popConfirmContent.styles({
-    left: `${left}px`,
-    top: `${top}px`,
+  popConfirmContent.style.left = `${left}px`;
+  popConfirmContent.style.top = `${top}px`;
+}
+
+if (openPopconfirm) {
+  openPopconfirm.addEventListener("click", () => {
+    updatePopconfirmPosition();
+    popConfirmContent.classList.remove("hide");
+    popConfirmContent.classList.add("show");
   });
 }
 
-openPopconfirm.on("click", () => {
-  updatePopconfirmPosition();
-  popConfirmContent.classRemove("hide");
-  popConfirmContent.classAdd("show");
+popConfirmYes.addEventListener("click", () => {
+  popConfirmContent.classList.remove("show");
+  popConfirmContent.classList.add("hide");
 });
 
-popConfirmYes.on("click", () => {
-  popConfirmContent.classRemove("show");
-  popConfirmContent.classAdd("hide");
-});
-
-popConfirmNo.on("click", () => {
-  popConfirmContent.classRemove("show");
-  popConfirmContent.classAdd("hide");
+popConfirmNo.addEventListener("click", () => {
+  popConfirmContent.classList.remove("show");
+  popConfirmContent.classList.add("hide");
 });
 
 window.addEventListener("resize", () => {

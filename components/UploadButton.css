@@ -1,29 +1,29 @@
-me:hover svg {
-  transform: scale(1.1) translateY(-2px);
-}
-
-me svg {
+.upload-button svg {
   width: 30px;
   height: 30px;
   transition: transform 0.2s ease;
 }
 
-:root[data-theme="dark"] me svg {
+.upload-button:hover svg {
+  transform: scale(1.1) translateY(-2px);
+}
+
+:root[data-theme="dark"] .upload-button svg {
   fill: white;
 }
 
-me label {
+.upload-button label {
   display: block;
   font-size: 1.2em;
   margin-bottom: 10px;
   cursor: pointer;
 }
 
-me input[type="file"] {
+.upload-button input[type="file"] {
   display: none;
 }
 
-me .file-info {
+.upload-button .file-info {
   margin-top: 10px;
   font-weight: bold;
 }

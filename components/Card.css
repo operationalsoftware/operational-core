@@ -1,4 +1,4 @@
-me {
+.card {
   background-color: var(--background-color-content);
   border-radius: var(--border-radius-md);
   border: var(--card-border-width) solid var(--border-color);

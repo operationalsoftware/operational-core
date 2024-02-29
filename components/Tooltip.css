@@ -1,10 +1,10 @@
 /* Tooltip */
-me {
+.tooltip {
   display: inline-block;
   position: relative; /* making the .tooltip span a container for the tooltip text */
 }
 
-me::before {
+.tooltip::before {
   z-index: 1;
   content: attr(data-content);
   position: absolute;
@@ -30,28 +30,28 @@ me::before {
   pointer-events: none;
 }
 
-me.left::before {
+.tooltip.left::before {
   left: initial;
   margin: initial;
   right: 100%;
   margin-right: var(--spacing-md);
 }
 
-me.top::before {
+.tooltip.top::before {
   top: initial;
   bottom: 100%;
   margin-bottom: var(--spacing-md);
   transform: translateX(-50%);
 }
 
-me.bottom::before {
+.tooltip.bottom::before {
   top: 100%;
   bottom: initial;
   margin-top: var(--spacing-md);
   transform: translateX(-50%);
 }
 
-me::after {
+.tooltip::after {
   content: "";
   position: absolute;
 
@@ -73,14 +73,14 @@ me::after {
   pointer-events: none;
 }
 
-me.left::after {
+.tooltip.left::after {
   left: initial;
   right: 100%;
   margin-right: -5px;
   border-color: transparent transparent transparent var(--background-color);
 }
 
-me.top::after {
+.tooltip.top::after {
   top: initial;
   bottom: 100%;
   margin-bottom: -5px;
@@ -88,7 +88,7 @@ me.top::after {
   border-color: var(--background-color) transparent transparent transparent;
 }
 
-me.bottom::after {
+.tooltip.bottom::after {
   top: 100%;
   bottom: initial;
   margin-top: -5px;
@@ -96,8 +96,8 @@ me.bottom::after {
   border-color: transparent transparent var(--background-color) transparent;
 }
 
-me:hover::before,
-me:hover::after {
+.tooltip:hover::before,
+.tooltip:hover::after {
   display: inline-block;
   visibility: visible;
   opacity: 1;

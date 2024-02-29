@@ -1,6 +1,6 @@
 /* BUTTON */
-me,
-me.primary {
+.button,
+.button.primary {
   border: var(--button-border-width) solid var(--primary-color);
   border-radius: var(--border-radius);
   color: var(--primary-color);
@@ -11,80 +11,80 @@ me.primary {
   display: inline-block;
 }
 
-me[data-loading="true"] .loading-spinner {
+.button[data-loading="true"] .loading-spinner {
   margin-right: var(--spacing-sm);
 }
 
-me.secondary {
+.button.secondary {
   border: var(--button-border-width) solid var(--secondary-color);
   color: var(--secondary-color);
 }
 
-me.danger {
+.button.danger {
   border: var(--button-border-width) solid var(--danger-color);
   color: var(--danger-color);
 }
 
-me.success {
+.button.success {
   border: var(--button-border-width) solid var(--success-color);
   color: var(--success-color);
 }
 
-me.warning {
+.button.warning {
   border: var(--button-border-width) solid var(--warning-color);
   color: var(--warning-color);
 }
 
-me:hover,
-me.primary:hover {
+.button:hover,
+.button.primary:hover {
   background-color: var(--primary-color);
   color: var(--text-color-contrast);
 }
 
-me.secondary:hover {
+.button.secondary:hover {
   background-color: var(--secondary-color);
   color: var(--text-color-contrast);
 }
 
-me.danger:hover {
+.button.danger:hover {
   background-color: var(--danger-color);
   color: var(--text-color-contrast);
 }
 
-me.success:hover {
+.button.success:hover {
   background-color: var(--success-color);
   color: var(--text-color-contrast);
 }
 
-me.warning:hover {
+.button.warning:hover {
   background-color: var(--warning-color);
   color: var(--text-color-contrast);
 }
 
-me:disabled,
-me:disabled:hover {
+.button:disabled,
+.button:disabled:hover {
   background-color: var(--disabled-color);
   border-color: var(--disabled-color);
   color: var(--text-color-light);
   cursor: not-allowed;
 }
 
-me.small {
+.button.small {
   padding: var(--spacing-sm) var(--spacing-md);
 }
 
-me.large {
+.button.large {
   padding: var(--spacing-lg) var(--spacing-xl);
 }
 
-me[data-icon="true"],
-me[data-loading="true"] {
+.button[data-icon="true"],
+.button[data-loading="true"] {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-me .icon {
+.button .icon {
   width: 20px;
   height: 20px;
   vertical-align: middle;

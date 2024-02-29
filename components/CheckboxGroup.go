@@ -2,6 +2,7 @@ package components
 
 import (
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
@@ -15,6 +16,7 @@ type CheckboxGroupProps struct {
 	Name    string
 	Label   string
 	Options []CheckboxOption
+	Classes c.Classes
 }
 
 func CheckboxGroup(p *CheckboxGroupProps) g.Node {
@@ -30,8 +32,14 @@ func CheckboxGroup(p *CheckboxGroupProps) g.Node {
 		p.Label = "Checkbox Group"
 	}
 
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
+	}
+
+	p.Classes["checkbox-group"] = true
+
 	return h.Div(
-		h.Class("checkbox-group"),
+		p.Classes,
 		h.Input(
 			h.Type("hidden"),
 			h.Class("hidden-input"),

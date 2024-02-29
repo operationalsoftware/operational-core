@@ -23,10 +23,15 @@ type InputProps struct {
 	InputType   string
 	HelperType  InputHelperType
 	InputProps  []g.Node
+	Classes     c.Classes
 }
 
 func Input(p *InputProps, children ...g.Node) g.Node {
 	classes := c.Classes{}
+
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
+	}
 
 	if p.InputType == "" {
 		p.InputType = "text"
@@ -40,9 +45,11 @@ func Input(p *InputProps, children ...g.Node) g.Node {
 		p.Size = InputSizeMedium
 	}
 
+	p.Classes["input-container"] = true
 	classes[string(p.Size)] = true
 
 	return h.Div(
+		p.Classes,
 		InputLabel(&InputLabelProps{
 			For: p.Name,
 		},

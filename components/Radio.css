@@ -1,12 +1,12 @@
-me {
+.radio-container {
   display: flex;
 }
 
-me label {
+.radio-container label {
   margin-right: var(--spacing-sm);
 }
 
-me input[type="radio"] {
+.radio-container .radio {
   /* Add if not using autoprefixer */
   -webkit-appearance: none;
   appearance: none;
@@ -24,7 +24,7 @@ me input[type="radio"] {
   place-content: center;
 }
 
-me input[type="radio"]::before {
+.radio-container .radio::before {
   content: "";
   width: 0.65em;
   height: 0.65em;
@@ -35,11 +35,11 @@ me input[type="radio"]::before {
   box-shadow: inset 1em 1em var(--border-hover-color);
 }
 
-me input[type="radio"]:checked::before {
+.radio-container .radio:checked::before {
   transform: scale(1) translateX(0.009em);
 }
 
-me input[type="radio"]:focus {
+.radio-container .radio:focus {
   outline: none;
   border-color: var(--primary-color);
 }

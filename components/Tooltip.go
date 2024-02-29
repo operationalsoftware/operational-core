@@ -18,20 +18,23 @@ const (
 type TooltipProps struct {
 	Text     string
 	Position Position
+	Classes  c.Classes
 }
 
 func Tooltip(p *TooltipProps, children ...g.Node) g.Node {
-	classes := c.Classes{
-		"tooltip": true,
-		"top":     p.Position == "", // default to top
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
 	}
 
 	if p.Position != "" {
-		classes[string(p.Position)] = true
+		p.Classes[string(p.Position)] = true
 	}
 
+	p.Classes["tooltip"] = true
+	p.Classes["top"] = p.Position == ""
+
 	return h.Div(
-		classes,
+		p.Classes,
 		h.DataAttr("content", p.Text),
 		g.Group(children),
 		InlineStyle("/components/Tooltip.css"),

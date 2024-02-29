@@ -1,8 +1,8 @@
 (function () {
-  const pagination = me();
-  const paginationList = me("ul", pagination);
-  const prevPageBtn = me("li.pagination__btn--left", paginationList);
-  const nextPageBtn = me("li.pagination__btn--right", paginationList);
+  const pagination = document.querySelector(".pagination");
+  const paginationList = pagination.querySelector("ul");
+  const prevPageBtn = paginationList.querySelector("li.pagination__btn--left");
+  const nextPageBtn = paginationList.querySelector("li.pagination__btn--right");
 
   let currentPageNumber = parseInt(pagination.dataset.currentPage);
   const totalPages = parseInt(pagination.dataset.totalPages);
@@ -70,17 +70,17 @@
   }
 
   // Event Listeners
-  prevPageBtn.on("click", (e) => {
+  prevPageBtn.addEventListener("click", (e) => {
     e.preventDefault();
     goToPrevPage();
   });
 
-  nextPageBtn.on("click", (e) => {
+  nextPageBtn.addEventListener("click", (e) => {
     e.preventDefault();
     goToNextPage();
   });
 
-  paginationList.on("click", (e) => {
+  paginationList.addEventListener("click", (e) => {
     e.preventDefault();
 
     if (e.target.tagName === "A") {

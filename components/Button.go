@@ -45,6 +45,8 @@ func Button(p *ButtonProps, children ...g.Node) g.Node {
 		p.Classes[string(p.Size)] = true
 	}
 
+	p.Classes["button"] = true
+
 	content := g.Group(
 		[]g.Node{
 			p.Classes,

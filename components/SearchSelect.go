@@ -37,6 +37,8 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 		p.ID = p.ID + "-search-select-dropdown"
 	}
 
+	p.Classes["search-select-container"] = true
+
 	return h.Div(
 		p.Classes,
 		g.If(p.Multiple, h.DataAttr("multiple", "true")),

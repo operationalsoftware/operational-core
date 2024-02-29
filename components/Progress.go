@@ -19,12 +19,14 @@ const (
 type ProgressProps struct {
 	Percentage int
 	Type       ProgressType
+	Classes    c.Classes
 }
 
 func Progress(p *ProgressProps, children ...g.Node) g.Node {
-	classes := c.Classes{
-		"progress-container": true,
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
 	}
+	p.Classes["progress-container"] = true
 
 	if p.Percentage == 0 {
 		p.Percentage = 30
@@ -35,7 +37,7 @@ func Progress(p *ProgressProps, children ...g.Node) g.Node {
 	}
 
 	return h.Div(
-		classes,
+		p.Classes,
 		h.DataAttr("percentage", strconv.Itoa(p.Percentage)),
 		h.DataAttr("type", string(p.Type)),
 		h.Div(

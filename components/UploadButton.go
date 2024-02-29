@@ -7,17 +7,26 @@ import (
 )
 
 type UploadButtonProps struct {
-	ID string
+	ID      string
+	Classes c.Classes
 }
 
 func UploadButton(p *UploadButtonProps) g.Node {
+	if p.Classes == nil {
+		p.Classes = c.Classes{}
+	}
+
+	p.Classes["upload-button"] = true
+
+	if p.ID == "" {
+		p.ID = "upload-button"
+	}
+
 	return Button(&ButtonProps{
 		Size:     ButtonSm,
 		Loading:  false,
 		Disabled: false,
-		Classes: c.Classes{
-			"upload-button": true,
-		},
+		Classes:  p.Classes,
 	}, g.Group([]g.Node{
 		Icon(&IconProps{
 			Identifier: "upload",

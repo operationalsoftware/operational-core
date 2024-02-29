@@ -1,9 +1,9 @@
 /* Pop confirm */
-me button {
+.popconfirm button {
   position: relative;
 }
 
-me .popconfirm-content {
+.popconfirm .popconfirm-content {
   --arrow-left-position: 50%;
   width: 300px;
   position: absolute;
@@ -20,24 +20,24 @@ me .popconfirm-content {
   transform-origin: var(--arrow-left-position, 50%);
 }
 
-me .popconfirm-content.hide {
+.popconfirm .popconfirm-content.hide {
   visibility: hidden;
   opacity: 0;
   transform: translate(-50%, -50%) scale(0);
 }
 
-me .popconfirm-content.show {
+.popconfirm .popconfirm-content.show {
   visibility: visible;
   opacity: 1;
   transform: translate(-50%, 50%) scale(1);
 }
 
-me .popconfirm-content:hover {
+.popconfirm .popconfirm-content:hover {
   border: 1.5px solid var(--border-hover-color);
   box-shadow: 0px 8px 10px rgba(0, 0, 0, 0.3);
 }
 
-me .popconfirm-content::after {
+.popconfirm .popconfirm-content::after {
   content: "";
   position: absolute;
   top: 100%;
@@ -47,7 +47,7 @@ me .popconfirm-content::after {
   border-top-color: var(--background-color);
 }
 
-me .popconfirm-content .popconfirm-info {
+.popconfirm .popconfirm-content .popconfirm-info {
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -55,24 +55,24 @@ me .popconfirm-content .popconfirm-info {
   column-gap: var(--spacing-md);
 }
 
-me .popconfirm-content .popconfirm-icon svg {
+.popconfirm .popconfirm-content .popconfirm-icon svg {
   width: 25px;
   height: 25px;
   fill: var(--warning-color);
 }
 
-me .popconfirm-content .popconfirm-heading {
+.popconfirm .popconfirm-content .popconfirm-heading {
   margin-bottom: var(--spacing-sm);
   font-weight: bold;
   font-size: var(--font-size-lg);
 }
 
-me .popconfirm-content .popconfirm-text {
+.popconfirm .popconfirm-content .popconfirm-text {
   margin-bottom: var(--spacing-md);
   text-align: right;
 }
 
-me .popconfirm-content .popconfirm-actions {
+.popconfirm .popconfirm-content .popconfirm-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
