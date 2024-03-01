@@ -9,6 +9,5 @@ func Fieldset(children ...g.Node) g.Node {
 	return h.Div(
 		h.Class("fieldset"),
 		g.Group(children),
-		InlineStyle("/components/Fieldset.css"),
 	)
 }

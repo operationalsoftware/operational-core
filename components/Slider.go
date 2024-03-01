@@ -28,7 +28,6 @@ func Slider(p *SliderProps, children ...g.Node) g.Node {
 		h.Div(
 			h.Class("show-range-value"),
 		),
-		InlineStyle("/components/Slider.css"),
 		InlineScript("/components/Slider.js"),
 	)
 }

@@ -27,6 +27,5 @@ func LoadingSpinner(size LoadingSpinnerSize) g.Node {
 	classes[string(size)] = true
 	return h.Div(
 		classes,
-		InlineStyle("/components/LoadingSpinner.css"),
 	)
 }

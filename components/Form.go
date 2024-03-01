@@ -9,6 +9,5 @@ func Form(children ...g.Node) g.Node {
 	return h.FormEl(
 		h.Class("form"),
 		g.Group(children),
-		InlineStyle("/components/Form.css"),
 	)
 }

@@ -20,13 +20,14 @@ func resetPasswordView(p *resetPasswordViewProps) g.Node {
 		resetPasswordForm(&resetPasswordFormProps{
 			userID: p.User.UserID,
 		}),
-
-		components.InlineStyle("/src/users/resetPassword.css"),
 	})
 
 	return layout.Page(layout.PageProps{
 		Title:   "Reset Password: " + p.User.Username,
 		Content: resetPasswordContent,
 		Ctx:     p.Ctx,
+		AppendHead: []g.Node{
+			components.InlineStyle("/src/users/resetPassword.css"),
+		},
 	})
 }

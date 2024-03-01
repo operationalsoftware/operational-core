@@ -54,7 +54,6 @@ func Button(p *ButtonProps, children ...g.Node) g.Node {
 			g.If(p.Loading, LoadingSpinner(LoadingSpinnerSm)),
 			g.If(p.Loading, h.DataAttr("loading", "true")),
 			g.Group(children),
-			InlineStyle("/components/Button.css"),
 		},
 	)
 

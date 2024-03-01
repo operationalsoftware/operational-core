@@ -16,6 +16,33 @@ type indexViewProps struct {
 func indexView(p *indexViewProps) g.Node {
 
 	indexContent := g.Group([]g.Node{
+		components.SearchSelect(&components.SearchSelectProps{
+			Options: []components.Option{
+				{
+					Label: "Option 1",
+					Value: "option1",
+				},
+				{
+					Label: "Option 2",
+					Value: "option2",
+				},
+			},
+			Multiple: true,
+		}),
+
+		components.SearchSelect(&components.SearchSelectProps{
+			Options: []components.Option{
+				{
+					Label: "Option 1",
+					Value: "option1",
+				},
+				{
+					Label: "Option 2",
+					Value: "option2",
+				},
+			},
+			Multiple: false,
+		}),
 		components.Card(
 			h.Div(
 				h.Class("modules-container"),
@@ -52,8 +79,10 @@ func indexView(p *indexViewProps) g.Node {
 		Content: indexContent,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineScript("/src/index.js"),
 			components.InlineStyle("/src/indexView.css"),
+		},
+		AppendBody: []g.Node{
+			components.InlineScript("/src/index.js"),
 		},
 	})
 }

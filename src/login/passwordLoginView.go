@@ -22,12 +22,14 @@ func passwordLoginView(p *passwordLoginViewProps) g.Node {
 			h.P(g.Text("Please login to begin")),
 			passwordLoginFormPartial(&passwordLoginFormPartialProps{}),
 		),
-		components.InlineStyle("/src/login/passwordLogin.css"),
 	})
 
 	return layout.Page(layout.PageProps{
 		Title:   "Login",
 		Content: loginContent,
 		Ctx:     p.Ctx,
+		AppendHead: []g.Node{
+			components.InlineStyle("/src/login/passwordLogin.css"),
+		},
 	})
 }

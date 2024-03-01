@@ -104,13 +104,14 @@ func userView(p *userViewProps) g.Node {
 				),
 			),
 		),
-
-		components.InlineStyle("/src/users/user.css"),
 	})
 
 	return layout.Page(layout.PageProps{
 		Title:   "View User",
 		Content: userContent,
 		Ctx:     p.Ctx,
+		AppendHead: []g.Node{
+			components.InlineStyle("/src/users/user.css"),
+		},
 	})
 }

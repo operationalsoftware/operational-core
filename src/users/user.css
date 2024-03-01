@@ -1,4 +1,4 @@
-me .button-container {
+.main .button-container {
   display: flex;
   justify-content: flex-end;
   column-gap: var(--spacing-md);
@@ -8,25 +8,25 @@ me .button-container {
   fill: currentColor;
 }
 
-me h3 {
+.main h3 {
   margin-bottom: var(--spacing-md);
 }
 
-me .properties-grid {
+.main .properties-grid {
   display: inline-grid;
   grid-template-columns: repeat(2, auto);
   grid-gap: var(--spacing-lg);
 }
 
-me .permission-group-title {
+.main .permission-group-title {
   margin: var(--spacing-sm) 0;
 }
 
-me .permission-group-list {
+.main .permission-group-list {
   margin-top: var(--spacing-md);
 }
 
-me .permission-description {
+.main .permission-description {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
 }

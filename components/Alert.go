@@ -40,6 +40,5 @@ func Alert(p *AlertProps) g.Node {
 				Identifier: "close",
 			}),
 		),
-		InlineStyle("/components/Alert.css"),
 	)
 }

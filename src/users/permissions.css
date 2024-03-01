@@ -1,9 +1,9 @@
-me .module-title {
+.fieldset .module-title {
   margin-top: var(--spacing-md);
   margin-bottom: var(--spacing-sm);
   padding-left: var(--spacing-md);
 }
 
-me .permission-checkbox {
+.fieldset .permission-checkbox {
   padding-left: var(--spacing-xl);
 }

@@ -42,12 +42,14 @@ func notFoundView(p *notFoundViewProps) g.Node {
 				}, g.Text("Go to home page")),
 			),
 		),
-		components.InlineStyle("/src/notFound.css"),
 	})
 
 	return layout.Page(layout.PageProps{
 		Title:   "404 - Not Found",
 		Content: notFoundContent,
 		Ctx:     p.Ctx,
+		AppendHead: []g.Node{
+			components.InlineStyle("/src/notFound.css"),
+		},
 	})
 }

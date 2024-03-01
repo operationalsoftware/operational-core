@@ -116,7 +116,6 @@ func Select(p *SelectProps) g.Node {
 		),
 		g.If(!p.Multiple, SelectOptions(p.Options, "select-dropdown", dropdownId)),
 		g.If(p.Multiple, MultiSelectOptions(p.Options, "multi-select-dropdown", dropdownId)),
-		InlineStyle("/components/Select.css"),
 		InlineScript("/components/Select.js"),
 	)
 }

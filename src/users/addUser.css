@@ -1,9 +1,9 @@
-me {
+.main {
   display: flex;
   justify-content: center;
 }
 
-me form {
+.main form {
   width: 100%;
   max-width: 400px;
 }

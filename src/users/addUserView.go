@@ -16,13 +16,14 @@ func addUserView(p *addUserViewProps) g.Node {
 	content := g.Group([]g.Node{
 
 		addUserForm(&addUserFormProps{}),
-
-		components.InlineStyle("/src/users/addUser.css"),
 	})
 
 	return layout.Page(layout.PageProps{
 		Ctx:     p.Ctx,
 		Title:   "Add New User",
 		Content: content,
+		AppendHead: []g.Node{
+			components.InlineStyle("/src/users/addUser.css"),
+		},
 	})
 }

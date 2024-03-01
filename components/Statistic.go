@@ -31,6 +31,5 @@ func Statistic(p *StatisticProps) g.Node {
 				g.Text(p.Value),
 			),
 		),
-		InlineStyle("/components/Statistic.css"),
 	)
 }

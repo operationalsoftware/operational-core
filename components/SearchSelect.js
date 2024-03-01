@@ -15,6 +15,12 @@
     arrow = me(".arrow", searchSelect);
   }
 
+  function createIcon(iconString) {
+    const domParser = new DOMParser();
+    const iconDoc = domParser.parseFromString(iconString, "image/svg+xml");
+    return iconDoc.documentElement;
+  }
+
   function replaceIcon() {
     const closeIcon = createIcon(closeIconString);
     if (hiddenInput.value !== "") {

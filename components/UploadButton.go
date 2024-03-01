@@ -35,6 +35,7 @@ func UploadButton(p *UploadButtonProps) g.Node {
 			For: p.ID,
 		}, g.Text("Choose a file")),
 		h.Input(
+			g.Attr("name", "file"),
 			g.Attr("type", "file"),
 			g.Attr("id", p.ID),
 		),
@@ -42,7 +43,6 @@ func UploadButton(p *UploadButtonProps) g.Node {
 			h.Class("file-info"),
 			g.Text("No file chosen"),
 		),
-		InlineStyle("/components/UploadButton.css"),
 		InlineScript("/components/UploadButton.js"),
 	}))
 }

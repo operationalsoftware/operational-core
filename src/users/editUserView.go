@@ -21,12 +21,14 @@ func editUserView(p *editUserViewProps) g.Node {
 		editUserForm(&editUserFormProps{
 			user: p.User,
 		}),
-		components.InlineStyle("/src/users/editUser.css"),
 	})
 
 	return layout.Page(layout.PageProps{
 		Title:   fmt.Sprintf("Edit User: %s", p.User.Username),
 		Content: content,
 		Ctx:     p.Ctx,
+		AppendHead: []g.Node{
+			components.InlineStyle("/src/users/editUser.css"),
+		},
 	})
 }

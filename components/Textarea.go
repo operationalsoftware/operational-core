@@ -32,6 +32,5 @@ func Textarea(p *TextareaProps, children ...g.Node) g.Node {
 			h.Placeholder(p.Placeholder),
 			g.Group(children),
 		),
-		InlineStyle("/components/Textarea.css"),
 	)
 }

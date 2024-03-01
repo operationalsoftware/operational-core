@@ -1,4 +1,4 @@
-me {
+.main {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -6,7 +6,7 @@ me {
   font-family: "Courier New", Courier, monospace;
 }
 
-me h1 {
+.main h1 {
   margin-bottom: var(--spacing-xl);
   background: linear-gradient(
     90deg,
@@ -17,7 +17,7 @@ me h1 {
   -webkit-text-fill-color: transparent;
 }
 
-me .card {
+.main .card {
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
@@ -26,12 +26,12 @@ me .card {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
-me .card .row {
+.main .card .row {
   display: flex;
   align-items: center;
 }
 
-me .card .img-container {
+.main .card .img-container {
   width: 100px;
   height: 100px;
   border-radius: 50%;
@@ -40,24 +40,24 @@ me .card .img-container {
   margin-right: var(--spacing-xl);
 }
 
-:root[data-theme="light"] me .card .img-container {
+:root[data-theme="light"] .main .card .img-container {
   background-color: black;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
-me .card .img-container img {
+.main .card .img-container img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-me .card .text-404 {
+.main .card .text-404 {
   font-size: var(--font-size-xl);
   text-align: center;
   color: var(--primary-color);
 }
 
-me .card .home-btn {
+.main .card .home-btn {
   margin-top: var(--spacing);
   display: flex;
   align-items: center;

@@ -64,6 +64,5 @@ func CheckboxGroup(p *CheckboxGroupProps) g.Node {
 			})),
 		),
 		InlineScript("/components/CheckboxGroup.js"),
-		InlineStyle("/components/CheckboxGroup.css"),
 	)
 }

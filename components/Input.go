@@ -68,6 +68,5 @@ func Input(p *InputProps, children ...g.Node) g.Node {
 			Type:  p.HelperType,
 		})),
 		g.Group(children),
-		InlineStyle("/components/Input.css"),
 	)
 }
