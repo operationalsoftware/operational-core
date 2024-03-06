@@ -16,33 +16,26 @@ type indexViewProps struct {
 func indexView(p *indexViewProps) g.Node {
 
 	indexContent := g.Group([]g.Node{
-		components.SearchSelect(&components.SearchSelectProps{
-			Options: []components.Option{
-				{
-					Label: "Option 1",
-					Value: "option1",
+		h.FormEl(
+			h.Method("GET"),
+			components.Select(&components.SelectProps{
+				Options: []components.Option{
+					{Label: "Option 1", Value: "1"},
+					{Label: "Option 2", Value: "2"},
+					{Label: "Option 3", Value: "3"},
 				},
-				{
-					Label: "Option 2",
-					Value: "option2",
-				},
+				Value:    []string{"2"},
+				Name:     "select",
+				ID:       "select",
+				Multiple: false,
+			}),
+			components.Button(&components.ButtonProps{
+				ButtonType: components.ButtonPrimary,
 			},
-			Multiple: true,
-		}),
-
-		components.SearchSelect(&components.SearchSelectProps{
-			Options: []components.Option{
-				{
-					Label: "Option 1",
-					Value: "option1",
-				},
-				{
-					Label: "Option 2",
-					Value: "option2",
-				},
-			},
-			Multiple: false,
-		}),
+				h.Type("submit"),
+				g.Text("Submit"),
+			),
+		),
 		components.Card(
 			h.Div(
 				h.Class("modules-container"),

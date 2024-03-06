@@ -737,11 +737,11 @@
 }
 
 .search-select-container:focus {
-  border: 1.5px solid var(--primary-color);
+  border: 1px solid var(--primary-color);
 }
 
 .search-select-container:hover {
-  border: 1.5px solid var(--border-hover-color);
+  border: 1px solid var(--border-hover-color);
 }
 
 .search-select-container[data-multiple="true"] .content-container {
@@ -913,8 +913,9 @@
 .custom-select .remove-icon {
   width: 15px;
   height: 15px;
+  padding: var(--spacing-md);
   cursor: pointer;
-  background-color: var(--background-color-grey);
+  background-color: var(--background-color);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -955,7 +956,7 @@
 }
 
 .custom-select .select-button:hover {
-  border: 1.5px solid var(--border-hover-color);
+  border: 1px solid var(--border-hover-color);
 }
 
 .custom-select .arrow {
@@ -1059,7 +1060,7 @@
 }
 
 .custom-select .multi-select-button:hover {
-  border: 1.5px solid var(--border-hover-color);
+  border: 1px solid var(--border-hover-color);
 }
 
 .custom-select .selected-values {

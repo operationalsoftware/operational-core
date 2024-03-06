@@ -1,6 +1,8 @@
 package components
 
 import (
+	"strings"
+
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -12,29 +14,37 @@ type Option struct {
 }
 
 type SelectProps struct {
-	Options  []Option
-	Name     string
-	ID       string
-	Multiple bool
-	Classes  c.Classes
+	Options     []Option
+	Value       []string
+	Name        string
+	ID          string
+	Multiple    bool
+	DefaultText string
+	Classes     c.Classes
 }
 
-func SelectOptions(o []Option, class, ID string) g.Node {
+func SelectOptions(o []Option, v []string, name, class, ID string) g.Node {
 	return h.Ul(
 		h.Class(class),
 		h.Role("listbox"),
 		h.ID(ID),
 		g.Group(g.Map(o, func(o Option) g.Node {
+			// checked := "false"
+			// for _, val := range v {
+			// 	if val == o.Value {
+			// 		checked = "true"
+			// 		break
+			// 	}
+			// }
 			return h.Li(
 				h.Role("option"),
-				h.Div(
-					h.Label(
-						h.For(o.Value),
-						g.Text(o.Label),
-					),
+				h.Label(
+					g.Text(o.Label),
 					h.Input(
+						h.Name(name),
 						h.Type("radio"),
-						h.ID(o.Value),
+						h.Value(o.Value),
+						// g.Attr("checked", checked),
 					),
 				),
 			)
@@ -42,12 +52,18 @@ func SelectOptions(o []Option, class, ID string) g.Node {
 	)
 }
 
-func MultiSelectOptions(o []Option, class, ID string) g.Node {
+func MultiSelectOptions(o []Option, v []string, name, class, ID string) g.Node {
 	return h.Ul(
 		h.Class(class),
 		h.Role("listbox"),
 		h.ID(ID),
 		g.Group(g.Map(o, func(o Option) g.Node {
+			checked := "false"
+			for _, val := range v {
+				if val == o.Value {
+					checked = "true"
+				}
+			}
 			return h.Div(
 				h.Class("option"),
 				h.Li(
@@ -57,9 +73,10 @@ func MultiSelectOptions(o []Option, class, ID string) g.Node {
 						g.Text(o.Label),
 					),
 					h.Input(
+						h.Name(name),
 						h.Type("checkbox"),
 						h.Value(o.Value),
-						g.Attr("checked", "false"),
+						g.Attr("checked", checked),
 					),
 				),
 				Icon(&IconProps{
@@ -89,10 +106,19 @@ func Select(p *SelectProps) g.Node {
 		p.ID = "multi-select"
 	}
 
+	if p.DefaultText == "" && !p.Multiple {
+		p.DefaultText = "Select an option"
+	} else if p.DefaultText == "" && p.Multiple {
+		p.DefaultText = "Select options"
+	}
+
 	dropdownId := p.ID + "-dropdown"
 
 	return h.Div(
 		p.Classes,
+		h.DataAttr("default-text", p.DefaultText),
+		g.If(!p.Multiple, h.DataAttr("default-value", p.Value[0])),
+		g.If(p.Multiple, h.DataAttr("default-value", strings.Join(p.Value, ","))),
 		h.ID(p.ID),
 		g.If(p.Multiple, h.DataAttr("multiple", "true")),
 		h.Div(
@@ -104,18 +130,12 @@ func Select(p *SelectProps) g.Node {
 			h.Aria("haspopup", "listbox"),
 			h.Aria("expanded", "false"),
 			h.Aria("controls", dropdownId),
-			h.Input(
-				h.Type("hidden"),
-				h.Class("hidden-input"),
-				h.Name(p.Name),
-				h.Value(""),
-			),
 			g.If(!p.Multiple, h.Span(h.Class("default-value"), g.Text(""))),
 			g.If(p.Multiple, h.Div(h.Class("selected-values"))),
 			h.Span(h.Class("arrow")),
 		),
-		g.If(!p.Multiple, SelectOptions(p.Options, "select-dropdown", dropdownId)),
-		g.If(p.Multiple, MultiSelectOptions(p.Options, "multi-select-dropdown", dropdownId)),
+		g.If(!p.Multiple, SelectOptions(p.Options, p.Value, p.Name, "select-dropdown", dropdownId)),
+		g.If(p.Multiple, MultiSelectOptions(p.Options, p.Value, p.Name, "multi-select-dropdown", dropdownId)),
 		InlineScript("/components/Select.js"),
 	)
 }

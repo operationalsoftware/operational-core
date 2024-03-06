@@ -14,6 +14,7 @@ type SearchSelectProps struct {
 	ID        string
 	OptionUrl string
 	Multiple  bool
+	Value     []string
 }
 
 func SearchSelect(p *SearchSelectProps) g.Node {
@@ -74,7 +75,7 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 			),
 			g.If(!p.Multiple, h.Span(h.Class("arrow"))),
 		),
-		MultiSelectOptions(p.Options, "search-select-dropdown", p.ID),
+		MultiSelectOptions(p.Options, p.Value, p.Name, "search-select-dropdown", p.ID),
 		InlineScript("/components/SearchSelect.js"),
 	)
 

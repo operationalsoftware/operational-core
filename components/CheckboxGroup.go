@@ -7,15 +7,15 @@ import (
 )
 
 type CheckboxOption struct {
-	Value   string
-	Label   string
-	Checked bool
+	Value string
+	Label string
 }
 
 type CheckboxGroupProps struct {
 	Name    string
 	Label   string
 	Options []CheckboxOption
+	Value   []string
 	Classes c.Classes
 }
 
@@ -40,29 +40,29 @@ func CheckboxGroup(p *CheckboxGroupProps) g.Node {
 
 	return h.Div(
 		p.Classes,
-		h.Input(
-			h.Type("hidden"),
-			h.Class("hidden-input"),
-			h.Name(p.Name),
-			h.Value(""),
-		),
 		InputLabel(&InputLabelProps{
 			For: p.Name,
 		}, g.Text(p.Label)),
 		h.Div(
 			h.Class("checkbox-options"),
 			g.Group(g.Map(p.Options, func(option CheckboxOption) g.Node {
+				checked := false
+				for _, value := range p.Value {
+					if value == option.Value {
+						checked = true
+						break
+					}
+				}
 				return h.Div(
 					h.Class("checkbox-option"),
 					Checkbox(&CheckboxProps{
-						Name:    option.Label,
+						Name:    p.Name,
 						Value:   option.Value,
-						Checked: option.Checked,
+						Checked: checked,
 					}),
 					g.Text(option.Label),
 				)
 			})),
 		),
-		InlineScript("/components/CheckboxGroup.js"),
 	)
 }

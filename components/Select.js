@@ -1,50 +1,40 @@
 (function () {
-  const CLOSE_ICON = `<svg class="remove-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>`;
+  const closeIcon = "\u2715";
 
-  const selectContainer = me();
-  const isMultiple = selectContainer.attribute("data-multiple");
-  const multiSelectHiddenInput = me("input[type='hidden']", selectContainer);
-  const selectHiddenInput = me(".hidden-input", selectContainer);
-  const arrow = me(".arrow", selectContainer);
+  const selectContainer = document.querySelector(".custom-select");
+  const isMultiple = selectContainer.getAttribute("data-multiple") === "true";
+  const arrow = selectContainer.querySelector(".arrow");
 
   // Conditionally set variables
   let multiSelectButton;
   let selectedValuesContainer;
-  let optionText;
+  let defaultTextContainer;
+  let defaultValue;
 
   if (isMultiple) {
-    multiSelectButton = me(".multi-select-button", selectContainer);
-    selectedValuesContainer = me(".selected-values", selectContainer);
+    multiSelectButton = selectContainer.querySelector(".multi-select-button");
+    selectedValuesContainer = selectContainer.querySelector(".selected-values");
   } else {
-    optionText = me(".select-button span", selectContainer);
+    defaultTextContainer = selectContainer.querySelector(".default-value");
+    defaultValue = selectContainer.getAttribute("data-default-value");
   }
 
-  const selectedValues = [];
+  let selectedValues = [];
 
+  const defaultText = selectContainer.getAttribute("data-default-text");
   function updateDefaultText() {
-    const textNode = isMultiple ? multiSelectButton.childNodes[0] : optionText;
-    if (selectHiddenInput.value === "" && !isMultiple) {
-      optionText.textContent = "Select an option";
-    }
-
-    if (isMultiple) {
-      if (selectedValues.length > 0) {
-        if (textNode.nodeType === 3) {
-          multiSelectButton.removeChild(textNode);
-        }
-      } else {
-        multiSelectButton.insertAdjacentHTML("afterbegin", "Select Options");
-      }
+    if (!isMultiple && defaultText && defaultTextContainer) {
+      defaultTextContainer.textContent = defaultText;
+    } else if (isMultiple && selectedValues.length === 0) {
+      selectedValuesContainer.textContent = defaultText;
     }
   }
 
   function replaceIcon() {
-    // Create Remove Icon
-    const closeIcon = createIcon(CLOSE_ICON);
-    if (selectHiddenInput.value !== "") {
+    if (defaultTextContainer.textContent !== defaultText) {
       arrow.classList.remove("arrow");
       arrow.classList.add("remove-icon");
-      arrow.innerHTML = closeIcon.outerHTML;
+      arrow.innerHTML = closeIcon;
     } else {
       arrow.classList.remove("remove-icon");
       arrow.classList.add("arrow");
@@ -52,21 +42,33 @@
     }
   }
 
-  selectContainer.on("click", (e) => {
+  // Set default option
+  function selectDefaultOption() {
+    const options = selectContainer.querySelectorAll("input[type='radio']");
+    options.forEach((option) => {
+      if (option.value === defaultValue) {
+        option.checked = true;
+        defaultTextContainer.textContent =
+          option.parentElement.querySelector("label").textContent;
+        replaceIcon();
+      }
+    });
+  }
+  document.addEventListener("DOMContentLoaded", selectDefaultOption);
+
+  selectContainer.addEventListener("click", (e) => {
     e.stopPropagation();
     // Simple Select
     if (e.target.matches(".select-button")) {
-      selectContainer.classToggle("active");
+      selectContainer.classList.toggle("active");
     }
     if (e.target.matches(".select-dropdown li")) {
       const parent = e.target.children[0];
       if (parent) {
         const label = parent.children[0].textContent;
-        const value = parent.children[0].getAttribute("for");
-        selectHiddenInput.value = value;
-        optionText.textContent = label;
+        defaultTextContainer.textContent = label;
         if (selectContainer) {
-          selectContainer.classToggle("active");
+          selectContainer.classList.toggle("active");
         }
         replaceIcon();
       }
@@ -74,33 +76,37 @@
 
     if (!isMultiple) {
       if (e.target.matches(".remove-icon")) {
-        selectHiddenInput.value = "";
-        optionText.textContent = "Select an option";
+        defaultTextContainer.textContent = defaultText;
         replaceIcon();
       }
     }
 
     // Multi Select
     if (e.target.matches(".multi-select-button")) {
-      selectContainer.classToggle("active");
+      selectContainer.classList.toggle("active");
     }
 
     if (e.target.matches(".option")) {
-      const checkbox = me("input[type='checkbox']", e.target);
-      const label = me("label", e.target).textContent;
+      const checkbox = e.target.querySelector("input[type='checkbox']");
+      const label = e.target.querySelector("label").textContent;
       const value = checkbox.value;
-      checkbox.checked = !checkbox.checked;
+      checkbox.checked = String(!checkbox.checked);
       const index = selectedValues.indexOf(value);
-      // Create Remove Icon
-      const closeIconString = `<svg class="remove-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>`;
-      const closeIcon = createIcon(closeIconString);
       // Create Badges
       const createSelectedValue = document.createElement("span");
+      const closeIconElement = document.createElement("span");
+      closeIconElement.classList.add("remove-icon");
       createSelectedValue.classList.add("selected-value");
       createSelectedValue.setAttribute("data-value", value);
       createSelectedValue.textContent = label;
-      createSelectedValue.appendChild(closeIcon.cloneNode(true));
+      closeIconElement.textContent = closeIcon;
+      createSelectedValue.appendChild(closeIconElement);
+
       if (index === -1) {
+        // Remove default text
+        if (selectedValues.length === 0) {
+          selectedValuesContainer.textContent = "";
+        }
         selectedValues.push(value);
         e.target.classList.add("checked");
         e.target.setAttribute("data-value", value);
@@ -109,35 +115,37 @@
         e.target.classList.remove("checked");
         e.target.removeAttribute("data-value");
         selectedValues.splice(index, 1);
-        const selectedValue = me(`.selected-value[data-value='${value}']`);
+        const selectedValue = selectedValuesContainer.querySelector(
+          `.selected-value[data-value='${value}']`
+        );
         selectedValuesContainer.removeChild(selectedValue);
       }
-      multiSelectHiddenInput.value = JSON.stringify(selectedValues);
       updateDefaultText();
     }
   });
 
-  if (selectedValuesContainer) {
-    selectedValuesContainer.on("click", (e) => {
-      if (e.target.matches(".remove-icon")) {
-        const parent = e.target.parentNode;
-        const value = parent.getAttribute("data-value");
-        const index = selectedValues.indexOf(value);
-        const option = me(`.option[data-value='${value}']`);
-        option.classList.remove("checked");
-        option.removeAttribute("data-value");
-        selectedValues.splice(index, 1);
-        selectedValuesContainer.removeChild(parent);
-        multiSelectHiddenInput.value = JSON.stringify(selectedValues);
-        updateDefaultText();
-      }
-    });
-  }
+  // if (selectedValuesContainer) {
+  //   selectedValuesContainer.addEventListener("click", (e) => {
+  //     const removeIcon = e.target.closest(".remove-icon");
+  //     if (removeIcon) {
+  //       const parent = removeIcon.parentNode;
+  //       const value = parent.getAttribute("data-value");
+  //       const index = selectedValues.indexOf(value);
+  //       const option = document.querySelector(`.option[data-value='${value}']`);
+  //       option.classList.remove("checked");
+  //       option.removeAttribute("data-value");
+  //       selectedValues.splice(index, 1);
+  //       selectedValuesContainer.removeChild(parent);
+  //       multiSelectHiddenInput.value = JSON.stringify(selectedValues);
+  //       updateDefaultText();
+  //     }
+  //   });
+  // }
 
   // Close dropdown when clicked outside
   document.addEventListener("click", (e) => {
     if (!selectContainer.contains(e.target)) {
-      selectContainer.classRemove("active");
+      selectContainer.classList.remove("active");
     }
   });
 

@@ -1,10 +1,10 @@
 (function () {
-  const rangeInput = me("input[type='range']");
-  const showValue = me(".show-range-value");
+  const rangeInput = document.querySelector("input[type='range']");
+  const showValue = document.querySelector(".show-range-value");
 
   showValue.textContent = rangeInput.value;
 
-  rangeInput.on("input", (e) => {
+  rangeInput.addEventListener("input", (e) => {
     showValue.textContent = e.target.value;
   });
 
