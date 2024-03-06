@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 // settable field kinds
@@ -21,7 +23,8 @@ var settableKinds = []reflect.Kind{
 
 // settable struct types
 var settableStructTypes = []reflect.Type{
-	reflect.TypeOf(time.Time{}),
+	reflect.TypeOf(decimal.Decimal{}),
+	reflect.TypeOf(decimal.NullDecimal{}),
 	reflect.TypeOf(sql.NullString{}),
 	reflect.TypeOf(sql.NullBool{}),
 	reflect.TypeOf(sql.NullInt64{}),
@@ -29,6 +32,7 @@ var settableStructTypes = []reflect.Type{
 	reflect.TypeOf(sql.NullInt16{}),
 	reflect.TypeOf(sql.NullFloat64{}),
 	reflect.TypeOf(sql.NullTime{}),
+	reflect.TypeOf(time.Time{}),
 }
 
 func isSettableField(field reflect.Value) bool {
@@ -50,7 +54,9 @@ func isSettableField(field reflect.Value) bool {
 
 func parseTime(strValue string) (time.Time, error) {
 	formats := []string{
-		"2006-01-02",
+		"2006-01-02", // for input type=date
+		"2006-01",    // for input type=month
+		"2006",       // for input type=year
 		"2006-01-02T15:04:05Z07:00",
 		"2006-01-02T15:04:05",
 		"02/01/2006", // assuming DD/MM/YYYY format
@@ -110,12 +116,20 @@ func setField(field reflect.Value, strValue string) error {
 		}
 		field.SetFloat(parsedValue)
 	case reflect.Struct:
-		if field.Type() == reflect.TypeOf(time.Time{}) {
-			parsedValue, err := parseTime(strValue)
+		if field.Type() == reflect.TypeOf(decimal.Decimal{}) {
+			parsedDecimal, err := decimal.NewFromString(strValue)
 			if err != nil {
 				return err
 			}
-			field.Set(reflect.ValueOf(parsedValue))
+			field.Set(reflect.ValueOf(parsedDecimal))
+		} else if field.Type() == reflect.TypeOf(decimal.NullDecimal{}) {
+			parsedDecimal, err := decimal.NewFromString(strValue)
+			nullDecimal := decimal.NullDecimal{}
+			if err == nil {
+				nullDecimal.Decimal = parsedDecimal
+				nullDecimal.Valid = true
+			}
+			field.Set(reflect.ValueOf(nullDecimal))
 		} else if field.Type() == reflect.TypeOf(sql.NullString{}) {
 			nullString := sql.NullString{String: strValue, Valid: strValue != ""}
 			field.Set(reflect.ValueOf(nullString))
@@ -167,6 +181,12 @@ func setField(field reflect.Value, strValue string) error {
 				nullTime.Valid = true
 			}
 			field.Set(reflect.ValueOf(nullTime))
+		} else if field.Type() == reflect.TypeOf(time.Time{}) {
+			parsedValue, err := parseTime(strValue)
+			if err != nil {
+				return err
+			}
+			field.Set(reflect.ValueOf(parsedValue))
 		}
 
 	}
@@ -277,7 +297,6 @@ func UnmarshalUrlValues(urlValues url.Values, v interface{}) error {
 					fieldValue.Index(index).Set(subValue)
 				}
 			}
-
 		} else if field.Type.Kind() == reflect.Struct {
 			// struct field - we recurse
 			subForm := make(url.Values)
