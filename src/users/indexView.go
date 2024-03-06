@@ -9,38 +9,11 @@ import (
 	"fmt"
 
 	g "github.com/maragudk/gomponents"
-	hx "github.com/maragudk/gomponents-htmx"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
 type userWithRender userModel.User
-
-func (u userWithRender) Render() map[string]components.RenderedCell {
-	return map[string]components.RenderedCell{
-		"Username": {
-			Content: h.A(
-				g.Text(u.Username),
-				g.Attr("href",
-					fmt.Sprintf("/users/%d", u.UserID))),
-		},
-		"FirstName": {
-			Content: g.Text(u.FirstName.String),
-		},
-		"LastName": {
-			Content: g.Text(u.LastName.String),
-		},
-		"Email": {
-			Content: g.Text(u.Email.String),
-		},
-		"Created": {
-			Content: g.Text(u.Created.Format("2006-01-02 15:04:05")),
-		},
-		"LastLogin": {
-			Content: g.If(u.LastLogin.Valid, g.Text(u.LastLogin.Time.Format("2006-01-02 15:04:05"))),
-		},
-	}
-}
 
 type indexViewProps struct {
 	Ctx       reqContext.ReqContext
@@ -49,40 +22,65 @@ type indexViewProps struct {
 	sort      utils.Sort
 	page      int
 	pageSize  int
+	myFilter  string
 }
 
 func indexView(p *indexViewProps) g.Node {
 
-	var data []components.TableRowRenderer
-	for _, user := range p.users {
-		data = append(data, userWithRender(user))
-	}
-
 	var columns = components.TableColumns{
 		{
-			Name: "Username",
-			Key:  "Username",
+			TitleContents: g.Text("Username"),
+			SortKey:       "Username",
 		},
 		{
-			Name: "First Name",
-			Key:  "FirstName",
+			TitleContents: g.Text("First Name"),
+			SortKey:       "FirstName",
 		},
 		{
-			Name: "Last Name",
-			Key:  "LastName",
+			TitleContents: g.Text("Last Name"),
+			SortKey:       "LastName",
 		},
 		{
-			Name: "Email",
-			Key:  "Email",
+			TitleContents: g.Text("Email"),
+			SortKey:       "Email",
 		},
 		{
-			Name: "Created",
-			Key:  "Created",
+			TitleContents: g.Text("Created"),
+			SortKey:       "Created",
 		},
 		{
-			Name: "Last Login",
-			Key:  "LastLogin",
+			TitleContents: g.Text("Last Login"),
+			SortKey:       "LastLogin",
 		},
+	}
+
+	var tableRows components.TableRows
+	for _, u := range p.users {
+		tableRows = append(tableRows, components.TableRow{
+			Cells: []components.TableCell{
+				{
+					Contents: h.A(
+						g.Text(u.Username),
+						g.Attr("href",
+							fmt.Sprintf("/users/%d", u.UserID))),
+				},
+				{
+					Contents: g.Text(u.FirstName.String),
+				},
+				{
+					Contents: g.Text(u.LastName.String),
+				},
+				{
+					Contents: g.Text(u.Email.String),
+				},
+				{
+					Contents: g.Text(u.Created.Format("2006-01-02 15:04:05")),
+				},
+				{
+					Contents: g.If(u.LastLogin.Valid, g.Text(u.LastLogin.Time.Format("2006-01-02 15:04:05"))),
+				},
+			},
+		})
 	}
 
 	content := g.Group([]g.Node{
@@ -114,19 +112,17 @@ func indexView(p *indexViewProps) g.Node {
 			),
 		),
 
-		h.Div(
-			// htmx boundary for table interaction
-			h.ID("users-table-container"),
-			hx.Target("#users-table-container"),
-			hx.Select("#users-table-container > *"),
-			hx.Include("#users-table-container"),
+		// form container for table interaction
+		h.FormEl(
+			h.ID("users-table-form"),
+			g.Attr("method", "GET"),
 
 			components.Table(&components.TableProps{
 				Columns:      columns,
 				SortableKeys: userModel.ListSortableKeys,
 				Sort:         p.sort,
-				Data:         data,
-				HXGetPath:    "/users",
+				Rows:         tableRows,
+				OnChange:     "submitUsersTableForm()",
 				Pagination: components.TablePaginationProps{
 					TotalRecords:        p.userCount,
 					PageSize:            p.pageSize,
@@ -138,6 +134,8 @@ func indexView(p *indexViewProps) g.Node {
 				h.ID("users-table"),
 			),
 		),
+
+		components.InlineScript("/src/users/index.js"),
 	})
 
 	return layout.Page(layout.PageProps{

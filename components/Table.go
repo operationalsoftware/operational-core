@@ -6,24 +6,30 @@ import (
 	"math"
 
 	g "github.com/maragudk/gomponents"
-	hx "github.com/maragudk/gomponents-htmx"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
-type RenderedCell struct {
-	Content    g.Node
+type TableCell struct {
+	Contents   g.Node
 	Classes    c.Classes
 	Attributes []g.Node
 }
 
-type TableRowRenderer interface {
-	Render() map[string]RenderedCell
+type TableRow struct {
+	Cells      []TableCell
+	Classes    c.Classes
+	Attributes []g.Node
+	SubRows    []TableRow
 }
 
+type TableRows []TableRow
+
 type TableColumn struct {
-	Name string
-	Key  string
+	TitleContents g.Node
+	Classes       c.Classes
+	Attributes    []g.Node
+	SortKey       string // unset if column isn't sortable
 }
 
 type TableColumns []TableColumn
@@ -80,24 +86,23 @@ func generateSortString(currentSort utils.Sort, key string) string {
 }
 
 type sortRadioProps struct {
-	hxGetPath    string
-	sortQueryKey string
-	sort         utils.Sort
-	columnKey    string
+	onChange      string
+	sortQueryKey  string
+	sort          utils.Sort
+	columnSortKey string
 }
 
 func sortRadio(p *sortRadioProps) g.Node {
 
-	iconIdentifier := getSortIconIdentifier(p.sort, p.columnKey)
-	sortPosition := p.sort.GetSortPosition(p.columnKey)
+	iconIdentifier := getSortIconIdentifier(p.sort, p.columnSortKey)
+	sortPosition := p.sort.GetSortPosition(p.columnSortKey)
 
 	return h.Label(
 		h.Input(
 			h.Type("radio"),
 			h.Name(p.sortQueryKey),
-			h.Value(generateSortString(p.sort, p.columnKey)),
-			hx.Get(p.hxGetPath),
-			hx.PushURL("true"),
+			h.Value(generateSortString(p.sort, p.columnSortKey)),
+			g.Attr("onchange", p.onChange),
 		),
 		Icon(&IconProps{
 			Identifier: iconIdentifier,
@@ -109,34 +114,35 @@ func sortRadio(p *sortRadioProps) g.Node {
 type tableHeadProps struct {
 	columns      TableColumns
 	sortableKeys []string
-	hxGetPath    string
 	sort         utils.Sort
 	sortQueryKey string
+	onChange     string
 }
 
 func tableHead(p *tableHeadProps) g.Node {
-	headerCells := g.Group(g.Map(p.columns, func(c TableColumn) g.Node {
+	headerCells := g.Group(g.Map(p.columns, func(col TableColumn) g.Node {
 
 		var sortRadioNode g.Node
-		sortable := false
-		for _, k := range p.sortableKeys {
-			if k == c.Key {
-				sortable = true
-				break
-			}
-		}
+		sortable := col.SortKey != ""
 		if sortable {
 			sortRadioNode = sortRadio(&sortRadioProps{
-				hxGetPath:    p.hxGetPath,
-				sortQueryKey: p.sortQueryKey,
-				sort:         p.sort,
-				columnKey:    c.Key,
+				onChange:      p.onChange,
+				sortQueryKey:  p.sortQueryKey,
+				sort:          p.sort,
+				columnSortKey: col.SortKey,
 			})
 		}
 
+		if col.Classes == nil {
+			col.Classes = c.Classes{}
+		}
+
+		col.Classes["table-head"] = true
+
 		return h.Th(
-			h.Class("table-head"),
-			h.Span(g.Text(c.Name)),
+			col.Classes,
+			g.Group(col.Attributes),
+			h.Span(col.TitleContents),
 			g.If(sortable, sortRadioNode),
 		)
 	}))
@@ -144,30 +150,33 @@ func tableHead(p *tableHeadProps) g.Node {
 	return h.THead(h.Tr(headerCells))
 }
 
-func renderRows(p *TableProps) g.Node {
-	return g.Group(g.Map(p.Data, func(d TableRowRenderer) g.Node {
+func renderRows(rows TableRows) g.Node {
+	return g.Group(g.Map(rows, func(row TableRow) g.Node {
+
+		if row.Classes == nil {
+			row.Classes = c.Classes{}
+		}
+
+		row.Classes["table-row"] = true
+
 		return h.Tr(
-			h.Class("table-row"),
-			g.Group(g.Map(p.Columns, func(col TableColumn) g.Node {
-				renderKey := col.Key
-				if renderKey == "" {
-					panic("TableColumn.Key must be set")
+			row.Classes,
+			g.Group(row.Attributes),
+			g.Group(g.Map(row.Cells, func(cell TableCell) g.Node {
+				if cell.Classes == nil {
+					cell.Classes = c.Classes{}
 				}
-
-				renderedCell := d.Render()[renderKey]
-
-				if renderedCell.Classes == nil {
-					renderedCell.Classes = c.Classes{}
-				}
-
-				renderedCell.Classes["table-cell"] = true
 
 				return h.Td(
-					renderedCell.Classes,
-					g.Group(renderedCell.Attributes),
-					renderedCell.Content,
+					cell.Classes,
+					g.Group(cell.Attributes),
+					cell.Contents,
 				)
 			})),
+			g.If(
+				row.SubRows != nil,
+				renderRows(row.SubRows),
+			),
 		)
 	}))
 }
@@ -180,7 +189,14 @@ type TablePaginationProps struct {
 	PageSizeQueryKey    string
 }
 
-func TablePagination(p TablePaginationProps, HXGetPath string) g.Node {
+func TablePagination(p TablePaginationProps, onChange string) g.Node {
+
+	if p.PageSizeQueryKey == "" {
+		p.PageSizeQueryKey = "PageSize"
+	}
+	if p.CurrentPageQueryKey == "" {
+		p.CurrentPageQueryKey = "Page"
+	}
 
 	// calculate the total pages
 	totalPages := int(math.Ceil(float64(p.TotalRecords) / float64(p.PageSize)))
@@ -230,8 +246,7 @@ func TablePagination(p TablePaginationProps, HXGetPath string) g.Node {
 				g.If(disabled, h.Disabled()),
 				h.Value(fmt.Sprintf("%d", page)),
 				h.StyleAttr("display: none"),
-				hx.Get(HXGetPath),
-				hx.PushURL("true"),
+				g.Attr("onchange", onChange),
 			),
 			g.If(label != "", g.Text(label)),
 			g.If(label == "", g.Text(fmt.Sprintf("%d", page))),
@@ -267,11 +282,11 @@ type TableProps struct {
 	Classes      c.Classes
 	Columns      TableColumns
 	SortableKeys []string
-	Data         []TableRowRenderer
+	Rows         TableRows
 	Sort         utils.Sort
 	SortQueryKey string
-	HXGetPath    string
 	Pagination   TablePaginationProps
+	OnChange     string
 }
 
 func Table(p *TableProps, children ...g.Node) g.Node {
@@ -284,56 +299,63 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 		p.SortQueryKey = "Sort"
 	}
 
-	if p.HXGetPath == "" {
-		panic("TableProps.HXGetPath must be set")
-	}
-
 	return h.Div(
 		p.Classes,
 		g.Group(children),
 		g.If(
 			p.Pagination != (TablePaginationProps{}),
-			TablePagination(p.Pagination, p.HXGetPath),
+			TablePagination(p.Pagination, p.OnChange),
 		),
 		h.Div(
 			h.Class("table-scroll"),
 			h.Table(
 				tableHead(&tableHeadProps{
 					columns:      p.Columns,
+					onChange:     p.OnChange,
 					sortableKeys: p.SortableKeys,
-					hxGetPath:    p.HXGetPath,
 					sort:         p.Sort,
 					sortQueryKey: p.SortQueryKey,
 				}),
 
 				h.TBody(
-					renderRows(p),
+					renderRows(p.Rows),
 				),
 			),
-			// here we add a hidden radio input which serves the purpose of
-			// preserving the current sort state in the URL
-			h.Input(
-				h.Type("radio"),
-				h.Checked(),
-				h.Name(p.SortQueryKey),
-				h.Value(p.Sort.EncodeQueryParam()),
-				h.StyleAttr("display: none"),
-			),
-			// and another which serves the purpose of preserving the current page state in the URL
+			// here we add a hidden radio inputs which serve the purpose of
+			// preserving sort, page and page size state in the URL
 			g.If(
-				p.Pagination != (TablePaginationProps{}),
+				p.Sort != nil,
 				h.Input(
 					h.Type("radio"),
 					h.Checked(),
-					h.Name(p.Pagination.CurrentPageQueryKey),
-					h.Value(fmt.Sprintf("%d", p.Pagination.CurrentPage)),
+					h.Name(p.SortQueryKey),
+					h.Value(p.Sort.EncodeQueryParam()),
 					h.StyleAttr("display: none"),
 				),
+			),
+			g.If(
+				p.Pagination != (TablePaginationProps{}),
+				g.Group([]g.Node{
+					h.Input(
+						h.Type("radio"),
+						h.Checked(),
+						h.Name(p.Pagination.CurrentPageQueryKey),
+						h.Value(fmt.Sprintf("%d", p.Pagination.CurrentPage)),
+						h.StyleAttr("display: none"),
+					),
+					h.Input(
+						h.Type("radio"),
+						h.Checked(),
+						h.Name(p.Pagination.PageSizeQueryKey),
+						h.Value(fmt.Sprintf("%d", p.Pagination.PageSize)),
+						h.StyleAttr("display: none"),
+					),
+				}),
 			),
 		),
 		g.If(
 			p.Pagination != (TablePaginationProps{}),
-			TablePagination(p.Pagination, p.HXGetPath),
+			TablePagination(p.Pagination, p.OnChange),
 		),
 	)
 }

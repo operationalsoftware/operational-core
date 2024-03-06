@@ -1573,8 +1573,6 @@ div.table-scroll th,
 div.table-scroll td {
   padding: 8px;
   text-align: left;
-  min-width: 70px;
-  max-width: 150px;
   border: 1px solid #ccc;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
