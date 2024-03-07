@@ -20,8 +20,6 @@ func Page(p PageProps) g.Node {
 
 	// Construct head
 	head := []g.Node{
-		h.Meta(h.Charset("utf-8")),
-		h.Meta(h.Name("viewport"), h.Content("width=device-width, initial-scale=1")),
 		h.Link(h.Rel("manifest"), h.Href("/static/manifest.json")),
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/reset.css")),
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/variables.css")),
