@@ -27,7 +27,7 @@ func indexView(p *indexViewProps) g.Node {
 				Value:    []string{"2"},
 				Name:     "select",
 				ID:       "select",
-				Multiple: false,
+				Multiple: true,
 			}),
 			components.Button(&components.ButtonProps{
 				ButtonType: components.ButtonPrimary,

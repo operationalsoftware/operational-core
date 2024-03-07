@@ -4,34 +4,19 @@
   const selectContainer = document.querySelector(".custom-select");
   const isMultiple = selectContainer.getAttribute("data-multiple") === "true";
   const arrow = selectContainer.querySelector(".arrow");
+  const placeholderTextContainer =
+    selectContainer.querySelector(".placeholder");
+  const selectedValueContainer = selectContainer.querySelector(
+    ".select-value-container"
+  );
 
-  // Conditionally set variables
-  let multiSelectButton;
-  let selectedValuesContainer;
-  let defaultTextContainer;
-  let defaultValue;
+  const placeholderText = selectContainer.getAttribute("data-placeholder");
+  const selectName = selectContainer.getAttribute("data-name");
 
-  if (isMultiple) {
-    multiSelectButton = selectContainer.querySelector(".multi-select-button");
-    selectedValuesContainer = selectContainer.querySelector(".selected-values");
-  } else {
-    defaultTextContainer = selectContainer.querySelector(".default-value");
-    defaultValue = selectContainer.getAttribute("data-default-value");
-  }
-
-  let selectedValues = [];
-
-  const defaultText = selectContainer.getAttribute("data-default-text");
-  function updateDefaultText() {
-    if (!isMultiple && defaultText && defaultTextContainer) {
-      defaultTextContainer.textContent = defaultText;
-    } else if (isMultiple && selectedValues.length === 0) {
-      selectedValuesContainer.textContent = defaultText;
-    }
-  }
+  let multiSelectValues = [];
 
   function replaceIcon() {
-    if (defaultTextContainer.textContent !== defaultText) {
+    if (!selectedValueContainer.classList.contains("hidden")) {
       arrow.classList.remove("arrow");
       arrow.classList.add("remove-icon");
       arrow.innerHTML = closeIcon;
@@ -42,105 +27,111 @@
     }
   }
 
-  // Set default option
-  function selectDefaultOption() {
-    const options = selectContainer.querySelectorAll("input[type='radio']");
-    options.forEach((option) => {
-      if (option.value === defaultValue) {
-        option.checked = true;
-        defaultTextContainer.textContent =
-          option.parentElement.querySelector("label").textContent;
-        replaceIcon();
-      }
-    });
-  }
-  document.addEventListener("DOMContentLoaded", selectDefaultOption);
-
   selectContainer.addEventListener("click", (e) => {
+    e.preventDefault();
     e.stopPropagation();
-    // Simple Select
+    // Toggle dropdown
     if (e.target.matches(".select-button")) {
       selectContainer.classList.toggle("active");
     }
-    if (e.target.matches(".select-dropdown li")) {
-      const parent = e.target.children[0];
-      if (parent) {
-        const label = parent.children[0].textContent;
-        defaultTextContainer.textContent = label;
-        if (selectContainer) {
-          selectContainer.classList.toggle("active");
+
+    if (e.target.matches(".select-dropdown .option")) {
+      if (isMultiple) {
+        const label = e.target.childNodes[0].textContent;
+        const value = e.target.getAttribute("data-value");
+        const index = multiSelectValues.indexOf(value);
+
+        // Create Badges
+        const createSelectedValue = document.createElement("span");
+        const closeIconElement = document.createElement("span");
+
+        closeIconElement.classList.add("remove-icon");
+        createSelectedValue.classList.add("selected-value");
+        createSelectedValue.setAttribute("data-value", value);
+        createSelectedValue.textContent = label;
+        closeIconElement.textContent = closeIcon;
+        createSelectedValue.appendChild(closeIconElement);
+
+        // Create Checkbox
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.name = selectName;
+        checkbox.value = value;
+        checkbox.checked = true;
+
+        if (index === -1) {
+          multiSelectValues.push(value);
+          e.target.classList.add("checked");
+          createSelectedValue.appendChild(checkbox);
+          selectedValueContainer.appendChild(createSelectedValue);
+        } else {
+          multiSelectValues.splice(index, 1);
+          e.target.classList.remove("checked");
+          const selectedValue = selectedValueContainer.querySelector(
+            `.selected-value[data-value='${value}']`
+          );
+          selectedValueContainer.removeChild(selectedValue);
         }
-        replaceIcon();
-      }
-    }
-
-    if (!isMultiple) {
-      if (e.target.matches(".remove-icon")) {
-        defaultTextContainer.textContent = defaultText;
-        replaceIcon();
-      }
-    }
-
-    // Multi Select
-    if (e.target.matches(".multi-select-button")) {
-      selectContainer.classList.toggle("active");
-    }
-
-    if (e.target.matches(".option")) {
-      const checkbox = e.target.querySelector("input[type='checkbox']");
-      const label = e.target.querySelector("label").textContent;
-      const value = checkbox.value;
-      checkbox.checked = String(!checkbox.checked);
-      const index = selectedValues.indexOf(value);
-      // Create Badges
-      const createSelectedValue = document.createElement("span");
-      const closeIconElement = document.createElement("span");
-      closeIconElement.classList.add("remove-icon");
-      createSelectedValue.classList.add("selected-value");
-      createSelectedValue.setAttribute("data-value", value);
-      createSelectedValue.textContent = label;
-      closeIconElement.textContent = closeIcon;
-      createSelectedValue.appendChild(closeIconElement);
-
-      if (index === -1) {
-        // Remove default text
-        if (selectedValues.length === 0) {
-          selectedValuesContainer.textContent = "";
-        }
-        selectedValues.push(value);
-        e.target.classList.add("checked");
-        e.target.setAttribute("data-value", value);
-        selectedValuesContainer.appendChild(createSelectedValue);
+        selectedValueContainer.classList.remove("hidden");
+        placeholderTextContainer.classList.add("hidden");
       } else {
-        e.target.classList.remove("checked");
-        e.target.removeAttribute("data-value");
-        selectedValues.splice(index, 1);
-        const selectedValue = selectedValuesContainer.querySelector(
-          `.selected-value[data-value='${value}']`
-        );
-        selectedValuesContainer.removeChild(selectedValue);
+        if (!selectedValueContainer.classList.contains("hidden")) {
+          return;
+        }
+        const label = e.target.childNodes[0].textContent;
+        const value = e.target.getAttribute("data-value");
+        // create a radio button
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "select";
+        radio.value = value;
+        radio.checked = true;
+
+        // create a label
+        const labelElement = document.createElement("label");
+        labelElement.textContent = label;
+
+        labelElement.appendChild(radio);
+        selectedValueContainer.textContent = "";
+        selectedValueContainer.appendChild(labelElement);
+        e.target.classList.add("checked");
+        placeholderTextContainer.classList.add("hidden");
+        selectedValueContainer.classList.remove("hidden");
+        replaceIcon();
       }
-      updateDefaultText();
+    }
+
+    // Removing selected value
+    if (e.target.matches(".remove-icon")) {
+      if (isMultiple) {
+        const selectedValue = e.target.parentNode;
+        const value = selectedValue.getAttribute("data-value");
+        const index = multiSelectValues.indexOf(value);
+        const option = selectContainer.querySelector(
+          `.option[data-value='${value}']`
+        );
+        option.classList.remove("checked");
+        multiSelectValues.splice(index, 1);
+        selectedValueContainer.removeChild(selectedValue);
+        if (multiSelectValues.length < 1) {
+          selectedValueContainer.classList.add("hidden");
+          placeholderTextContainer.classList.remove("hidden");
+        }
+      } else {
+        const selectedOption = selectedValueContainer.querySelector(
+          "input[type='radio']"
+        );
+        const option = selectContainer.querySelector(
+          `.option[data-value='${selectedOption.value}']`
+        );
+        option.classList.remove("checked");
+        selectedValueContainer.textContent = "";
+        placeholderTextContainer.classList.remove("hidden");
+        selectedValueContainer.classList.add("hidden");
+        replaceIcon();
+      }
     }
   });
-
-  // if (selectedValuesContainer) {
-  //   selectedValuesContainer.addEventListener("click", (e) => {
-  //     const removeIcon = e.target.closest(".remove-icon");
-  //     if (removeIcon) {
-  //       const parent = removeIcon.parentNode;
-  //       const value = parent.getAttribute("data-value");
-  //       const index = selectedValues.indexOf(value);
-  //       const option = document.querySelector(`.option[data-value='${value}']`);
-  //       option.classList.remove("checked");
-  //       option.removeAttribute("data-value");
-  //       selectedValues.splice(index, 1);
-  //       selectedValuesContainer.removeChild(parent);
-  //       multiSelectHiddenInput.value = JSON.stringify(selectedValues);
-  //       updateDefaultText();
-  //     }
-  //   });
-  // }
 
   // Close dropdown when clicked outside
   document.addEventListener("click", (e) => {
@@ -148,6 +139,4 @@
       selectContainer.classList.remove("active");
     }
   });
-
-  updateDefaultText();
 })();
