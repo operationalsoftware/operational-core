@@ -23,11 +23,7 @@ func Radio(p *RadioProps, children ...g.Node) g.Node {
 	p.Classes["radio-container"] = true
 	return h.Div(
 		p.Classes,
-		InputLabel(&InputLabelProps{
-			For: p.Name,
-		},
-			g.Text(p.Label),
-		),
+		h.Label(h.For(p.Name), g.Text(p.Label)),
 		h.Input(
 			classes,
 			h.Type("radio"),

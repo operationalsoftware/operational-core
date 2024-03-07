@@ -35,11 +35,7 @@ func InputNumber(p *InputNumberProps, children ...g.Node) g.Node {
 
 	return h.Div(
 		p.Classes,
-		InputLabel(&InputLabelProps{
-			For: p.Name,
-		},
-			g.Text(p.Label),
-		),
+		h.Label(h.For(p.Name), g.Text(p.Label)),
 		h.Input(
 			classes,
 			h.Name(p.Name),

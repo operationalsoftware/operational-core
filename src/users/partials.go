@@ -36,16 +36,18 @@ func getPermissionDescription(module, permission string) string {
 func permissionsCheckboxes(userPermissions userModel.UserPermissions) g.Node {
 
 	return components.Fieldset(
-		components.InputLabel(&components.InputLabelProps{}, g.Text("Permissions")),
+		h.Label(g.Text("Permissions")),
 		h.H4(h.Class("module-title"), g.Text("User Admin")),
 		components.Checkbox(
 			&components.CheckboxProps{
+				Classes: c.Classes{
+					"permission-checkbox": true,
+				},
 				Name:    "Permissions.UserAdmin.Access",
 				Label:   getPermissionDescription("UserAdmin", "Access"),
 				Checked: userPermissions.UserAdmin.Access,
 				Value:   "true",
 			},
-			h.Class("permission-checkbox"),
 		),
 
 		components.InlineStyle("/src/users/permissions.css"),

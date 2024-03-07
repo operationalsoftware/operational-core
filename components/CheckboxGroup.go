@@ -40,9 +40,7 @@ func CheckboxGroup(p *CheckboxGroupProps) g.Node {
 
 	return h.Div(
 		p.Classes,
-		InputLabel(&InputLabelProps{
-			For: p.Name,
-		}, g.Text(p.Label)),
+		h.Label(h.For(p.Name), g.Text(p.Label)),
 		h.Div(
 			h.Class("checkbox-options"),
 			g.Group(g.Map(p.Options, func(option CheckboxOption) g.Node {

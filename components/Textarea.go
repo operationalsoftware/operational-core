@@ -21,11 +21,7 @@ func Textarea(p *TextareaProps, children ...g.Node) g.Node {
 	p.Classes["textarea-container"] = true
 	return h.Div(
 		p.Classes,
-		InputLabel(&InputLabelProps{
-			For: p.Name,
-		},
-			g.Text(p.Label),
-		),
+		h.Label(h.For(p.Name), g.Text(p.Label)),
 		h.Textarea(
 			h.Name(p.Name),
 			h.ID(p.Name),

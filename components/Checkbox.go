@@ -20,15 +20,12 @@ func Checkbox(p *CheckboxProps, children ...g.Node) g.Node {
 	}
 	p.Classes["checkbox"] = true
 
-	return h.Div(
+	return h.Label(
 		p.Classes,
-		InputLabel(&InputLabelProps{
-			For: p.Name,
-		}, g.Text(p.Label)),
+		g.Text(p.Label),
 		h.Input(
 			h.Type("checkbox"),
 			h.Name(p.Name),
-			h.ID(p.Name),
 			h.Value(p.Value),
 			g.If(p.Checked, g.Attr("checked", "true")),
 			g.If(!p.Checked, g.Attr("checked", "false")),
