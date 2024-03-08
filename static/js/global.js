@@ -199,3 +199,36 @@ function exitFullScreen() {
       }
     });
 })();
+
+// show loading message when navigating away from the page if
+// the navigation hasn't occurred after 0.5s
+document.addEventListener('DOMContentLoaded', function() {
+  let timeout;
+  function addClassDelayed() {
+    const element = document.getElementById('loading-message');
+    if (element) {
+      element.classList.add('loading');
+    }
+  }
+  function handleNavigation() {
+    clearTimeout(timeout);
+    timeout = setTimeout(addClassDelayed, 500);
+  }
+  window.addEventListener('beforeunload', handleNavigation);
+});
+
+// utility to preserve scroll height on navigation
+function preserveScrollHeight() {
+  const scrollHeight = window.scrollY || document.documentElement.scrollTop;
+  localStorage.setItem('savedScrollHeight', scrollHeight.toString());
+}
+
+// restore scroll height when the DOM content has been parsed
+document.addEventListener('DOMContentLoaded', function() {
+  const savedScrollHeight = localStorage.getItem('savedScrollHeight');
+  if (savedScrollHeight !== null) {
+    window.scrollTo(0, parseInt(savedScrollHeight, 10));
+    // delete from local storage
+    localStorage.removeItem('savedScrollHeight');
+  }
+});

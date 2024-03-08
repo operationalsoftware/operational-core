@@ -33,6 +33,7 @@ func Page(p PageProps) g.Node {
 	head = append(head, p.AppendHead...)
 
 	body := []g.Node{
+		h.Div(h.ID("loading-message"), g.Text("Loading...")),
 		layout(&layoutProps{
 			content: p.Content,
 			Ctx:     p.Ctx,

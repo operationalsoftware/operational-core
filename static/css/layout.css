@@ -14,6 +14,26 @@ body main.main-padding {
   padding: var(--spacing-lg);
 }
 
+body #loading-message {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 999;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--background-color-content);
+  border-radius: var(--border-radius);
+  box-shadow: 1px 1px 5px var(--background-color-grey);
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s, opacity 0.5s linear;
+}
+
+body #loading-message.loading {
+  visibility: visible;
+  opacity: 1;
+}
+
 /* Start Navbar */
 #navbar {
   height: 60px;
