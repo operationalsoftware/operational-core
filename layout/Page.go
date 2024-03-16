@@ -21,6 +21,7 @@ func Page(p PageProps) g.Node {
 	// Construct head
 	head := []g.Node{
 		h.Link(h.Rel("manifest"), h.Href("/static/manifest.json")),
+		h.Link(h.Rel("icon"), h.Href("/static/favicon/32x32.png"), h.Type("image/png")),
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/reset.css")),
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/variables.css")),
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/global.css")),
@@ -39,6 +40,7 @@ func Page(p PageProps) g.Node {
 			Ctx:     p.Ctx,
 		}),
 		h.Script(h.Type("text/javascript"), h.Src("/static/js/htmx.min.js")),
+		h.Script(h.Type("text/javascript"), h.Src("/static/js/components.js")),
 	}
 
 	body = append(body, p.AppendBody...)

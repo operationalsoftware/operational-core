@@ -16,26 +16,6 @@ type indexViewProps struct {
 func indexView(p *indexViewProps) g.Node {
 
 	indexContent := g.Group([]g.Node{
-		h.FormEl(
-			h.Method("GET"),
-			components.Select(&components.SelectProps{
-				Options: []components.Option{
-					{Label: "Option 1", Value: "1"},
-					{Label: "Option 2", Value: "2"},
-					{Label: "Option 3", Value: "3"},
-				},
-				Value:    []string{"2"},
-				Name:     "select",
-				ID:       "select",
-				Multiple: true,
-			}),
-			components.Button(&components.ButtonProps{
-				ButtonType: components.ButtonPrimary,
-			},
-				h.Type("submit"),
-				g.Text("Submit"),
-			),
-		),
 		components.Card(
 			h.Div(
 				h.Class("modules-container"),

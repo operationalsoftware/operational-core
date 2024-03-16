@@ -42,6 +42,7 @@
   border-radius: var(--border-radius);
   color: var(--primary-color);
   background-color: var(--background-color-content);
+  font-size: var(--font-size-md);
   padding: var(--spacing-md) var(--spacing-lg);
   transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
   cursor: pointer;
@@ -193,7 +194,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing);
-  margin-bottom: var(--spacing-lg);
 }
 
 .input-container input {
@@ -850,115 +850,179 @@
 }
 /* End Search Select */
 
-/* Start Select */
-.custom-select {
+/*
+ * START SELECT
+ * */
+div.select {
   position: relative;
   width: 200px;
   max-width: 100%;
   color: var(--text-color);
-  margin-top: var(--spacing-lg);
+
+  /* the button opens and closes the dropdown and also contains the the
+   * selected values as well as an icon to clear selected values */
+  button {
+    width: 100%;
+    border: 1.5px solid var(--border-color-dark);
+    border-radius: var(--border-radius);
+    background-color: var(--background-color-content);
+    color: var(--text-color);
+    padding: var(--spacing-md);
+    transition: border-color 0.2s ease-in-out, border-width 0.2s ease-in-out,
+      box-shadow 0.2s ease-in-out;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: var(--font-size-md);
+
+    &:hover {
+      border-color: var(--border-hover-color);
+    }
+
+    /* Selected values */
+    span.selected-values {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
+      align-items: center;
+      color: var(--text-color);
+
+      span.selected-value-chip {
+        background-color: var(--primary-color);
+        color: white;
+        padding: var(--spacing-sm);
+        border-radius: var(--border-radius-sm);
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        white-space: nowrap;
+        overflow: hidden;
+
+        span.remove {
+          width: 17px;
+          height: 17px;
+          fill: var(--text-color-contrast);
+          background-color: transparent;
+        }
+      }
+      
+      /* don't show radio (single select mode) or checkboxes (multi-select
+       * mode) */
+      input {
+        display: none;
+      }
+    }
+
+    /* Clear functionality */
+    span.clear-select {
+      width: 17px;
+      height: 17px;
+      color: var(--text-color);
+      padding: var(--size-xs);
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: var(--border-hover-color);
+      }
+    }
+
+    /* Any span with .hidden class should not be shown */
+    span.hidden {
+      display: none;
+    }
+  }
+
+  /* Dropdown */
+  .dropdown {
+    position: absolute;
+    list-style: none;
+    width: 100%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    background-color: var(--background-color-content);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm);
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    transition: 0.2s ease;
+    transform: scaleY(0);
+    opacity: 0;
+    visibility: hidden;
+    z-index: 1;
+
+    &::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 25px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 25px;
+    }
+
+    div.option {
+      cursor: pointer;
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: var(--border-radius);
+      padding: var(--spacing-md);
+      transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+      margin: var(--spacing-xs) 0;
+
+      &:hover {
+        background-color: var(--primary-color);
+      }
+
+      &.selected {
+        background-color: var(--primary-color);
+      }
+
+      .icon {
+        fill: var(--text-color);
+        width: 15px;
+        height: 15px;
+        display: none;
+      }
+
+      &.selected .icon {
+        display: block;
+      }
+    }
+  }
+
+  /* When the select has class active, we show the dropdown */
+  &.open .dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: scaleY(1);
+  }
 }
 
-.custom-select .placeholder {
-  color: var(--text-color);
+/* If a Select is wrapped in a label we add a margin to the top to seperate
+ * it from the label */
+label .select {
+  margin-top: var(--spacing-md);
 }
+/*
+ * END SELECT
+ * */
 
-.custom-select .select-value-container.hidden {
-  display: none;
-}
 
-.custom-select .remove-icon {
-  width: 15px;
-  height: 15px;
-  padding: var(--spacing-md);
-  color: var(--text-color);
-  cursor: pointer;
-  background-color: var(--background-color);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: background-color 0.2s ease;
-}
 
-.custom-select .remove-icon:hover {
-  background-color: var(--border-hover-color);
-}
-
-.custom-select .select-button {
-  width: 100%;
-  font-size: var(--font-size-md);
-  background-color: var(--background-color);
-  padding: var(--spacing-md) var(--spacing-lg);
-  border: 1px solid #caced1;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: border-color 0.2s ease;
-}
-
-.custom-select .select-button:hover {
-  border: 1px solid var(--border-hover-color);
-}
-
-.custom-select .select-value-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  align-items: center;
-  color: var(--text-color);
-}
-
-.custom-select .selected-value {
-  background-color: var(--primary-color);
-  color: white;
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  text-align: left;
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.custom-select .selected-value .remove-icon {
-  width: 17px;
-  height: 17px;
-  fill: var(--text-color-contrast);
-  background-color: transparent;
-  transition: fill ease-in-out 0.3s;
-}
-
-.custom-select .select-value-container input[type="radio"],
-.custom-select .select-value-container input[type="checkbox"] {
-  position: absolute;
-  left: 0;
-  opacity: 0;
-}
-
-.custom-select .arrow {
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid var(--text-color);
-  transition: transform ease-in-out 0.3s;
-}
-
-.custom-select .select-dropdown .option {
-  position: relative;
-  cursor: pointer;
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: var(--border-radius);
-  padding: var(--spacing-sm);
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  margin: var(--spacing-xs) 0;
-}
-
-.custom-select .option svg {
+.select-container .option svg {
   width: 20px;
   height: 20px;
   fill: white;
@@ -966,66 +1030,30 @@
   margin-right: var(--spacing-md);
 }
 
-.custom-select .option.checked {
+.select-container .option.checked {
   background-color: var(--primary-color);
   color: white;
 }
 
-.custom-select .option.checked svg {
+.select-container .option.checked svg {
   visibility: visible;
 }
 
-.custom-select .option:hover {
+.select-container .option:hover {
   background-color: var(--primary-color);
   color: white;
 }
 
-.custom-select .select-dropdown {
-  position: absolute;
-  list-style: none;
-  width: 100%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  background-color: var(--background-color-content);
-  border: 1px solid #caced1;
-  border-radius: var(--border-radius);
-  padding: var(--spacing) var(--spacing-sm);
-  margin-top: 10px;
-  max-height: 200px;
-  overflow-y: auto;
-  transition: 0.2s ease;
-  transform: scaleY(0);
-  opacity: 0;
-  visibility: hidden;
-  z-index: 1;
-}
 
-.custom-select.active .arrow {
+.select-container.active .arrow {
   transform: rotate(180deg);
 }
 
-.custom-select.active .select-dropdown {
-  opacity: 1;
-  visibility: visible;
-  transform: scaleY(1);
-}
 
-.custom-select .select-dropdown:focus-within {
+.select-container .select-dropdown:focus-within {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-.custom-select .select-dropdown::-webkit-scrollbar {
-  width: 5px;
-}
-
-.custom-select .select-dropdown::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 25px;
-}
-
-.custom-select .select-dropdown::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 25px;
-}
 
 /* End Select */
 
