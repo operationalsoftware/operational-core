@@ -132,27 +132,23 @@ func Select(p *SelectProps) g.Node {
 					),
 					g.If(
 						len(p.Value) > 0 && !p.Multiple,
-						g.Group(g.Map(p.Value, func(v string) g.Node {
-							value := v
+						g.Group(g.Map(p.Value, func(value string) g.Node {
 							var label g.Node
 							for _, o := range p.Options {
-								if o.Value == v {
+								if o.Value == value {
 									label = o.Label
 									break
 								}
 							}
-							return h.Span(
-								h.Class("selected-value"),
-								h.DataAttr("value", value),
+							return g.Group([]g.Node{
 								label,
 								h.Input(
 									h.Type("radio"),
 									h.Name(p.Name),
 									h.Value(value),
-									h.Disabled(),
 									h.Checked(),
 								),
-							)
+							})
 						})),
 					),
 				),
