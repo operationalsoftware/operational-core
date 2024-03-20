@@ -13,10 +13,9 @@ func AddRouter(r *mux.Router) {
 	// Add user
 	s.HandleFunc("/add", addUserViewHandler).Methods("GET")
 	s.HandleFunc("/add", addUserHandler).Methods("POST")
-	s.HandleFunc("/add/validate", validateAddUserHandler).Methods("POST")
+
 	// Add API user
 	s.HandleFunc("/add-api-user", addAPIUserViewHandler).Methods("GET")
-	s.HandleFunc("/add-api-user/validate", validateAddAPIUserHandler).Methods("POST")
 	s.HandleFunc("/add-api-user", addAPIUserHandler).Methods("POST")
 
 	// User page
@@ -25,10 +24,8 @@ func AddRouter(r *mux.Router) {
 	// Edit user
 	s.HandleFunc("/{id}/edit", editUserViewHandler).Methods("GET")
 	s.HandleFunc("/{id}/edit", editUserHandler).Methods("POST")
-	s.HandleFunc("/{id}/edit/validate", validateEditUserHandler).Methods("POST")
 
 	// Reset password
 	s.HandleFunc("/{id}/reset-password", resetPasswordViewHandler).Methods("GET")
 	s.HandleFunc("/{id}/reset-password", resetPasswordHandler).Methods("POST")
-	s.HandleFunc("/{id}/reset-password/validate", validateResetPasswordHandler).Methods("POST")
 }

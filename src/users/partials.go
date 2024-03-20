@@ -135,12 +135,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 		confirmPasswordHelperType = components.InputHelperTypeError
 	}
 
-	commonHtmx := g.Group([]g.Node{
-		hx.Post("/users/add/validate"),
-		hx.Target("closest form"),
-		hx.Select("form > *"),
-	})
-
 	return components.Form(
 		h.ID("add-user-form"),
 		hx.Post("/users/add"),
@@ -155,7 +149,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(firstNameValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -168,7 +161,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(lastNameValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -181,7 +173,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(usernameValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -194,7 +185,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(emailValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -208,7 +198,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(passwordValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -223,7 +212,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(confirmPasswordValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -259,12 +247,6 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 		usernameHelperType = components.InputHelperTypeError
 	}
 
-	commonHtmx := g.Group([]g.Node{
-		hx.Post("/users/add-api-user/validate"),
-		hx.Target("closest form"),
-		hx.Select("form > *"),
-	})
-
 	return components.Form(
 		h.ID("add-api-user-form"),
 		hx.Post("/users/add-api-user"),
@@ -281,7 +263,6 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(usernameValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -412,12 +393,6 @@ func editUserForm(p *editUserFormProps) g.Node {
 		emailHelperType = components.InputHelperTypeError
 	}
 
-	commonHtmx := g.Group([]g.Node{
-		hx.Post(fmt.Sprintf("/users/%d/edit/validate", p.user.UserID)),
-		hx.Target("closest form"),
-		hx.Select("form > *"),
-	})
-
 	return components.Form(
 		h.ID("edit-user-form"),
 		hx.Post(fmt.Sprintf("/users/%d/edit", p.user.UserID)),
@@ -432,7 +407,6 @@ func editUserForm(p *editUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(firstNameValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -445,7 +419,6 @@ func editUserForm(p *editUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(lastNameValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -458,7 +431,6 @@ func editUserForm(p *editUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(usernameValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -471,7 +443,6 @@ func editUserForm(p *editUserFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(emailValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -520,12 +491,6 @@ func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 		confirmPasswordHelperType = components.InputHelperTypeError
 	}
 
-	commonHtmx := g.Group([]g.Node{
-		hx.Post(fmt.Sprintf("/users/%d/reset-password/validate", p.userID)),
-		hx.Target("closest form"),
-		hx.Select("form > *"),
-	})
-
 	return components.Form(
 		h.ID("reset-password-form"),
 		hx.Post(fmt.Sprintf("/users/%d/reset-password", p.userID)),
@@ -541,7 +506,6 @@ func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(passwordValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 
@@ -555,7 +519,6 @@ func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 			InputProps: []g.Node{
 				h.Value(confirmPasswordValue),
 				h.AutoComplete("off"),
-				commonHtmx,
 			},
 		}),
 

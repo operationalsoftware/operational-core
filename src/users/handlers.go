@@ -93,58 +93,6 @@ func addAPIUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	}).Render(w)
 }
 
-func validateAddUserHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := reqContext.GetContext(r)
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
-	if !hasPermission {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	var newUser userModel.NewUser
-	_ = utils.UnmarshalUrlValues(r.Form, &newUser)
-
-	_, validationErrors := userModel.ValidateNewUser(newUser)
-
-	_ = addUserForm(&addUserFormProps{
-		values:           r.Form,
-		validationErrors: validationErrors,
-	}).Render(w)
-
-}
-
-func validateAddAPIUserHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := reqContext.GetContext(r)
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
-	if !hasPermission {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	var newAPIUser userModel.NewAPIUser
-	_ = utils.UnmarshalUrlValues(r.Form, &newAPIUser)
-
-	_, validationErrors := userModel.ValidateNewAPIUser(newAPIUser)
-
-	_ = addApiUserForm(&addApiUserFormProps{
-		values:           r.Form,
-		validationErrors: validationErrors,
-	}).Render(w)
-
-}
-
 func addUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
@@ -269,51 +217,6 @@ func editUserViewHandler(w http.ResponseWriter, r *http.Request) {
 	}).Render(w)
 }
 
-func validateEditUserHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := reqContext.GetContext(r)
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
-	if !hasPermission {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		http.Error(w, "Invalid user id", http.StatusBadRequest)
-		return
-	}
-
-	err = r.ParseForm()
-	if err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	db := db.UseDB()
-	user, err := userModel.ByID(db, id)
-	if err != nil {
-		http.Error(w, "Error getting user", http.StatusBadRequest)
-		return
-	}
-
-	var userUpdate userModel.UserUpdate
-
-	err = utils.UnmarshalUrlValues(r.Form, &userUpdate)
-	if err != nil {
-		http.Error(w, "Error decoding form", http.StatusBadRequest)
-		return
-	}
-
-	_, validationErrors := userModel.ValidateUserUpdate(userUpdate)
-
-	_ = editUserForm(&editUserFormProps{
-		user:             user,
-		values:           r.Form,
-		validationErrors: validationErrors,
-	}).Render(w)
-
-}
-
 func editUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := reqContext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
@@ -388,44 +291,6 @@ func resetPasswordViewHandler(w http.ResponseWriter, r *http.Request) {
 		User: user,
 		Ctx:  ctx,
 	}).Render(w)
-}
-
-func validateResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := reqContext.GetContext(r)
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
-	if !hasPermission {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		http.Error(w, "Invalid user id", http.StatusBadRequest)
-		return
-	}
-
-	err = r.ParseForm()
-	if err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	var passwordReset userModel.PasswordReset
-
-	err = utils.UnmarshalUrlValues(r.Form, &passwordReset)
-	if err != nil {
-		http.Error(w, "Error decoding form", http.StatusBadRequest)
-		return
-	}
-
-	_, validationErrors := userModel.ValidatePasswordReset(passwordReset)
-
-	_ = resetPasswordForm(&resetPasswordFormProps{
-		userID:           id,
-		values:           r.Form,
-		validationErrors: validationErrors,
-	}).Render(w)
-
 }
 
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
