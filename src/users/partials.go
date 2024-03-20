@@ -154,6 +154,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 			HelperType:  firstNameHelperType,
 			InputProps: []g.Node{
 				h.Value(firstNameValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -166,6 +167,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 			HelperType:  lastNameHelperType,
 			InputProps: []g.Node{
 				h.Value(lastNameValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -178,6 +180,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 			HelperType:  usernameHelperType,
 			InputProps: []g.Node{
 				h.Value(usernameValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -190,6 +193,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 			HelperType:  emailHelperType,
 			InputProps: []g.Node{
 				h.Value(emailValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -203,10 +207,12 @@ func addUserForm(p *addUserFormProps) g.Node {
 			HelperType:  passwordHelperType,
 			InputProps: []g.Node{
 				h.Value(passwordValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
 
+		h.AutoComplete("off"),
 		components.Input(&components.InputProps{
 			Label:       confirmPasswordLabel,
 			Name:        confirmPasswordKey,
@@ -216,6 +222,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 			HelperType:  confirmPasswordHelperType,
 			InputProps: []g.Node{
 				h.Value(confirmPasswordValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -273,6 +280,7 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 			HelperType:  usernameHelperType,
 			InputProps: []g.Node{
 				h.Value(usernameValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -423,6 +431,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 			HelperType:  firstNameHelperType,
 			InputProps: []g.Node{
 				h.Value(firstNameValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -435,6 +444,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 			HelperType:  lastNameHelperType,
 			InputProps: []g.Node{
 				h.Value(lastNameValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -447,6 +457,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 			HelperType:  usernameHelperType,
 			InputProps: []g.Node{
 				h.Value(usernameValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -459,6 +470,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 			HelperType:  emailHelperType,
 			InputProps: []g.Node{
 				h.Value(emailValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -528,6 +540,7 @@ func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 			HelperType:  passwordHelperType,
 			InputProps: []g.Node{
 				h.Value(passwordValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
@@ -541,6 +554,7 @@ func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 			HelperType:  confirmPasswordHelperType,
 			InputProps: []g.Node{
 				h.Value(confirmPasswordValue),
+				h.AutoComplete("off"),
 				commonHtmx,
 			},
 		}),
