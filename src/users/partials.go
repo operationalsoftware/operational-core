@@ -201,7 +201,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 			},
 		}),
 
-		h.AutoComplete("off"),
 		components.Input(&components.InputProps{
 			Label:       confirmPasswordLabel,
 			Name:        confirmPasswordKey,
@@ -219,7 +218,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 
 		components.Button(
 			&components.ButtonProps{
-				Disabled: len(p.values) == 0 || p.validationErrors.HasErrors(),
+				Disabled: p.validationErrors.HasErrors(),
 			},
 			h.Type("submit"),
 			g.Text("Submit"),
@@ -270,7 +269,7 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 
 		components.Button(
 			&components.ButtonProps{
-				Disabled: len(p.values) == 0 || p.validationErrors.HasErrors(),
+				Disabled: p.validationErrors.HasErrors(),
 			},
 			h.Type("submit"),
 			g.Text("Submit"),
