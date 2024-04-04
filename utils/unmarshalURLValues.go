@@ -219,10 +219,12 @@ func UnmarshalUrlValues(urlValues url.Values, v interface{}) error {
 			// we support square bracket/index notation and multiple form values under
 			// same name
 
-			// filter the form data based on the field name prefix
+			// filter the form data based on the field name we are searching for.
+			// either the field name will be an exact match, or it will start with
+			// the field name followed immediately by a left square bracket
 			filteredForm := make(url.Values)
 			for k, v := range urlValues {
-				if strings.HasPrefix(k, fName) {
+				if k == fName || strings.HasPrefix(k, fName+"[") {
 					filteredForm[fName] = v
 				}
 			}
