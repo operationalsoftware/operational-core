@@ -3,6 +3,13 @@ package utils
 import "strings"
 
 func FormatDecimalWithCommas(input string) string {
+
+	isNegative := false
+	if strings.Index(input, "-") == 0 {
+		input = input[1:]
+		isNegative = true
+	}
+
 	// Split the input on the decimal point
 	parts := strings.Split(input, ".")
 
@@ -14,7 +21,11 @@ func FormatDecimalWithCommas(input string) string {
 		return integerPart
 	}
 
-	return integerPart + "." + parts[1]
+	if isNegative {
+		return "-" + integerPart + "." + parts[1]
+	} else {
+		return integerPart + "." + parts[1]
+	}
 }
 
 func formatIntWithCommas(s string) string {
