@@ -64,9 +64,15 @@ func parseTime(strValue string) (time.Time, error) {
 	// so we use https://pkg.go.dev/github.com/snabb/isoweek
 	if matched := regexp.MustCompile("^\\d{4}-W\\d{2}$").MatchString(strValue); matched {
 		parts := strings.Split(strValue, "-W")
-		wyear := parts[0]
-		week := parts[1]
-		return isoweek.StartTime(wyear, week), nil
+		wyear, err := strconv.Atoi(parts[0])
+		if err != nil {
+			panic(err) // should never happen as we matched the regex
+		}
+		week, err := strconv.Atoi(parts[1])
+		if err != nil {
+			panic(err)
+		}
+		return isoweek.StartTime(wyear, week, time.UTC), nil
 	}
 
 	formats := []string{
