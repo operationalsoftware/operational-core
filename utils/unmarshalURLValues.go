@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
+	"github.com/snabb/isoweek"
 )
 
 // settable field kinds
@@ -53,6 +55,20 @@ func isSettableField(field reflect.Value) bool {
 }
 
 func parseTime(strValue string) (time.Time, error) {
+	var parsedValue time.Time
+	var err error
+
+	// check for match against HTML week string format:
+	// https://developer.mozilla.org/en-US/docs/Web/HTML/Date_and_time_formats#week_strings
+	// the golang standard library doesn't support parsing ISO Years and weeks
+	// so we use https://pkg.go.dev/github.com/snabb/isoweek
+	if matched := regexp.MustCompile("^\\d{4}-W\\d{2}$").MatchString(strValue); matched {
+		parts := strings.Split(strValue, "-W")
+		wyear := parts[0]
+		week := parts[1]
+		return isoweek.StartTime(wyear, week), nil
+	}
+
 	formats := []string{
 		"2006-01-02", // for input type=date
 		"2006-01",    // for input type=month
@@ -63,9 +79,6 @@ func parseTime(strValue string) (time.Time, error) {
 		"02/01/2006 15:04:05",
 		// Add more formats as needed
 	}
-
-	var parsedValue time.Time
-	var err error
 
 	for _, format := range formats {
 		parsedValue, err = time.Parse(format, strValue)
