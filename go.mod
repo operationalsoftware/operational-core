@@ -18,5 +18,6 @@ require (
 
 require (
 	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/snabb/isoweek v1.0.3 // indirect
 	golang.org/x/net v0.21.0 // indirect
 )
