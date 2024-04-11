@@ -1,5 +1,35 @@
 @import "./variables.css";
 
+/* Native inputs/select by type */
+input, select {
+  border: 1.5px solid var(--border-color-dark);
+  border-radius: var(--border-radius);
+  background-color: var(--background-color-content);
+  color: var(--text-color);
+  padding: var(--spacing);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  transition: border-color 0.2s ease-in-out, border-width 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+
+  &:hover, :focus-visible {
+    border-color: var(--border-hover-color);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0.1px 0.5px var(--border-hover-color);
+  }
+
+  &.sm {
+    font-size: var(--font-size-xs);
+  }
+
+  &.lg {
+    font-size: var(--font-size-lg);
+  }
+}
+
 /* Start Alert */
 .alert {
   padding: var(--spacing);
