@@ -1,0 +1,35 @@
+main {
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 500px;
+  margin-top: var(--spacing-xxl);
+  padding: var(--spacing-xl);
+
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* align-items: center; */
+
+  .logo-wrapper {
+    display: flex;
+    justify-content: center;
+
+    .logo-img-full {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+    }
+  }
+
+  form {
+    margin-top: var(--spacing-xl);
+  }
+
+  p.error {
+    color: var(--error-color);
+  }
+}
+

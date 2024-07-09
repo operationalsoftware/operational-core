@@ -325,6 +325,22 @@ input, select {
 }
 /* End Loading Spinner */
 
+/* Start LogoImgFull */
+img.logo-img-full.dark-theme {
+  display: none;
+}
+
+:root[data-theme="dark"] {
+  img.logo-img-full {
+    display: none;
+  }
+  img.logo-img-full.dark-theme {
+    display: block;
+  }
+}
+/* End LogoImgFull */
+
+
 /* Start Modal */
 .modal {
   display: flex;

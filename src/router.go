@@ -1,12 +1,11 @@
 package src
 
 import (
-	"net/http"
 	"app/assets"
-	"app/middlewares"
-	"app/src/login"
+	"app/middleware"
 	"app/src/logout"
 	"app/src/users"
+	"net/http"
 
 	"github.com/gorilla/mux"
 )
@@ -30,7 +29,6 @@ func Router() *mux.Router {
 
 	// add subrouters
 	users.AddRouter(r)
-	login.AddRouter(r)
 	logout.AddRouter(r)
 
 	// 404

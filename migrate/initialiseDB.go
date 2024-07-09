@@ -2,7 +2,7 @@ package migrate
 
 import (
 	"app/db"
-	userModel "app/src/users/model"
+	"app/models/usermodel"
 	"fmt"
 	"log"
 )
@@ -50,22 +50,22 @@ CREATE TABLE User (
 	// add the system user with a random password
 	fmt.Print("Creating system user... ")
 
-	password, err := userModel.GenerateRandomPassword(24)
+	password, err := usermodel.GenerateRandomPassword(24)
 	if err != nil {
 		panic(err)
 	}
 
-	var userToAdd = userModel.NewAPIUser{
+	var userToAdd = usermodel.NewAPIUser{
 		Username: "system",
 		Password: password,
-		Permissions: userModel.UserPermissions{
-			UserAdmin: userModel.UserAdminPermissions{
+		Permissions: usermodel.UserPermissions{
+			UserAdmin: usermodel.UserAdminPermissions{
 				Access: true,
 			},
 		},
 	}
 
-	err = userModel.AddAPIUser(tx, userToAdd)
+	err = usermodel.AddAPIUser(tx, userToAdd)
 	if err != nil {
 		return false
 	}

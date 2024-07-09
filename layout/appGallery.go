@@ -2,8 +2,8 @@ package layout
 
 import (
 	"app/components"
-	reqContext "app/reqcontext"
-	userModel "app/src/users/model"
+	"app/models/usermodel"
+	"app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
@@ -15,7 +15,7 @@ type AppGalleryModule struct {
 	Icon string
 	Name string
 	Link string
-	Show func(userModel.UserPermissions) bool
+	Show func(usermodel.UserPermissions) bool
 }
 
 // icons array
@@ -24,14 +24,14 @@ var AppGalleryModules = []AppGalleryModule{
 		Icon: "account-group",
 		Name: "Users",
 		Link: "/users",
-		Show: func(permissions userModel.UserPermissions) bool {
+		Show: func(permissions usermodel.UserPermissions) bool {
 			return permissions.UserAdmin.Access
 		},
 	},
 }
 
 type appGalleryProps struct {
-	Ctx reqContext.ReqContext
+	Ctx reqcontext.ReqContext
 }
 
 func appGallery(p *appGalleryProps) g.Node {

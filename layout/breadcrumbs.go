@@ -3,7 +3,7 @@ package layout
 import (
 	o "app/components"
 	"app/db"
-	userModel "app/src/users/model"
+	"app/models/usermodel"
 	"strconv"
 	"strings"
 
@@ -51,7 +51,7 @@ var breadcrumbsDef = breadcrumbsType{
 							return "Error"
 						}
 						db := db.UseDB()
-						user, err := userModel.ByID(db, userId)
+						user, err := usermodel.ByID(db, userId)
 						if err != nil {
 							return "Error"
 						}

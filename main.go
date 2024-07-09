@@ -8,18 +8,20 @@ import (
 
 	"app/db"
 	"app/migrate"
-	"app/src"
+	"app/routes"
 	"app/utils"
-
-	"github.com/gorilla/handlers"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
 	retcode := 0
-	defer func() { os.Exit(retcode) }()
-
 	var err error
+
+	defer func() {
+		if err != nil {
+			fmt.Println(err)
+		}
+		os.Exit(retcode)
+	}()
 
 	// Load environment (if not in production or staging)
 	err = utils.LoadEnv()
@@ -53,15 +55,15 @@ func main() {
 	// Initialise some things for start up
 	utils.InitCookieInstance()
 
-	// Get router
-	r := src.Router()
-
-	// Wrap router with Gorilla logging
-	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
+	// define server
+	server := http.Server{
+		Addr:    ":3000",
+		Handler: routes.Handler(),
+	}
 
 	// Bind to a port and pass our router in
 	fmt.Println("http://localhost:3000")
-	err = http.ListenAndServe(":3000", loggedRouter)
+	err = server.ListenAndServe()
 	if err != nil {
 		log.Println(err)
 		retcode = 1
