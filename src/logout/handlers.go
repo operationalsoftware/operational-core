@@ -1,8 +1,8 @@
 package logout
 
 import (
-	"net/http"
 	"app/utils"
+	"net/http"
 	"time"
 )
 
