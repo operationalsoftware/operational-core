@@ -10,8 +10,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 func UsersHomePage(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +37,7 @@ func UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = usersviews.UsersPage(&usersviews.UsersPageProps{
+	_ = usersviews.UsersHomePage(&usersviews.UsersHomePageProps{
 		Ctx:       ctx,
 		Users:     users,
 		UserCount: count,
@@ -57,7 +55,7 @@ func UserPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
@@ -77,19 +75,6 @@ func AddUserPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = usersviews.AddUserPage(&usersviews.AddUserPageProps{
-		Ctx: ctx,
-	}).Render(w)
-}
-
-func AddAPIUserPage(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
-	if !hasPermission {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	_ = usersviews.AddAPIUserPage(&usersviews.AddAPIUserPageProps{
 		Ctx: ctx,
 	}).Render(w)
 }
@@ -118,10 +103,10 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 
 	valid, validationErrors := usermodel.ValidateNewUser(newUser)
 	if !valid {
-		_ = addUserForm(&addUserFormProps{
-			values:           r.Form,
-			validationErrors: validationErrors,
-			isSubmission:     true,
+		_ = usersviews.AddUserPage(&usersviews.AddUserPageProps{
+			Values:           r.Form,
+			ValidationErrors: validationErrors,
+			IsSubmission:     true,
 		}).Render(w)
 		return
 	}
@@ -133,8 +118,20 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error adding user", http.StatusInternalServerError)
 	}
 
-	// Redirect to users view
-	w.Header().Set("hx-redirect", "/users")
+	http.Redirect(w, r, "/users", http.StatusSeeOther)
+}
+
+func AddAPIUserPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	hasPermission := ctx.User.Permissions.UserAdmin.Access
+	if !hasPermission {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	_ = usersviews.AddAPIUserPage(&usersviews.AddAPIUserPageProps{
+		Ctx: ctx,
+	}).Render(w)
 }
 
 func AddAPIUser(w http.ResponseWriter, r *http.Request) {
@@ -167,10 +164,10 @@ func AddAPIUser(w http.ResponseWriter, r *http.Request) {
 
 	valid, validationErrors := usermodel.ValidateNewAPIUser(newAPIUser)
 	if !valid {
-		_ = addApiUserForm(&addApiUserFormProps{
-			values:           r.Form,
-			validationErrors: validationErrors,
-			isSubmission:     true,
+		_ = usersviews.AddAPIUserPage(&usersviews.AddAPIUserPageProps{
+			Values:           r.Form,
+			ValidationErrors: validationErrors,
+			IsSubmission:     true,
 		}).Render(w)
 		return
 	}
@@ -182,10 +179,7 @@ func AddAPIUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error adding API user", http.StatusInternalServerError)
 	}
 
-	w.Header().Set("HX-Reswap", "outerHTML")
-	w.Header().Set("HX-Reselect", ".card")
-
-	_ = apiUserCredentials(&apiUserCredentialsProps{
+	_ = usersviews.APIUserCredentialsPage(&usersviews.APIUserCredentialsPageProps{
 		Username: newAPIUser.Username,
 		Password: password,
 	}).Render(w)
@@ -199,7 +193,7 @@ func EditUserPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
@@ -226,7 +220,7 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
@@ -247,10 +241,10 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 
 	valid, validationErrors := usermodel.ValidateUserUpdate(userUpdate)
 	if !valid {
-		_ = editUserForm(&editUserFormProps{
-			values:           r.Form,
-			validationErrors: validationErrors,
-			isSubmission:     true,
+		_ = usersviews.EditUserPage(&usersviews.EditUserPageProps{
+			Values:           r.Form,
+			ValidationErrors: validationErrors,
+			IsSubmission:     true,
 		}).Render(w)
 		return
 	}
@@ -262,9 +256,7 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 		log.Panic(err)
 	}
 
-	// Redirect to user view
-	w.Header().Set("hx-redirect", "/users")
-
+	http.Redirect(w, r, "/users", http.StatusSeeOther)
 }
 
 func ResetPasswordPage(w http.ResponseWriter, r *http.Request) {
@@ -274,8 +266,7 @@ func ResetPasswordPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
-
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
@@ -302,11 +293,13 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
 	}
+
+	db := db.UseDB()
 
 	err = r.ParseForm()
 	if err != nil {
@@ -323,16 +316,22 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 
 	valid, validationErrors := usermodel.ValidatePasswordReset(passwordReset)
 	if !valid {
-		_ = resetPasswordForm(&resetPasswordFormProps{
-			userID:           id,
-			values:           r.Form,
-			validationErrors: validationErrors,
-			isSubmission:     true,
+		user, err := usermodel.ByID(db, id)
+		if err != nil {
+			http.Error(w, "Error getting user", http.StatusBadRequest)
+			return
+		}
+
+		_ = usersviews.ResetPasswordPage(&usersviews.ResetPasswordPageProps{
+			Ctx:              ctx,
+			User:             user,
+			Values:           r.Form,
+			ValidationErrors: validationErrors,
+			IsSubmission:     true,
 		}).Render(w)
 		return
 	}
 
-	db := db.UseDB()
 	err = usermodel.ResetPassword(db, id, passwordReset)
 
 	if err != nil {
@@ -340,6 +339,5 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect to user view
-	w.Header().Set("hx-redirect", fmt.Sprintf("/users/%d", id))
+	http.Redirect(w, r, fmt.Sprintf("/users/%d", id), http.StatusSeeOther)
 }

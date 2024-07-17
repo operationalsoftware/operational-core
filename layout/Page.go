@@ -1,7 +1,7 @@
 package layout
 
 import (
-	reqContext "app/reqcontext"
+	"app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -13,7 +13,7 @@ type PageProps struct {
 	Content    g.Node
 	AppendHead []g.Node
 	AppendBody []g.Node
-	Ctx        reqContext.ReqContext
+	Ctx        reqcontext.ReqContext
 }
 
 func Page(p PageProps) g.Node {
@@ -27,7 +27,6 @@ func Page(p PageProps) g.Node {
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/global.css")),
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/components.css")),
 		h.Link(h.Rel("stylesheet"), h.Type("text/css"), h.Href("/static/css/layout.css")),
-		h.Script(h.Type("text/javascript"), h.Src("https://cdn.jsdelivr.net/gh/gnat/surreal/surreal.js")),
 		h.Script(h.Type("text/javascript"), h.Src("/static/js/global.js")),
 	}
 
@@ -39,7 +38,6 @@ func Page(p PageProps) g.Node {
 			content: p.Content,
 			Ctx:     p.Ctx,
 		}),
-		h.Script(h.Type("text/javascript"), h.Src("/static/js/htmx.min.js")),
 		h.Script(h.Type("text/javascript"), h.Src("/static/js/components.js")),
 	}
 

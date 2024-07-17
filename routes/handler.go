@@ -4,27 +4,23 @@ import (
 	"app/assets"
 	"app/middleware"
 	"app/routes/auth"
-	"app/routes/home"
 	"app/routes/notfound"
 	"app/routes/users"
 	"net/http"
 )
 
 func Handler() http.Handler {
-
-	// all routes middlewares
+	// Add logging before each middleware or handler setup
 	pubstack := middleware.CreateStack(
 		middleware.Security,
 		middleware.Logging,
 	)
 
-	// private routes middleware
 	privstack := middleware.CreateStack(
 		middleware.Authentication,
 		middleware.AuthRedirect,
 	)
 
-	// main router
 	r := http.NewServeMux()
 
 	// public static assets file server
@@ -39,8 +35,8 @@ func Handler() http.Handler {
 
 	pr.Handle("/users/", http.StripPrefix("/users", users.Handler()))
 
-	pr.HandleFunc("GET /", home.HomePage)
-
+	// pr.HandleFunc("GET /", home.HomePage)
+	//
 	pr.HandleFunc("/", notfound.Handler)
 
 	// use private routes handler for all remaining routes

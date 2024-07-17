@@ -6,7 +6,6 @@ import (
 	"app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
-	hx "github.com/maragudk/gomponents-htmx"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
@@ -46,8 +45,6 @@ func appGallery(p *appGalleryProps) g.Node {
 			components.Icon(&components.IconProps{
 				Identifier: "dots",
 			}),
-			// use htmx to toggle class
-			hx.On("click", "htmx.toggleClass(htmx.find('.app-gallery-content__container'), 'show')"),
 		),
 		h.Div(
 			h.Class("app-gallery-content__container"),

@@ -24,6 +24,10 @@ main {
     }
   }
 
+  h1 {
+    text-align: center;
+  }
+
   form {
     margin-top: var(--spacing-xl);
   }

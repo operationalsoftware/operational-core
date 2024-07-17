@@ -5,7 +5,6 @@ import (
 	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
-	ghtmx "github.com/maragudk/gomponents-htmx"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
@@ -27,8 +26,6 @@ func avatarDropdown(p *avatarDropdownProps) g.Node {
 			components.Icon(&components.IconProps{
 				Identifier: "account",
 			}),
-			// use htmx to toggle class
-			ghtmx.On("click", "htmx.toggleClass(htmx.find('.dropdown'), 'show')"),
 		),
 		h.Div(
 			h.Class("dropdown"),
@@ -57,12 +54,7 @@ func avatarDropdown(p *avatarDropdownProps) g.Node {
 						),
 					),
 				),
-				h.Button(
-					h.Class("logout-btn"),
-					ghtmx.Post("/logout"),
-					ghtmx.Swap("none"),
-					g.Text("Logout"),
-				),
+				h.Button(h.Class("logout-btn"), g.Text("Logout")),
 				h.Section(
 					h.Class("actions"),
 					h.Button(

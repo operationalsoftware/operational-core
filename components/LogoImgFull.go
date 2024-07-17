@@ -24,12 +24,12 @@ func LogoImgFull(classes c.Classes, children ...g.Node) g.Node {
 	return g.Group([]g.Node{
 		h.Img(
 			classes,
-			h.Src("/static/img/rms-logo.png"),
+			h.Src("/static/img/logo.png"),
 			g.Group(children),
 		),
 		h.Img(
 			darkClasses,
-			h.Src("/static/img/rms-logo-dark-theme.png"),
+			h.Src("/static/img/logo.png"),
 			g.Group(children),
 		),
 	})

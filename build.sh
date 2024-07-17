@@ -3,7 +3,7 @@
 # Fail on any error
 set -e
 
-go-assets-builder --package=assets --output=assets/assets.go $(find ./components ./layout ./static ./src -type f ! -name "*.go")
+go-assets-builder --package=assets --output=assets/assets.go $(find ./components ./layout ./static ./routes -type f ! -name "*.go")
 
 # error if executable name not provided as first argument
 if [ -z "$1" ]; then

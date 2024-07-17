@@ -3,12 +3,14 @@ package authviews
 import (
 	"app/components"
 	"app/layout"
+	"app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
 type PasswordLoginPageProps struct {
+	Ctx              reqcontext.ReqContext
 	Username         string
 	LogInFailedError string
 	HasServerError   bool
@@ -35,6 +37,7 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 					h.Input(
 						h.Name("Username"),
 						h.Value(p.Username),
+						g.Attr("autocomplete", "on"),
 					),
 				),
 
@@ -74,6 +77,7 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
+		Ctx:     p.Ctx,
 		Content: content,
 		Title:   "Log In",
 	})

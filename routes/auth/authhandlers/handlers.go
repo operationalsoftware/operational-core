@@ -3,16 +3,20 @@ package authhandlers
 import (
 	"app/db"
 	"app/models/authmodel"
+	"app/reqcontext"
 	"app/routes/auth/authviews"
 	"app/utils"
 	"database/sql"
-	"fmt"
 	"net/http"
 	"time"
 )
 
 func PasswordLogInPage(w http.ResponseWriter, r *http.Request) {
-	_ = authviews.PasswordLoginPage(authviews.PasswordLoginPageProps{}).
+	ctx := reqcontext.GetContext(r)
+
+	_ = authviews.PasswordLoginPage(authviews.PasswordLoginPageProps{
+		Ctx: ctx,
+	}).
 		Render(w)
 
 	return
@@ -86,7 +90,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 func setSessionCookie(w http.ResponseWriter, userID int) error {
 	// set session cookie!
-	encoded, err := utils.CookieInstance.Encode("login-session", fmt.Sprintf("%d", userID))
+	encoded, err := utils.CookieInstance.Encode("login-session", userID)
 	if err != nil {
 		return err
 	}

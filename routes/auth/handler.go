@@ -3,6 +3,7 @@ package auth
 import (
 	"app/routes/auth/authhandlers"
 	"app/routes/notfound"
+	"fmt"
 	"net/http"
 )
 
@@ -16,7 +17,10 @@ func Handler() http.Handler {
 	// log out
 	r.HandleFunc("/logout", authhandlers.Logout)
 
-	r.HandleFunc("/", notfound.Handler)
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("NOT FOUND")
+		notfound.Handler(w, r)
+	})
 
 	return r
 }

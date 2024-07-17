@@ -8,16 +8,20 @@ import (
 	"app/utils"
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strings"
 )
 
 func Authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		var id int
 		cookie, err := r.Cookie("login-session")
 		if err == nil {
 			err = utils.CookieInstance.Decode("login-session", cookie.Value, &id)
+			fmt.Println(err)
+
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return

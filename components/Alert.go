@@ -2,7 +2,6 @@ package components
 
 import (
 	g "github.com/maragudk/gomponents"
-	ghtmx "github.com/maragudk/gomponents-htmx"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
@@ -35,7 +34,6 @@ func Alert(p *AlertProps) g.Node {
 		classes,
 		g.Text(p.Message),
 		h.Div(
-			ghtmx.On("click", "htmx.toggleClass(htmx.find('.alert'), 'hide')"),
 			Icon(&IconProps{
 				Identifier: "close",
 			}),

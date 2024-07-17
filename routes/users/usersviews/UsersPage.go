@@ -13,7 +13,7 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-type UsersPageProps struct {
+type UsersHomePageProps struct {
 	Ctx       reqcontext.ReqContext
 	Users     []usermodel.User
 	UserCount int
@@ -23,7 +23,7 @@ type UsersPageProps struct {
 	MyFilter  string
 }
 
-func UsersPage(p *UsersPageProps) g.Node {
+func UsersHomePage(p *UsersHomePageProps) g.Node {
 
 	var columns = components.TableColumns{
 		{
