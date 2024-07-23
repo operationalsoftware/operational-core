@@ -34,7 +34,7 @@ func AddAPIUserPage(p *AddAPIUserPageProps) g.Node {
 		Title:   "Add New API User",
 		Content: content,
 		AppendHead: []g.Node{
-			components.InlineStyle("/routes/users/usersviews/addApiUser..css"),
+			components.InlineStyle("/routes/users/usersviews/addApiUser.css"),
 		},
 	})
 }

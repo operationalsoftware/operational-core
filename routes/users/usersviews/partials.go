@@ -46,7 +46,7 @@ func permissionsCheckboxes(userPermissions usermodel.UserPermissions) g.Node {
 			},
 		),
 
-		components.InlineStyle("/src/users/permissions.css"),
+		components.InlineStyle("/routes/users/usersviews/permissions.css"),
 	)
 
 }

@@ -121,6 +121,8 @@ func addUserForm(p *addUserFormProps) g.Node {
 
 	return components.Form(
 		h.ID("add-user-form"),
+		h.Method("POST"),
+
 		components.Input(&components.InputProps{
 			Label:       firstNameLabel,
 			Name:        firstNameKey,

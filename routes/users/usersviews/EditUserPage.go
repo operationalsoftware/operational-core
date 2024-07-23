@@ -119,6 +119,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 
 	return components.Form(
 		h.ID("edit-user-form"),
+		h.Method("POST"),
 
 		components.Input(&components.InputProps{
 			Label:       firstNameLabel,
