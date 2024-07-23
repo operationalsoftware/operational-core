@@ -2,8 +2,8 @@ package usersviews
 
 import (
 	"app/components"
+	"app/internal/reqcontext"
 	"app/layout"
-	"app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"

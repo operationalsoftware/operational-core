@@ -1,11 +1,12 @@
 package authhandlers
 
 import (
-	"app/db"
+	"app/internal/cookie"
+	"app/internal/db"
+	"app/internal/reqcontext"
+	"app/internal/urlvalues"
 	"app/models/authmodel"
-	"app/reqcontext"
 	"app/routes/auth/authviews"
-	"app/utils"
 	"database/sql"
 	"net/http"
 	"time"
@@ -29,7 +30,7 @@ func PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	_ = r.ParseForm()
 	var formData authmodel.VerifyPasswordLoginInput
-	err = utils.UnmarshalUrlValues(r.PostForm, &formData)
+	err = urlvalues.Unmarshal(r.PostForm, &formData)
 	if err != nil {
 		retryPageProps.HasServerError = true
 		retryPageProps.Username = formData.Username
@@ -90,7 +91,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 func setSessionCookie(w http.ResponseWriter, userID int) error {
 	// set session cookie!
-	encoded, err := utils.CookieInstance.Encode("login-session", userID)
+	encoded, err := cookie.CookieInstance.Encode("login-session", userID)
 	if err != nil {
 		return err
 	}

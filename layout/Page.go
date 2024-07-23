@@ -1,7 +1,7 @@
 package layout
 
 import (
-	"app/reqcontext"
+	"app/internal/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"

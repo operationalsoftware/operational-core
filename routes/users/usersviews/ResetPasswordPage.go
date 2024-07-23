@@ -2,10 +2,10 @@ package usersviews
 
 import (
 	"app/components"
+	"app/internal/reqcontext"
+	"app/internal/validation"
 	"app/layout"
 	"app/models/usermodel"
-	"app/reqcontext"
-	"app/validation"
 	"net/url"
 
 	g "github.com/maragudk/gomponents"
@@ -36,7 +36,7 @@ func ResetPasswordPage(p *ResetPasswordPageProps) g.Node {
 		Content: resetPasswordContent,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/src/users/resetPassword.css"),
+			components.InlineStyle("/routes/users/usersviews/resetPassword.css"),
 		},
 	})
 }

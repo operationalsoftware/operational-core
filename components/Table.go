@@ -1,7 +1,7 @@
 package components
 
 import (
-	"app/utils"
+	"app/internal/appsort"
 	"fmt"
 	"math"
 
@@ -34,22 +34,22 @@ type TableColumn struct {
 
 type TableColumns []TableColumn
 
-func getSortIconIdentifier(sort utils.Sort, key string) string {
-	sortDirection := sort.GetSortDirection(key)
+func getSortIconIdentifier(sort appsort.Sort, key string) string {
+	sortDirection := sort.GetDirection(key)
 	if sortDirection == "" {
 		return "arrow-up-down"
-	} else if sortDirection == utils.SortDirectionAsc {
+	} else if sortDirection == appsort.DirectionAsc {
 		return "arrow-up"
 	}
 	return "arrow-down"
 }
 
-func generateSortString(currentSort utils.Sort, key string) string {
+func generateSortString(currentSort appsort.Sort, key string) string {
 
 	// create a copy of the current sort
 	// this is important as the current sort may be passed to this function several
 	// times with different keys, and we don't want to mutate the original sort
-	sort := make(utils.Sort, len(currentSort))
+	sort := make(appsort.Sort, len(currentSort))
 	copy(sort, currentSort)
 
 	// If the key is not in the sort, add it with the default sort direction (asc)
@@ -61,24 +61,24 @@ func generateSortString(currentSort utils.Sort, key string) string {
 	for i, s := range sort {
 		if s.Key == key {
 			isInSort = true
-			if i == len(sort)-1 && s.Sort == utils.SortDirectionDesc {
+			if i == len(sort)-1 && s.Sort == appsort.DirectionDesc {
 				// remove it
 				sort = append(sort[:i], sort[i+1:]...)
 			} else {
 				// reverse the sort direction
-				if s.Sort == utils.SortDirectionAsc {
-					sort[i].Sort = utils.SortDirectionDesc
+				if s.Sort == appsort.DirectionAsc {
+					sort[i].Sort = appsort.DirectionDesc
 				} else {
-					sort[i].Sort = utils.SortDirectionAsc
+					sort[i].Sort = appsort.DirectionAsc
 				}
 			}
 		}
 	}
 
 	if !isInSort {
-		sort = append(sort, utils.SortItem{
+		sort = append(sort, appsort.SortItem{
 			Key:  key,
-			Sort: utils.SortDirectionAsc,
+			Sort: appsort.DirectionAsc,
 		})
 	}
 
@@ -88,14 +88,14 @@ func generateSortString(currentSort utils.Sort, key string) string {
 type sortRadioProps struct {
 	onChange      string
 	sortQueryKey  string
-	sort          utils.Sort
+	sort          appsort.Sort
 	columnSortKey string
 }
 
 func sortRadio(p *sortRadioProps) g.Node {
 
 	iconIdentifier := getSortIconIdentifier(p.sort, p.columnSortKey)
-	sortPosition := p.sort.GetSortPosition(p.columnSortKey)
+	sortIndex := p.sort.GetIndex(p.columnSortKey)
 
 	return h.Label(
 		h.Input(
@@ -107,14 +107,14 @@ func sortRadio(p *sortRadioProps) g.Node {
 		Icon(&IconProps{
 			Identifier: iconIdentifier,
 		}),
-		g.If(sortPosition != -1, h.Span(g.Text(fmt.Sprintf("%d", sortPosition+1)))),
+		g.If(sortIndex != -1, h.Span(g.Text(fmt.Sprintf("%d", sortIndex+1)))),
 	)
 }
 
 type tableHeadProps struct {
 	columns      TableColumns
 	sortableKeys []string
-	sort         utils.Sort
+	sort         appsort.Sort
 	sortQueryKey string
 	onChange     string
 }
@@ -283,7 +283,7 @@ type TableProps struct {
 	Columns      TableColumns
 	SortableKeys []string
 	Rows         TableRows
-	Sort         utils.Sort
+	Sort         appsort.Sort
 	SortQueryKey string
 	Pagination   TablePaginationProps
 	OnChange     string

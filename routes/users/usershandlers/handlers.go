@@ -1,11 +1,12 @@
 package usershandlers
 
 import (
-	"app/db"
+	"app/internal/appsort"
+	"app/internal/db"
+	"app/internal/reqcontext"
+	"app/internal/urlvalues"
 	"app/models/usermodel"
-	"app/reqcontext"
 	"app/routes/users/usersviews"
-	"app/utils"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,7 +22,7 @@ func UsersHomePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := db.UseDB()
-	sort := utils.Sort{}
+	sort := appsort.Sort{}
 	sort.ParseQueryParam(ctx.Req.URL.Query().Get("Sort"), usermodel.ListSortableKeys)
 
 	users, err := usermodel.List(db, usermodel.ListQuery{
@@ -94,7 +95,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newUser usermodel.NewUser
-	err = utils.UnmarshalUrlValues(r.Form, &newUser)
+	err = urlvalues.Unmarshal(r.Form, &newUser)
 
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
@@ -149,7 +150,7 @@ func AddAPIUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newAPIUser usermodel.NewAPIUser
-	_ = utils.UnmarshalUrlValues(r.Form, &newAPIUser)
+	_ = urlvalues.Unmarshal(r.Form, &newAPIUser)
 
 	password, err := usermodel.GenerateRandomPassword(24)
 	if err != nil {
@@ -233,7 +234,7 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userUpdate usermodel.UserUpdate
-	err = utils.UnmarshalUrlValues(r.Form, &userUpdate)
+	err = urlvalues.Unmarshal(r.Form, &userUpdate)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
@@ -308,7 +309,7 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var passwordReset usermodel.PasswordReset
-	err = utils.UnmarshalUrlValues(r.Form, &passwordReset)
+	err = urlvalues.Unmarshal(r.Form, &passwordReset)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return

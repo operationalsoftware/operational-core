@@ -1,4 +1,4 @@
-package utils
+package env
 
 import (
 	"encoding/hex"
@@ -10,9 +10,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// LoadEnv loads environment variables from .env file when not in production or
+// Load loads environment variables from .env file when not in production or
 // staging
-func LoadEnv() error {
+func Load() error {
 	// Check if GO_ENV is "staging" or "production"
 	goEnv := os.Getenv("GO_ENV")
 	if goEnv != "staging" && goEnv != "production" {
@@ -26,9 +26,9 @@ func LoadEnv() error {
 	return nil
 }
 
-// VerifyEnv verifies that all required environment variables are set
+// Verify verifies that all required environment variables are set
 // and suggests a random value if not set
-func VerifyEnv() error {
+func Verify() error {
 	var fail bool = false
 	if os.Getenv("SECURE_COOKIE_HASH_KEY") == "" {
 		fmt.Println("SECURE_COOKIE_HASH_KEY environment variable not set")

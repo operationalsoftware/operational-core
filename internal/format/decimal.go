@@ -1,8 +1,8 @@
-package utils
+package format
 
 import "strings"
 
-func FormatDecimalWithCommas(input string) string {
+func DecimalWithCommas(input string) string {
 
 	isNegative := false
 	if strings.Index(input, "-") == 0 {

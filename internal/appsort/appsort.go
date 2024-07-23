@@ -1,17 +1,17 @@
-package utils
+package appsort
 
 import "strings"
 
-type SortDirection string
+type Direction string
 
 const (
-	SortDirectionAsc  SortDirection = "asc"
-	SortDirectionDesc SortDirection = "desc"
+	DirectionAsc  Direction = "asc"
+	DirectionDesc Direction = "desc"
 )
 
 type SortItem struct {
 	Key  string
-	Sort SortDirection
+	Sort Direction
 }
 
 type Sort []SortItem
@@ -22,9 +22,9 @@ func (s *Sort) ParseQueryParam(queryParam string, allowedKeys []string) {
 		sortItems := strings.Split(queryParam, "-")
 		for i := 0; i < len(sortItems); i += 2 {
 			key := sortItems[i]
-			direction := SortDirection(sortItems[i+1])
+			direction := Direction(sortItems[i+1])
 			// validate direction
-			if direction != SortDirectionAsc && direction != SortDirectionDesc {
+			if direction != DirectionAsc && direction != DirectionDesc {
 				continue
 			}
 			// validate parsed key is in allowed keys
@@ -38,7 +38,7 @@ func (s *Sort) ParseQueryParam(queryParam string, allowedKeys []string) {
 
 			sort = append(sort, SortItem{
 				Key:  sortItems[i],
-				Sort: SortDirection(sortItems[i+1]),
+				Sort: Direction(sortItems[i+1]),
 			})
 		}
 	}
@@ -68,7 +68,7 @@ func (s *Sort) IsSortedBy(key string) bool {
 	return false
 }
 
-func (s *Sort) GetSortPosition(key string) int {
+func (s *Sort) GetIndex(key string) int {
 	for i, si := range *s {
 		if si.Key == key {
 			return i
@@ -78,7 +78,7 @@ func (s *Sort) GetSortPosition(key string) int {
 	return -1
 }
 
-func (s *Sort) GetSortDirection(key string) SortDirection {
+func (s *Sort) GetDirection(key string) Direction {
 	for _, si := range *s {
 		if si.Key == key {
 			return si.Sort

@@ -2,10 +2,10 @@ package usersviews
 
 import (
 	"app/components"
+	"app/internal/reqcontext"
+	"app/internal/validation"
 	"app/layout"
 	"app/models/usermodel"
-	"app/reqcontext"
-	"app/validation"
 	"net/url"
 
 	g "github.com/maragudk/gomponents"
@@ -34,7 +34,7 @@ func AddAPIUserPage(p *AddAPIUserPageProps) g.Node {
 		Title:   "Add New API User",
 		Content: content,
 		AppendHead: []g.Node{
-			components.InlineStyle("/src/users/addApiUser.css"),
+			components.InlineStyle("/routes/users/usersviews/addApiUser..css"),
 		},
 	})
 }

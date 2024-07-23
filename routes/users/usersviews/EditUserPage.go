@@ -2,10 +2,10 @@ package usersviews
 
 import (
 	"app/components"
+	"app/internal/reqcontext"
+	"app/internal/validation"
 	"app/layout"
 	"app/models/usermodel"
-	"app/reqcontext"
-	"app/validation"
 	"fmt"
 	"net/url"
 
@@ -34,7 +34,7 @@ func EditUserPage(p *EditUserPageProps) g.Node {
 		Content: content,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/src/users/editUser.css"),
+			components.InlineStyle("/routes/users/usersviews/editUser.css"),
 		},
 	})
 }

@@ -1,13 +1,13 @@
 package notfound
 
 import (
-	"app/reqcontext"
+	"app/internal/reqcontext"
 	"net/http"
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	_ = NotFoundPage(&NotFoundPageProps{
+	_ = notFoundPage(&notFoundPageProps{
 		Ctx: ctx,
 	}).Render(w)
 	return

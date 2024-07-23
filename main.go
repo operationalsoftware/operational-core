@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"os"
 
-	"app/db"
+	"app/internal/cookie"
+	"app/internal/db"
+	"app/internal/env"
 	"app/migrate"
 	"app/routes"
-	"app/utils"
 )
 
 func main() {
@@ -24,14 +25,14 @@ func main() {
 	}()
 
 	// Load environment (if not in production or staging)
-	err = utils.LoadEnv()
+	err = env.Load()
 	if err != nil {
 		retcode = 1
 		return
 	}
 
 	// Verify environment variables
-	err = utils.VerifyEnv()
+	err = env.Verify()
 	if err != nil {
 		retcode = 1
 		return
@@ -53,7 +54,7 @@ func main() {
 	}
 
 	// Initialise some things for start up
-	utils.InitCookieInstance()
+	cookie.InitCookieInstance()
 
 	// define server
 	server := http.Server{

@@ -1,4 +1,4 @@
-package utils
+package urlvalues
 
 import (
 	"database/sql"
@@ -213,7 +213,7 @@ func setField(field reflect.Value, strValue string) error {
 	return nil
 }
 
-func UnmarshalUrlValues(urlValues url.Values, v interface{}) error {
+func Unmarshal(urlValues url.Values, v interface{}) error {
 	val := reflect.ValueOf(v).Elem()
 
 	for i := 0; i < val.NumField(); i++ {
@@ -312,7 +312,7 @@ func UnmarshalUrlValues(urlValues url.Values, v interface{}) error {
 						}
 					}
 					subValue := reflect.New(elemType).Elem()
-					if err := UnmarshalUrlValues(subForm, subValue.Addr().Interface()); err != nil {
+					if err := Unmarshal(subForm, subValue.Addr().Interface()); err != nil {
 						return err
 					}
 					fieldValue.Index(index).Set(subValue)
@@ -327,7 +327,7 @@ func UnmarshalUrlValues(urlValues url.Values, v interface{}) error {
 					subForm[strings.TrimPrefix(k, prefix)] = v
 				}
 			}
-			if err := UnmarshalUrlValues(subForm, fieldValue.Addr().Interface()); err != nil {
+			if err := Unmarshal(subForm, fieldValue.Addr().Interface()); err != nil {
 				return err
 			}
 		} else {

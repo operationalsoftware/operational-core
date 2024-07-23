@@ -2,8 +2,8 @@ package authviews
 
 import (
 	"app/components"
+	"app/internal/reqcontext"
 	"app/layout"
-	"app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"

@@ -1,16 +1,16 @@
 package home
 
 import (
-	"app/reqcontext"
-	"app/routes/home/homeviews"
+	"app/internal/reqcontext"
 	"net/http"
 )
 
-func HomePage(w http.ResponseWriter, r *http.Request) {
-	_ = homeviews.HomePage(&homeviews.HomePageProps{
-		Ctx: reqcontext.GetContext(r),
-	}).
-		Render(w)
+func Handler(w http.ResponseWriter, r *http.Request) {
 
+	ctx := reqcontext.GetContext(r)
+	_ = homePage(&homePageProps{
+		Ctx: ctx,
+	}).Render(w)
 	return
+
 }

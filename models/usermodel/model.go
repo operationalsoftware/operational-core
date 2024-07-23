@@ -1,9 +1,9 @@
 package usermodel
 
 import (
-	"app/db"
-	"app/utils"
-	"app/validation"
+	"app/internal/appsort"
+	"app/internal/db"
+	"app/internal/validation"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -427,7 +427,7 @@ var ListSortableKeys = []string{
 }
 
 type ListQuery struct {
-	Sort utils.Sort
+	Sort appsort.Sort
 }
 
 func List(db db.SQLExecutor, q ListQuery) ([]User, error) {

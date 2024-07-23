@@ -1,27 +1,28 @@
 package middleware
 
 import (
-	"app/db"
+	"app/internal/cookie"
+	"app/internal/db"
+	"app/internal/reqcontext"
 	"app/models/authmodel"
 	"app/models/usermodel"
-	"app/reqcontext"
-	"app/utils"
 	"context"
 	"database/sql"
-	"fmt"
 	"net/http"
 	"strings"
 )
 
 func Authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if isPublicRouteRequest(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
 
 		var id int
-		cookie, err := r.Cookie("login-session")
+		sesscookie, err := r.Cookie("login-session")
 		if err == nil {
-			err = utils.CookieInstance.Decode("login-session", cookie.Value, &id)
-			fmt.Println(err)
-
+			err = cookie.CookieInstance.Decode("login-session", sesscookie.Value, &id)
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return

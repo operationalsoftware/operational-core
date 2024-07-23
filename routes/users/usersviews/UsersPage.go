@@ -2,10 +2,10 @@ package usersviews
 
 import (
 	"app/components"
+	"app/internal/appsort"
+	"app/internal/reqcontext"
 	"app/layout"
 	"app/models/usermodel"
-	"app/reqcontext"
-	"app/utils"
 	"fmt"
 
 	g "github.com/maragudk/gomponents"
@@ -17,7 +17,7 @@ type UsersHomePageProps struct {
 	Ctx       reqcontext.ReqContext
 	Users     []usermodel.User
 	UserCount int
-	Sort      utils.Sort
+	Sort      appsort.Sort
 	Page      int
 	PageSize  int
 	MyFilter  string
@@ -132,8 +132,6 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 				h.ID("users-table"),
 			),
 		),
-
-		components.InlineScript("/src/users/index.js"),
 	})
 
 	return layout.Page(layout.PageProps{
@@ -141,7 +139,10 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 		Content: content,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/src/users/index.css"),
+			components.InlineStyle("/routes/users/usersviews/index.css"),
+		},
+		AppendBody: []g.Node{
+			components.InlineScript("/routes/users/usersviews/index.js"),
 		},
 	})
 }

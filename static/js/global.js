@@ -1,31 +1,3 @@
-function getUrlParams(specificParams) {
-  const url = window.location.href;
-  const params = {};
-  const queryString = url ? url.split("?")[1] : window.location.search.slice(1);
-
-  if (queryString) {
-    const keyValuePairs = queryString.split("&");
-
-    keyValuePairs.forEach((keyValue) => {
-      const [key, value] = keyValue.split("=");
-      params[key] = decodeURIComponent(value.replace(/\+/g, " "));
-    });
-
-    // Filter specific parameters if specified
-    if (specificParams && specificParams.length > 0) {
-      const filteredParams = {};
-      specificParams.forEach((param) => {
-        if (params.hasOwnProperty(param)) {
-          filteredParams[param] = params[param];
-        }
-      });
-      return filteredParams;
-    }
-  }
-
-  return params;
-}
-
 /*
  * getTheme checks if a theme is stored in local storage and returns it.
  * If no theme is stored, it returns "system-default".
@@ -142,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function addClassDelayed() {
     const element = document.getElementById('loading-message');
     if (element) {
-      element.classList.add('loading');
+      element.classList.add('show');
     }
   }
   function handleNavigation() {

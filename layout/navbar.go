@@ -1,38 +1,36 @@
 package layout
 
 import (
-	reqContext "app/reqcontext"
+	"app/internal/reqcontext"
 
 	g "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/html"
+	h "github.com/maragudk/gomponents/html"
 )
 
 type navbarProps struct {
-	Ctx reqContext.ReqContext
+	Ctx reqcontext.ReqContext
 }
 
 func navbar(p *navbarProps) g.Node {
-	return Nav(ID("navbar"),
-		Div(
-			Class("nav_links-container"),
-			Div(
-				Class("logo-container"),
-				A(Href("/"),
-					Img(
-						Alt("Logo"),
-						Src("/static/img/logo.png"),
-					),
+	return h.Nav(h.ID("navbar"),
+		h.Div(
+			h.ID("navbar-logo"),
+			h.A(
+				h.Href("/"),
+				h.Img(
+					h.Alt("Logo"),
+					h.Src("/static/img/logo.png"),
 				),
 			),
-			Div(
-				Class("nav_links"),
-				g.If(p.Ctx.User.UserID != 0, avatarDropdown(&avatarDropdownProps{
-					Ctx: p.Ctx,
-				})),
-				g.If(p.Ctx.User.UserID != 0, appGallery(&appGalleryProps{
-					Ctx: p.Ctx,
-				})),
-			),
+		),
+		h.Div(
+			h.ID("navbar-menus"),
+			g.If(p.Ctx.User.UserID != 0, avatarMenu(&avatarMenuProps{
+				Ctx: p.Ctx,
+			})),
+			g.If(p.Ctx.User.UserID != 0, moduleMenu(&moduleMenuProps{
+				Ctx: p.Ctx,
+			})),
 		),
 	)
 }

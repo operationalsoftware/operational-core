@@ -2,8 +2,10 @@ package routes
 
 import (
 	"app/assets"
-	"app/middleware"
+	"app/internal/middleware"
+	"app/internal/routemodule"
 	"app/routes/auth"
+	"app/routes/home"
 	"app/routes/notfound"
 	"app/routes/users"
 	"net/http"
@@ -11,12 +13,9 @@ import (
 
 func Handler() http.Handler {
 	// Add logging before each middleware or handler setup
-	pubstack := middleware.CreateStack(
+	middlewareStack := middleware.CreateStack(
 		middleware.Security,
 		middleware.Logging,
-	)
-
-	privstack := middleware.CreateStack(
 		middleware.Authentication,
 		middleware.AuthRedirect,
 	)
@@ -27,20 +26,23 @@ func Handler() http.Handler {
 	staticFS := http.FileServer(assets.Assets)
 	r.Handle("/static/", staticFS)
 
-	// public auth routes (log in, set/reset password)
-	r.Handle("/auth/", http.StripPrefix("/auth", auth.Handler()))
+	// add routes
+	routeModules := []routemodule.RouteModule{
+		users.NewUserModule("/users"),
+		auth.NewAuthModule("/auth"),
+	}
 
-	// private routes
-	pr := http.NewServeMux()
+	for _, rm := range routeModules {
+		rm.AddRoutes(r, rm.GetPrefix())
+	}
 
-	pr.Handle("/users/", http.StripPrefix("/users", users.Handler()))
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet && r.URL.Path == "/" {
+			home.Handler(w, r)
+			return
+		}
+		notfound.Handler(w, r)
+	})
 
-	// pr.HandleFunc("GET /", home.HomePage)
-	//
-	pr.HandleFunc("/", notfound.Handler)
-
-	// use private routes handler for all remaining routes
-	r.Handle("/", privstack(pr))
-
-	return pubstack(r)
+	return middlewareStack(r)
 }

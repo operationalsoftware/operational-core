@@ -1,7 +1,7 @@
 package authmodel
 
 import (
-	"app/db"
+	"app/internal/db"
 	"database/sql"
 	"golang.org/x/crypto/bcrypt"
 	"log"

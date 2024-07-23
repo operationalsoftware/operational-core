@@ -1,7 +1,7 @@
 package migrate
 
 import (
-	"app/db"
+	"app/internal/db"
 	"app/models/usermodel"
 	"fmt"
 	"log"

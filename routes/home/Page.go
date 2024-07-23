@@ -1,19 +1,19 @@
-package homeviews
+package home
 
 import (
 	"app/components"
+	"app/internal/reqcontext"
 	"app/layout"
-	"app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
-type HomePageProps struct {
+type homePageProps struct {
 	Ctx reqcontext.ReqContext
 }
 
-func HomePage(p *HomePageProps) g.Node {
+func homePage(p *homePageProps) g.Node {
 
 	content := g.Group([]g.Node{
 		components.Card(
@@ -21,7 +21,7 @@ func HomePage(p *HomePageProps) g.Node {
 				h.Class("modules-container"),
 				h.Div(
 					h.Class("module-items"),
-					g.Group(g.Map(layout.AppGalleryModules, func(m layout.AppGalleryModule) g.Node {
+					g.Group(g.Map(layout.ModuleGridItems, func(m layout.ModuleGridItem) g.Node {
 
 						if m.Show != nil {
 							show := m.Show(p.Ctx.User.Permissions)
@@ -52,10 +52,7 @@ func HomePage(p *HomePageProps) g.Node {
 		Content: content,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/src/indexView.css"),
-		},
-		AppendBody: []g.Node{
-			components.InlineScript("/src/index.js"),
+			components.InlineStyle("/routes/home/home.css"),
 		},
 	})
 }

@@ -2,10 +2,10 @@ package usersviews
 
 import (
 	"app/components"
-	"app/db"
+	"app/internal/db"
+	"app/internal/reqcontext"
 	"app/layout"
 	"app/models/usermodel"
-	"app/reqcontext"
 	"fmt"
 
 	g "github.com/maragudk/gomponents"
@@ -111,7 +111,7 @@ func UserPage(p *UserPageProps) g.Node {
 		Content: userContent,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/src/users/user.css"),
+			components.InlineStyle("/routes/users/usersviews/user.css"),
 		},
 	})
 }

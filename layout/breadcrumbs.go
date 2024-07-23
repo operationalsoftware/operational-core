@@ -1,8 +1,8 @@
 package layout
 
 import (
-	o "app/components"
-	"app/db"
+	"app/components"
+	"app/internal/db"
 	"app/models/usermodel"
 	"strconv"
 	"strings"
@@ -166,7 +166,7 @@ func breadcrumbs(url string) g.Node {
 			index++
 
 			var crumbContent = g.Group([]g.Node{
-				g.If(c.iconIdentifier != "", o.Icon(&o.IconProps{
+				g.If(c.iconIdentifier != "", components.Icon(&components.IconProps{
 					Identifier: c.iconIdentifier,
 				})),
 				h.Span(g.Text(c.title)),

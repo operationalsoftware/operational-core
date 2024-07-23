@@ -2,18 +2,18 @@ package notfound
 
 import (
 	"app/components"
+	"app/internal/reqcontext"
 	"app/layout"
-	reqContext "app/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
-type NotFoundPageProps struct {
-	Ctx reqContext.ReqContext
+type notFoundPageProps struct {
+	Ctx reqcontext.ReqContext
 }
 
-func NotFoundPage(p *NotFoundPageProps) g.Node {
+func notFoundPage(p *notFoundPageProps) g.Node {
 	notFoundContent := g.Group([]g.Node{
 		h.H1(g.Text("404 - Page Not Found")),
 		components.Card(

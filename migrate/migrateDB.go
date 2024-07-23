@@ -1,7 +1,7 @@
 package migrate
 
 import (
-	"app/db"
+	"app/internal/db"
 	"fmt"
 	"log"
 )
