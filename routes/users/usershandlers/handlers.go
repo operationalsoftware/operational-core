@@ -164,8 +164,10 @@ func AddAPIUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	valid, validationErrors := usermodel.ValidateNewAPIUser(newAPIUser)
+
 	if !valid {
 		_ = usersviews.AddAPIUserPage(&usersviews.AddAPIUserPageProps{
+			Ctx:              ctx,
 			Values:           r.Form,
 			ValidationErrors: validationErrors,
 			IsSubmission:     true,
@@ -181,6 +183,7 @@ func AddAPIUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = usersviews.APIUserCredentialsPage(&usersviews.APIUserCredentialsPageProps{
+		Ctx:      ctx,
 		Username: newAPIUser.Username,
 		Password: password,
 	}).Render(w)

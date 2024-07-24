@@ -18,7 +18,6 @@ type APIUserCredentialsPageProps struct {
 
 func APIUserCredentialsPage(p *APIUserCredentialsPageProps) g.Node {
 	content := g.Group([]g.Node{
-
 		apiUserCredentials(&apiUserCredentialsProps{
 			username: p.Username,
 			password: p.Password,
@@ -38,14 +37,13 @@ type apiUserCredentialsProps struct {
 }
 
 func apiUserCredentials(p *apiUserCredentialsProps) g.Node {
-	return components.Card(
-		h.Div(
-			h.Class("api-user-credentials"),
+	return g.Group([]g.Node{
+		components.Card(
 			h.Div(
-				h.Class("content"),
 				h.H2(
 					g.Text("API User Credentials"),
 				),
+				h.P(g.Text("Please keep these safe as you will not be able to access them again.")),
 				h.Span(g.Text("Username: ")),
 				h.Span(g.Text(p.username)),
 				h.Br(),
@@ -62,5 +60,6 @@ func apiUserCredentials(p *apiUserCredentialsProps) g.Node {
 				g.Text("Back to Users"),
 			),
 		),
-	)
+		components.InlineStyle("/routes/users/usersviews/apiUserCredentialsPage.css"),
+	})
 }

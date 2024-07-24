@@ -60,6 +60,7 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 
 	return components.Form(
 		h.ID("add-api-user-form"),
+		h.Method("POST"),
 
 		components.Input(&components.InputProps{
 			Label:       usernameLabel,
@@ -76,9 +77,7 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 		permissionsCheckboxes(usermodel.UserPermissions{}),
 
 		components.Button(
-			&components.ButtonProps{
-				Disabled: p.validationErrors.HasErrors(),
-			},
+			&components.ButtonProps{},
 			h.Type("submit"),
 			g.Text("Submit"),
 		),
