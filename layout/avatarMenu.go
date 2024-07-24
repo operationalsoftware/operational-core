@@ -50,7 +50,11 @@ func avatarMenu(p *avatarMenuProps) g.Node {
 					),
 				),
 			),
-			h.Button(h.Class("logout-btn"), g.Text("Logout")),
+			h.A(
+				h.Class("logout-btn"),
+				h.Href("/auth/logout"),
+				g.Text("Logout"),
+			),
 			h.Section(
 				h.Class("actions"),
 				h.Button(

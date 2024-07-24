@@ -141,6 +141,31 @@ body {
         display: flex;
         flex-direction: column;
 
+        button {
+          border: none;
+          background-color: var(--background-color-content);
+          transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+
+          &:hover {
+            background-color: var(--primary-color);
+            color: var(--text-color-contrast);
+          }
+        }
+
+        a.logout-btn {
+            width: 100%;
+            padding: var(--spacing-md);
+            text-align: left;
+            font-size: var(--font-size-md);
+            color: var(--text-color);
+            cursor: pointer;
+
+            &:hover {
+              background-color: var(--primary-color);
+              color: var(--text-color-contrast);
+            }
+        }
+
         section {
           padding: var(--spacing-md);
 
@@ -159,6 +184,7 @@ body {
             font-weight: 500;
             color: var(--text-color);
           }
+
 
           &.actions {
             display: flex;
@@ -198,24 +224,6 @@ body {
           }
         }
 
-        button {
-          border: none;
-          background-color: var(--background-color-content);
-          transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-
-          &:hover {
-            background-color: var(--primary-color);
-            color: var(--text-color-contrast);
-          }
-
-          &.logout-btn {
-            width: 100%;
-            padding: var(--spacing-md);
-            text-align: left;
-            font-size: var(--font-size-md);
-            color: var(--text-color);
-          }
-        }
       }
     }
   }
