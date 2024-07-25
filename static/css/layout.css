@@ -136,7 +136,7 @@ body {
 
       #navbar-avatar-menu {
         width: calc(100% - 20px);
-        max-width: 200px;
+        max-width: 300px;
 
         display: flex;
         flex-direction: column;

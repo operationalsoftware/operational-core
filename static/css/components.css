@@ -12,7 +12,7 @@ input, select {
   transition: border-color 0.2s ease-in-out, border-width 0.2s ease-in-out,
     box-shadow 0.2s ease-in-out;
 
-  &:hover, :focus-visible {
+  &:hover, &:focus, &:focus-visible {
     border-color: var(--border-hover-color);
   }
 
@@ -215,7 +215,7 @@ input, select {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
 }
 /* End Form */
 
@@ -223,7 +223,7 @@ input, select {
 .input-container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing);
+  gap: var(--spacing-md);
 }
 
 .input-container input {

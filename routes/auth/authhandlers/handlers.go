@@ -24,9 +24,12 @@ func PasswordLogInPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func PasswordLogIn(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
 
 	var err error
-	retryPageProps := authviews.PasswordLoginPageProps{}
+	retryPageProps := authviews.PasswordLoginPageProps{
+		Ctx: ctx,
+	}
 
 	_ = r.ParseForm()
 	var formData authmodel.VerifyPasswordLoginInput

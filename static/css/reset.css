@@ -30,3 +30,8 @@ input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
   display: none;
 }
+
+/* remove the outline from inputs */
+input:focus-visible, select:focus-visible {
+  outline: none;
+}

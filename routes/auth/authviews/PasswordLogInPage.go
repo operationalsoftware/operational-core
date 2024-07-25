@@ -32,22 +32,18 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 			components.Form(
 				h.Method("POST"),
 
-				h.Label(
-					g.Text("Username"),
-					h.Input(
-						h.Name("Username"),
-						h.Value(p.Username),
-						g.Attr("autocomplete", "on"),
-					),
-				),
+				components.Input(&components.InputProps{
+					Label:       "Username",
+					Name:        "Username",
+					Placeholder: "Enter username",
+				}),
 
-				h.Label(
-					g.Text("Password"),
-					h.Input(
-						h.Type("password"),
-						h.Name("Password"),
-					),
-				),
+				components.Input(&components.InputProps{
+					Label:       "Password",
+					Name:        "Password",
+					InputType:   "password",
+					Placeholder: "Enter password",
+				}),
 
 				h.Button(
 					h.Class("button"),

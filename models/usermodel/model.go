@@ -340,6 +340,7 @@ SELECT
 	FirstName,
 	LastName,
 	Created,
+	LastLogin,
 	Permissions
 FROM
 	User
@@ -357,6 +358,7 @@ WHERE
 		&user.FirstName,
 		&user.LastName,
 		&user.Created,
+		&user.LastLogin,
 		&permissionsJSON,
 	)
 	if err == sql.ErrNoRows {
@@ -384,6 +386,7 @@ SELECT
 	FirstName,
 	LastName,
 	Created,
+	LastLogin,
 	Permissions
 FROM
 	User
@@ -401,6 +404,7 @@ WHERE
 		&user.FirstName,
 		&user.LastName,
 		&user.Created,
+		&user.LastLogin,
 		&permissionsJSON,
 	)
 	if err == sql.ErrNoRows {
@@ -443,6 +447,7 @@ SELECT
 	FirstName,
 	LastName,
 	Created,
+	LastLogin,
 	Permissions
 FROM
 	User
@@ -471,6 +476,7 @@ FROM
 			&u.FirstName,
 			&u.LastName,
 			&u.Created,
+			&u.LastLogin,
 			&permissionsJSON,
 		)
 		if err != nil {
