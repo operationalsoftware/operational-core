@@ -2,40 +2,40 @@ package migrate
 
 import (
 	"app/internal/db"
-	"errors"
-	"log"
 )
 
-func CheckRequiresInitialisation() bool {
-	db := db.UseDB()
+func MigrateDB() error {
 
-	// Check if the initialisation has already been done
-	var isInitialised bool
-	query := `
-SELECT EXISTS (
-	SELECT 1 FROM sqlite_master WHERE type='table' AND name='User'
-)`
-	err := db.QueryRow(query).Scan(&isInitialised)
+	conn := db.UseDB()
+	tx, err := conn.Begin()
 	if err != nil {
-		log.Panic(err)
+		return err
+	}
+	defer tx.Rollback()
+
+	initialisationRequired, err := checkInitialisationRequired(tx)
+	if err != nil {
+		return err
 	}
 
-	return !isInitialised
-}
-
-func InitialiseOrMigrateDB() error {
-	requireInitialisation := CheckRequiresInitialisation()
-
-	if requireInitialisation {
-		init := initialise()
-		if !init {
-			return errors.New("initialisation failed")
+	if initialisationRequired {
+		err := initialiseDB(tx)
+		if err != nil {
+			return err
 		}
-	} else {
-		migrate := migrate()
-		if !migrate {
-			return errors.New("migration failed")
+	}
+
+	migrationRequired, err := checkMigrationRequired(tx)
+	if migrationRequired {
+		err := migrateDB(tx)
+		if err != nil {
+			return err
 		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
 	}
 
 	return nil

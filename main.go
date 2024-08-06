@@ -47,7 +47,7 @@ func main() {
 	defer db.UseDB().Close()
 
 	// Initialise or migrate database
-	err = migrate.InitialiseOrMigrateDB()
+	err = migrate.MigrateDB()
 	if err != nil {
 		retcode = 1
 		return

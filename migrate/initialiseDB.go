@@ -1,21 +1,28 @@
 package migrate
 
 import (
-	"app/internal/db"
 	"app/models/usermodel"
+	"database/sql"
 	"fmt"
-	"log"
 )
 
-func initialise() bool {
-	db := db.UseDB()
+func checkInitialisationRequired(tx *sql.Tx) (bool, error) {
 
-	// start a transaction
-	tx, err := db.Begin()
+	// Check if the initialisation has already been done
+	var requiresInitialisation bool
+	query := `
+SELECT NOT EXISTS (
+	SELECT 1 FROM sqlite_master WHERE type='table' AND name='User'
+)`
+	err := tx.QueryRow(query).Scan(&requiresInitialisation)
 	if err != nil {
-		log.Panic(err)
+		return false, err
 	}
-	defer tx.Rollback()
+
+	return requiresInitialisation, nil
+}
+
+func initialiseDB(tx *sql.Tx) error {
 
 	//
 	// START OF INITIALISATION
@@ -25,7 +32,7 @@ func initialise() bool {
 
 	// Create users table
 	fmt.Print("Creating User table... ")
-	_, err = db.Exec(`
+	_, err := tx.Exec(`
 CREATE TABLE User (
 	UserID INTEGER PRIMARY KEY AUTOINCREMENT, 
 	IsAPIUser BOOLEAN DEFAULT FALSE NOT NULL,
@@ -43,7 +50,7 @@ CREATE TABLE User (
 );
 `)
 	if err != nil {
-		return false
+		return err
 	}
 	fmt.Println("done")
 
@@ -67,7 +74,7 @@ CREATE TABLE User (
 
 	err = usermodel.AddAPIUser(tx, userToAdd)
 	if err != nil {
-		return false
+		return err
 	}
 
 	fmt.Println("done")
@@ -76,12 +83,8 @@ CREATE TABLE User (
 	//
 	// END OF INITIALISATION
 	//
-	fmt.Print("Database initialised, committing changes...")
-	err = tx.Commit()
-	if err != nil {
-		log.Panic(err)
-	}
+
 	fmt.Println("done")
 
-	return true
+	return nil
 }
