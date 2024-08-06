@@ -36,7 +36,7 @@ type NewUser struct {
 	Permissions     UserPermissions
 }
 
-func validateUsername(username string, ve *validate.ValidationErrors) {
+func validateUsername(ve *validate.ValidationErrors, username string) {
 	pattern := "^[a-z0-9_]+$"
 
 	// Compile the regular expression
@@ -54,10 +54,10 @@ func ValidateNewUser(user NewUser) (bool, validate.ValidationErrors) {
 	var validationErrors validate.ValidationErrors = make(map[string][]string)
 
 	// validate Username
-	validate.MinLength(user.Username, 3, &validationErrors, "Username")
-	validate.MaxLength(user.Username, 20, &validationErrors, "Username")
-	validate.Lowercase(user.Username, &validationErrors, "Username")
-	validateUsername(user.Username, &validationErrors)
+	validate.MinLength(&validationErrors, "Username", user.Username, 3)
+	validate.MaxLength(&validationErrors, "Username", user.Username, 20)
+	validate.Lowercase(&validationErrors, "Username", user.Username)
+	validateUsername(&validationErrors, user.Username)
 	// check if username is already taken
 	db := db.UseDB()
 	if user.Username != "" {
@@ -68,20 +68,20 @@ func ValidateNewUser(user NewUser) (bool, validate.ValidationErrors) {
 	}
 
 	// validate FirstName
-	validate.MinLength(user.FirstName, 1, &validationErrors, "FirstName")
-	validate.MaxLength(user.FirstName, 20, &validationErrors, "FirstName")
+	validate.MinLength(&validationErrors, "FirstName", user.FirstName, 1)
+	validate.MaxLength(&validationErrors, "FirstName", user.FirstName, 20)
 
 	// validate LastName
-	validate.MinLength(user.LastName, 1, &validationErrors, "LastName")
-	validate.MaxLength(user.LastName, 20, &validationErrors, "LastName")
+	validate.MinLength(&validationErrors, "LastName", user.LastName, 1)
+	validate.MaxLength(&validationErrors, "LastName", user.LastName, 20)
 
 	// validate Email
 	if user.Email.String != "" {
-		validate.Email(user.Email.String, &validationErrors, "Email")
+		validate.Email(&validationErrors, "Email", user.Email.String)
 	}
 
 	// validate Password
-	validate.Password(user.Password, &validationErrors, "Password")
+	validate.Password(&validationErrors, "Password", user.Password)
 
 	// validate confirm password
 	if user.Password != user.ConfirmPassword {
@@ -147,10 +147,10 @@ func ValidateNewAPIUser(user NewAPIUser) (bool, validate.ValidationErrors) {
 	var validationErrors validate.ValidationErrors = make(map[string][]string)
 
 	// validate Username
-	validate.MinLength(user.Username, 3, &validationErrors, "Username")
-	validate.MaxLength(user.Username, 20, &validationErrors, "Username")
-	validate.Lowercase(user.Username, &validationErrors, "Username")
-	validateUsername(user.Username, &validationErrors)
+	validate.MinLength(&validationErrors, "Username", user.Username, 3)
+	validate.MaxLength(&validationErrors, "Username", user.Username, 20)
+	validate.Lowercase(&validationErrors, "Username", user.Username)
+	validateUsername(&validationErrors, user.Username)
 	// check if username is already taken
 	db := db.UseDB()
 	if user.Username != "" {
@@ -211,23 +211,22 @@ func ValidateUserUpdate(update UserUpdate) (bool, validate.ValidationErrors) {
 
 	var validationErrors validate.ValidationErrors = make(map[string][]string)
 
-	// validate Username
-	validate.MinLength(update.Username, 3, &validationErrors, "Username")
-	validate.MaxLength(update.Username, 20, &validationErrors, "Username")
-	validate.Lowercase(update.Username, &validationErrors, "Username")
-	validateUsername(update.Username, &validationErrors)
+	validate.MinLength(&validationErrors, "Username", update.Username, 3)
+	validate.MaxLength(&validationErrors, "Username", update.Username, 20)
+	validate.Lowercase(&validationErrors, "Username", update.Username)
+	validateUsername(&validationErrors, update.Username)
 
 	// validate FirstName
-	validate.MinLength(update.FirstName, 1, &validationErrors, "FirstName")
-	validate.MaxLength(update.FirstName, 20, &validationErrors, "FirstName")
+	validate.MinLength(&validationErrors, "FirstName", update.FirstName, 1)
+	validate.MaxLength(&validationErrors, "FirstName", update.FirstName, 20)
 
 	// validate LastName
-	validate.MinLength(update.LastName, 1, &validationErrors, "LastName")
-	validate.MaxLength(update.LastName, 20, &validationErrors, "LastName")
+	validate.MinLength(&validationErrors, "LastName", update.LastName, 1)
+	validate.MaxLength(&validationErrors, "LastName", update.LastName, 20)
 
 	// validate Email
 	if update.Email.String != "" {
-		validate.Email(update.Email.String, &validationErrors, "Email")
+		validate.Email(&validationErrors, "Email", update.Email.String)
 	}
 
 	// user permissions don't need to be validated. See description in ValidateNewUser
@@ -297,7 +296,7 @@ func ValidatePasswordReset(pr PasswordReset) (bool, validate.ValidationErrors) {
 	var validationErrors validate.ValidationErrors = make(map[string][]string)
 
 	// validate Password
-	validate.Password(pr.Password, &validationErrors, "Password")
+	validate.Password(&validationErrors, "Password", pr.Password)
 
 	// validate confirm password
 	if pr.Password != pr.ConfirmPassword {
