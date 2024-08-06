@@ -3,7 +3,7 @@ package usersviews
 import (
 	"app/components"
 	"app/internal/reqcontext"
-	"app/internal/validation"
+	"app/internal/validate"
 	"app/layout"
 	"app/models/usermodel"
 	"fmt"
@@ -17,7 +17,7 @@ type EditUserPageProps struct {
 	Ctx              reqcontext.ReqContext
 	User             usermodel.User
 	Values           url.Values
-	ValidationErrors validation.ValidationErrors
+	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
 }
 
@@ -42,7 +42,7 @@ func EditUserPage(p *EditUserPageProps) g.Node {
 type editUserFormProps struct {
 	user             usermodel.User
 	values           url.Values
-	validationErrors validation.ValidationErrors
+	validationErrors validate.ValidationErrors
 	isSubmission     bool
 }
 

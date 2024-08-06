@@ -3,7 +3,7 @@ package usersviews
 import (
 	"app/components"
 	"app/internal/reqcontext"
-	"app/internal/validation"
+	"app/internal/validate"
 	"app/layout"
 	"app/models/usermodel"
 	"net/url"
@@ -15,7 +15,7 @@ import (
 type AddAPIUserPageProps struct {
 	Ctx              reqcontext.ReqContext
 	Values           url.Values
-	ValidationErrors validation.ValidationErrors
+	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
 }
 
@@ -41,7 +41,7 @@ func AddAPIUserPage(p *AddAPIUserPageProps) g.Node {
 
 type addApiUserFormProps struct {
 	values           url.Values
-	validationErrors validation.ValidationErrors
+	validationErrors validate.ValidationErrors
 	isSubmission     bool
 }
 
