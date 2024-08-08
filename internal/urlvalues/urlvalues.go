@@ -107,15 +107,11 @@ func setField(field reflect.Value, strValue string) error {
 	case reflect.String:
 		field.SetString(strValue)
 	case reflect.Bool:
-		if strValue == "" {
-			field.SetBool(false)
-		} else {
-			parsedValue, err := strconv.ParseBool(strValue)
-			if err != nil {
-				return err
-			}
-			field.SetBool(parsedValue)
+		parsedValue, err := strconv.ParseBool(strValue)
+		if err != nil {
+			return err
 		}
+		field.SetBool(parsedValue)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		parsedValue, err := strconv.ParseInt(strValue, 10, 64)
 		if err != nil {
@@ -229,6 +225,9 @@ func Unmarshal(urlValues url.Values, v interface{}) error {
 
 		if isSettable {
 			strValue := urlValues.Get(fName)
+			if strValue == "" {
+				continue
+			}
 			err := setField(fieldValue, strValue)
 			if err != nil {
 				return err
@@ -267,9 +266,11 @@ func Unmarshal(urlValues url.Values, v interface{}) error {
 				// Populate the slice
 				for i, strValue := range strValues {
 					subValue := reflect.New(elemType).Elem()
-					err := setField(subValue, strValue)
-					if err != nil {
-						return err
+					if strValue != "" {
+						err := setField(subValue, strValue)
+						if err != nil {
+							return err
+						}
 					}
 					fieldValue.Index(i).Set(subValue)
 				}
