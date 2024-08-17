@@ -139,3 +139,17 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.removeItem('savedScrollHeight');
   }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Get all elements with the class "iso-date"
+  var dateElements = document.querySelectorAll('.local-datetime');
+
+  dateElements.forEach(function(element) {
+    // Parse the ISO date string into a Date object
+    var date = new Date(element.textContent);
+
+    // Format the date using toLocaleString and update the element's text
+    element.textContent = date.toLocaleString();
+  });
+});
+
