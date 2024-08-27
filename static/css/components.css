@@ -30,6 +30,13 @@ input, select {
   }
 }
 
+/* Native hr */
+hr {
+  background-color: var(--disabled-color);
+  height: 1px;
+  border: 0;
+}
+
 /* Start Alert */
 .alert {
   padding: var(--spacing);
