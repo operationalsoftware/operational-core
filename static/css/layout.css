@@ -257,7 +257,7 @@ body {
   display: flex;
   align-items: center;
   color: var(--text-color-light);
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--spacing-sm);
 }
 
 .breadcrumbs ol li a {
