@@ -32,6 +32,7 @@ input, select {
 
 /* Native hr */
 hr {
+  width: 100%;
   background-color: var(--disabled-color);
   height: 1px;
   border: 0;
