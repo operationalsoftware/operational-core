@@ -9,15 +9,8 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-type ModuleGridItem struct {
-	Icon string
-	Name string
-	Link string
-	Show func(usermodel.UserPermissions) bool
-}
-
 // icons array
-var ModuleGridItems = []ModuleGridItem{
+var TopLevelMenuItems = []components.GridMenuItem{
 	{
 		Icon: "account-group",
 		Name: "Users",
@@ -46,26 +39,11 @@ func moduleMenu(p *moduleMenuProps) g.Node {
 		h.Div(
 			h.Class("dropdown-panel"),
 			h.ID("navbar-module-menu"),
-			g.Group(g.Map(ModuleGridItems, func(i ModuleGridItem) g.Node {
-				if i.Show != nil {
-					show := i.Show(p.Ctx.User.Permissions)
-					if !show {
-						return g.Text("")
-					}
-				}
 
-				return h.A(
-					h.Class("item"),
-					h.Href(i.Link),
-					components.Icon(&components.IconProps{
-						Identifier: i.Icon,
-					}),
-					h.Div(
-						h.Class("name"),
-						g.Text(i.Name),
-					),
-				)
-			})),
+			components.GridMenu(&components.GridMenuProps{
+				Items:           TopLevelMenuItems,
+				UserPermissions: p.Ctx.User.Permissions,
+			}),
 		),
 		components.InlineScript("/layout/moduleMenu.js"),
 	)

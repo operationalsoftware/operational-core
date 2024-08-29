@@ -106,32 +106,7 @@ body {
       }
 
       #navbar-module-menu {
-        width: calc(100% - 20px);
-        max-width: 400px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: start;
-        gap: var(--spacing-md) var(--spacing-md);
         padding: var(--spacing-md);
-
-        .item {
-          display: flex;
-          flex-direction: column;
-          justify-content: start;
-          gap: var(--spacing-sm);
-          align-items: center;
-          width: 80px;
-
-          .icon {
-            width: 40px;
-            height: 40px;
-            fill: var(--text-color);
-          }
-
-          .name {
-            color: var(--text-color);
-          }
-        }
       }
 
       #navbar-avatar-menu {

@@ -6,7 +6,6 @@ import (
 	"app/layout"
 
 	g "github.com/maragudk/gomponents"
-	h "github.com/maragudk/gomponents/html"
 )
 
 type homePageProps struct {
@@ -15,37 +14,12 @@ type homePageProps struct {
 
 func homePage(p *homePageProps) g.Node {
 
-	content := g.Group([]g.Node{
-		components.Card(
-			h.Div(
-				h.Class("modules-container"),
-				h.Div(
-					h.Class("module-items"),
-					g.Group(g.Map(layout.ModuleGridItems, func(m layout.ModuleGridItem) g.Node {
-
-						if m.Show != nil {
-							show := m.Show(p.Ctx.User.Permissions)
-							if !show {
-								return g.Text("")
-							}
-						}
-
-						return h.A(
-							h.Class("module-item"),
-							h.Href(m.Link),
-							components.Icon(&components.IconProps{
-								Identifier: m.Icon,
-							}),
-							h.Div(
-								h.Class("module-item-name"),
-								g.Text(m.Name),
-							),
-						)
-					})),
-				),
-			),
-		),
-	})
+	content := components.Card(
+		components.GridMenu(&components.GridMenuProps{
+			Items:           layout.TopLevelMenuItems,
+			UserPermissions: p.Ctx.User.Permissions,
+		}),
+	)
 
 	return layout.Page(layout.PageProps{
 		Title:   "Home",
