@@ -85,6 +85,7 @@ hr {
   transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
   cursor: pointer;
   display: inline-block;
+  text-align: center;
 }
 
 .button[data-loading="true"] .loading-spinner {
