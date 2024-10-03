@@ -79,7 +79,6 @@ hr {
   border: var(--button-border-width) solid var(--primary-color);
   border-radius: var(--border-radius);
   color: var(--primary-color);
-  background-color: var(--background-color-content);
   font-size: var(--font-size-md);
   padding: var(--spacing-md) var(--spacing-lg);
   transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
