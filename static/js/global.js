@@ -111,17 +111,31 @@ function exitFullScreen() {
 // the navigation hasn't occurred after 0.5s
 document.addEventListener('DOMContentLoaded', function() {
   let timeout;
+  const loadingElement = document.getElementById('loading-message');
+
   function addClassDelayed() {
-    const element = document.getElementById('loading-message');
-    if (element) {
-      element.classList.add('show');
+    if (loadingElement) {
+      loadingElement.classList.add('show');
     }
   }
+
+  function clearLoadingMessage() {
+    clearTimeout(timeout); // Clear the timer in case it was set
+    if (loadingElement) {
+      loadingElement.classList.remove('show');
+    }
+  }
+
   function handleNavigation() {
     clearTimeout(timeout);
     timeout = setTimeout(addClassDelayed, 500);
   }
+
+  // Show loading message when navigating away from the page
   window.addEventListener('beforeunload', handleNavigation);
+
+  // Hide loading message if navigating back or page loads instantly
+  window.addEventListener('pageshow', clearLoadingMessage);
 });
 
 // utility to preserve scroll height on navigation
