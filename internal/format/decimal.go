@@ -18,6 +18,9 @@ func DecimalWithCommas(input string) string {
 
 	// Combine the formatted integer and decimal parts
 	if len(parts) == 1 {
+		if isNegative {
+			return "-" + integerPart
+		}
 		return integerPart
 	}
 
