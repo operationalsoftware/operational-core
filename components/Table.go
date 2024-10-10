@@ -113,7 +113,6 @@ func sortRadio(p *sortRadioProps) g.Node {
 
 type tableHeadProps struct {
 	columns      TableColumns
-	sortableKeys []string
 	sort         appsort.Sort
 	sortQueryKey string
 	onChange     string
@@ -281,7 +280,6 @@ func TablePagination(p TablePaginationProps, onChange string) g.Node {
 type TableProps struct {
 	Classes      c.Classes
 	Columns      TableColumns
-	SortableKeys []string
 	Rows         TableRows
 	Sort         appsort.Sort
 	SortQueryKey string
@@ -312,7 +310,6 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 				tableHead(&tableHeadProps{
 					columns:      p.Columns,
 					onChange:     p.OnChange,
-					sortableKeys: p.SortableKeys,
 					sort:         p.Sort,
 					sortQueryKey: p.SortQueryKey,
 				}),
