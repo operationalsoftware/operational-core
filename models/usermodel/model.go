@@ -430,11 +430,15 @@ var ListSortableKeys = []string{
 }
 
 type ListQuery struct {
-	Sort appsort.Sort
+	Sort     appsort.Sort
+	Page     int
+	PageSize int
 }
 
 func List(db db.SQLExecutor, q ListQuery) ([]User, error) {
 
+	offset := (q.Page - 1) * q.PageSize
+	limit := q.PageSize
 	orderByClause := q.Sort.ToOrderByClause(map[string]string{})
 
 	query := fmt.Sprintf(`
@@ -453,12 +457,14 @@ FROM
 
 %s
 
+LIMIT ? OFFSET ?
 	`,
 		orderByClause,
 	)
 
-	rows, err := db.Query(query)
+	rows, err := db.Query(query, limit, offset)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	defer rows.Close()

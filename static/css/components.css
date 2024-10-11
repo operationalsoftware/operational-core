@@ -1558,6 +1558,7 @@ div.table-pagination {
   display: flex;
   justify-content: end;
   padding: var(--spacing-md) 0;
+  gap: var(--spacing-md);
 
   div.table-pagination-pages {
     display: flex;

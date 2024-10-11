@@ -4,6 +4,7 @@ import (
 	"app/internal/appsort"
 	"fmt"
 	"math"
+	"strconv"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -86,7 +87,6 @@ func generateSortString(currentSort appsort.Sort, key string) string {
 }
 
 type sortRadioProps struct {
-	onChange      string
 	sortQueryKey  string
 	sort          appsort.Sort
 	columnSortKey string
@@ -102,7 +102,7 @@ func sortRadio(p *sortRadioProps) g.Node {
 			h.Type("radio"),
 			h.Name(p.sortQueryKey),
 			h.Value(generateSortString(p.sort, p.columnSortKey)),
-			g.Attr("onchange", p.onChange),
+			g.Attr("onchange", "submitTableForm(this.form)"),
 		),
 		Icon(&IconProps{
 			Identifier: iconIdentifier,
@@ -115,7 +115,6 @@ type tableHeadProps struct {
 	columns      TableColumns
 	sort         appsort.Sort
 	sortQueryKey string
-	onChange     string
 }
 
 func tableHead(p *tableHeadProps) g.Node {
@@ -125,7 +124,6 @@ func tableHead(p *tableHeadProps) g.Node {
 		sortable := col.SortKey != ""
 		if sortable {
 			sortRadioNode = sortRadio(&sortRadioProps{
-				onChange:      p.onChange,
 				sortQueryKey:  p.sortQueryKey,
 				sort:          p.sort,
 				columnSortKey: col.SortKey,
@@ -184,17 +182,21 @@ type TablePaginationProps struct {
 	TotalRecords        int
 	CurrentPage         int
 	CurrentPageQueryKey string
+	PageSizeOptions     []int
 	PageSize            int
 	PageSizeQueryKey    string
 }
 
-func TablePagination(p TablePaginationProps, onChange string) g.Node {
+func TablePagination(p *TablePaginationProps) g.Node {
 
 	if p.PageSizeQueryKey == "" {
 		p.PageSizeQueryKey = "PageSize"
 	}
 	if p.CurrentPageQueryKey == "" {
 		p.CurrentPageQueryKey = "Page"
+	}
+	if p.PageSizeOptions == nil {
+		p.PageSizeOptions = []int{25, 50, 100, 200, 500}
 	}
 
 	// calculate the total pages
@@ -245,7 +247,7 @@ func TablePagination(p TablePaginationProps, onChange string) g.Node {
 				g.If(disabled, h.Disabled()),
 				h.Value(fmt.Sprintf("%d", page)),
 				h.StyleAttr("display: none"),
-				g.Attr("onchange", onChange),
+				g.Attr("onchange", "submitTableForm(this.form)"),
 			),
 			g.If(label != "", g.Text(label)),
 			g.If(label == "", g.Text(fmt.Sprintf("%d", page))),
@@ -274,6 +276,23 @@ func TablePagination(p TablePaginationProps, onChange string) g.Node {
 			// end
 			pageRadio(totalPages, "\u21E5", p.CurrentPage == totalPages),
 		),
+
+		// page size select
+		h.Select(
+			h.Class("select page-size-select"),
+			h.Name(p.PageSizeQueryKey),
+			g.Group(g.Map(
+				p.PageSizeOptions,
+				func(o int) g.Node {
+					oStr := strconv.Itoa(o)
+					return h.Option(
+						h.Value(oStr),
+						g.Text(oStr),
+						g.If(o == p.PageSize, h.Selected()),
+					)
+				})),
+			g.Attr("onchange", "updatePageSizeAndSubmit(this)"),
+		),
 	)
 }
 
@@ -283,8 +302,7 @@ type TableProps struct {
 	Rows         TableRows
 	Sort         appsort.Sort
 	SortQueryKey string
-	Pagination   TablePaginationProps
-	OnChange     string
+	Pagination   *TablePaginationProps
 }
 
 func Table(p *TableProps, children ...g.Node) g.Node {
@@ -301,15 +319,14 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 		p.Classes,
 		g.Group(children),
 		g.If(
-			p.Pagination != (TablePaginationProps{}),
-			TablePagination(p.Pagination, p.OnChange),
+			p.Pagination != nil,
+			TablePagination(p.Pagination),
 		),
 		h.Div(
 			h.Class("table-scroll"),
 			h.Table(
 				tableHead(&tableHeadProps{
 					columns:      p.Columns,
-					onChange:     p.OnChange,
 					sort:         p.Sort,
 					sortQueryKey: p.SortQueryKey,
 				}),
@@ -331,7 +348,7 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 				),
 			),
 			g.If(
-				p.Pagination != (TablePaginationProps{}),
+				p.Pagination != nil,
 				g.Group([]g.Node{
 					h.Input(
 						h.Type("radio"),
@@ -340,19 +357,12 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 						h.Value(fmt.Sprintf("%d", p.Pagination.CurrentPage)),
 						h.StyleAttr("display: none"),
 					),
-					h.Input(
-						h.Type("radio"),
-						h.Checked(),
-						h.Name(p.Pagination.PageSizeQueryKey),
-						h.Value(fmt.Sprintf("%d", p.Pagination.PageSize)),
-						h.StyleAttr("display: none"),
-					),
 				}),
 			),
 		),
 		g.If(
-			p.Pagination != (TablePaginationProps{}),
-			TablePagination(p.Pagination, p.OnChange),
+			p.Pagination != nil,
+			TablePagination(p.Pagination),
 		),
 	)
 }

@@ -21,12 +21,35 @@ func UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := db.UseDB()
-	sort := appsort.Sort{}
-	sort.ParseQueryParam(ctx.Req.URL.Query().Get("Sort"), usermodel.ListSortableKeys)
+	type urlVals struct {
+		Sort     string
+		Page     int
+		PageSize int
+	}
 
+	var uv urlVals
+
+	err := urlvalues.Unmarshal(r.URL.Query(), &uv)
+	if err != nil {
+		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+		return
+	}
+
+	sort := appsort.Sort{}
+	sort.ParseQueryParam(uv.Sort, usermodel.ListSortableKeys)
+
+	if uv.Page == 0 {
+		uv.Page = 1
+	}
+	if uv.PageSize == 0 {
+		uv.PageSize = 50
+	}
+
+	db := db.UseDB()
 	users, err := usermodel.List(db, usermodel.ListQuery{
-		Sort: sort,
+		Sort:     sort,
+		Page:     uv.Page,
+		PageSize: uv.PageSize,
 	})
 	if err != nil {
 		http.Error(w, "Error listing users", http.StatusInternalServerError)
@@ -43,8 +66,8 @@ func UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		Users:     users,
 		UserCount: count,
 		Sort:      sort,
-		Page:      1,
-		PageSize:  10,
+		Page:      uv.Page,
+		PageSize:  uv.PageSize,
 	}).Render(w)
 }
 

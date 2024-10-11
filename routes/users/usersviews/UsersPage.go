@@ -116,11 +116,10 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 			g.Attr("method", "GET"),
 
 			components.Table(&components.TableProps{
-				Columns:  columns,
-				Sort:     p.Sort,
-				Rows:     tableRows,
-				OnChange: "submitUsersTableForm()",
-				Pagination: components.TablePaginationProps{
+				Columns: columns,
+				Sort:    p.Sort,
+				Rows:    tableRows,
+				Pagination: &components.TablePaginationProps{
 					TotalRecords:        p.UserCount,
 					PageSize:            p.PageSize,
 					CurrentPage:         p.Page,
