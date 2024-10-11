@@ -349,15 +349,13 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 			),
 			g.If(
 				p.Pagination != nil,
-				g.Group([]g.Node{
-					h.Input(
-						h.Type("radio"),
-						h.Checked(),
-						h.Name(p.Pagination.CurrentPageQueryKey),
-						h.Value(fmt.Sprintf("%d", p.Pagination.CurrentPage)),
-						h.StyleAttr("display: none"),
-					),
-				}),
+				h.Input(
+					h.Type("radio"),
+					h.Checked(),
+					h.Name(p.Pagination.CurrentPageQueryKey),
+					h.Value(fmt.Sprintf("%d", p.Pagination.CurrentPage)),
+					h.StyleAttr("display: none"),
+				),
 			),
 		),
 		g.If(
