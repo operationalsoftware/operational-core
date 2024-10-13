@@ -16,7 +16,7 @@ fi
 set -e
 
 # Source the get-deploy-config script to read the configuration values
-source ./get-deploy-config
+source ./get-deploy-config.sh
 
 # Perform the deployment using the host value
 echo "Deploying branch '$(git rev-parse --abbrev-ref HEAD)' to $host..."
