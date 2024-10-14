@@ -81,7 +81,8 @@ func parseTime(strValue string) (time.Time, error) {
 		"2006",       // for input type=year
 		"2006-01-02T15:04:05Z07:00",
 		"2006-01-02T15:04:05",
-		"02/01/2006", // assuming DD/MM/YYYY format
+		"2006-01-02T15:04", // for input type=datetime-local
+		"02/01/2006",       // assuming DD/MM/YYYY format
 		"02/01/2006 15:04:05",
 		// Add more formats as needed
 	}
