@@ -320,12 +320,18 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 		p.SortQueryKey = "Sort"
 	}
 
+	// handle pagination being nil
+	paginationProps := TablePaginationProps{}
+	if p.Pagination != nil {
+		paginationProps = *p.Pagination
+	}
+
 	return h.Div(
 		p.Classes,
 		g.Group(children),
 		g.If(
 			p.Pagination != nil,
-			TablePagination(p.Pagination),
+			TablePagination(&paginationProps),
 		),
 		h.Div(
 			h.Class("table-scroll"),
@@ -357,15 +363,15 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 				h.Input(
 					h.Type("radio"),
 					h.Checked(),
-					h.Name(p.Pagination.CurrentPageQueryKey),
-					h.Value(fmt.Sprintf("%d", p.Pagination.CurrentPage)),
+					h.Name(paginationProps.CurrentPageQueryKey),
+					h.Value(fmt.Sprintf("%d", paginationProps.CurrentPage)),
 					h.StyleAttr("display: none"),
 				),
 			),
 		),
 		g.If(
 			p.Pagination != nil,
-			TablePagination(p.Pagination),
+			TablePagination(&paginationProps),
 		),
 	)
 }
