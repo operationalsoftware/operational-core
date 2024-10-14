@@ -189,6 +189,11 @@ type TablePaginationProps struct {
 
 func TablePagination(p *TablePaginationProps) g.Node {
 
+	if p == nil {
+		// has been called with nil pointer
+		return nil
+	}
+
 	if p.PageSizeQueryKey == "" {
 		p.PageSizeQueryKey = "PageSize"
 	}
