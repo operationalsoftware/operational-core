@@ -76,6 +76,7 @@ func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 
 	return components.Form(
 		h.ID("reset-password-form"),
+		h.Method("POST"),
 
 		components.Input(&components.InputProps{
 			Label:       passwordLabel,
