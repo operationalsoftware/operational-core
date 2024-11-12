@@ -128,6 +128,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	valid, validationErrors := usermodel.ValidateNewUser(newUser)
 	if !valid {
 		_ = usersviews.AddUserPage(&usersviews.AddUserPageProps{
+			Ctx:              ctx,
 			Values:           r.Form,
 			ValidationErrors: validationErrors,
 			IsSubmission:     true,

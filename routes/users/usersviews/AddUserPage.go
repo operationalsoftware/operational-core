@@ -20,6 +20,7 @@ type AddUserPageProps struct {
 }
 
 func AddUserPage(p *AddUserPageProps) g.Node {
+
 	content := g.Group([]g.Node{
 
 		addUserForm(&addUserFormProps{
@@ -97,9 +98,8 @@ func addUserForm(p *addUserFormProps) g.Node {
 
 	passwordLabel := "Password"
 	passwordKey := "Password"
-	passwordValue := p.values.Get(passwordKey)
 	passwordError := ""
-	if p.isSubmission || passwordValue != "" {
+	if p.isSubmission {
 		passwordError = p.validationErrors.GetError(passwordKey, passwordLabel)
 	}
 	passwordHelperType := components.InputHelperTypeNone
@@ -109,9 +109,8 @@ func addUserForm(p *addUserFormProps) g.Node {
 
 	confirmPasswordLabel := "Confirm Password"
 	confirmPasswordKey := "ConfirmPassword"
-	confirmPasswordValue := p.values.Get(confirmPasswordKey)
 	confirmPasswordError := ""
-	if p.isSubmission || confirmPasswordValue != "" {
+	if p.isSubmission {
 		confirmPasswordError = p.validationErrors.GetError(confirmPasswordKey, confirmPasswordLabel)
 	}
 	confirmPasswordHelperType := components.InputHelperTypeNone
@@ -179,7 +178,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 			HelperText:  passwordError,
 			HelperType:  passwordHelperType,
 			InputProps: []g.Node{
-				h.Value(passwordValue),
 				h.AutoComplete("off"),
 			},
 		}),
@@ -192,7 +190,6 @@ func addUserForm(p *addUserFormProps) g.Node {
 			HelperText:  confirmPasswordError,
 			HelperType:  confirmPasswordHelperType,
 			InputProps: []g.Node{
-				h.Value(confirmPasswordValue),
 				h.AutoComplete("off"),
 			},
 		}),
@@ -200,9 +197,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 		permissionsCheckboxes(usermodel.UserPermissions{}),
 
 		components.Button(
-			&components.ButtonProps{
-				Disabled: p.validationErrors.HasErrors(),
-			},
+			&components.ButtonProps{},
 			h.Type("submit"),
 			g.Text("Submit"),
 		),
