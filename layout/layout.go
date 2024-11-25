@@ -20,7 +20,7 @@ func layout(p *layoutProps) g.Node {
 			Ctx: p.Ctx,
 		}),
 		g.If(p.Ctx.User.UserID != 0,
-			breadcrumbs(p.Ctx.Req.URL.Path),
+			breadcrumbs(p.Ctx.Req.URL.EscapedPath()),
 		),
 		h.Main(
 			c.Classes{

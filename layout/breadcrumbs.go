@@ -4,6 +4,7 @@ import (
 	"app/components"
 	"app/internal/db"
 	"app/models/usermodel"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -81,15 +82,21 @@ type matchedBreadcrumb struct {
 	iconIdentifier string
 }
 
-func breadcrumbs(url string) g.Node {
+func breadcrumbs(reqPath string) g.Node {
 
 	// split the url into parts
-	urlParts := strings.Split(url, "/")
+	pathParts := strings.Split(reqPath, "/")
 
 	// if the url is "/". Split will return an array with two empty parts
 	// remove the last one
-	if len(urlParts) > 1 && urlParts[len(urlParts)-1] == "" {
-		urlParts = urlParts[:len(urlParts)-1]
+	if len(pathParts) > 1 && pathParts[len(pathParts)-1] == "" {
+		pathParts = pathParts[:len(pathParts)-1]
+	}
+
+	// decode/unescape each part
+	for i, urlPart := range pathParts {
+		unescaped, _ := url.PathUnescape(urlPart)
+		pathParts[i] = unescaped
 	}
 
 	matchedCrumbs := []matchedBreadcrumb{}
@@ -99,7 +106,7 @@ func breadcrumbs(url string) g.Node {
 	// used to build the link for each crumb based on the urlParts
 	currentLink := "/"
 
-	for _, urlPart := range urlParts {
+	for _, urlPart := range pathParts {
 		// find the matching breadCrumb
 
 		var matchingCrumb *breadcrumbsType
