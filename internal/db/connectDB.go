@@ -24,6 +24,20 @@ func ConnectDB() error {
 			return
 		}
 
+		// Set a busy timeout of 2 minutes (120000 milliseconds)
+		_, err = db.Exec("PRAGMA busy_timeout = 120000;")
+		if err != nil {
+			db.Close()
+			return
+		}
+
+		// Enable WAL mode
+		_, err = db.Exec("PRAGMA journal_mode=WAL;")
+		if err != nil {
+			db.Close()
+			return
+		}
+
 		err = db.Ping()
 		if err != nil {
 			return
