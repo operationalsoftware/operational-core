@@ -16,6 +16,9 @@ var (
 )
 
 func ConnectDB() error {
+
+	var err error
+
 	once.Do(func() {
 		// Connect db
 		var db *sql.DB
