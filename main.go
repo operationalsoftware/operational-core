@@ -1,73 +1,74 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
-	"app/internal/cookie"
-	"app/internal/db"
-	"app/internal/env"
-	"app/migrate"
-	"app/routes"
+	"app/internal/migrate"
+	"app/internal/router"
+	"app/internal/services/authservice"
+	"app/pkg/cookie"
+	"app/pkg/db"
+	"app/pkg/env"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
-	retcode := 0
-	var err error
-
-	defer func() {
-		if err != nil {
-			fmt.Println(err)
-		}
-		os.Exit(retcode)
-	}()
-
 	// Load environment (if not in production or staging)
-	err = env.Load()
+	err := env.Load()
 	if err != nil {
-		retcode = 1
-		return
+		log.Fatalf("Error loading environment: %v\n", err)
 	}
 
 	// Verify environment variables
 	err = env.Verify()
 	if err != nil {
-		retcode = 1
-		return
+		log.Fatalf("Error verifying environment: %v\n", err)
 	}
 
-	// Create database connection
+	// Create database connection (SQLite - to be removed)
 	err = db.ConnectDB()
 	if err != nil {
-		retcode = 1
-		return
+		log.Fatalf("Error connecting to SQLite: %v\n", err)
 	}
 	defer db.UseDB().Close()
 
-	// Initialise or migrate database
-	err = migrate.MigrateDB()
+	migrate.RunMigrations() // uses log.Fatal
+
+	pgEnv := db.LoadPostgresEnv()
+	targetConnStr := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s",
+		pgEnv.User, pgEnv.Password, pgEnv.Host, pgEnv.Port, pgEnv.Database)
+	pgPool, err := pgxpool.New(context.Background(), targetConnStr)
 	if err != nil {
-		retcode = 1
-		return
+		log.Fatalf("Unable to create Postgres connection pool: %v\n", err)
 	}
+	defer pgPool.Close() // Always close the pool when done
 
 	// Initialise some things for start up
-	cookie.InitCookieInstance()
+	err = cookie.InitCookieInstance()
+	if err != nil {
+		log.Fatalf("Error initialising cookie instance: %v\n", err)
+	}
+
+	// Instantiate services
+	services := &router.Services{
+		AuthService: authservice.NewAuthService(pgPool),
+	}
 
 	// define server
 	server := http.Server{
 		Addr:    ":3000",
-		Handler: routes.Handler(),
+		Handler: router.NewRouter(services),
 	}
 
 	// Bind to a port and pass our router in
 	fmt.Println("http://localhost:3000")
 	err = server.ListenAndServe()
 	if err != nil {
-		log.Println(err)
-		retcode = 1
-		return
+		log.Fatalf("Error listening and serving: %v\n", err)
 	}
 }
