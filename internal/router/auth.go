@@ -1,21 +1,19 @@
-package authrouter
+package router
 
 import (
 	"app/internal/handlers/authhandler"
-	"app/internal/services/authservice"
+	"app/internal/service"
 	"net/http"
 )
 
-func NewRouter(authService authservice.AuthService) http.Handler {
-	mux := http.NewServeMux()
-
+func addAuthRoutes(
+	mux *http.ServeMux,
+	authService service.AuthService,
+) {
 	authHandler := authhandler.NewAuthHandler(authService)
 
 	mux.HandleFunc("GET /auth/password", authHandler.PasswordLogInPage)
 	mux.HandleFunc("POST /auth/password", authHandler.PasswordLogIn)
 
-	// log out (any method)
 	mux.HandleFunc("/logout", authHandler.Logout)
-
-	return mux
 }

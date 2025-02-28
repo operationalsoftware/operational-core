@@ -1,7 +1,7 @@
-package userservice
+package service
 
 import (
-	"app/internal/models"
+	"app/internal/model"
 	"app/pkg/validate"
 	"context"
 	"database/sql"
@@ -17,19 +17,19 @@ import (
 )
 
 type UserService interface {
-	ValidateNewUser(ctx context.Context, user models.NewUser) (bool, validate.ValidationErrors)
-	ValidateNewAPIUser(ctx context.Context, user models.NewAPIUser) (bool, validate.ValidationErrors)
-	ValidateUserUpdate(ctx context.Context, update models.UserUpdate) (bool, validate.ValidationErrors)
-	ValidatePasswordReset(pr models.PasswordReset) (bool, validate.ValidationErrors)
+	ValidateNewUser(ctx context.Context, user model.NewUser) (bool, validate.ValidationErrors)
+	ValidateNewAPIUser(ctx context.Context, user model.NewAPIUser) (bool, validate.ValidationErrors)
+	ValidateUserUpdate(ctx context.Context, update model.UserUpdate) (bool, validate.ValidationErrors)
+	ValidatePasswordReset(pr model.PasswordReset) (bool, validate.ValidationErrors)
 
-	CreateUser(ctx context.Context, user models.NewUser) error
-	CreateAPIUser(ctx context.Context, user models.NewAPIUser) (string, error)
-	UpdateUser(ctx context.Context, id int, update models.UserUpdate) error
-	ResetPassword(ctx context.Context, id int, pr models.PasswordReset) error
+	CreateUser(ctx context.Context, user model.NewUser) error
+	CreateAPIUser(ctx context.Context, user model.NewAPIUser) (string, error)
+	UpdateUser(ctx context.Context, id int, update model.UserUpdate) error
+	ResetPassword(ctx context.Context, id int, pr model.PasswordReset) error
 
-	GetUserByID(ctx context.Context, id int) (*models.User, error)
-	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
-	GetUsers(ctx context.Context, q models.GetUsersQuery) ([]models.User, error)
+	GetUserByID(ctx context.Context, id int) (*model.User, error)
+	GetUserByUsername(ctx context.Context, username string) (*model.User, error)
+	GetUsers(ctx context.Context, q model.GetUsersQuery) ([]model.User, error)
 	GetUserCount(ctx context.Context) (int, error)
 }
 
@@ -42,23 +42,13 @@ func NewUserService(db *pgxpool.Pool) UserService {
 }
 
 func (s *userService) ValidateNewUser(
-	ctx context.Context, user models.NewUser,
+	ctx context.Context, user model.NewUser,
 ) (bool, validate.ValidationErrors) {
 
 	var validationErrors validate.ValidationErrors = make(map[string][]string)
 
 	// validate Username
-	validate.MinLength(&validationErrors, "Username", user.Username, 3)
-	validate.MaxLength(&validationErrors, "Username", user.Username, 20)
-	validate.Lowercase(&validationErrors, "Username", user.Username)
-	validateUsername(&validationErrors, user.Username)
-	// check if username is already taken
-	if user.Username != "" {
-		_, err := s.GetUserByUsername(ctx, user.Username)
-		if err == nil {
-			validationErrors.Add("Username", fmt.Sprintf("'%s' is already taken", user.Username))
-		}
-	}
+	s.validateUsername(&validationErrors, "Username", user.Username)
 
 	// validate FirstName
 	validate.MinLength(&validationErrors, "FirstName", user.FirstName, 1)
@@ -88,7 +78,7 @@ func (s *userService) ValidateNewUser(
 	return len(validationErrors) == 0, validationErrors
 }
 
-func (s *userService) CreateUser(ctx context.Context, user models.NewUser) error {
+func (s *userService) CreateUser(ctx context.Context, user model.NewUser) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -133,7 +123,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
 }
 
 func (s *userService) ValidateNewAPIUser(
-	ctx context.Context, user models.NewAPIUser,
+	ctx context.Context, user model.NewAPIUser,
 ) (bool, validate.ValidationErrors) {
 	var validationErrors validate.ValidationErrors = make(map[string][]string)
 
@@ -141,7 +131,7 @@ func (s *userService) ValidateNewAPIUser(
 	validate.MinLength(&validationErrors, "Username", user.Username, 3)
 	validate.MaxLength(&validationErrors, "Username", user.Username, 20)
 	validate.Lowercase(&validationErrors, "Username", user.Username)
-	validateUsername(&validationErrors, user.Username)
+	s.validateUsername(&validationErrors, user.Username)
 	// check if username is already taken
 	if user.Username != "" {
 		_, err := s.GetUserByUsername(ctx, user.Username)
@@ -153,7 +143,7 @@ func (s *userService) ValidateNewAPIUser(
 	return len(validationErrors) == 0, validationErrors
 }
 
-func (s *userService) CreateAPIUser(ctx context.Context, user models.NewAPIUser) (string, error) {
+func (s *userService) CreateAPIUser(ctx context.Context, user model.NewAPIUser) (string, error) {
 
 	password, err := generateRandomPassword(24)
 	if err != nil {
@@ -197,7 +187,7 @@ VALUES ($1, $2, $3, $4)
 
 func (s *userService) ValidateUserUpdate(
 	ctx context.Context,
-	update models.UserUpdate,
+	update model.UserUpdate,
 ) (bool, validate.ValidationErrors) {
 
 	var validationErrors validate.ValidationErrors = make(map[string][]string)
@@ -206,6 +196,10 @@ func (s *userService) ValidateUserUpdate(
 	validate.MaxLength(&validationErrors, "Username", update.Username, 20)
 	validate.Lowercase(&validationErrors, "Username", update.Username)
 	validateUsername(&validationErrors, update.Username)
+	_, err := s.GetUserByUsername(ctx, update.Username)
+	if err == nil {
+		validationErrors.Add("Username", fmt.Sprintf("'%s' is already taken", update.Username))
+	}
 
 	// validate FirstName
 	validate.MinLength(&validationErrors, "FirstName", update.FirstName, 1)
@@ -226,7 +220,7 @@ func (s *userService) ValidateUserUpdate(
 }
 
 func (s *userService) UpdateUser(
-	ctx context.Context, id int, update models.UserUpdate,
+	ctx context.Context, id int, update model.UserUpdate,
 ) error {
 
 	// get the user to check if it exists
@@ -280,7 +274,7 @@ WHERE
 	return nil
 }
 
-func (s *userService) ValidatePasswordReset(pr models.PasswordReset) (bool, validate.ValidationErrors) {
+func (s *userService) ValidatePasswordReset(pr model.PasswordReset) (bool, validate.ValidationErrors) {
 
 	var validationErrors validate.ValidationErrors = make(map[string][]string)
 
@@ -296,7 +290,7 @@ func (s *userService) ValidatePasswordReset(pr models.PasswordReset) (bool, vali
 }
 
 func (s *userService) ResetPassword(
-	ctx context.Context, id int, pr models.PasswordReset,
+	ctx context.Context, id int, pr model.PasswordReset,
 ) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pr.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -320,7 +314,7 @@ WHERE
 	return nil
 }
 
-func (s *userService) GetUserByID(ctx context.Context, id int) (*models.User, error) {
+func (s *userService) GetUserByID(ctx context.Context, id int) (*model.User, error) {
 	query := `
 SELECT
     user_id,
@@ -338,7 +332,7 @@ WHERE
     user_id = $1
 	`
 
-	userDB := models.UserDB{}
+	userDB := model.UserDB{}
 	err := s.db.QueryRow(ctx, query, id).Scan(
 		&userDB.UserID,
 		&userDB.IsAPIUser,
@@ -360,7 +354,7 @@ WHERE
 	return &user, nil
 }
 
-func (s *userService) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+func (s *userService) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
 
 	query := `
 SELECT
@@ -379,7 +373,7 @@ WHERE
     username = $1
 	`
 
-	userDB := models.UserDB{}
+	userDB := model.UserDB{}
 	err := s.db.QueryRow(ctx, query, username).Scan(
 		&userDB.UserID,
 		&userDB.IsAPIUser,
@@ -401,11 +395,18 @@ WHERE
 	return &user, nil
 }
 
-func (s *userService) GetUsers(ctx context.Context, q models.GetUsersQuery) ([]models.User, error) {
+func (s *userService) GetUsers(
+	ctx context.Context,
+	q model.GetUsersQuery,
+) ([]model.User, error) {
 
 	offset := (q.Page - 1) * q.PageSize
 	limit := q.PageSize
 	orderByClause := q.Sort.ToOrderByClause(map[string]string{})
+
+	if orderByClause == "" {
+		orderByClause = "ORDER BY username ASC"
+	}
 
 	query := fmt.Sprintf(`
 SELECT
@@ -435,9 +436,9 @@ LIMIT $1 OFFSET $2
 	}
 	defer rows.Close()
 
-	users := []models.User{}
+	users := []model.User{}
 	for rows.Next() {
-		var userDB models.UserDB
+		var userDB model.UserDB
 		err := rows.Scan(
 			&userDB.UserID,
 			&userDB.IsAPIUser,
@@ -515,7 +516,16 @@ func generateRandomPassword(length int) (string, error) {
 	return string(password), nil
 }
 
-func validateUsername(ve *validate.ValidationErrors, username string) {
+func (s *userService) validateUsername(
+	ve *validate.ValidationErrors,
+	usernameKey string,
+	username string,
+) {
+
+	validate.MinLength(ve, usernameKey, username, 3)
+	validate.MaxLength(ve, usernameKey, username, 20)
+	validate.Lowercase(ve, usernameKey, username)
+
 	pattern := "^[a-z0-9_]+$"
 
 	// Compile the regular expression

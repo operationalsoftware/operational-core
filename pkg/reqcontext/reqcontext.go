@@ -1,12 +1,12 @@
 package reqcontext
 
 import (
-	"app/internal/models"
+	"app/internal/model"
 	"net/http"
 )
 
 type ReqContext struct {
-	User models.User
+	User model.User
 	Req  *http.Request
 }
 
@@ -18,9 +18,9 @@ const (
 
 func GetContext(r *http.Request) ReqContext {
 	// Get the user from the context
-	user, ok := r.Context().Value(ReqContextKeyUser).(models.User)
+	user, ok := r.Context().Value(ReqContextKeyUser).(model.User)
 	if !ok {
-		user = models.User{}
+		user = model.User{}
 	}
 
 	return ReqContext{

@@ -3,7 +3,8 @@ package userview
 import (
 	"app/internal/components"
 	"app/internal/layout"
-	"app/internal/models"
+	"app/internal/model"
+	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
 
@@ -15,14 +16,16 @@ import (
 type UserPageProps struct {
 	Id   int
 	Ctx  reqcontext.ReqContext
-	User models.User
+	User model.User
 }
 
 func UserPage(p *UserPageProps) g.Node {
 
+	user := p.User
+
 	userContent := g.Group([]g.Node{
 		g.If(
-			p.User.UserID != 1,
+			user.UserID != 1,
 			h.Div(
 				h.Class("button-container"),
 				components.Button(&components.ButtonProps{
@@ -52,26 +55,25 @@ func UserPage(p *UserPageProps) g.Node {
 			h.Div(
 				h.Class("properties-grid"),
 				g.If(
-					!p.User.IsAPIUser,
+					!user.IsAPIUser,
 					g.Group([]g.Node{
-
 						h.Span(
 							h.Strong(g.Text("First Name")),
 						),
 						h.Span(
-							g.Text(*p.User.FirstName),
+							g.Text(nilsafe.Str(user.FirstName)),
 						),
 						h.Span(
 							h.Strong(g.Text("Last Name")),
 						),
 						h.Span(
-							g.Text(*p.User.LastName),
+							g.Text(nilsafe.Str(user.LastName)),
 						),
 						h.Span(
 							h.Strong(g.Text("Email")),
 						),
 						h.Span(
-							g.Text(*p.User.Email),
+							g.Text(nilsafe.Str(user.Email)),
 						),
 					}),
 				),
@@ -79,20 +81,37 @@ func UserPage(p *UserPageProps) g.Node {
 					h.Strong(g.Text("Username")),
 				),
 				h.Span(
-					g.Text(p.User.Username),
+					g.Text(user.Username),
 				),
 			),
 		),
 
-		permissionsCheckboxesPartial(p.User.Permissions),
+		h.Div(
+			h.H3(g.Text("Permissions")),
+			g.If(
+				user.Permissions.UserAdmin.Access,
+				h.Div(
+					h.H4(h.Class("permission-group-title"), g.Text("User Admin")),
+					h.Ul(
+						h.Class("permission-group-list"),
+						h.Li(g.Text(getPermissionDescription("UserAdmin", "Access"))),
+					),
+				),
+			),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
-		Title:   "View User",
+		Title: "View User",
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			usersBreadCrumb,
+			{IconIdentifier: "account", Title: user.Username},
+		},
 		Content: userContent,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/routes/users/usersviews/user.css"),
+			components.InlineStyle("/internal/views/userview/user_page.css"),
 		},
 	})
 }

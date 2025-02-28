@@ -49,7 +49,7 @@ func NotFoundPage(p *NotFoundPageProps) g.Node {
 		Content: notFoundContent,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/routes/notfound/notFound.css"),
+			components.InlineStyle("/internal/views/notfoundview/not_found_page.css"),
 		},
 	})
 }

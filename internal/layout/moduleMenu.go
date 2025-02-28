@@ -2,22 +2,24 @@ package layout
 
 import (
 	"app/internal/components"
-	"app/internal/models"
+	"app/internal/model"
 	"app/pkg/reqcontext"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
-// icons array
-var TopLevelMenuItems = []components.GridMenuItem{
+var AppMenu = []components.GridMenuGroup{
 	{
-		Icon: "account-group",
-		Name: "Users",
-		Link: "/users",
-		Show: func(permissions models.UserPermissions) bool {
-			return permissions.UserAdmin.Access
-		},
+		GroupName: "Admin",
+		Items: []components.GridMenuItem{{
+			Icon: "account-group",
+			Name: "Users",
+			Link: "/users",
+			Show: func(permissions model.UserPermissions) bool {
+				return permissions.UserAdmin.Access
+			},
+		}},
 	},
 }
 
@@ -26,10 +28,6 @@ type moduleMenuProps struct {
 }
 
 func moduleMenu(p *moduleMenuProps) g.Node {
-
-	if p.Ctx.User.UserID == 0 {
-		return nil
-	}
 
 	return h.Div(
 		h.Button(
@@ -45,7 +43,7 @@ func moduleMenu(p *moduleMenuProps) g.Node {
 			h.ID("navbar-module-menu"),
 
 			components.GridMenu(&components.GridMenuProps{
-				Items:           TopLevelMenuItems,
+				Groups:          AppMenu,
 				UserPermissions: p.Ctx.User.Permissions,
 			}),
 		),

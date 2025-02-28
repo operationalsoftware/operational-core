@@ -3,7 +3,7 @@ package userview
 import (
 	"app/internal/components"
 	"app/internal/layout"
-	"app/internal/models"
+	"app/internal/model"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"net/url"
@@ -30,11 +30,16 @@ func AddAPIUserPage(p *AddAPIUserPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Add New API User",
+		Ctx:   p.Ctx,
+		Title: "Add New API User",
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			usersBreadCrumb,
+			{IconIdentifier: "add", Title: "Add API User"},
+		},
 		Content: content,
 		AppendHead: []g.Node{
-			components.InlineStyle("/routes/users/usersviews/addApiUser.css"),
+			components.InlineStyle("/internal/views/userview/add_api_user_page.css"),
 		},
 	})
 }
@@ -74,7 +79,7 @@ func addApiUserForm(p *addApiUserFormProps) g.Node {
 			},
 		}),
 
-		permissionsCheckboxesPartial(models.UserPermissions{}),
+		permissionsCheckboxesPartial(model.UserPermissions{}),
 
 		components.Button(
 			&components.ButtonProps{},

@@ -2,7 +2,6 @@ package layout
 
 import (
 	"app/pkg/reqcontext"
-	"fmt"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
@@ -13,9 +12,6 @@ type navbarProps struct {
 }
 
 func navbar(p *navbarProps) g.Node {
-
-	fmt.Println(p.ctx.User.UserID)
-
 	return h.Nav(h.ID("navbar"),
 		h.Div(
 			h.ID("navbar-logo"),

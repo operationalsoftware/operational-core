@@ -9,6 +9,7 @@ import (
 	"app/internal/migrate"
 	"app/internal/router"
 	"app/internal/services/authservice"
+	"app/internal/services/userservice"
 	"app/pkg/cookie"
 	"app/pkg/db"
 	"app/pkg/env"
@@ -57,6 +58,7 @@ func main() {
 	// Instantiate services
 	services := &router.Services{
 		AuthService: authservice.NewAuthService(pgPool),
+		UserService: userservice.NewUserService(pgPool),
 	}
 
 	// define server

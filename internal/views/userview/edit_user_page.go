@@ -3,7 +3,8 @@ package userview
 import (
 	"app/internal/components"
 	"app/internal/layout"
-	"app/internal/models"
+	"app/internal/model"
+	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"fmt"
@@ -15,7 +16,7 @@ import (
 
 type EditUserPageProps struct {
 	Ctx              reqcontext.ReqContext
-	User             models.User
+	User             model.User
 	Values           url.Values
 	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
@@ -30,17 +31,27 @@ func EditUserPage(p *EditUserPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Title:   fmt.Sprintf("Edit User: %s", p.User.Username),
+		Title: fmt.Sprintf("Edit User: %s", p.User.Username),
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			usersBreadCrumb,
+			{
+				IconIdentifier: "account",
+				Title:          p.User.Username,
+				URLPart:        fmt.Sprintf("%d", p.User.UserID),
+			},
+			{Title: "Edit"},
+		},
 		Content: content,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/routes/users/usersviews/editUser.css"),
+			components.InlineStyle("/internal/views/userview/edit_user_page.css"),
 		},
 	})
 }
 
 type editUserFormProps struct {
-	user             models.User
+	user             model.User
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
@@ -49,13 +60,15 @@ type editUserFormProps struct {
 // same as addUserForm, but no password fields
 func editUserForm(p *editUserFormProps) g.Node {
 
+	isAPIUser := p.user.IsAPIUser
+
 	firstNameLabel := "First Name"
 	firstNameKey := "FirstName"
 	var firstNameValue string
 	if p.values.Get(firstNameKey) != "" {
 		firstNameValue = p.values.Get(firstNameKey)
 	} else {
-		firstNameValue = *p.user.FirstName
+		firstNameValue = nilsafe.Str(p.user.FirstName)
 	}
 	firstNameError := ""
 	if p.isSubmission || firstNameValue != "" {
@@ -72,7 +85,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 	if p.values.Get(lastNameKey) != "" {
 		lastNameValue = p.values.Get(lastNameKey)
 	} else {
-		lastNameValue = *p.user.LastName
+		lastNameValue = nilsafe.Str(p.user.LastName)
 	}
 	lastNameError := ""
 	if p.isSubmission || lastNameValue != "" {
@@ -106,7 +119,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 	if p.values.Get(emailKey) != "" {
 		emailValue = p.values.Get(emailKey)
 	} else {
-		emailValue = *p.user.Email
+		emailValue = nilsafe.Str(p.user.Email)
 	}
 	emailError := ""
 	if p.isSubmission || emailValue != "" {
@@ -121,29 +134,35 @@ func editUserForm(p *editUserFormProps) g.Node {
 		h.ID("edit-user-form"),
 		h.Method("POST"),
 
-		components.Input(&components.InputProps{
-			Label:       firstNameLabel,
-			Name:        firstNameKey,
-			Placeholder: "Enter first name",
-			HelperText:  firstNameError,
-			HelperType:  firstNameHelperType,
-			InputProps: []g.Node{
-				h.Value(firstNameValue),
-				h.AutoComplete("off"),
-			},
-		}),
+		g.If(
+			!isAPIUser,
+			components.Input(&components.InputProps{
+				Label:       firstNameLabel,
+				Name:        firstNameKey,
+				Placeholder: "Enter first name",
+				HelperText:  firstNameError,
+				HelperType:  firstNameHelperType,
+				InputProps: []g.Node{
+					h.Value(firstNameValue),
+					h.AutoComplete("off"),
+				},
+			}),
+		),
 
-		components.Input(&components.InputProps{
-			Label:       lastNameLabel,
-			Name:        lastNameKey,
-			Placeholder: "Enter last name",
-			HelperText:  lastNameError,
-			HelperType:  lastNameHelperType,
-			InputProps: []g.Node{
-				h.Value(lastNameValue),
-				h.AutoComplete("off"),
-			},
-		}),
+		g.If(
+			!isAPIUser,
+			components.Input(&components.InputProps{
+				Label:       lastNameLabel,
+				Name:        lastNameKey,
+				Placeholder: "Enter last name",
+				HelperText:  lastNameError,
+				HelperType:  lastNameHelperType,
+				InputProps: []g.Node{
+					h.Value(lastNameValue),
+					h.AutoComplete("off"),
+				},
+			}),
+		),
 
 		components.Input(&components.InputProps{
 			Label:       usernameLabel,
@@ -157,17 +176,20 @@ func editUserForm(p *editUserFormProps) g.Node {
 			},
 		}),
 
-		components.Input(&components.InputProps{
-			Label:       emailLabel,
-			Name:        emailKey,
-			Placeholder: "Enter email",
-			HelperText:  emailError,
-			HelperType:  emailHelperType,
-			InputProps: []g.Node{
-				h.Value(emailValue),
-				h.AutoComplete("off"),
-			},
-		}),
+		g.If(
+			!isAPIUser,
+			components.Input(&components.InputProps{
+				Label:       emailLabel,
+				Name:        emailKey,
+				Placeholder: "Enter email",
+				HelperText:  emailError,
+				HelperType:  emailHelperType,
+				InputProps: []g.Node{
+					h.Value(emailValue),
+					h.AutoComplete("off"),
+				},
+			}),
+		),
 
 		permissionsCheckboxesPartial(p.user.Permissions),
 

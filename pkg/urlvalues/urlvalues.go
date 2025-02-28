@@ -233,6 +233,17 @@ func Unmarshal(urlValues url.Values, v interface{}) error {
 			if err != nil {
 				return err
 			}
+			continue
+		} else if field.Type.Kind() == reflect.Ptr {
+			strValue := urlValues.Get(fName)
+			if strValue == "" {
+				continue // Leave pointer as nil if no value is provided
+			}
+			fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
+			if err := setField(fieldValue.Elem(), strValue); err != nil {
+				return err
+			}
+			continue
 		} else if field.Type.Kind() == reflect.Slice {
 			// slice field
 			// we support square bracket/index notation and multiple form values under
@@ -320,6 +331,8 @@ func Unmarshal(urlValues url.Values, v interface{}) error {
 					fieldValue.Index(index).Set(subValue)
 				}
 			}
+
+			continue
 		} else if field.Type.Kind() == reflect.Struct {
 			// struct field - we recurse
 			subForm := make(url.Values)
@@ -332,6 +345,8 @@ func Unmarshal(urlValues url.Values, v interface{}) error {
 			if err := Unmarshal(subForm, fieldValue.Addr().Interface()); err != nil {
 				return err
 			}
+
+			continue
 		} else {
 			// unknown field
 			return fmt.Errorf("unknown field type kind: %s and field type: %s", fTypeKind, fType)

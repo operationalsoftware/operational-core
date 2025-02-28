@@ -3,7 +3,7 @@ package userview
 import (
 	"app/internal/components"
 	"app/internal/layout"
-	"app/internal/models"
+	"app/internal/model"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"net/url"
@@ -31,11 +31,16 @@ func AddUserPage(p *AddUserPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Add New User",
+		Ctx:   p.Ctx,
+		Title: "Add New User",
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			usersBreadCrumb,
+			{IconIdentifier: "account-plus", Title: "Add"},
+		},
 		Content: content,
 		AppendHead: []g.Node{
-			components.InlineStyle("/routes/users/usersviews/addUser.css"),
+			components.InlineStyle("/internal/views/userview/add_user_page.css"),
 		},
 	})
 }
@@ -194,7 +199,7 @@ func addUserForm(p *addUserFormProps) g.Node {
 			},
 		}),
 
-		permissionsCheckboxesPartial(models.UserPermissions{}),
+		permissionsCheckboxesPartial(model.UserPermissions{}),
 
 		components.Button(
 			&components.ButtonProps{},

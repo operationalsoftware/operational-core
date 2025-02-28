@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"app/internal/models"
+	"app/internal/model"
 	"app/pkg/reqcontext"
 	"net/http"
 )
@@ -13,7 +13,7 @@ func AuthRedirect(next http.Handler) http.Handler {
 			return
 		}
 
-		_, ok := r.Context().Value(reqcontext.ReqContextKeyUser).(models.User)
+		_, ok := r.Context().Value(reqcontext.ReqContextKeyUser).(model.User)
 		if !ok {
 			http.Redirect(w, r, "/auth/password", http.StatusSeeOther)
 			return

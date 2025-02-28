@@ -2,7 +2,7 @@ package userview
 
 import (
 	"app/internal/components"
-	"app/internal/models"
+	"app/internal/model"
 	"reflect"
 
 	g "github.com/maragudk/gomponents"
@@ -13,7 +13,7 @@ import (
 func getPermissionDescription(module, permission string) string {
 	// Use reflection to get the description of
 	// Create an instance of UserPermissions
-	permissions := models.UserPermissions{}
+	permissions := model.UserPermissions{}
 	permissionsType := reflect.TypeOf(permissions)
 	moduleField, found := permissionsType.FieldByName(module)
 	if found {
@@ -29,7 +29,7 @@ func getPermissionDescription(module, permission string) string {
 	return ""
 }
 
-func permissionsCheckboxesPartial(userPermissions models.UserPermissions) g.Node {
+func permissionsCheckboxesPartial(userPermissions model.UserPermissions) g.Node {
 
 	return components.Fieldset(
 		h.Label(g.Text("Permissions")),
@@ -46,7 +46,7 @@ func permissionsCheckboxesPartial(userPermissions models.UserPermissions) g.Node
 			},
 		),
 
-		components.InlineStyle("/routes/users/usersviews/permissions.css"),
+		components.InlineStyle("/internal/views/userview/permissions_checkboxes_partial.css"),
 	)
 
 }

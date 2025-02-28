@@ -60,6 +60,6 @@ func apiUserCredentials(p *apiUserCredentialsProps) g.Node {
 				g.Text("Back to Users"),
 			),
 		),
-		components.InlineStyle("/routes/users/usersviews/apiUserCredentialsPage.css"),
+		components.InlineStyle("/internal/views/userview/api_user_credentials_page.css"),
 	})
 }

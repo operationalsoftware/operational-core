@@ -3,9 +3,10 @@ package userview
 import (
 	"app/internal/components"
 	"app/internal/layout"
-	"app/internal/models"
+	"app/internal/model"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
+	"fmt"
 	"net/url"
 
 	g "github.com/maragudk/gomponents"
@@ -13,7 +14,7 @@ import (
 )
 
 type ResetPasswordPageProps struct {
-	User             models.User
+	User             model.User
 	Ctx              reqcontext.ReqContext
 	Values           url.Values
 	ValidationErrors validate.ValidationErrors
@@ -32,11 +33,21 @@ func ResetPasswordPage(p *ResetPasswordPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Title:   "Reset Password: " + p.User.Username,
+		Title: "Reset Password: " + p.User.Username,
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			usersBreadCrumb,
+			{
+				IconIdentifier: "account",
+				Title:          p.User.Username,
+				URLPart:        fmt.Sprintf("%d", p.User.UserID),
+			},
+			{Title: "Reset Password"},
+		},
 		Content: resetPasswordContent,
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/routes/users/usersviews/resetPassword.css"),
+			components.InlineStyle("/internal/views/userview/reset_password_page.css"),
 		},
 	})
 }

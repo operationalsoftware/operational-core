@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"app/internal/models"
+	"app/internal/model"
 	"app/internal/services/authservice"
 	"app/internal/services/userservice"
 	"app/pkg/cookie"
@@ -61,11 +61,11 @@ func (m *AuthenticationMiddleware) Authentication(next http.Handler) http.Handle
 					return
 				}
 
-				var out models.VerifyPasswordLoginOutput
+				var out model.VerifyPasswordLoginOutput
 
 				out, err = m.authService.VerifyPasswordLogin(
 					r.Context(),
-					models.VerifyPasswordLoginInput{
+					model.VerifyPasswordLoginInput{
 						Username: apiUsername,
 						Password: apiPassword,
 					})
@@ -86,12 +86,13 @@ func (m *AuthenticationMiddleware) Authentication(next http.Handler) http.Handle
 		}
 
 		user, err := m.userService.GetUserByID(r.Context(), id)
+
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), reqcontext.ReqContextKeyUser, user)
+		ctx := context.WithValue(r.Context(), reqcontext.ReqContextKeyUser, *user)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

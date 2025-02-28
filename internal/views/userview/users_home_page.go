@@ -3,8 +3,9 @@ package userview
 import (
 	"app/internal/components"
 	"app/internal/layout"
-	"app/internal/models"
+	"app/internal/model"
 	"app/pkg/appsort"
+	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
 
@@ -15,7 +16,7 @@ import (
 
 type UsersHomePageProps struct {
 	Ctx       reqcontext.ReqContext
-	Users     []models.User
+	Users     []model.User
 	UserCount int
 	Sort      appsort.Sort
 	Page      int
@@ -63,19 +64,31 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 							fmt.Sprintf("/users/%d", u.UserID))),
 				},
 				{
-					Contents: g.Text(*u.FirstName),
+					Contents: g.Group([]g.Node{
+						g.If(u.FirstName == nil, g.Text("\u2013")),
+						g.If(u.FirstName != nil, g.Text(nilsafe.Str(u.FirstName))),
+					}),
 				},
 				{
-					Contents: g.Text(*u.LastName),
+					Contents: g.Group([]g.Node{
+						g.If(u.LastName == nil, g.Text("\u2013")),
+						g.If(u.LastName != nil, g.Text(nilsafe.Str(u.LastName))),
+					}),
 				},
 				{
-					Contents: g.Text(*u.Email),
+					Contents: g.Group([]g.Node{
+						g.If(u.Email == nil, g.Text("\u2013")),
+						g.If(u.Email != nil, g.Text(nilsafe.Str(u.Email))),
+					}),
 				},
 				{
 					Contents: g.Text(u.Created.Format("2006-01-02 15:04:05")),
 				},
 				{
-					Contents: g.If(u.LastLogin != nil, g.Text((*u.LastLogin).Format("2006-01-02 15:04:05"))),
+					Contents: g.Group([]g.Node{
+						g.If(u.LastLogin == nil, g.Text("\u2013")),
+						g.If(u.LastLogin != nil, g.Text(nilsafe.Time(u.LastLogin).Format("2006-01-02 15:04:05"))),
+					}),
 				},
 			},
 		})
@@ -133,14 +146,24 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
+		Ctx:     p.Ctx,
 		Title:   "Users",
 		Content: content,
-		Ctx:     p.Ctx,
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			usersBreadCrumb,
+		},
 		AppendHead: []g.Node{
-			components.InlineStyle("/routes/users/usersviews/index.css"),
+			components.InlineStyle("/internal/views/userview/users_home_page.css"),
 		},
 		AppendBody: []g.Node{
-			components.InlineScript("/routes/users/usersviews/index.js"),
+			components.InlineScript("/internal/views/userview/users_home_page.js"),
 		},
 	})
+}
+
+var usersBreadCrumb = layout.Breadcrumb{
+	IconIdentifier: "account-group",
+	Title:          "Users",
+	URLPart:        "users",
 }

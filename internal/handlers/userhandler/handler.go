@@ -1,7 +1,7 @@
 package userhandler
 
 import (
-	"app/internal/models"
+	"app/internal/model"
 	"app/internal/services/userservice"
 	"app/internal/views/userview"
 	"app/pkg/appsort"
@@ -44,7 +44,7 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sort := appsort.Sort{}
-	sort.ParseQueryParam(uv.Sort, models.GetUsersSortableKeys)
+	sort.ParseQueryParam(uv.Sort, model.GetUsersSortableKeys)
 
 	if uv.Page == 0 {
 		uv.Page = 1
@@ -53,7 +53,7 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		uv.PageSize = 50
 	}
 
-	users, err := h.userService.GetUsers(r.Context(), models.GetUsersQuery{
+	users, err := h.userService.GetUsers(r.Context(), model.GetUsersQuery{
 		Sort:     sort,
 		Page:     uv.Page,
 		PageSize: uv.PageSize,
@@ -136,7 +136,7 @@ func (h *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newUser models.NewUser
+	var newUser model.NewUser
 	err = urlvalues.Unmarshal(r.Form, &newUser)
 
 	if err != nil {
@@ -158,6 +158,7 @@ func (h *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 	err = h.userService.CreateUser(r.Context(), newUser)
 
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error adding user", http.StatusInternalServerError)
 	}
 
@@ -191,7 +192,7 @@ func (h *UserHandler) AddAPIUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newAPIUser models.NewAPIUser
+	var newAPIUser model.NewAPIUser
 	err = urlvalues.Unmarshal(r.Form, &newAPIUser)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
@@ -201,6 +202,7 @@ func (h *UserHandler) AddAPIUser(w http.ResponseWriter, r *http.Request) {
 	valid, validationErrors := h.userService.ValidateNewAPIUser(r.Context(), newAPIUser)
 
 	if !valid {
+		fmt.Println(valid, validationErrors)
 		_ = userview.AddAPIUserPage(&userview.AddAPIUserPageProps{
 			Ctx:              ctx,
 			Values:           r.Form,
@@ -269,9 +271,10 @@ func (h *UserHandler) EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userUpdate models.UserUpdate
+	var userUpdate model.UserUpdate
 	err = urlvalues.Unmarshal(r.Form, &userUpdate)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
 	}
@@ -340,7 +343,7 @@ func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var passwordReset models.PasswordReset
+	var passwordReset model.PasswordReset
 	err = urlvalues.Unmarshal(r.Form, &passwordReset)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)

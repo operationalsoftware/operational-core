@@ -1,13 +1,15 @@
-package userrouter
+package router
 
 import (
 	"app/internal/handlers/userhandler"
-	"app/internal/services/userservice"
+	"app/internal/service"
 	"net/http"
 )
 
-func NewRouter(userService userservice.UserService) http.Handler {
-	mux := http.NewServeMux()
+func addUserRoutes(
+	mux *http.ServeMux,
+	userService service.UserService,
+) {
 
 	userHandler := userhandler.NewUserHandler(userService)
 
@@ -26,6 +28,4 @@ func NewRouter(userService userservice.UserService) http.Handler {
 
 	mux.HandleFunc("GET /users/{id}/reset-password", userHandler.ResetPasswordPage)
 	mux.HandleFunc("POST /users/{id}/reset-password", userHandler.ResetPassword)
-
-	return mux
 }

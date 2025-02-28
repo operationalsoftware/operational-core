@@ -2,20 +2,18 @@ package router
 
 import (
 	"app/assets"
-	"app/internal/router/authrouter"
-	"app/internal/router/userrouter"
-	"app/internal/services/authservice"
-	"app/internal/services/userservice"
+	"app/internal/service"
 	"app/internal/views/homeview"
 	"app/internal/views/notfoundview"
 	"app/pkg/middleware"
 	"app/pkg/reqcontext"
+	"fmt"
 	"net/http"
 )
 
 type Services struct {
-	AuthService authservice.AuthService
-	UserService userservice.UserService
+	AuthService service.AuthService
+	UserService service.UserService
 }
 
 func NewRouter(services *Services) http.Handler {
@@ -40,12 +38,14 @@ func NewRouter(services *Services) http.Handler {
 	staticFS := http.FileServer(assets.Assets)
 	mux.Handle("/static/", staticFS)
 
-	mux.Handle("/auth/", authrouter.NewRouter(services.AuthService))
-	mux.Handle("/user/", userrouter.NewRouter(services.UserService))
+	// add routes for services
+	addAuthRoutes(mux, services.AuthService)
+	addUserRoutes(mux, services.UserService)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		ctx := reqcontext.GetContext(r)
 
+		// get homepage
 		if r.Method == http.MethodGet && r.URL.Path == "/" {
 			_ = homeview.HomePage(&homeview.HomePageProps{
 				Ctx: ctx,
@@ -53,9 +53,17 @@ func NewRouter(services *Services) http.Handler {
 			return
 		}
 
-		_ = notfoundview.NotFoundPage(&notfoundview.NotFoundPageProps{
-			Ctx: ctx,
-		}).Render(w)
+		// catch all - Not Found
+		w.WriteHeader(http.StatusNotFound)
+
+		if r.Method == http.MethodGet {
+			_ = notfoundview.NotFoundPage(&notfoundview.NotFoundPageProps{
+				Ctx: ctx,
+			}).Render(w)
+			return
+		}
+
+		fmt.Fprintln(w, "404 Not Found")
 
 		return
 	})

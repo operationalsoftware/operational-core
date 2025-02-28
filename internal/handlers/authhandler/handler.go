@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"app/internal/models"
+	"app/internal/model"
 	"app/internal/services/authservice"
 	"app/internal/views/authview"
 	"app/pkg/cookie"
@@ -40,7 +40,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = r.ParseForm()
-	var formData models.VerifyPasswordLoginInput
+	var formData model.VerifyPasswordLoginInput
 	err = urlvalues.Unmarshal(r.PostForm, &formData)
 	if err != nil {
 		retryPageProps.HasServerError = true
@@ -49,7 +49,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var out models.VerifyPasswordLoginOutput
+	var out model.VerifyPasswordLoginOutput
 
 	out, err = h.authService.VerifyPasswordLogin(r.Context(), formData)
 

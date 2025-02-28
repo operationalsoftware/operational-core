@@ -16,17 +16,18 @@ func HomePage(p *HomePageProps) g.Node {
 
 	content := components.Card(
 		components.GridMenu(&components.GridMenuProps{
-			Items:           layout.TopLevelMenuItems,
+			Groups:          layout.AppMenu,
 			UserPermissions: p.Ctx.User.Permissions,
 		}),
 	)
 
 	return layout.Page(layout.PageProps{
-		Title:   "Home",
-		Content: content,
-		Ctx:     p.Ctx,
+		Ctx:         p.Ctx,
+		Title:       "Home",
+		Breadcrumbs: []layout.Breadcrumb{layout.HomeBreadcrumb},
+		Content:     content,
 		AppendHead: []g.Node{
-			components.InlineStyle("/routes/home/home.css"),
+			components.InlineStyle("/internal/views/homeview/home_page.css"),
 		},
 	})
 }

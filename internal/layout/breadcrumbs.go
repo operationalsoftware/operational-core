@@ -16,12 +16,18 @@ type Breadcrumb struct {
 func breadcrumbs(breadcrumbs []Breadcrumb) g.Node {
 
 	index := 0
-	link := ""
+	link := "/"
 	numBreadcrumbs := len(breadcrumbs)
 	crumbNodes := g.Group(
 		g.Map(breadcrumbs, func(b Breadcrumb) g.Node {
 			index++
-			link = link + "/" + b.URLPart
+
+			if b.URLPart != "" {
+				if link != "/" {
+					link += "/"
+				}
+				link += b.URLPart
+			}
 
 			var crumbContent = g.Group([]g.Node{
 				g.If(b.IconIdentifier != "", components.Icon(&components.IconProps{

@@ -1,4 +1,4 @@
-package models
+package model
 
 // This file defines the permissions for each module in the application.
 type UserAdminPermissions struct {

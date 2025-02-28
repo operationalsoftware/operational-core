@@ -39,20 +39,24 @@ func avatarMenu(p *avatarMenuProps) g.Node {
 				p.Ctx.User.Email != nil ||
 					(p.Ctx.User.FirstName != nil && p.Ctx.User.LastName != nil),
 				h.Section(
-					g.If(
-						p.Ctx.User.FirstName != nil && p.Ctx.User.LastName != nil,
-						h.P(
+					(func() g.Node {
+						if p.Ctx.User.FirstName == nil || p.Ctx.User.LastName == nil {
+							return nil
+						}
+						return h.P(
 							h.Class("name"),
 							g.Text(*p.Ctx.User.FirstName+" "+*p.Ctx.User.LastName),
-						),
-					),
-					g.If(
-						p.Ctx.User.Email != nil,
-						h.P(
+						)
+					})(),
+					(func() g.Node {
+						if p.Ctx.User.Email == nil {
+							return nil
+						}
+						return h.P(
 							h.Class("email"),
 							g.Text(*p.Ctx.User.Email),
-						),
-					),
+						)
+					})(),
 				),
 			),
 			h.A(
@@ -100,6 +104,6 @@ func avatarMenu(p *avatarMenuProps) g.Node {
 				),
 			),
 		),
-		components.InlineScript("/layout/avatarMenu.js"),
+		components.InlineScript("/internal/layout/avatarMenu.js"),
 	)
 }
