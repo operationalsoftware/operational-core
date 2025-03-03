@@ -1,7 +1,7 @@
 package router
 
 import (
-	"app/internal/handlers/userhandler"
+	"app/internal/handler"
 	"app/internal/service"
 	"net/http"
 )
@@ -11,7 +11,7 @@ func addUserRoutes(
 	userService service.UserService,
 ) {
 
-	userHandler := userhandler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService)
 
 	mux.HandleFunc("GET /users", userHandler.UsersHomePage)
 

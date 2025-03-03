@@ -1,8 +1,8 @@
-package userhandler
+package handler
 
 import (
 	"app/internal/model"
-	"app/internal/services/userservice"
+	"app/internal/service"
 	"app/internal/views/userview"
 	"app/pkg/appsort"
 	"app/pkg/reqcontext"
@@ -14,10 +14,10 @@ import (
 )
 
 type UserHandler struct {
-	userService userservice.UserService
+	userService service.UserService
 }
 
-func NewUserHandler(userService userservice.UserService) *UserHandler {
+func NewUserHandler(userService service.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
@@ -53,18 +53,14 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		uv.PageSize = 50
 	}
 
-	users, err := h.userService.GetUsers(r.Context(), model.GetUsersQuery{
+	users, count, err := h.userService.GetUsers(r.Context(), model.GetUsersQuery{
 		Sort:     sort,
 		Page:     uv.Page,
 		PageSize: uv.PageSize,
 	})
 	if err != nil {
+		log.Panicln(err)
 		http.Error(w, "Error listing users", http.StatusInternalServerError)
-		return
-	}
-	count, err := h.userService.GetUserCount(r.Context())
-	if err != nil {
-		http.Error(w, "Error counting users", http.StatusInternalServerError)
 		return
 	}
 
@@ -144,8 +140,14 @@ func (h *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid, validationErrors := h.userService.ValidateNewUser(r.Context(), newUser)
-	if !valid {
+	validationErrors, err := h.userService.CreateUser(r.Context(), newUser)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error adding user", http.StatusInternalServerError)
+		return
+	}
+
+	if len(validationErrors) > 0 {
 		_ = userview.AddUserPage(&userview.AddUserPageProps{
 			Ctx:              ctx,
 			Values:           r.Form,
@@ -153,13 +155,6 @@ func (h *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 			IsSubmission:     true,
 		}).Render(w)
 		return
-	}
-
-	err = h.userService.CreateUser(r.Context(), newUser)
-
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error adding user", http.StatusInternalServerError)
 	}
 
 	http.Redirect(w, r, "/users", http.StatusSeeOther)
@@ -199,10 +194,13 @@ func (h *UserHandler) AddAPIUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid, validationErrors := h.userService.ValidateNewAPIUser(r.Context(), newAPIUser)
+	validationErrors, password, err := h.userService.CreateAPIUser(r.Context(), newAPIUser)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error adding API user", http.StatusInternalServerError)
+	}
 
-	if !valid {
-		fmt.Println(valid, validationErrors)
+	if len(validationErrors) > 0 {
 		_ = userview.AddAPIUserPage(&userview.AddAPIUserPageProps{
 			Ctx:              ctx,
 			Values:           r.Form,
@@ -210,12 +208,6 @@ func (h *UserHandler) AddAPIUser(w http.ResponseWriter, r *http.Request) {
 			IsSubmission:     true,
 		}).Render(w)
 		return
-	}
-
-	password, err := h.userService.CreateAPIUser(r.Context(), newAPIUser)
-
-	if err != nil {
-		http.Error(w, "Error adding API user", http.StatusInternalServerError)
 	}
 
 	_ = userview.APIUserCredentialsPage(&userview.APIUserCredentialsPageProps{
@@ -241,7 +233,12 @@ func (h *UserHandler) EditUserPage(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userService.GetUserByID(r.Context(), id)
 	if err != nil {
-		http.Error(w, "Error getting user", http.StatusBadRequest)
+		http.Error(w, "Error getting user", http.StatusInternalServerError)
+		return
+	}
+
+	if user == nil {
+		http.Error(w, "User does not exist", http.StatusBadRequest)
 		return
 	}
 
@@ -259,7 +256,7 @@ func (h *UserHandler) EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := strconv.Atoi(r.PathValue("id"))
+	userID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
@@ -279,20 +276,18 @@ func (h *UserHandler) EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid, validationErrors := h.userService.ValidateUserUpdate(r.Context(), userUpdate)
-	if !valid {
+	validationErrors, err := h.userService.UpdateUser(r.Context(), userID, userUpdate)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error updating user", http.StatusInternalServerError)
+	}
+	if len(validationErrors) > 0 {
 		_ = userview.EditUserPage(&userview.EditUserPageProps{
 			Values:           r.Form,
 			ValidationErrors: validationErrors,
 			IsSubmission:     true,
 		}).Render(w)
 		return
-	}
-
-	err = h.userService.UpdateUser(r.Context(), id, userUpdate)
-
-	if err != nil {
-		log.Panic(err)
 	}
 
 	http.Redirect(w, r, "/users", http.StatusSeeOther)
@@ -305,13 +300,13 @@ func (h *UserHandler) ResetPasswordPage(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
-	id, err := strconv.Atoi(r.PathValue("id"))
+	userID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.userService.GetUserByID(r.Context(), id)
+	user, err := h.userService.GetUserByID(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "Error getting user", http.StatusBadRequest)
 		return
@@ -331,7 +326,7 @@ func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := strconv.Atoi(r.PathValue("id"))
+	userID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
@@ -350,14 +345,23 @@ func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid, validationErrors := h.userService.ValidatePasswordReset(passwordReset)
-	if !valid {
-		user, err := h.userService.GetUserByID(r.Context(), id)
-		if err != nil {
-			http.Error(w, "Error getting user", http.StatusBadRequest)
-			return
-		}
+	user, validationErrors, err := h.userService.ResetPassword(
+		r.Context(),
+		userID,
+		passwordReset,
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error resetting password", http.StatusInternalServerError)
+		return
+	}
 
+	if user == nil {
+		http.Error(w, "User doesn't exist", http.StatusBadRequest)
+		return
+	}
+
+	if len(validationErrors) > 0 {
 		_ = userview.ResetPasswordPage(&userview.ResetPasswordPageProps{
 			Ctx:              ctx,
 			User:             *user,
@@ -368,12 +372,5 @@ func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.ResetPassword(r.Context(), id, passwordReset)
-
-	if err != nil {
-		http.Error(w, "Error resetting password", http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, fmt.Sprintf("/users/%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/users/%d", userID), http.StatusSeeOther)
 }

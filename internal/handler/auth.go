@@ -1,11 +1,11 @@
-package authhandler
+package handler
 
 import (
 	"net/http"
 	"time"
 
 	"app/internal/model"
-	"app/internal/services/authservice"
+	"app/internal/service"
 	"app/internal/views/authview"
 	"app/pkg/cookie"
 	"app/pkg/reqcontext"
@@ -13,10 +13,10 @@ import (
 )
 
 type AuthHandler struct {
-	authService authservice.AuthService
+	authService service.AuthService
 }
 
-func NewAuthHandler(authService authservice.AuthService) *AuthHandler {
+func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 

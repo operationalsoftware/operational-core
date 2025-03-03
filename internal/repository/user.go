@@ -2,27 +2,27 @@ package repository
 
 import (
 	"app/internal/model"
+	"app/pkg/db"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository struct{}
 
-func NewUserRepository(db *pgxpool.Pool) *UserRepository {
+func NewUserRepository() *UserRepository {
 	return &UserRepository{}
 }
 
 func (r *UserRepository) CreateUser(
 	ctx context.Context,
-	tx pgxpool.Tx,
+	exec db.PGExecutor,
 	user model.NewUser,
 ) error {
 
@@ -48,7 +48,7 @@ INSERT INTO app_user (
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
-	_, err = tx.Exec(
+	_, err = exec.Exec(
 		ctx,
 
 		insertUserStmt,
@@ -70,7 +70,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
 
 func (r *UserRepository) CreateAPIUser(
 	ctx context.Context,
-	tx pgxpool.Tx,
+	exec db.PGExecutor,
 	user model.NewAPIUser,
 ) (string, error) {
 
@@ -98,7 +98,7 @@ INSERT INTO app_user (
 VALUES ($1, $2, $3, $4)
 `
 
-	_, err = tx.Exec(
+	_, err = exec.Exec(
 		ctx,
 		insertUserStmt,
 		user.Username,
@@ -116,13 +116,13 @@ VALUES ($1, $2, $3, $4)
 
 func (r *UserRepository) UpdateUser(
 	ctx context.Context,
-	tx pgxpool.Tx,
+	exec db.PGExecutor,
 	userID int,
 	update model.UserUpdate,
 ) error {
 
 	// get the user to check if it exists
-	user, err := r.GetUserByID(ctx, tx, userID)
+	user, err := r.GetUserByID(ctx, exec, userID)
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ WHERE
 		return err
 	}
 
-	_, err = tx.Exec(
+	_, err = exec.Exec(
 		ctx,
 		query,
 
@@ -173,9 +173,38 @@ WHERE
 	return nil
 }
 
+func (r *UserRepository) ResetPassword(
+	ctx context.Context,
+	exec db.PGExecutor,
+	userID int,
+	pr model.PasswordReset,
+) error {
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pr.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	query := `
+UPDATE
+	app_user
+SET
+	hashed_password = $1
+WHERE
+	user_id = $2
+	`
+
+	_, err = exec.Exec(ctx, query, string(hashedPassword), userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *UserRepository) GetUserByID(
 	ctx context.Context,
-	tx pgxpool.Tx,
+	exec db.PGExecutor,
 	userID int,
 ) (*model.User, error) {
 	query := `
@@ -196,7 +225,7 @@ WHERE
 	`
 
 	userDB := model.UserDB{}
-	err := tx.QueryRow(ctx, query, userID).Scan(
+	err := exec.QueryRow(ctx, query, userID).Scan(
 		&userDB.UserID,
 		&userDB.IsAPIUser,
 		&userDB.Username,
@@ -207,7 +236,7 @@ WHERE
 		&userDB.LastLogin,
 		&userDB.Permissions,
 	)
-	if err == sql.ErrNoRows {
+	if err == pgx.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -219,7 +248,7 @@ WHERE
 
 func (r *UserRepository) GetUserByUsername(
 	ctx context.Context,
-	tx pgxpool.Tx,
+	exec db.PGExecutor,
 	username string,
 ) (*model.User, error) {
 
@@ -241,7 +270,7 @@ WHERE
 	`
 
 	userDB := model.UserDB{}
-	err := tx.QueryRow(ctx, query, username).Scan(
+	err := exec.QueryRow(ctx, query, username).Scan(
 		&userDB.UserID,
 		&userDB.IsAPIUser,
 		&userDB.Username,
@@ -252,7 +281,7 @@ WHERE
 		&userDB.LastLogin,
 		&userDB.Permissions,
 	)
-	if err == sql.ErrNoRows {
+	if err == pgx.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -264,7 +293,7 @@ WHERE
 
 func (r *UserRepository) GetUsers(
 	ctx context.Context,
-	tx pgxpool.Tx,
+	exec db.PGExecutor,
 	q model.GetUsersQuery,
 ) ([]model.User, error) {
 
@@ -297,7 +326,7 @@ LIMIT $1 OFFSET $2
 		orderByClause,
 	)
 
-	rows, err := tx.Query(ctx, query, limit, offset)
+	rows, err := exec.Query(ctx, query, limit, offset)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -330,7 +359,7 @@ LIMIT $1 OFFSET $2
 
 func (r *UserRepository) GetUserCount(
 	ctx context.Context,
-	tx pgxpool.Tx,
+	exec db.PGExecutor,
 ) (int, error) {
 
 	query := `
@@ -341,7 +370,7 @@ FROM
 	`
 
 	var count int
-	err := tx.QueryRow(ctx, query).Scan(&count)
+	err := exec.QueryRow(ctx, query).Scan(&count)
 	if err != nil {
 		return 0, err
 	}

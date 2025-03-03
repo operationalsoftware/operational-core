@@ -16,8 +16,14 @@ type AuthService struct {
 	authRepository *repository.AuthRepository
 }
 
-func NewAuthService(db *pgxpool.Pool) *AuthService {
-	return &AuthService{db: db}
+func NewAuthService(
+	db *pgxpool.Pool,
+	authRepository *repository.AuthRepository,
+) *AuthService {
+	return &AuthService{
+		db:             db,
+		authRepository: authRepository,
+	}
 }
 
 func (s *AuthService) VerifyPasswordLogin(

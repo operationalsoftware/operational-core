@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"app/internal/migrate"
+	"app/internal/repository"
 	"app/internal/router"
-	"app/internal/services/authservice"
-	"app/internal/services/userservice"
+	"app/internal/service"
 	"app/pkg/cookie"
 	"app/pkg/db"
 	"app/pkg/env"
@@ -55,10 +55,14 @@ func main() {
 		log.Fatalf("Error initialising cookie instance: %v\n", err)
 	}
 
+	// Instantiate repositories
+	authRepository := repository.NewAuthRepository()
+	userRepository := repository.NewUserRepository()
+
 	// Instantiate services
 	services := &router.Services{
-		AuthService: authservice.NewAuthService(pgPool),
-		UserService: userservice.NewUserService(pgPool),
+		AuthService: *service.NewAuthService(pgPool, authRepository),
+		UserService: *service.NewUserService(pgPool, userRepository),
 	}
 
 	// define server

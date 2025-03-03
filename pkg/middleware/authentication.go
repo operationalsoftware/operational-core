@@ -2,8 +2,7 @@ package middleware
 
 import (
 	"app/internal/model"
-	"app/internal/services/authservice"
-	"app/internal/services/userservice"
+	"app/internal/service"
 	"app/pkg/cookie"
 	"app/pkg/reqcontext"
 	"context"
@@ -12,13 +11,13 @@ import (
 )
 
 type AuthenticationMiddleware struct {
-	authService authservice.AuthService
-	userService userservice.UserService
+	authService service.AuthService
+	userService service.UserService
 }
 
 func NewAuthenticationMiddleware(
-	authService authservice.AuthService,
-	userService userservice.UserService,
+	authService service.AuthService,
+	userService service.UserService,
 ) *AuthenticationMiddleware {
 	return &AuthenticationMiddleware{
 		authService: authService,

@@ -2,279 +2,312 @@ package service
 
 import (
 	"app/internal/model"
+	"app/internal/repository"
 	"app/pkg/validate"
 	"context"
-	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"regexp"
-	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"golang.org/x/crypto/bcrypt"
 )
 
-type UserService interface {
-	ValidateNewUser(ctx context.Context, user model.NewUser) (bool, validate.ValidationErrors)
-	ValidateNewAPIUser(ctx context.Context, user model.NewAPIUser) (bool, validate.ValidationErrors)
-	ValidateUserUpdate(ctx context.Context, update model.UserUpdate) (bool, validate.ValidationErrors)
-	ValidatePasswordReset(pr model.PasswordReset) (bool, validate.ValidationErrors)
-
-	CreateUser(ctx context.Context, user model.NewUser) error
-	CreateAPIUser(ctx context.Context, user model.NewAPIUser) (string, error)
-	UpdateUser(ctx context.Context, id int, update model.UserUpdate) error
-	ResetPassword(ctx context.Context, id int, pr model.PasswordReset) error
-
-	GetUserByID(ctx context.Context, id int) (*model.User, error)
-	GetUserByUsername(ctx context.Context, username string) (*model.User, error)
-	GetUsers(ctx context.Context, q model.GetUsersQuery) ([]model.User, error)
-	GetUserCount(ctx context.Context) (int, error)
+type UserService struct {
+	db             *pgxpool.Pool
+	userRepository *repository.UserRepository
 }
 
-type userService struct {
-	db *pgxpool.Pool
+func NewUserService(db *pgxpool.Pool, userRepository *repository.UserRepository) *UserService {
+	return &UserService{
+		db:             db,
+		userRepository: userRepository,
+	}
 }
 
-func NewUserService(db *pgxpool.Pool) UserService {
-	return &userService{db: db}
-}
+func (s *UserService) CreateUser(
+	ctx context.Context,
+	user model.NewUser,
+) (
+	validate.ValidationErrors,
+	error,
+) {
 
-func (s *userService) ValidateNewUser(
-	ctx context.Context, user model.NewUser,
-) (bool, validate.ValidationErrors) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return validate.ValidationErrors{}, err
+	}
+	defer tx.Rollback(ctx) // Ensures rollback on error
 
-	var validationErrors validate.ValidationErrors = make(map[string][]string)
-
-	// validate Username
-	s.validateUsername(&validationErrors, "Username", user.Username)
-
-	// validate FirstName
-	validate.MinLength(&validationErrors, "FirstName", user.FirstName, 1)
-	validate.MaxLength(&validationErrors, "FirstName", user.FirstName, 20)
-
-	// validate LastName
-	validate.MinLength(&validationErrors, "LastName", user.LastName, 1)
-	validate.MaxLength(&validationErrors, "LastName", user.LastName, 20)
-
-	// validate Email
-	if user.Email != nil {
-		validate.Email(&validationErrors, "Email", *user.Email)
+	validationErrors, err := s.validateNewUser(ctx, tx, user)
+	if err != nil || len(validationErrors) > 0 {
+		return validationErrors, err
 	}
 
-	// validate Password
-	validate.Password(&validationErrors, "Password", user.Password)
+	err = s.userRepository.CreateUser(ctx, tx, user)
+	if err != nil {
+		return validate.ValidationErrors{}, err
+	}
 
-	// validate confirm password
+	err = tx.Commit(ctx)
+	if err != nil {
+		return validate.ValidationErrors{}, err
+	}
+
+	return validate.ValidationErrors{}, nil
+}
+
+func (s *UserService) CreateAPIUser(
+	ctx context.Context,
+	user model.NewAPIUser,
+) (
+	validate.ValidationErrors,
+	string,
+	error,
+) {
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return validate.ValidationErrors{}, "", err
+	}
+	defer tx.Rollback(ctx) // Ensures rollback on error
+
+	validationErrors, err := s.validateNewAPIUser(ctx, tx, user)
+	if err != nil || len(validationErrors) > 0 {
+		return validationErrors, "", err
+	}
+
+	password, err := s.userRepository.CreateAPIUser(ctx, tx, user)
+	if err != nil {
+		return validationErrors, "", err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return validate.ValidationErrors{}, "", err
+	}
+
+	return validate.ValidationErrors{}, password, nil
+}
+
+func (s *UserService) UpdateUser(
+	ctx context.Context,
+	userID int,
+	update model.UserUpdate,
+) (
+	validate.ValidationErrors,
+	error,
+) {
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return validate.ValidationErrors{}, err
+	}
+	defer tx.Rollback(ctx) // Ensures rollback on error
+
+	validationErrors, err := s.validateUserUpdate(ctx, tx, userID, update)
+	if err != nil || len(validationErrors) > 0 {
+		return validationErrors, err
+	}
+
+	err = s.userRepository.UpdateUser(ctx, tx, userID, update)
+	if err != nil {
+		return validate.ValidationErrors{}, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return validate.ValidationErrors{}, err
+	}
+
+	return validate.ValidationErrors{}, nil
+}
+
+func (s *UserService) ResetPassword(
+	ctx context.Context,
+	userID int,
+	pr model.PasswordReset,
+) (*model.User, validate.ValidationErrors, error) {
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return &model.User{}, validate.ValidationErrors{}, err
+	}
+	defer tx.Rollback(ctx) // Ensures rollback on error
+
+	user, err := s.userRepository.GetUserByID(ctx, tx, userID)
+	if err != nil {
+		return &model.User{}, validate.ValidationErrors{}, err
+	}
+	if user == nil {
+		return user, validate.ValidationErrors{}, err
+	}
+
+	validationErrors := s.validatePasswordReset(pr)
+	if len(validationErrors) > 0 {
+		return user, validationErrors, err
+	}
+
+	err = s.userRepository.ResetPassword(ctx, tx, userID, pr)
+	if err != nil {
+		return user, validate.ValidationErrors{}, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return user, validate.ValidationErrors{}, err
+	}
+
+	return user, validate.ValidationErrors{}, nil
+}
+
+func (s *UserService) GetUserByID(
+	ctx context.Context,
+	userID int,
+) (
+	*model.User,
+	error,
+) {
+
+	user, err := s.userRepository.GetUserByID(ctx, s.db, userID)
+	if err != nil {
+		return &model.User{}, err
+	}
+
+	return user, nil
+}
+
+func (s *UserService) GetUserByUsername(
+	ctx context.Context,
+	username string,
+) (
+	*model.User,
+	error,
+) {
+	user, err := s.userRepository.GetUserByUsername(ctx, s.db, username)
+	if err != nil {
+		return &model.User{}, err
+	}
+
+	return user, nil
+}
+
+func (s *UserService) GetUsers(
+	ctx context.Context,
+	q model.GetUsersQuery,
+) ([]model.User, int, error) {
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return []model.User{}, 0, err
+	}
+	defer tx.Rollback(ctx) // Ensures rollback on error
+
+	users, err := s.userRepository.GetUsers(ctx, tx, q)
+	if err != nil {
+		return []model.User{}, 0, err
+	}
+
+	count, err := s.userRepository.GetUserCount(ctx, tx)
+	if err != nil {
+		return []model.User{}, 0, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return []model.User{}, 0, err
+	}
+
+	return users, count, nil
+}
+
+func (s *UserService) validateNewUser(
+	ctx context.Context,
+	tx pgx.Tx,
+	user model.NewUser,
+) (validate.ValidationErrors, error) {
+
+	var ve validate.ValidationErrors = make(map[string][]string)
+
+	err := s.validateUsername(ctx, tx, &ve, "Username", user.Username)
+	if err != nil {
+		return ve, err
+	}
+	s.validateFirstName(&ve, "FirstName", user.FirstName)
+	s.validateLastName(&ve, "LastName", user.LastName)
+
+	if user.Email != nil {
+		validate.Email(&ve, "Email", *user.Email)
+	}
+
+	validate.Password(&ve, "Password", user.Password)
+
 	if user.Password != user.ConfirmPassword {
-		validationErrors.Add("ConfirmPassword", "does not match")
+		ve.Add("ConfirmPassword", "does not match")
 	}
 
 	// user permissions don't need to be validated, the struct will be populated with
 	// matching permissions from the form data meaning any missing data will be
 	// zero-valued (boolean, false) and any extra data will be ignored
 
-	return len(validationErrors) == 0, validationErrors
+	return ve, nil
 }
 
-func (s *userService) CreateUser(ctx context.Context, user model.NewUser) error {
+func (s *UserService) validateNewAPIUser(
+	ctx context.Context,
+	tx pgx.Tx,
+	user model.NewAPIUser,
+) (validate.ValidationErrors, error) {
+	var ve validate.ValidationErrors = make(map[string][]string)
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	err := s.validateUsername(ctx, tx, &ve, "Username", user.Username)
 	if err != nil {
-		return err
+		return ve, err
 	}
 
-	permissionsJson, err := json.Marshal(user.Permissions)
-	if err != nil {
-		return err
-	}
-
-	insertUserStmt := `
-INSERT INTO app_user (
-	username,
-	is_api_user,
-	email,
-	first_name,
-	last_name,
-	hashed_password,
-	permissions
-)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-	`
-	_, err = s.db.Exec(
-		ctx,
-
-		insertUserStmt,
-		user.Username,
-		false,
-		user.Email,
-		user.FirstName,
-		user.LastName,
-		string(hashedPassword),
-		permissionsJson,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ve, nil
 }
 
-func (s *userService) ValidateNewAPIUser(
-	ctx context.Context, user model.NewAPIUser,
-) (bool, validate.ValidationErrors) {
-	var validationErrors validate.ValidationErrors = make(map[string][]string)
+func (s *UserService) validateUserUpdate(
+	ctx context.Context,
+	tx pgx.Tx,
+	userID int,
+	update model.UserUpdate,
+) (validate.ValidationErrors, error) {
 
-	// validate Username
-	validate.MinLength(&validationErrors, "Username", user.Username, 3)
-	validate.MaxLength(&validationErrors, "Username", user.Username, 20)
-	validate.Lowercase(&validationErrors, "Username", user.Username)
-	s.validateUsername(&validationErrors, user.Username)
-	// check if username is already taken
-	if user.Username != "" {
-		_, err := s.GetUserByUsername(ctx, user.Username)
-		if err == nil {
-			validationErrors.Add("Username", fmt.Sprintf("'%s' is already taken", user.Username))
+	var ve validate.ValidationErrors = make(map[string][]string)
+
+	// get current username
+	user, err := s.userRepository.GetUserByID(ctx, tx, userID)
+	if err != nil {
+		return validate.ValidationErrors{}, err
+	}
+	if user == nil {
+		return validate.ValidationErrors{}, fmt.Errorf("User does not exist")
+	}
+
+	if user.Username != update.Username {
+		err = s.validateUsername(ctx, tx, &ve, "Username", update.Username)
+		if err != nil {
+			return validate.ValidationErrors{}, err
 		}
 	}
 
-	return len(validationErrors) == 0, validationErrors
-}
+	s.validateFirstName(&ve, "FirstName", update.FirstName)
+	s.validateLastName(&ve, "LastName", update.LastName)
 
-func (s *userService) CreateAPIUser(ctx context.Context, user model.NewAPIUser) (string, error) {
-
-	password, err := generateRandomPassword(24)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	permissionsJson, err := json.Marshal(user.Permissions)
-	if err != nil {
-		return "", err
-	}
-
-	insertUserStmt := `
-INSERT INTO app_user (
-	username,
-	is_api_user,
-	hashed_password,
-	permissions
-)
-VALUES ($1, $2, $3, $4)
-`
-
-	_, err = s.db.Exec(
-		ctx,
-		insertUserStmt,
-		user.Username,
-		true,
-		string(hashedPassword),
-		permissionsJson,
-	)
-
-	if err != nil {
-		return "", err
-	}
-
-	return password, nil
-}
-
-func (s *userService) ValidateUserUpdate(
-	ctx context.Context,
-	update model.UserUpdate,
-) (bool, validate.ValidationErrors) {
-
-	var validationErrors validate.ValidationErrors = make(map[string][]string)
-
-	validate.MinLength(&validationErrors, "Username", update.Username, 3)
-	validate.MaxLength(&validationErrors, "Username", update.Username, 20)
-	validate.Lowercase(&validationErrors, "Username", update.Username)
-	validateUsername(&validationErrors, update.Username)
-	_, err := s.GetUserByUsername(ctx, update.Username)
-	if err == nil {
-		validationErrors.Add("Username", fmt.Sprintf("'%s' is already taken", update.Username))
-	}
-
-	// validate FirstName
-	validate.MinLength(&validationErrors, "FirstName", update.FirstName, 1)
-	validate.MaxLength(&validationErrors, "FirstName", update.FirstName, 20)
-
-	// validate LastName
-	validate.MinLength(&validationErrors, "LastName", update.LastName, 1)
-	validate.MaxLength(&validationErrors, "LastName", update.LastName, 20)
-
-	// validate Email
 	if update.Email != nil {
-		validate.Email(&validationErrors, "Email", *update.Email)
+		validate.Email(&ve, "Email", *update.Email)
 	}
 
-	// user permissions don't need to be validated. See description in ValidateNewUser
+	// user permissions don't need to be validated. See description in validateNewUser
 
-	return len(validationErrors) == 0, validationErrors
+	return ve, nil
 }
 
-func (s *userService) UpdateUser(
-	ctx context.Context, id int, update model.UserUpdate,
-) error {
-
-	// get the user to check if it exists
-	user, err := s.GetUserByID(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	// can't update an API user using this method
-	if user.IsAPIUser {
-		return fmt.Errorf("API users cannot be updated using this method")
-	}
-
-	query := `
-UPDATE
-	app_user
-
-SET
-	first_name = $1,
-	last_name = $2,
-	email = $3,
-	username = $4,
-	permissions = $5
-
-WHERE
-	user_id = $6
-	`
-
-	permissionsJSON, err := json.Marshal(update.Permissions)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = s.db.Exec(
-		ctx,
-		query,
-
-		update.FirstName,
-		update.LastName,
-		update.Email,
-		update.Username,
-		string(permissionsJSON),
-		id,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *userService) ValidatePasswordReset(pr model.PasswordReset) (bool, validate.ValidationErrors) {
+func (s *UserService) validatePasswordReset(
+	pr model.PasswordReset,
+) validate.ValidationErrors {
 
 	var validationErrors validate.ValidationErrors = make(map[string][]string)
 
@@ -286,241 +319,16 @@ func (s *userService) ValidatePasswordReset(pr model.PasswordReset) (bool, valid
 		validationErrors.Add("ConfirmPassword", "does not match")
 	}
 
-	return len(validationErrors) == 0, validationErrors
+	return validationErrors
 }
 
-func (s *userService) ResetPassword(
-	ctx context.Context, id int, pr model.PasswordReset,
-) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pr.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-
-	query := `
-UPDATE
-	app_user
-SET
-	hashed_password = $1
-WHERE
-	user_id = $2
-	`
-
-	_, err = s.db.Exec(ctx, query, string(hashedPassword), id)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *userService) GetUserByID(ctx context.Context, id int) (*model.User, error) {
-	query := `
-SELECT
-    user_id,
-    is_api_user,
-    username,
-    email,
-    first_name,
-    last_name,
-    created,
-    last_login,
-    permissions
-FROM
-    app_user
-WHERE
-    user_id = $1
-	`
-
-	userDB := model.UserDB{}
-	err := s.db.QueryRow(ctx, query, id).Scan(
-		&userDB.UserID,
-		&userDB.IsAPIUser,
-		&userDB.Username,
-		&userDB.Email,
-		&userDB.FirstName,
-		&userDB.LastName,
-		&userDB.Created,
-		&userDB.LastLogin,
-		&userDB.Permissions,
-	)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	user := userDB.ToDomain()
-	return &user, nil
-}
-
-func (s *userService) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
-
-	query := `
-SELECT
-    user_id,
-    is_api_user,
-    username,
-    email,
-    first_name,
-    last_name,
-    created,
-    last_login,
-    permissions
-FROM
-    app_user
-WHERE
-    username = $1
-	`
-
-	userDB := model.UserDB{}
-	err := s.db.QueryRow(ctx, query, username).Scan(
-		&userDB.UserID,
-		&userDB.IsAPIUser,
-		&userDB.Username,
-		&userDB.Email,
-		&userDB.FirstName,
-		&userDB.LastName,
-		&userDB.Created,
-		&userDB.LastLogin,
-		&userDB.Permissions,
-	)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	user := userDB.ToDomain()
-	return &user, nil
-}
-
-func (s *userService) GetUsers(
+func (s *UserService) validateUsername(
 	ctx context.Context,
-	q model.GetUsersQuery,
-) ([]model.User, error) {
-
-	offset := (q.Page - 1) * q.PageSize
-	limit := q.PageSize
-	orderByClause := q.Sort.ToOrderByClause(map[string]string{})
-
-	if orderByClause == "" {
-		orderByClause = "ORDER BY username ASC"
-	}
-
-	query := fmt.Sprintf(`
-SELECT
-    user_id,
-    is_api_user,
-    username,
-    email,
-    first_name,
-    last_name,
-    created,
-    last_login,
-    permissions
-FROM
-    app_user
-
-%s
-
-LIMIT $1 OFFSET $2
-	`,
-		orderByClause,
-	)
-
-	rows, err := s.db.Query(ctx, query, limit, offset)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	defer rows.Close()
-
-	users := []model.User{}
-	for rows.Next() {
-		var userDB model.UserDB
-		err := rows.Scan(
-			&userDB.UserID,
-			&userDB.IsAPIUser,
-			&userDB.Username,
-			&userDB.Email,
-			&userDB.FirstName,
-			&userDB.LastName,
-			&userDB.Created,
-			&userDB.LastLogin,
-			&userDB.Permissions,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		users = append(users, userDB.ToDomain())
-	}
-
-	return users, nil
-}
-
-func (s *userService) GetUserCount(ctx context.Context) (int, error) {
-	query := `
-SELECT
-	COUNT(*)
-FROM
-	app_user
-	`
-
-	var count int
-	err := s.db.QueryRow(ctx, query).Scan(&count)
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
-}
-
-func generateRandomPassword(length int) (string, error) {
-	if length < 8 {
-		return "", fmt.Errorf("password length must be at least 8 characters")
-	}
-
-	const (
-		lowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
-		uppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		numbers          = "0123456789"
-		symbols          = "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~"
-	)
-
-	allChars := lowercaseLetters + uppercaseLetters + numbers + symbols
-
-	// Use time-based seed for randomness
-	source := rand.NewSource(time.Now().UnixNano())
-	randomGenerator := rand.New(source)
-
-	password := make([]byte, length)
-
-	// Ensure at least one lowercase, one uppercase, one number, and one symbol
-	password[0] = lowercaseLetters[randomGenerator.Intn(len(lowercaseLetters))]
-	password[1] = uppercaseLetters[randomGenerator.Intn(len(uppercaseLetters))]
-	password[2] = numbers[randomGenerator.Intn(len(numbers))]
-	password[3] = symbols[randomGenerator.Intn(len(symbols))]
-
-	// Fill the rest of the password randomly
-	for i := 4; i < length; i++ {
-		password[i] = allChars[randomGenerator.Intn(len(allChars))]
-	}
-
-	// Shuffle the password to randomize the order
-	randomGenerator.Shuffle(length, func(i, j int) {
-		password[i], password[j] = password[j], password[i]
-	})
-
-	return string(password), nil
-}
-
-func (s *userService) validateUsername(
+	tx pgx.Tx,
 	ve *validate.ValidationErrors,
 	usernameKey string,
 	username string,
-) {
+) error {
 
 	validate.MinLength(ve, usernameKey, username, 3)
 	validate.MaxLength(ve, usernameKey, username, 20)
@@ -531,9 +339,38 @@ func (s *userService) validateUsername(
 	// Compile the regular expression
 	re, err := regexp.Compile(pattern)
 	if err != nil {
-		fmt.Println("Error compiling regex:", err)
+		log.Fatal("Error compiling regex:", err) // should never happen
 	}
 	if !re.MatchString(username) {
-		ve.Add("Username", "must contain only letters, numbers, and underscores")
+		ve.Add(usernameKey, "must contain only letters, numbers, and underscores")
 	}
+
+	// check if username is already taken
+	existingUser, err := s.userRepository.GetUserByUsername(ctx, tx, username)
+	if err != nil {
+		return err
+	}
+	if existingUser != nil {
+		ve.Add(usernameKey, fmt.Sprintf("'%s' is already taken", username))
+	}
+
+	return nil
+}
+
+func (s *UserService) validateFirstName(
+	ve *validate.ValidationErrors,
+	firstNameKey string,
+	firstName string,
+) {
+	validate.MinLength(ve, firstNameKey, firstName, 1)
+	validate.MaxLength(ve, firstNameKey, firstName, 20)
+}
+
+func (s *UserService) validateLastName(
+	ve *validate.ValidationErrors,
+	lastNameKey string,
+	lastName string,
+) {
+	validate.MinLength(ve, lastNameKey, lastName, 1)
+	validate.MaxLength(ve, lastNameKey, lastName, 20)
 }

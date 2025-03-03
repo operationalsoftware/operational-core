@@ -2,7 +2,7 @@ package migrate
 
 import (
 	"app/internal/model"
-	"app/internal/service"
+	"app/internal/repository"
 	"app/pkg/db"
 	"context"
 	"database/sql"
@@ -138,9 +138,15 @@ VALUES (
 // Initialise the database (actual queries will be added later)
 func initialise(ctx context.Context, pgPool *pgxpool.Pool) error {
 
+	tx, err := pgPool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx) // Ensures rollback on error
+
 	// Create users table
 	fmt.Print("Creating User table... ")
-	_, err := pgPool.Exec(context.Background(), `
+	_, err = tx.Exec(context.Background(), `
 CREATE TABLE app_user (
 	user_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     is_api_user BOOLEAN DEFAULT FALSE NOT NULL,
@@ -162,7 +168,7 @@ CREATE TABLE app_user (
 	}
 	fmt.Println("done")
 
-	userService := service.NewUserService(pgPool)
+	userRepository := repository.NewUserRepository()
 
 	// add the system user with a random password
 	fmt.Print("Creating system user... ")
@@ -176,7 +182,7 @@ CREATE TABLE app_user (
 		},
 	}
 
-	password, err := userService.CreateAPIUser(ctx, newAPIUser)
+	password, err := userRepository.CreateAPIUser(ctx, tx, newAPIUser)
 	if err != nil {
 		return err
 	}
@@ -190,7 +196,11 @@ CREATE TABLE app_user (
 
 	fmt.Println("done")
 
-	// TODO: Add initialisation logic
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

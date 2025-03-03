@@ -26,7 +26,10 @@ func EditUserPage(p *EditUserPageProps) g.Node {
 
 	content := g.Group([]g.Node{
 		editUserForm(&editUserFormProps{
-			user: p.User,
+			user:             p.User,
+			values:           p.Values,
+			validationErrors: p.ValidationErrors,
+			isSubmission:     p.IsSubmission,
 		}),
 	})
 
@@ -194,9 +197,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 		permissionsCheckboxesPartial(p.user.Permissions),
 
 		components.Button(
-			&components.ButtonProps{
-				Disabled: p.validationErrors.HasErrors(),
-			},
+			&components.ButtonProps{},
 			h.Type("submit"),
 			g.Text("Submit"),
 		),
