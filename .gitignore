@@ -16,3 +16,5 @@ assets/assets.go
 
 # sqlite database
 **/*.db
+**/*.db-shm
+**/*.db-wal
