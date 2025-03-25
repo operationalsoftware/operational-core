@@ -77,8 +77,8 @@ ssh $ssh_key_flag "$host" "sudo service app restart"
 ssh $ssh_key_flag "$host" "sudo service caddy restart"
 
 # Remove the old binary on the host if it exists
-if ssh $ssh_key_flag "$host" "[ -f /opt/app/app.old ]"; then
-  ssh $ssh_key_flag "$host" "rm /opt/app/app.old"
+if ssh $ssh_key_flag "$host" "sudo [ -f /opt/app/app.old ]"; then
+  ssh $ssh_key_flag "$host" "sudo rm /opt/app/app.old"
 fi
 
 echo "Deployment completed successfully."
