@@ -48,18 +48,6 @@ func RunMigrations() {
 	}
 	defer pgPool.Close()
 
-	// TEMP for SQLite migration, if the postgres database did't exist, run our migration
-	if databaseExists {
-		return
-	}
-
-	if err := migrate(ctx, pgPool); err != nil {
-		log.Fatalf("Error applying migrations: %v", err)
-	}
-
-	// TEMP for SQLite migration
-	return
-
 	// Check if database is initialised
 	initialised, err := checkInitialised(ctx, pgPool)
 	if err != nil {
