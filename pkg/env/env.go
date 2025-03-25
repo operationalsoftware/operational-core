@@ -44,8 +44,28 @@ func Verify() error {
 		fail = true
 	}
 
-	if os.Getenv("POSTGRES_DSN") == "" {
-		fmt.Println("POSTGRES_DSN environment variable not set")
+	if os.Getenv("PG_USER") == "" {
+		fmt.Println("PG_USER environment variable not set")
+		fail = true
+	}
+
+	if os.Getenv("PG_PASSWORD") == "" {
+		fmt.Println("PG_PASSWORD environment variable not set")
+		fail = true
+	}
+
+	if os.Getenv("PG_HOST") == "" {
+		fmt.Println("PG_HOST environment variable not set")
+		fail = true
+	}
+
+	if os.Getenv("PG_PORT") == "" {
+		fmt.Println("PG_PORT environment variable not set")
+		fail = true
+	}
+
+	if os.Getenv("PG_DATABASE") == "" {
+		fmt.Println("PG_DATABASE environment variable not set")
 		fail = true
 	}
 
