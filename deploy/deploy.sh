@@ -15,17 +15,17 @@ cd $deploy_dir
 # Go to the main project directory
 cd "$deploy_dir/.."
 
-## Check if there are uncommitted changes
-#if [ -n "$(git status --porcelain)" ]; then
-#  echo "Error: There are uncommitted changes. Please commit or stash your changes before deploying."
-#  exit 1
-#fi
-#
-## Check if there are any unpushed commits
-#if [ -n "$(git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD)" ]; then
-#  echo "Error: There are unpushed commits. Please push your changes before deploying."
-#  exit 1
-#fi
+# Check if there are uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Error: There are uncommitted changes. Please commit or stash your changes before deploying."
+  exit 1
+fi
+
+# Check if there are any unpushed commits
+if [ -n "$(git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD)" ]; then
+  echo "Error: There are unpushed commits. Please push your changes before deploying."
+  exit 1
+fi
 
 # Perform the deployment using the host value
 echo "Deploying branch '$(git rev-parse --abbrev-ref HEAD)' to $host..."
@@ -61,7 +61,7 @@ ssh $ssh_key_flag "$host" "sudo mv ./app /opt/app/app.new"
 ssh $ssh_key_flag "$host" "sudo chown caddy:caddy /etc/caddy/Caddyfile"
 ssh $ssh_key_flag "$host" "sudo chown -R app:app /opt/app"
                   
-# Rename the bina ries on the host
+# Rename the binaries on the host
 if ssh $ssh_key_flag "$host" "sudo [ -f /opt/app/app ]"; then
   ssh $ssh_key_flag "$host" "sudo mv /opt/app/app /opt/app/app.old"
 fi
@@ -69,8 +69,8 @@ ssh $ssh_key_flag "$host" "sudo mv /opt/app/app.new /opt/app/app"
 
 # Enable the services
 ssh $ssh_key_flag "$host" "sudo systemctl daemon-reload"
-ssh $ssh_key_flag "$host" "sudo service app enable"
-ssh $ssh_key_flag "$host" "sudo service caddy enable"
+ssh $ssh_key_flag "$host" "sudo systemctl enable app"
+ssh $ssh_key_flag "$host" "sudo systemctl enable caddy"
 
 # Restart the services
 ssh $ssh_key_flag "$host" "sudo service app restart"
