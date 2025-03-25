@@ -3,12 +3,12 @@ Description=App (Operational Software)
 After=network.target
 
 [Service]
-ExecStart=/app/app
+ExecStart=/opt/app/app
 Restart=always
-User=root
-Group=root
-EnvironmentFile=/app/.env
-WorkingDirectory=/app
+User=app
+Group=app
+EnvironmentFile=/opt/app/.env
+WorkingDirectory=/opt/app
 TimeoutStopSec=5s
 
 [Install]
