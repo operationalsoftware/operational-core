@@ -4,7 +4,6 @@ import (
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -44,12 +43,12 @@ func (s *AuthService) VerifyPasswordLogin(
 		tx,
 		input.Username,
 	)
-
-	if err == sql.ErrNoRows {
+	if err != nil {
+		return out, err
+	}
+	if authUser == nil {
 		out.FailureReason = INVALID_USERNAME_PASSWORD_MSG
 		return out, nil
-	} else if err != nil {
-		return out, err
 	}
 
 	// Check if login blocked
