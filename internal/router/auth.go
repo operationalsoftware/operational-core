@@ -15,5 +15,5 @@ func addAuthRoutes(
 	mux.HandleFunc("GET /auth/password", authHandler.PasswordLogInPage)
 	mux.HandleFunc("POST /auth/password", authHandler.PasswordLogIn)
 
-	mux.HandleFunc("/logout", authHandler.Logout)
+	mux.HandleFunc("/auth/logout", authHandler.Logout)
 }
