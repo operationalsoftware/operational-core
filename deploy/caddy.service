@@ -21,16 +21,16 @@ Requires=network-online.target
 
 [Service]
 Type=notify
-User=root
-EnvironmentFile=/app/.env
-ExecStart=/usr/bin/caddy run --envfile /app/.env --config /app/Caddyfile
-ExecReload=/usr/bin/caddy reload --config /app/Caddyfile --force
+User=caddy
+Group=caddy
+EnvironmentFile=/etc/default/caddy
+ExecStart=/usr/bin/caddy run --environ --config /etc/caddy/Caddyfile
+ExecReload=/usr/bin/caddy reload --config /etc/caddy/Caddyfile --force
 TimeoutStopSec=5s
 LimitNOFILE=1048576
-LimitNPROC=512
 PrivateTmp=true
 ProtectSystem=full
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target

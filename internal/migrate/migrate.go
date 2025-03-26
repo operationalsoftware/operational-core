@@ -24,14 +24,14 @@ func RunMigrations() {
 	}
 	defer defaultConn.Close(ctx)
 
-	// Check if database exists
-	exists, err := checkDatabaseExists(ctx, defaultConn, pgEnv.Database)
+	// Check if database databaseExists
+	databaseExists, err := checkDatabaseExists(ctx, defaultConn, pgEnv.Database)
 	if err != nil {
 		log.Fatalf("Error checking database existence: %v", err)
 	}
 
 	// Create database if missing
-	if !exists {
+	if !databaseExists {
 		log.Printf("Database %s does not exist. Creating...", pgEnv.Database)
 		if err := createDatabase(ctx, defaultConn, pgEnv.Database); err != nil {
 			log.Fatalf("Error creating database: %v", err)
@@ -47,18 +47,6 @@ func RunMigrations() {
 		log.Fatalf("Unable to create Postgres connection pool: %v\n", err)
 	}
 	defer pgPool.Close()
-
-	// TEMP for SQLite migration, if the postgres database did't exist, run our migration
-	if exists {
-		return
-	}
-
-	if err := migrate(ctx, pgPool); err != nil {
-		log.Fatalf("Error applying migrations: %v", err)
-	}
-
-	// TEMP for SQLite migration
-	return
 
 	// Check if database is initialised
 	initialised, err := checkInitialised(ctx, pgPool)
