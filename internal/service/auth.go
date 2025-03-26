@@ -46,7 +46,7 @@ func (s *AuthService) VerifyPasswordLogin(
 	)
 
 	if err == sql.ErrNoRows {
-		out.FailureReason = INVALID_EMAIL_PASSWORD_MSG
+		out.FailureReason = INVALID_USERNAME_PASSWORD_MSG
 		return out, nil
 	} else if err != nil {
 		return out, err
@@ -73,7 +73,7 @@ func (s *AuthService) VerifyPasswordLogin(
 				return out, err
 			}
 
-			out.FailureReason = INVALID_EMAIL_PASSWORD_MSG
+			out.FailureReason = INVALID_USERNAME_PASSWORD_MSG
 		} else {
 
 			loginBlockedUntil := now.Add(5 * time.Minute)
@@ -117,5 +117,5 @@ func (s *AuthService) VerifyPasswordLogin(
 	return out, nil
 }
 
-const INVALID_EMAIL_PASSWORD_MSG = "Invalid email or password. Please try again"
+const INVALID_USERNAME_PASSWORD_MSG = "Invalid username or password. Please try again"
 const LOGIN_BLOCKED_MSG = "Login temporarily blocked, please wait and try again"
