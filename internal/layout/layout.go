@@ -12,10 +12,16 @@ type layoutProps struct {
 	breadcrumbs []Breadcrumb
 	content     g.Node
 	ctx         reqcontext.ReqContext
-	noPadding   bool
+	mainPadding *bool
 }
 
 func layout(p *layoutProps) g.Node {
+
+	mainPadding := true
+	if p.mainPadding != nil {
+		mainPadding = *p.mainPadding
+	}
+
 	return g.Group([]g.Node{
 		navbar(&navbarProps{
 			ctx: p.ctx,
@@ -26,7 +32,7 @@ func layout(p *layoutProps) g.Node {
 		h.Main(
 			c.Classes{
 				"main":         true,
-				"main-padding": !p.noPadding,
+				"main-padding": mainPadding,
 			},
 			p.content,
 		),

@@ -9,12 +9,13 @@ import (
 )
 
 type PageProps struct {
-	Title       string
-	Breadcrumbs []Breadcrumb
-	Content     g.Node
-	AppendHead  []g.Node
-	AppendBody  []g.Node
-	Ctx         reqcontext.ReqContext
+	Title             string
+	Breadcrumbs       []Breadcrumb
+	Content           g.Node
+	LayoutMainPadding *bool
+	AppendHead        []g.Node
+	AppendBody        []g.Node
+	Ctx               reqcontext.ReqContext
 }
 
 func Page(p PageProps) g.Node {
@@ -38,6 +39,7 @@ func Page(p PageProps) g.Node {
 		layout(&layoutProps{
 			breadcrumbs: p.Breadcrumbs,
 			content:     p.Content,
+			mainPadding: p.LayoutMainPadding,
 			ctx:         p.Ctx,
 		}),
 		h.Script(h.Type("text/javascript"), h.Src("/static/js/components.js")),
