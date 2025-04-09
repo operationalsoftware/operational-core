@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"app/internal/migrate"
 	"app/internal/repository"
@@ -13,6 +14,7 @@ import (
 	"app/pkg/cookie"
 	"app/pkg/db"
 	"app/pkg/env"
+	"app/pkg/localip"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -72,8 +74,20 @@ func main() {
 	}
 
 	// Bind to a port and pass our router in
-	fmt.Println("http://localhost:3000")
-	err = server.ListenAndServe()
+	fmt.Println("Local: 		https://localhost:3000")
+	ip, err := localip.GetLocalIP()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("On Your Network:	https://%s:3000\n", ip)
+
+	appEnv := os.Getenv("APP_ENV")
+	if appEnv == "dev" {
+		err = server.ListenAndServeTLS("cert.pem", "key.pem")
+	} else {
+		err = server.ListenAndServe()
+	}
+
 	if err != nil {
 		log.Fatalf("Error listening and serving: %v\n", err)
 	}

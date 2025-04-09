@@ -21,3 +21,7 @@ assets/assets.go
 
 # Mac
 **/*.DS_Store
+
+# SSL certificates
+cert.pem
+key.pem
