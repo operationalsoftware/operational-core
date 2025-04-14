@@ -7,6 +7,7 @@ import (
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	g "github.com/maragudk/gomponents"
@@ -25,7 +26,9 @@ func ResetPasswordPage(p *ResetPasswordPageProps) g.Node {
 
 	resetPasswordContent := g.Group([]g.Node{
 		resetPasswordForm(&resetPasswordFormProps{
+			req:              p.Ctx.Req,
 			userID:           p.User.UserID,
+			userName:         p.Ctx.User.Username,
 			values:           p.Values,
 			validationErrors: p.ValidationErrors,
 			isSubmission:     p.IsSubmission,
@@ -53,13 +56,17 @@ func ResetPasswordPage(p *ResetPasswordPageProps) g.Node {
 }
 
 type resetPasswordFormProps struct {
+	req              *http.Request
 	userID           int
+	userName         string
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
 }
 
 func resetPasswordForm(p *resetPasswordFormProps) g.Node {
+	// Generate encrypted value
+	encryptedData := p.req.URL.Query().Get("encryptedData")
 
 	passwordLabel := "Password"
 	passwordKey := "Password"
@@ -85,10 +92,7 @@ func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 		confirmPasswordHelperType = components.InputHelperTypeError
 	}
 
-	return components.Form(
-		h.ID("reset-password-form"),
-		h.Method("POST"),
-
+	formElements := []g.Node{
 		components.Input(&components.InputProps{
 			Label:       passwordLabel,
 			Name:        passwordKey,
@@ -114,7 +118,34 @@ func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 				h.AutoComplete("off"),
 			},
 		}),
+	}
 
+	if encryptedData != "" {
+		formElements = append(formElements,
+			h.Div(
+				h.Class("form-group"),
+				h.Div(
+					h.Class("form-success"), g.Text("Password set successfully!"),
+				),
+				h.Label(
+					h.Class("form-label"), g.Text("Encrypted Credentials:"),
+				),
+				h.Code(
+					h.ID("encrypted-string"),
+					h.Class("encrypted-code"),
+					g.Text(encryptedData),
+				),
+			),
+		)
+	}
+
+	formElements = append(formElements,
 		components.Button(&components.ButtonProps{}, h.Type("submit"), g.Text("Submit")),
+	)
+
+	return components.Form(
+		h.ID("reset-password-form"),
+		h.Method("POST"),
+		g.Group(formElements),
 	)
 }

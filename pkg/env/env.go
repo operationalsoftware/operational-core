@@ -69,6 +69,11 @@ func Verify() error {
 		fail = true
 	}
 
+	if os.Getenv("APP_ENV") == "" {
+		fmt.Println("APP_ENV environment variable not set")
+		fail = true
+	}
+
 	if fail {
 		return fmt.Errorf("Missing required environment variables")
 	}

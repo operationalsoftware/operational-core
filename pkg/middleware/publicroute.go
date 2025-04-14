@@ -8,6 +8,7 @@ import (
 var publicRoutes = []string{
 	"/static/",
 	"/auth/",
+	"/camera-scanner",
 }
 
 func isPublicRouteRequest(r *http.Request) bool {

@@ -3,6 +3,7 @@ package router
 import (
 	"app/assets"
 	"app/internal/service"
+	"app/internal/views/camerascannerview"
 	"app/internal/views/homeview"
 	"app/internal/views/notfoundview"
 	"app/pkg/middleware"
@@ -42,6 +43,15 @@ func NewRouter(services *Services) http.Handler {
 	addAuthRoutes(mux, services.AuthService)
 	addUserRoutes(mux, services.UserService)
 
+	mux.HandleFunc("/camera-scanner", func(w http.ResponseWriter, r *http.Request) {
+		ctx := reqcontext.GetContext(r)
+
+		_ = camerascannerview.CameraScannerApp(&camerascannerview.CameraScannerAppProps{
+			Ctx: ctx,
+		}).Render(w)
+
+	})
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		ctx := reqcontext.GetContext(r)
 
@@ -54,6 +64,7 @@ func NewRouter(services *Services) http.Handler {
 		}
 
 		// catch all - Not Found
+		fmt.Println("NOT FOUND")
 		w.WriteHeader(http.StatusNotFound)
 
 		if r.Method == http.MethodGet {

@@ -25,7 +25,6 @@ type UsersHomePageProps struct {
 }
 
 func UsersHomePage(p *UsersHomePageProps) g.Node {
-
 	var columns = components.TableColumns{
 		{
 			TitleContents: g.Text("Username"),

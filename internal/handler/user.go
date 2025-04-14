@@ -5,6 +5,7 @@ import (
 	"app/internal/service"
 	"app/internal/views/userview"
 	"app/pkg/appsort"
+	"app/pkg/encryptcredentials"
 	"app/pkg/reqcontext"
 	"app/pkg/urlvalues"
 	"fmt"
@@ -372,5 +373,16 @@ func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/users/%d", userID), http.StatusSeeOther)
+	testData := model.VerifyPasswordLoginInput{
+		Username: "hasnatsajid",
+		Password: "Hasnat123$",
+	}
+
+	encoded, err := encryptcredentials.Encrypt(testData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/users/%d/reset-password?encryptedData=%s", userID, encoded), http.StatusSeeOther)
 }
