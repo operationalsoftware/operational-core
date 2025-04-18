@@ -42,7 +42,9 @@ func NewRouter(services *Services) http.Handler {
 	// add routes for services
 	addAuthRoutes(mux, services.AuthService)
 	addUserRoutes(mux, services.UserService)
+	// addSearchRoutes(mux, services.SearchService)
 
+	// Camera scanner route
 	mux.HandleFunc("/camera-scanner", func(w http.ResponseWriter, r *http.Request) {
 		ctx := reqcontext.GetContext(r)
 
@@ -64,7 +66,6 @@ func NewRouter(services *Services) http.Handler {
 		}
 
 		// catch all - Not Found
-		fmt.Println("NOT FOUND")
 		w.WriteHeader(http.StatusNotFound)
 
 		if r.Method == http.MethodGet {

@@ -5,9 +5,9 @@ import (
 	"app/internal/service"
 	"app/internal/views/userview"
 	"app/pkg/appsort"
+	"app/pkg/appurl"
 	"app/pkg/encryptcredentials"
 	"app/pkg/reqcontext"
-	"app/pkg/urlvalues"
 	"fmt"
 	"log"
 	"net/http"
@@ -38,7 +38,7 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 
 	var uv urlVals
 
-	err := urlvalues.Unmarshal(r.URL.Query(), &uv)
+	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
 		http.Error(w, "Error decoding url values", http.StatusBadRequest)
 		return
@@ -134,7 +134,7 @@ func (h *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newUser model.NewUser
-	err = urlvalues.Unmarshal(r.Form, &newUser)
+	err = appurl.Unmarshal(r.Form, &newUser)
 
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
@@ -189,7 +189,7 @@ func (h *UserHandler) AddAPIUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newAPIUser model.NewAPIUser
-	err = urlvalues.Unmarshal(r.Form, &newAPIUser)
+	err = appurl.Unmarshal(r.Form, &newAPIUser)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
@@ -270,7 +270,7 @@ func (h *UserHandler) EditUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userUpdate model.UserUpdate
-	err = urlvalues.Unmarshal(r.Form, &userUpdate)
+	err = appurl.Unmarshal(r.Form, &userUpdate)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
@@ -340,7 +340,7 @@ func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var passwordReset model.PasswordReset
-	err = urlvalues.Unmarshal(r.Form, &passwordReset)
+	err = appurl.Unmarshal(r.Form, &passwordReset)
 	if err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
@@ -384,5 +384,5 @@ func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/users/%d/reset-password?encryptedData=%s", userID, encoded), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/users/%d/reset-password?EncryptedCredentials=%s", userID, encoded), http.StatusSeeOther)
 }

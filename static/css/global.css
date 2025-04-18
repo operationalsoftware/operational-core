@@ -20,7 +20,12 @@ h6 {
   color: var(--text-color);
 }
 
-a, a:visited {
+a,
+a:visited {
   color: var(--primary-color);
   text-decoration: none;
+}
+
+.flex {
+  display: flex;
 }

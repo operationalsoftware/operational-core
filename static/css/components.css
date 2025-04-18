@@ -1,7 +1,8 @@
 @import "./variables.css";
 
 /* Native inputs/select by type */
-input, select {
+input,
+select {
   border: 1.5px solid var(--border-color-dark);
   border-radius: var(--border-radius);
   background-color: var(--background-color-content);
@@ -12,7 +13,9 @@ input, select {
   transition: border-color 0.2s ease-in-out, border-width 0.2s ease-in-out,
     box-shadow 0.2s ease-in-out;
 
-  &:hover, &:focus, &:focus-visible {
+  &:hover,
+  &:focus,
+  &:focus-visible {
     border-color: var(--border-hover-color);
   }
 
@@ -209,7 +212,6 @@ hr {
 }
 /* End Checkbox Group */
 
-
 /* Start Divider */
 .divider {
   display: flex;
@@ -219,20 +221,19 @@ hr {
 
 .divider::before,
 .divider::after {
-  content: '';
+  content: "";
   flex: 1;
   border-bottom: 1px solid var(--disabled-color);
 }
 
 .divider:not(:empty)::before {
-  margin-right: .25em;
+  margin-right: 0.25em;
 }
 
 .divider:not(:empty)::after {
-  margin-left: .25em;
+  margin-left: 0.25em;
 }
 /* End Divider */
-
 
 /* Start Fieldset */
 .fieldset {
@@ -252,7 +253,6 @@ hr {
 }
 /* End Form */
 
-
 /* Start GridMenu */
 .grid-menu {
   max-width: 600px;
@@ -270,7 +270,6 @@ hr {
       column-gap: var(--spacing-sm);
       padding-top: var(--spacing-sm);
       padding-bottom: var(--spacing-lg);
-
 
       .grid-menu-item {
         display: block;
@@ -301,6 +300,11 @@ hr {
 }
 /* End GridMenu */
 
+/* Start Icon */
+.icon {
+  fill: var(--text-color);
+}
+/* End Icon */
 
 /* Start Input */
 .input-container {
@@ -422,7 +426,6 @@ img.logo-img-full.dark-theme {
   }
 }
 /* End LogoImgFull */
-
 
 /* Start Modal */
 .modal {
@@ -761,6 +764,59 @@ img.logo-img-full.dark-theme {
 }
 /* End Radio */
 
+/* Start Search navbar */
+.search-button {
+  display: flex;
+  align-items: center;
+  width: 180px;
+  padding: var(--padding-md) var(--padding-lg);
+  margin-right: var(--spacing-md);
+  background: var(--bg-normal);
+  color: var(--color-white);
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: none;
+  outline: none;
+  transition: background-color 0.3s ease;
+  align-self: center;
+  font-size: var(--font-size-sm);
+
+  @media screen {
+  }
+}
+
+.search-button:hover {
+  background-color: var(--bg-hover);
+}
+
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: var(--font-size-lg);
+  height: var(--font-size-lg);
+  fill: white;
+}
+
+.search-text {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: var(--margin-xs);
+  color: var(--color-white);
+}
+
+.shortcut {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: right;
+  flex-grow: 1;
+  font-size: var(--font-size-icon);
+  color: var(--color-white);
+}
+
+/* End Search navbar */
+
 /* Start Search Select */
 .search-select-container {
   width: 200px;
@@ -775,37 +831,6 @@ img.logo-img-full.dark-theme {
   transition: border-color 0.2s ease;
   position: relative;
 }
-
-/* Conflicting styles */
-.search-select-container .remove-icon {
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
-  background-color: var(--background-color-grey);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: background-color 0.2s ease;
-}
-
-.search-select-container .remove-icon:hover {
-  background-color: var(--border-hover-color);
-}
-
-.search-select-container .content-container .selected-value .remove-icon {
-  width: 17px;
-  height: 17px;
-  fill: var(--text-color-contrast);
-  background-color: transparent;
-  transition: fill ease-in-out 0.3s;
-}
-
-.search-select-container .content-container .selected-value .remove-icon:hover {
-  fill: var(--text-color-light);
-  background-color: transparent;
-}
-/* End Conflicting Styles */
 
 .search-select-container .arrow {
   border-left: 5px solid transparent;
@@ -1036,7 +1061,7 @@ div.select {
           background-color: transparent;
         }
       }
-      
+
       /* don't show radio (single select mode) or checkboxes (multi-select
        * mode) */
       input {
@@ -1149,8 +1174,6 @@ label .select {
  * END SELECT
  * */
 
-
-
 .select-container .option svg {
   width: 20px;
   height: 20px;
@@ -1173,16 +1196,13 @@ label .select {
   color: white;
 }
 
-
 .select-container.active .arrow {
   transform: rotate(180deg);
 }
 
-
 .select-container .select-dropdown:focus-within {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
-
 
 /* End Select */
 

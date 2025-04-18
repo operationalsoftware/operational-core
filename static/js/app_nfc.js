@@ -13,13 +13,7 @@ const AppNFC = (() => {
    * @returns {Promise<boolean>}
    */
   async function checkDeviceHasNFC() {
-    try {
-      const ndef = new NDEFReader();
-      await ndef.scan();
-      return true;
-    } catch {
-      return false;
-    }
+    return "NDEFReader" in window;
   }
 
   /**

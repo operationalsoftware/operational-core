@@ -1,4 +1,4 @@
-package urlvalues
+package appurl
 
 import (
 	"database/sql"

@@ -20,6 +20,27 @@ func avatarMenu(p *avatarMenuProps) g.Node {
 	}
 
 	return h.Div(
+		h.Class("flex"),
+
+		h.A(
+			h.ID("search-button"),
+			h.Class("search-button"),
+
+			h.Span(
+				h.Class("icon"),
+				components.Icon(&components.IconProps{
+					Identifier: "magnify",
+				}),
+			),
+			h.Span(
+				h.Class("search-text"),
+				g.Text("Search"),
+			),
+			h.Span(
+				h.Class("shortcut"),
+				g.Text("Ctrl + /"),
+			),
+		),
 		h.Button(
 			h.ID("navbar-avatar-menu-button"),
 			h.Class("menu-button"),

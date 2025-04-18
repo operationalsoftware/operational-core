@@ -70,14 +70,14 @@ func Encrypt(loginData model.VerifyPasswordLoginInput) (string, error) {
 	return ivEncoded + "." + ciphertextEncoded, nil
 }
 
-func Decrypt(encryptedData string) (model.VerifyPasswordLoginInput, error) {
+func Decrypt(encryptedCredentials string) (model.VerifyPasswordLoginInput, error) {
 	encryptionKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 	if encryptionKey == "" {
 		return model.VerifyPasswordLoginInput{}, fmt.Errorf("AES_256_ENCRYPTION_KEY environment variable not set")
 	}
 
 	// Split the encrypted string on "." to extract the iv & cipher text
-	parts := strings.Split(encryptedData, ".")
+	parts := strings.Split(encryptedCredentials, ".")
 	if len(parts) != 2 {
 		return model.VerifyPasswordLoginInput{}, fmt.Errorf("invalid encrypted data format")
 	}

@@ -1,0 +1,70 @@
+main {
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 500px;
+  margin-top: var(--spacing-xxl);
+  padding: var(--spacing-xl);
+
+  .logo-wrapper {
+    display: flex;
+    justify-content: center;
+
+    .logo-img-full {
+      width: 100%;
+      max-width: 250px;
+      height: auto;
+    }
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  form {
+    margin-top: var(--spacing-xl);
+  }
+
+  p.error {
+    color: var(--error-color);
+  }
+
+  .input-container {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+
+    .qrcode-form-input {
+      flex: 1;
+      border-top-right-radius: 0px;
+      border-bottom-right-radius: 0px;
+      border-right: none;
+      border-color: var(--primary-color);
+    }
+
+    .camera-button {
+      display: flex;
+      align-items: center;
+      background-color: var(--primary-color);
+      padding: 0.5rem;
+      border-radius: 0 6px 6px 0;
+
+      svg {
+        width: 24px;
+        height: 24px;
+        fill: white;
+      }
+    }
+  }
+
+  .cancel-button {
+    width: fit-content;
+    margin: auto;
+    cursor: pointer;
+    font-size: var(--font-size-md);
+    padding: var(--spacing-md);
+  }
+}

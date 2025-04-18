@@ -7,9 +7,10 @@ import (
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/authview"
+	"app/pkg/appurl"
 	"app/pkg/cookie"
+	"app/pkg/encryptcredentials"
 	"app/pkg/reqcontext"
-	"app/pkg/urlvalues"
 )
 
 type AuthHandler struct {
@@ -41,7 +42,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	_ = r.ParseForm()
 	var formData model.VerifyPasswordLoginInput
-	err = urlvalues.Unmarshal(r.PostForm, &formData)
+	err = appurl.Unmarshal(r.PostForm, &formData)
 	if err != nil {
 		retryPageProps.HasServerError = true
 		retryPageProps.Username = formData.Username
@@ -71,6 +72,77 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		retryPageProps.HasServerError = true
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+	return
+}
+
+func (h *AuthHandler) QRcodeLogInPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	_ = authview.QRcodeLoginPage(authview.QRcodeLoginPageProps{
+		Ctx: ctx,
+	}).
+		Render(w)
+
+	return
+}
+
+func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	var err error
+	retryPageProps := authview.QRcodeLoginPageProps{
+		Ctx: ctx,
+	}
+
+	encryptedString := r.FormValue("qrcode-input")
+	if encryptedString == "" {
+		retryPageProps.HasServerError = true
+		retryPageProps.LogInFailedError = ""
+		_ = authview.QRcodeLoginPage(retryPageProps).Render(w)
+		return
+	}
+
+	decodedData, err := encryptcredentials.Decrypt(encryptedString)
+	if err != nil {
+		retryPageProps.HasServerError = true
+		retryPageProps.LogInFailedError = ""
+		_ = authview.QRcodeLoginPage(retryPageProps).Render(w)
+		return
+	}
+
+	if decodedData.Username == "" && decodedData.Password == "" {
+		retryPageProps.HasServerError = true
+		retryPageProps.LogInFailedError = ""
+		_ = authview.QRcodeLoginPage(retryPageProps).Render(w)
+		return
+	}
+
+	var out model.VerifyPasswordLoginOutput
+
+	out, err = h.authService.VerifyPasswordLogin(r.Context(), decodedData)
+
+	if err != nil {
+		retryPageProps.HasServerError = true
+		retryPageProps.Username = decodedData.Username
+		_ = authview.QRcodeLoginPage(retryPageProps).Render(w)
+		return
+	}
+
+	if out.FailureReason != "" {
+		retryPageProps.LogInFailedError = out.FailureReason
+		retryPageProps.Username = decodedData.Username
+		_ = authview.QRcodeLoginPage(retryPageProps).Render(w)
+		return
+	}
+
+	err = setSessionCookie(w, out.AuthUser.UserID)
+	if err != nil {
+		retryPageProps.HasServerError = true
+		_ = authview.QRcodeLoginPage(retryPageProps).Render(w)
 		return
 	}
 

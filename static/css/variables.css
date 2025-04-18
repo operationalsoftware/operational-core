@@ -71,6 +71,15 @@
   --screen-lg: 1024px;
   --screen-xl: 1280px;
   --screen-2xl: 1536px;
+
+  /* Search styles */
+  --padding-md: 8px;
+  --padding-lg: 16px;
+  --margin-xs: 6px;
+  --font-size-icon: 12px;
+  --color-white: #ffffff;
+  --bg-normal: rgba(255, 255, 255, 0.15);
+  --bg-hover: rgba(255, 255, 255, 0.25);
 }
 
 /* override colours for dark theme */

@@ -11,6 +11,7 @@ import (
 	"net/url"
 
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
@@ -52,6 +53,10 @@ func ResetPasswordPage(p *ResetPasswordPageProps) g.Node {
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/userview/reset_password_page.css"),
 		},
+		AppendBody: []g.Node{
+			components.InlineScript("/static/js/app_nfc.js"),
+			components.InlineScript("/internal/views/userview/reset_password_page.js"),
+		},
 	})
 }
 
@@ -66,7 +71,7 @@ type resetPasswordFormProps struct {
 
 func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 	// Generate encrypted value
-	encryptedData := p.req.URL.Query().Get("encryptedData")
+	encryptedCredentials := p.req.URL.Query().Get("EncryptedCredentials")
 
 	passwordLabel := "Password"
 	passwordKey := "Password"
@@ -93,55 +98,137 @@ func resetPasswordForm(p *resetPasswordFormProps) g.Node {
 	}
 
 	formElements := []g.Node{
-		components.Input(&components.InputProps{
-			Label:       passwordLabel,
-			Name:        passwordKey,
-			InputType:   "password",
-			Placeholder: "Enter password",
-			HelperText:  passwordError,
-			HelperType:  passwordHelperType,
-			InputProps: []g.Node{
-				h.Value(passwordValue),
-				h.AutoComplete("off"),
-			},
-		}),
 
-		components.Input(&components.InputProps{
-			Label:       confirmPasswordLabel,
-			Name:        confirmPasswordKey,
-			InputType:   "password",
-			Placeholder: "Confirm password",
-			HelperText:  confirmPasswordError,
-			HelperType:  confirmPasswordHelperType,
-			InputProps: []g.Node{
-				h.Value(confirmPasswordValue),
-				h.AutoComplete("off"),
-			},
-		}),
+		h.Div(
+			h.Class("form-wrapper"),
+			h.Div(
+				h.Class("form-inputs"),
+				h.Div(
+					h.Class("password-input-wrapper"),
+					components.Input(&components.InputProps{
+						Label:       passwordLabel,
+						Name:        passwordKey,
+						InputType:   "password",
+						Placeholder: "Enter password",
+						HelperText:  passwordError,
+						HelperType:  passwordHelperType,
+						InputProps: []g.Node{
+							h.Value(passwordValue),
+							h.AutoComplete("off"),
+						},
+					}),
+
+					h.Button(
+						h.Type("button"),
+						h.Class("toggle-password-btn"),
+						g.Attr("data-target", passwordKey),
+						components.Icon(&components.IconProps{
+							Identifier: "eye-off-outline",
+							Classes: c.Classes{
+								"eye-icon":      true,
+								"eye-open-icon": true,
+							},
+						}),
+						components.Icon(&components.IconProps{
+							Identifier: "eye-outline",
+							Classes: c.Classes{
+								"eye-icon":        true,
+								"eye-closed-icon": true,
+								"hidden":          true,
+							},
+						}),
+					),
+				),
+				h.Div(
+					h.Class("password-input-wrapper"),
+					components.Input(&components.InputProps{
+						Label:       confirmPasswordLabel,
+						Name:        confirmPasswordKey,
+						InputType:   "password",
+						Placeholder: "Confirm password",
+						HelperText:  confirmPasswordError,
+						HelperType:  confirmPasswordHelperType,
+						InputProps: []g.Node{
+							h.Value(confirmPasswordValue),
+							h.AutoComplete("off"),
+						},
+					}),
+
+					h.Button(
+						h.Type("button"),
+						h.Class("toggle-password-btn"),
+						g.Attr("data-target", confirmPasswordKey),
+						components.Icon(&components.IconProps{
+							Identifier: "eye-off-outline",
+							Classes: c.Classes{
+								"eye-icon":      true,
+								"eye-open-icon": true,
+							},
+						}),
+						components.Icon(&components.IconProps{
+							Identifier: "eye-outline",
+							Classes: c.Classes{
+								"eye-icon":        true,
+								"eye-closed-icon": true,
+								"hidden":          true,
+							},
+						}),
+					),
+				),
+			),
+
+			h.Button(
+				h.Class("generate-password-btn"),
+				h.Type("button"),
+				components.Icon(&components.IconProps{
+					Identifier: "lock-plus-outline",
+				}),
+			),
+		),
 	}
 
-	if encryptedData != "" {
+	formElements = append(formElements,
+		components.Button(&components.ButtonProps{}, h.Class("set-password-btn"), h.Type("submit"), g.Text("Set Password")),
+	)
+
+	if encryptedCredentials != "" {
 		formElements = append(formElements,
 			h.Div(
 				h.Class("form-group"),
 				h.Div(
 					h.Class("form-success"), g.Text("Password set successfully!"),
 				),
+
+				components.Divider(g.Text("")),
+
 				h.Label(
 					h.Class("form-label"), g.Text("Encrypted Credentials:"),
 				),
 				h.Code(
 					h.ID("encrypted-string"),
 					h.Class("encrypted-code"),
-					g.Text(encryptedData),
+					g.Text(encryptedCredentials),
+				),
+			),
+		)
+
+		formElements = append(formElements,
+			h.Div(
+				h.Class("nfc-btns"),
+
+				h.Button(
+					h.Class("button write-nfc-btn"),
+					h.Type("button"),
+					g.Text("Write NFC"),
+				),
+				h.Button(
+					h.Class("button nfc-readonly-btn"),
+					h.Type("button"),
+					g.Text("Make NFC read-only"),
 				),
 			),
 		)
 	}
-
-	formElements = append(formElements,
-		components.Button(&components.ButtonProps{}, h.Type("submit"), g.Text("Submit")),
-	)
 
 	return components.Form(
 		h.ID("reset-password-form"),
