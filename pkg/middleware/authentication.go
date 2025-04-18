@@ -6,6 +6,7 @@ import (
 	"app/pkg/cookie"
 	"app/pkg/reqcontext"
 	"context"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -85,8 +86,14 @@ func (m *AuthenticationMiddleware) Authentication(next http.Handler) http.Handle
 		}
 
 		user, err := m.userService.GetUserByID(r.Context(), id)
-
 		if err != nil {
+			log.Println(err)
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if user == nil {
+			log.Println("user wth id", id, "not found")
 			next.ServeHTTP(w, r)
 			return
 		}
