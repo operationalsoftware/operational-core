@@ -103,11 +103,4 @@
   });
   // listen for changes to fullscreen and update the icon
   document.addEventListener("fullscreenchange", setFullscreenIcon);
-
-  document
-    .getElementById("search-button")
-    .addEventListener("click", function () {
-      // Your `showSearch` logic here
-      alert("Search clicked!");
-    });
 }

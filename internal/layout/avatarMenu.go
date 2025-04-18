@@ -25,6 +25,7 @@ func avatarMenu(p *avatarMenuProps) g.Node {
 		h.A(
 			h.ID("search-button"),
 			h.Class("search-button"),
+			h.Href("/search"),
 
 			h.Span(
 				h.Class("icon"),
