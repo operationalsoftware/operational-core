@@ -103,4 +103,11 @@
   });
   // listen for changes to fullscreen and update the icon
   document.addEventListener("fullscreenchange", setFullscreenIcon);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.ctrlKey && event.key === "/") {
+      event.preventDefault();
+      window.location.href = "/search";
+    }
+  });
 }

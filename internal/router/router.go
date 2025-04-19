@@ -13,8 +13,9 @@ import (
 )
 
 type Services struct {
-	AuthService service.AuthService
-	UserService service.UserService
+	AuthService   service.AuthService
+	UserService   service.UserService
+	SearchService service.SearchService
 }
 
 func NewRouter(services *Services) http.Handler {
@@ -42,7 +43,7 @@ func NewRouter(services *Services) http.Handler {
 	// add routes for services
 	addAuthRoutes(mux, services.AuthService)
 	addUserRoutes(mux, services.UserService)
-	// addSearchRoutes(mux, services.SearchService)
+	addSearchRoutes(mux, services.SearchService)
 
 	// Camera scanner route
 	mux.HandleFunc("/camera-scanner", func(w http.ResponseWriter, r *http.Request) {

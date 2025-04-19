@@ -1,17 +1,18 @@
 package router
 
-// func addSearchRoutes(
-// 	mux *http.ServeMux,
-// 	searchService service.SearchService,
-// ) {
-// 	authHandler := handler.NewAuthHandler(searchService)
+import (
+	"app/internal/handler"
+	"app/internal/service"
+	"net/http"
+)
 
-// 	mux.HandleFunc("GET /auth/password", authHandler.PasswordLogInPage)
-// 	mux.HandleFunc("POST /auth/password", authHandler.PasswordLogIn)
+func addSearchRoutes(
+	mux *http.ServeMux,
+	searchService service.SearchService,
+) {
+	authHandler := handler.NewSearchHandler(searchService)
 
-// 	// QRcode login page
-// 	mux.HandleFunc("GET /auth/password/qrcode", authHandler.QRcodeLogInPage)
-// 	mux.HandleFunc("POST /auth/password/qrcode", authHandler.QRcodeLogIn)
+	mux.HandleFunc("GET /search", authHandler.SearchPage)
+	mux.HandleFunc("POST /search", authHandler.Search)
 
-// 	mux.HandleFunc("/auth/logout", authHandler.Logout)
-// }
+}
