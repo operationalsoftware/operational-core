@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -415,4 +416,126 @@ func generateRandomPassword(length int) (string, error) {
 	})
 
 	return string(password), nil
+}
+
+func (r *UserRepository) SearchUsers(
+	ctx context.Context,
+	db *pgxpool.Pool,
+	searchTerm string,
+) ([]model.UserSearchResult, error) {
+
+	rows, err := db.Query(ctx, `
+		SELECT
+			email,
+			username,
+			first_name,
+			last_name,
+			(
+				CASE WHEN email ILIKE $1 THEN 3
+					WHEN email ILIKE $1 || '%' THEN 2
+					WHEN email ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 3
+				+
+				CASE WHEN username ILIKE $1 THEN 3
+					WHEN username ILIKE $1 || '%' THEN 2
+					WHEN username ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 2
+				+
+				CASE WHEN first_name ILIKE $1 THEN 3
+					WHEN first_name ILIKE $1 || '%' THEN 2
+					WHEN first_name ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 1
+				+
+				CASE WHEN last_name ILIKE $1 THEN 3
+					WHEN last_name ILIKE $1 || '%' THEN 2
+					WHEN last_name ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 1
+			) AS relevance
+		FROM
+			app_user
+		WHERE
+			email ILIKE '%' || $1 || '%'
+		OR	username ILIKE '%' || $1 || '%'
+		OR	first_name ILIKE '%' || $1 || '%'
+		OR	last_name ILIKE '%' || $1 || '%'
+		ORDER BY
+			relevance DESC
+		LIMIT 7
+	`, searchTerm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []model.UserSearchResult
+	for rows.Next() {
+		var ur model.UserSearchResult
+		if err := rows.Scan(&ur.Email, &ur.Username, &ur.FirstName, &ur.LastName, &ur.Relevance); err != nil {
+			return nil, err
+		}
+		results = append(results, ur)
+	}
+
+	return results, nil
+}
+
+func (r *UserRepository) SearchBatches(
+	ctx context.Context,
+	exec db.PGExecutor,
+	searchTerm string,
+) ([]model.BatchSearchResult, error) {
+
+	rows, err := exec.Query(ctx, `
+		SELECT
+			batch_number,
+			works_order_number,
+			part_number,
+			(
+				CASE WHEN batch_number ILIKE $1 THEN 3
+					WHEN batch_number ILIKE $1 || '%' THEN 2
+					WHEN batch_number ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 3
+				+
+				CASE WHEN works_order_number ILIKE $1 THEN 3
+					WHEN works_order_number ILIKE $1 || '%' THEN 2
+					WHEN works_order_number ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 2
+				+
+				CASE WHEN part_number ILIKE $1 THEN 3
+					WHEN part_number ILIKE $1 || '%' THEN 2
+					WHEN part_number ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 1
+				) AS relevance
+		FROM
+			batch
+		WHERE
+			batch_number ILIKE '%' || $1 || '%'
+		OR	works_order_number ILIKE '%' || $1 || '%'
+		OR	part_number ILIKE '%' || $1 || '%'
+		ORDER BY
+			relevance DESC
+		LIMIT 7
+	`, searchTerm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []model.BatchSearchResult
+	for rows.Next() {
+		var br model.BatchSearchResult
+		if err := rows.Scan(&br.BatchNumber, &br.WorksOrderNumber, &br.PartNumber, &br.Relevance); err != nil {
+			return nil, err
+		}
+		results = append(results, br)
+	}
+
+	return results, nil
 }

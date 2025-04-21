@@ -1,0 +1,10 @@
+.search-wrapper {
+  width: 90%;
+  margin: auto;
+
+  .form {
+    #search-input {
+      font-size: var(--font-size-xl);
+    }
+  }
+}

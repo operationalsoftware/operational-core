@@ -13,6 +13,6 @@ func addSearchRoutes(
 	authHandler := handler.NewSearchHandler(searchService)
 
 	mux.HandleFunc("GET /search", authHandler.SearchPage)
-	mux.HandleFunc("POST /search", authHandler.Search)
+	mux.HandleFunc("GET /search-results", authHandler.Search)
 
 }

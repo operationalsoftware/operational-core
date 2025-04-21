@@ -63,8 +63,9 @@ func main() {
 
 	// Instantiate services
 	services := &router.Services{
-		AuthService: *service.NewAuthService(pgPool, authRepository),
-		UserService: *service.NewUserService(pgPool, userRepository),
+		AuthService:   *service.NewAuthService(pgPool, authRepository),
+		UserService:   *service.NewUserService(pgPool, userRepository),
+		SearchService: *service.NewSearchService(pgPool, userRepository),
 	}
 
 	// define server

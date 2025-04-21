@@ -4,7 +4,9 @@ import (
 	"app/internal/service"
 	"app/internal/views/searchview"
 	"app/pkg/reqcontext"
+	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 type SearchHandler struct {
@@ -27,7 +29,15 @@ func (h *SearchHandler) SearchPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
-	// ctx := reqcontext.GetContext(r)
+	searchTerm := r.URL.Query().Get("q")
+	types := strings.Split(r.URL.Query().Get("types"), ",")
 
-	// r.URL.
+	results, err := h.searchService.Search(r.Context(), searchTerm, types)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
 }
