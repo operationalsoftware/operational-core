@@ -61,9 +61,27 @@ checkboxes.forEach((cb) =>
 );
 
 function displayResults(results) {
-  // Replace with actual HTML rendering
-  console.log(results);
-  // resultsContainer.innerHTML = results
-  //   ?.map((r) => `<div class="search-result-item">${r.users.type}</div>`)
-  //   .join("");
+  if (!results || Object.keys(results).length === 0) {
+    resultsContainer.innerHTML = "<p>No results found.</p>";
+    return;
+  }
+
+  let html = "";
+
+  for (const [type, items] of Object.entries(results)) {
+    if (items.length === 0) continue;
+
+    html += `<h3 class="mt-4 text-lg font-semibold capitalize">${type} Results</h3>`;
+    html += `<ul class="mb-4 space-y-2">`;
+
+    items.forEach((item) => {
+      // You can customize the display below based on the structure of each item
+      const name = item.name || item.title || "Unnamed";
+      html += `<li class="search-result-item p-2 border rounded-md">${name}</li>`;
+    });
+
+    html += `</ul>`;
+  }
+
+  resultsContainer.innerHTML = html || "<p>No results found.</p>";
 }

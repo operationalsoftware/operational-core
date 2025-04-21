@@ -8,3 +8,10 @@
     }
   }
 }
+
+.search-result-item {
+  transition: background 0.2s ease;
+}
+.search-result-item:hover {
+  background-color: #f9fafb;
+}
