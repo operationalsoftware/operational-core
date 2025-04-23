@@ -10,7 +10,7 @@ function getFilters() {
     .map((cb) => cb.value);
 }
 
-function updateQueryAndSearch() {
+function searchAndUpdateQuery() {
   const query = searchInput.value.trim();
   const filters = getFilters();
 
@@ -42,46 +42,70 @@ function updateQueryAndSearch() {
         .then((data) => displayResults(data))
         .catch((err) => {
           console.error("Search failed", err);
-          resultsContainer.innerHTML = `<p>Error fetching results</p>`;
+          resultsContainer.innerHTML = `<p class="placeholder">Error fetching results</p>`;
         });
     } else {
-      resultsContainer.innerHTML = "";
+      resultsContainer.innerHTML = `<p class="placeholder">No Search results.</p>`;
     }
   }, 300);
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  searchAndUpdateQuery();
+});
+
 searchInput.addEventListener("input", async (e) => {
-  updateQueryAndSearch();
+  searchAndUpdateQuery();
 });
 
 checkboxes.forEach((cb) =>
   cb.addEventListener("change", () => {
-    updateQueryAndSearch();
+    searchAndUpdateQuery();
   })
 );
 
 function displayResults(results) {
   if (!results || Object.keys(results).length === 0) {
-    resultsContainer.innerHTML = "<p>No results found.</p>";
+    resultsContainer.innerHTML = `<p class="placeholder">No results found.</p>`;
     return;
   }
+
+  console.log(results);
 
   let html = "";
 
   for (const [type, items] of Object.entries(results)) {
-    if (items.length === 0) continue;
+    if (!items || items.length === 0) continue;
 
-    html += `<h3 class="mt-4 text-lg font-semibold capitalize">${type} Results</h3>`;
-    html += `<ul class="mb-4 space-y-2">`;
+    const title = type.charAt(0).toUpperCase() + type.slice(1);
 
-    items.forEach((item) => {
-      // You can customize the display below based on the structure of each item
-      const name = item.name || item.title || "Unnamed";
-      html += `<li class="search-result-item p-2 border rounded-md">${name}</li>`;
+    html += `<h3 class="result-type-heading">${title} Results</h3>`;
+    html += `<ul class="result-group">`;
+
+    items.forEach(({ data }) => {
+      if (type === "user") {
+        const fullName = `${data.first_name} ${data.last_name}`;
+        html += `
+          <li class="search-result-item">
+            <strong>${fullName}</strong> <br>
+            <span>Username: ${data.username}</span><br>
+            <span>Email: ${data.email}</span>
+          </li>
+        `;
+      } else if (type === "batch") {
+        html += `
+          <li class="search-result-item">
+            <strong>Batch #: ${data.batch_number}</strong><br>
+            <span>Works Order #: ${data.works_order_number}</span><br>
+            <span>Part #: ${data.part_number}</span>
+          </li>
+        `;
+      }
     });
 
     html += `</ul>`;
   }
 
-  resultsContainer.innerHTML = html || "<p>No results found.</p>";
+  resultsContainer.innerHTML =
+    html || `<p class="placeholder">No results found.</p>`;
 }

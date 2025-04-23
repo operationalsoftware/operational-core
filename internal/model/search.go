@@ -16,8 +16,8 @@ type SearchResult struct {
 // }
 
 type UserSearchResult struct {
-	Email     string
-	Username  string
+	Email     string `json:"email"`
+	Username  string `json:"username"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Relevance int    `json:"relevance"`

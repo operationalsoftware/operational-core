@@ -7,6 +7,44 @@
       font-size: var(--font-size-xl);
     }
   }
+
+  .search-results {
+    .result-type-heading {
+      margin-top: 1.5rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 0.3rem;
+    }
+
+    .result-group {
+      list-style: none;
+      padding-left: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-result-item {
+      padding: 10px;
+      border: 1px solid #e2e2e2;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      background-color: #fafafa;
+    }
+
+    .search-result-item:hover {
+      background-color: #f2f2f2;
+    }
+
+    .placeholder {
+      height: 50vh;
+      font-size: var(--font-size-lg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: var(--text-color-light);
+    }
+  }
 }
 
 .search-result-item {

@@ -46,7 +46,7 @@ func (s *SearchService) Search(
 			return nil, err
 		}
 		for _, u := range users {
-			results["users"] = append(results["users"], model.SearchResult{
+			results["user"] = append(results["user"], model.SearchResult{
 				Type:      "user",
 				Data:      u,
 				Relevance: u.Relevance,
@@ -61,7 +61,7 @@ func (s *SearchService) Search(
 			return nil, err
 		}
 		for _, batch := range batches {
-			results["batches"] = append(results["batches"], model.SearchResult{
+			results["batch"] = append(results["batch"], model.SearchResult{
 				Type:      "batch",
 				Data:      batch,
 				Relevance: batch.Relevance,
