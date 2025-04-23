@@ -61,9 +61,9 @@ function setTheme(theme) {
 function getIsFullScreen() {
   return Boolean(
     document.fullscreenElement ||
-    document.mozFullScreenElement ||
-    document.webkitFullscreenElement ||
-    document.msFullscreenElement
+      document.mozFullScreenElement ||
+      document.webkitFullscreenElement ||
+      document.msFullscreenElement
   );
 }
 
@@ -92,7 +92,7 @@ function exitFullScreen() {
   }
 }
 
-(function() {
+(function () {
   // deal with the theme
   // set on start
   updateThemeOnHtml();
@@ -109,20 +109,20 @@ function exitFullScreen() {
 
 // show loading message when navigating away from the page if
 // the navigation hasn't occurred after 0.5s
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function () {
   let timeout;
-  const loadingElement = document.getElementById('loading-message');
+  const loadingElement = document.getElementById("loading-message");
 
   function addClassDelayed() {
     if (loadingElement) {
-      loadingElement.classList.add('show');
+      loadingElement.classList.add("show");
     }
   }
 
   function clearLoadingMessage() {
     clearTimeout(timeout); // Clear the timer in case it was set
     if (loadingElement) {
-      loadingElement.classList.remove('show');
+      loadingElement.classList.remove("show");
     }
   }
 
@@ -132,33 +132,33 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Show loading message when navigating away from the page
-  window.addEventListener('beforeunload', handleNavigation);
+  window.addEventListener("beforeunload", handleNavigation);
 
   // Hide loading message if navigating back or page loads instantly
-  window.addEventListener('pageshow', clearLoadingMessage);
+  window.addEventListener("pageshow", clearLoadingMessage);
 });
 
 // utility to preserve scroll height on navigation
 function preserveScrollHeight() {
   const scrollHeight = window.scrollY || document.documentElement.scrollTop;
-  localStorage.setItem('savedScrollHeight', scrollHeight.toString());
+  localStorage.setItem("savedScrollHeight", scrollHeight.toString());
 }
 
 // restore scroll height when the DOM content has been parsed
-document.addEventListener('DOMContentLoaded', function() {
-  const savedScrollHeight = localStorage.getItem('savedScrollHeight');
+document.addEventListener("DOMContentLoaded", function () {
+  const savedScrollHeight = localStorage.getItem("savedScrollHeight");
   if (savedScrollHeight !== null) {
     window.scrollTo(0, parseInt(savedScrollHeight, 10));
     // delete from local storage
-    localStorage.removeItem('savedScrollHeight');
+    localStorage.removeItem("savedScrollHeight");
   }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function () {
   // Get all elements with the class "iso-date"
-  var dateElements = document.querySelectorAll('.local-datetime');
+  var dateElements = document.querySelectorAll(".local-datetime");
 
-  dateElements.forEach(function(element) {
+  dateElements.forEach(function (element) {
     // Parse the ISO date string into a Date object
     var date = new Date(element.textContent);
 
@@ -167,3 +167,10 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+function injectHTML(selector, html) {
+  const element = document.querySelector(selector);
+
+  element
+    ? (element.innerHTML = html)
+    : console.warn(`Element not found: ${selector}`);
+}

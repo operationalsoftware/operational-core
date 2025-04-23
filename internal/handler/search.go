@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/searchview"
+	"app/pkg/appurl"
 	"app/pkg/reqcontext"
-	"encoding/json"
 	"net/http"
-	"strings"
 )
 
 type SearchHandler struct {
@@ -20,24 +20,39 @@ func NewSearchHandler(searchService service.SearchService) *SearchHandler {
 func (h *SearchHandler) SearchPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
+	var params model.SearchInput
+
+	err := appurl.Unmarshal(r.URL.Query(), &params)
+	if err != nil {
+		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+		return
+	}
+
+	results, err := h.searchService.Search(r.Context(), params.Q, params.E)
+	if err != nil {
+		_ = searchview.SearchPage(searchview.SearchPageProps{
+			Ctx: ctx,
+		}).
+			Render(w)
+	}
+
 	_ = searchview.SearchPage(searchview.SearchPageProps{
-		Ctx: ctx,
+		Ctx:     ctx,
+		Results: results,
 	}).
 		Render(w)
 
 	return
 }
 
-func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
-	searchTerm := r.URL.Query().Get("q")
-	types := strings.Split(r.URL.Query().Get("types"), ",")
+// func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 
-	results, err := h.searchService.Search(r.Context(), searchTerm, types)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+// 	results, err := h.searchService.Search(r.Context(), searchTerm, types)
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
-}
+// 	w.Header().Set("Content-Type", "application/json")
+// 	json.NewEncoder(w).Encode(results)
+// }

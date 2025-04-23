@@ -10,9 +10,9 @@ func addSearchRoutes(
 	mux *http.ServeMux,
 	searchService service.SearchService,
 ) {
-	authHandler := handler.NewSearchHandler(searchService)
+	searchHandler := handler.NewSearchHandler(searchService)
 
-	mux.HandleFunc("GET /search", authHandler.SearchPage)
-	mux.HandleFunc("GET /search-results", authHandler.Search)
+	mux.HandleFunc("GET /search", searchHandler.SearchPage)
+	// mux.HandleFunc("GET /search-results", searchHandler.Search)
 
 }
