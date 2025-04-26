@@ -9,16 +9,8 @@ type SearchInput struct {
 	E []string
 }
 
-// Searching entity models
-// type SearchResult struct {
-// 	Type      string
-// 	Data      interface{}
-// 	Relevance int
-// }
-
 type SearchResults struct {
 	Users          []UserSearchResult
-	Batches        []BatchSearchResult
 	RecentSearches []RecentSearch
 }
 
@@ -32,13 +24,6 @@ type UserSearchResult struct {
 	Username  string
 	FirstName string
 	LastName  string
-}
-
-type BatchSearchResult struct {
-	BaseSearchResult
-	BatchNumber      string
-	WorksOrderNumber string
-	PartNumber       string
 }
 
 // Recent Search

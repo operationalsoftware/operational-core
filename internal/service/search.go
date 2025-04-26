@@ -71,22 +71,6 @@ func (s *SearchService) Search(
 		}
 	}
 
-	// Batch Search
-	if len(searchEntities) == 0 || searchEntitiesFilter["batch"] {
-		batches, err := s.UserRepo.SearchBatches(ctx, s.db, searchTerm)
-		if err != nil {
-			return results, err
-		}
-		results.Batches = batches
-
-		if len(results.Batches) > 0 {
-			sort.Slice(results.Batches, func(i, j int) bool {
-				return results.Batches[i].Relevance > results.Batches[j].Relevance
-			})
-		}
-
-	}
-
 	if err := s.SearchRepo.CreateRecentSearch(ctx, s.db, searchInput, userID); err != nil {
 		log.Printf("Failed to save recent search: %v", err)
 	}

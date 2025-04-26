@@ -38,10 +38,10 @@ main {
 
       li {
         list-style: circle;
-        margin: 0.3rem 0;
+        margin: var(--spacing-xs) 0;
 
         a {
-          font-size: var(--font-size-sm);
+          font-size: var(--font-size-xs);
           text-decoration: underline;
           color: #0073e6;
         }

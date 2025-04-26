@@ -55,36 +55,9 @@ func SearchPage(p SearchPageProps) g.Node {
 					h.Class("filters"),
 
 					SearchCheckboxes(p.SearchEntities),
-					// h.Label(
-					// 	h.Input(
-					// 		h.Type("checkbox"),
-					// 		h.Value("batch"),
-					// 		h.Name("E"),
-					// 		h.Class("filter-checkbox"),
-					// 		g.If(
-					// 			arrayutil.Includes(searchEntities, "batch"),
-					// 			g.Attr("checked", "checked"),
-					// 		),
-					// 	),
-					// 	g.Text("Batch"),
-					// ),
-					// h.Label(
-					// 	h.Input(
-					// 		h.Type("checkbox"),
-					// 		h.Value("user"),
-					// 		h.Name("E"),
-					// 		h.Class("filter-checkbox"),
-					// 		g.If(
-					// 			arrayutil.Includes(searchEntities, "user"),
-					// 			g.Attr("checked", "checked"),
-					// 		),
-					// 	),
-					// 	g.Text("User"),
-					// ),
 				),
 			),
 
-			// Recent Searches + Results
 			h.Div(
 				h.Class("search-section"),
 				g.Group([]g.Node{
@@ -99,11 +72,6 @@ func SearchPage(p SearchPageProps) g.Node {
 					),
 				}),
 			),
-
-			// h.Div(
-			// 	h.Class("search-results"),
-			// 	SearchResults(p.Results),
-			// ),
 		),
 	})
 
@@ -121,7 +89,7 @@ func SearchPage(p SearchPageProps) g.Node {
 }
 
 func SearchCheckboxes(searchEntities []string) g.Node {
-	searchEntitiesList := []string{"batch", "user"}
+	searchEntitiesList := []string{"user"}
 
 	var entityCheckboxes []g.Node
 	for _, entity := range searchEntitiesList {
@@ -149,7 +117,7 @@ func SearchCheckboxes(searchEntities []string) g.Node {
 	return g.Group(entityCheckboxes)
 }
 
-// Render Recent Searches Section
+// Recent Searches Section
 func RecentSearches(terms []model.RecentSearch) g.Node {
 	if len(terms) == 0 {
 		return g.Group(nil)
@@ -176,9 +144,9 @@ func RecentSearches(terms []model.RecentSearch) g.Node {
 
 	return h.Div(
 		h.Class("recent-searches"),
-		h.H3(h.Class("title"), g.Text("Recent Searches")), // Fix here
+		h.H3(h.Class("title"), g.Text("Recent Searches")),
 		h.Ul(
-			h.Class("list"), // Fix here
+			h.Class("list"),
 			g.Group(items),
 		),
 	)
@@ -193,17 +161,6 @@ func SearchResults(results model.SearchResults) g.Node {
 			h.Ul(
 				h.Class("result-group"),
 				g.Group(UserResults(results.Users)),
-			),
-		}
-		resultSections = append(resultSections, group...)
-	}
-
-	if len(results.Batches) > 0 {
-		group := []g.Node{
-			h.H3(h.Class("result-type-heading"), g.Text("Batch Results")),
-			h.Ul(
-				h.Class("result-group"),
-				g.Group(BatchResults(results.Batches)),
 			),
 		}
 		resultSections = append(resultSections, group...)
@@ -234,23 +191,6 @@ func UserResults(users []model.UserSearchResult) []g.Node {
 					h.Strong(g.Text("Email: ")),
 					g.Text(user.Email),
 				),
-			),
-		)
-	}
-
-	return nodes
-}
-
-func BatchResults(batches []model.BatchSearchResult) []g.Node {
-	var nodes []g.Node
-
-	for _, batch := range batches {
-		nodes = append(nodes,
-			h.Li(
-				h.Class("search-result-item"),
-				h.Div(g.Text("Batch #: "+fmt.Sprintf("%v", batch.BatchNumber))),
-				h.Div(g.Text("Works Order #: "+fmt.Sprintf("%v", batch.WorksOrderNumber))),
-				h.Div(g.Text("Part #: "+fmt.Sprintf("%v", batch.PartNumber))),
 			),
 		)
 	}
