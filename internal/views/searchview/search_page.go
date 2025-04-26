@@ -128,6 +128,9 @@ func SearchCheckboxes(searchEntities []string) g.Node {
 		c := cases.Title(language.English)
 		entityTitle := c.String(entity)
 
+		fmt.Println(entity)
+		fmt.Println(entityTitle)
+
 		entityCheckboxes = append(entityCheckboxes,
 			h.Label(
 				h.Input(
@@ -173,9 +176,9 @@ func RecentSearches(terms []model.RecentSearch) g.Node {
 
 	return h.Div(
 		h.Class("recent-searches"),
-		h.H3(h.Class("recent-search-title"), g.Text("Recent Searches")), // Fix here
+		h.H3(h.Class("title"), g.Text("Recent Searches")), // Fix here
 		h.Ul(
-			h.Class("recent-search-list"), // Fix here
+			h.Class("list"), // Fix here
 			g.Group(items),
 		),
 	)

@@ -57,7 +57,7 @@ checkboxes.forEach((cb) =>
   cb.addEventListener("change", () => {
     const searchEntities = [...checkboxes]
       .filter((cb) => cb.checked)
-      .map((cb) => cb.dataset.type);
+      .map((cb) => cb.value);
 
     localStorage.setItem("search-entities", JSON.stringify(searchEntities));
   })

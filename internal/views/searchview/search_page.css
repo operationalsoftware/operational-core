@@ -22,26 +22,31 @@ main {
   .recent-searches {
     position: absolute;
     right: 0;
-    top: 100px;
+    top: 70px;
     width: 250px;
-    /* margin: 0 var(--spacing-xl); */
-  }
-  .recent-search-title {
-    margin-bottom: 0.5rem;
-  }
 
-  .recent-search-list {
-    padding: 0 var(--spacing-xxl);
-  }
+    @media (max-width: 1024px) {
+      position: unset;
+    }
 
-  .recent-search-list li {
-    list-style: circle;
-    margin: 0.3rem 0;
-  }
-  .recent-search-list li a {
-    font-size: var(--font-size-sm);
-    text-decoration: underline;
-    color: #0073e6;
+    .title {
+      margin-bottom: 0.5rem;
+    }
+
+    .list {
+      padding: 0 var(--spacing-xxl);
+
+      li {
+        list-style: circle;
+        margin: 0.3rem 0;
+
+        a {
+          font-size: var(--font-size-sm);
+          text-decoration: underline;
+          color: #0073e6;
+        }
+      }
+    }
   }
 
   .search-results {
