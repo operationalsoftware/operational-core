@@ -2,7 +2,6 @@ const searchInput = document.getElementById("search-input");
 const resultsContainer = document.querySelector(".search-results");
 const checkboxes = document.querySelectorAll(".filter-checkbox");
 const searchForm = document.getElementById("search-form");
-const hiddenTypesInput = document.getElementById("types-input");
 
 let timeoutId;
 
@@ -33,53 +32,34 @@ function searchAndUpdateQuery() {
 
   // Debounce the API call
   clearTimeout(timeoutId);
-  timeoutId = setTimeout(() => {
-    // searchForm.submit();
-    // if (query) {
-    //   fetch(
-    //     `/search-results?q=${encodeURIComponent(
-    //       query
-    //     )}&types=${encodeURIComponent(filters.join(","))}`
-    //   )
-    //     .then((res) => res.json())
-    //     .then((data) => displayResults(data))
-    //     .catch((err) => {
-    //       console.error("Search failed", err);
-    //       injectHTML(
-    //         ".search-results",
-    //         `<p class="placeholder">Error fetching results</p>`
-    //       );
-    //     });
-    // } else {
-    //   injectHTML(
-    //     ".search-results",
-    //     `<p class="placeholder">No Search results.</p>`
-    //   );
-    // }
-  }, 300);
+  timeoutId = setTimeout(() => {}, 300);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // searchAndUpdateQuery();
-
   const searchEntities = getParamEntities();
 
-  console.log(searchEntities);
+  if (searchEntities.length > 0) return;
 
-  if (searchEntities.length === 0) {
-    const searchQuery = JSON.parse(localStorage.getItem("searchQuery"));
-    console.log("cangedd", searchEntities);
-    console.log("local", searchQuery);
-  }
+  const storageSearchEntities = JSON.parse(
+    localStorage.getItem("search-entities") || "[]"
+  );
+
+  checkboxes.forEach((checkbox) => {
+    const searchEntity = checkbox.value;
+    checkbox.checked =
+      storageSearchEntities.length > 0
+        ? storageSearchEntities.includes(searchEntity)
+        : true;
+  });
 });
 
 checkboxes.forEach((cb) =>
   cb.addEventListener("change", () => {
-    const searchEntities = getParamEntities();
+    const searchEntities = [...checkboxes]
+      .filter((cb) => cb.checked)
+      .map((cb) => cb.dataset.type);
 
-    console.log("cangedd", searchEntities);
-
-    localStorage.setItem("searchQuery", JSON.stringify(searchEntities));
+    localStorage.setItem("search-entities", JSON.stringify(searchEntities));
   })
 );
 

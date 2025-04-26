@@ -1,37 +1,51 @@
 package model
 
+import (
+	"time"
+)
+
 type SearchInput struct {
 	Q string
 	E []string
 }
 
 // Searching entity models
-type SearchResult struct {
-	Type      string
-	Data      interface{}
-	Relevance int
-}
+// type SearchResult struct {
+// 	Type      string
+// 	Data      interface{}
+// 	Relevance int
+// }
 
 type SearchResults struct {
-	Users   *[]UserSearchResult
-	Batches *[]BatchSearchResult
+	Users          []UserSearchResult
+	Batches        []BatchSearchResult
+	RecentSearches []RecentSearch
 }
 
 type BaseSearchResult struct {
-	Relevance int `json:"relevance"`
+	Relevance int
 }
 
 type UserSearchResult struct {
 	BaseSearchResult
-	Email     string `json:"email"`
-	Username  string `json:"username"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	Email     string
+	Username  string
+	FirstName string
+	LastName  string
 }
 
 type BatchSearchResult struct {
 	BaseSearchResult
-	BatchNumber      string `json:"batch_number"`
-	WorksOrderNumber string `json:"works_order_number"`
-	PartNumber       string `json:"part_number"`
+	BatchNumber      string
+	WorksOrderNumber string
+	PartNumber       string
+}
+
+// Recent Search
+type RecentSearch struct {
+	ID             int
+	SearchTerm     string
+	SearchEntities []string
+	UserID         int
+	LastSearchedAt time.Time
 }

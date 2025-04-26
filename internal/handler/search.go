@@ -28,31 +28,24 @@ func (h *SearchHandler) SearchPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := h.searchService.Search(r.Context(), params.Q, params.E)
+	results, err := h.searchService.Search(r.Context(), params.Q, params.E, ctx.User.UserID)
 	if err != nil {
 		_ = searchview.SearchPage(searchview.SearchPageProps{
-			Ctx: ctx,
+			Ctx:            ctx,
+			SearchTerm:     params.Q,
+			SearchEntities: params.E,
 		}).
 			Render(w)
+		return
 	}
 
 	_ = searchview.SearchPage(searchview.SearchPageProps{
-		Ctx:     ctx,
-		Results: results,
+		Ctx:            ctx,
+		SearchTerm:     params.Q,
+		SearchEntities: params.E,
+		Results:        results,
 	}).
 		Render(w)
 
 	return
 }
-
-// func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
-
-// 	results, err := h.searchService.Search(r.Context(), searchTerm, types)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	w.Header().Set("Content-Type", "application/json")
-// 	json.NewEncoder(w).Encode(results)
-// }

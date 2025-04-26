@@ -4,15 +4,16 @@ import (
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
+	"log"
 	"sort"
-	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type SearchService struct {
-	db       *pgxpool.Pool
-	UserRepo *repository.UserRepository
+	db         *pgxpool.Pool
+	UserRepo   *repository.UserRepository
+	SearchRepo *repository.SearchRepository
 }
 
 func NewSearchService(
@@ -28,52 +29,66 @@ func NewSearchService(
 func (s *SearchService) Search(
 	ctx context.Context,
 	searchTerm string,
-	types []string,
-) (map[string][]model.SearchResult, error) {
+	searchEntities []string,
+	userID int,
+) (model.SearchResults, error) {
 
-	results := make(map[string][]model.SearchResult)
+	results := model.SearchResults{}
 
-	// You can use a set or map for type filtering
-	typeFilter := make(map[string]bool)
-	for _, t := range types {
-		typeFilter[strings.ToLower(t)] = true
+	searchEntitiesFilter := make(map[string]bool)
+	for _, t := range searchEntities {
+		searchEntitiesFilter[t] = true
+	}
+
+	searchInput := model.SearchInput{
+		Q: searchTerm,
+		E: searchEntities,
+	}
+
+	recentSearches, err := s.SearchRepo.FetchRecentSearches(ctx, s.db, searchInput, userID)
+	if err != nil {
+		return results, err
+	}
+	results.RecentSearches = recentSearches
+
+	if searchTerm == "" {
+		return results, err
 	}
 
 	// User Search
-	if len(types) == 0 || typeFilter["user"] {
+	if len(searchEntities) == 0 || searchEntitiesFilter["user"] {
 		users, err := s.UserRepo.SearchUsers(ctx, s.db, searchTerm)
 		if err != nil {
-			return nil, err
+			return results, err
 		}
-		for _, u := range users {
-			results["user"] = append(results["user"], model.SearchResult{
-				Type:      "user",
-				Data:      u,
-				Relevance: u.Relevance,
+
+		results.Users = users
+
+		if len(results.Users) > 0 {
+			sort.Slice(results.Users, func(i, j int) bool {
+				return results.Users[i].Relevance > results.Users[j].Relevance
 			})
 		}
 	}
 
 	// Batch Search
-	if len(types) == 0 || typeFilter["batch"] {
+	if len(searchEntities) == 0 || searchEntitiesFilter["batch"] {
 		batches, err := s.UserRepo.SearchBatches(ctx, s.db, searchTerm)
 		if err != nil {
-			return nil, err
+			return results, err
 		}
-		for _, batch := range batches {
-			results["batch"] = append(results["batch"], model.SearchResult{
-				Type:      "batch",
-				Data:      batch,
-				Relevance: batch.Relevance,
+		results.Batches = batches
+
+		if len(results.Batches) > 0 {
+			sort.Slice(results.Batches, func(i, j int) bool {
+				return results.Batches[i].Relevance > results.Batches[j].Relevance
 			})
 		}
+
 	}
 
-	// Sort by Relevance descending
-	for _, resultList := range results {
-		sort.Slice(resultList, func(i, j int) bool {
-			return resultList[i].Relevance > resultList[j].Relevance
-		})
+	if err := s.SearchRepo.CreateRecentSearch(ctx, s.db, searchInput, userID); err != nil {
+		log.Printf("Failed to save recent search: %v", err)
 	}
 
 	return results, nil
