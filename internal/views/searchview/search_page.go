@@ -16,10 +16,11 @@ import (
 )
 
 type SearchPageProps struct {
-	Ctx            reqcontext.ReqContext
-	SearchTerm     string
-	SearchEntities []string
-	Results        model.SearchResults
+	Ctx             reqcontext.ReqContext
+	SearchTerm      string
+	SearchEntities  []model.SearchEntity
+	Results         model.SearchResults
+	UserPermissions model.UserPermissions
 }
 
 func SearchPage(p SearchPageProps) g.Node {
@@ -54,7 +55,7 @@ func SearchPage(p SearchPageProps) g.Node {
 				h.Div(
 					h.Class("filters"),
 
-					SearchCheckboxes(p.SearchEntities),
+					searchCheckboxes(p.SearchEntities),
 				),
 			),
 
@@ -88,25 +89,27 @@ func SearchPage(p SearchPageProps) g.Node {
 	})
 }
 
-func SearchCheckboxes(searchEntities []string) g.Node {
-	searchEntitiesList := []string{"user"}
+func searchCheckboxes(searchEntities []model.SearchEntity) g.Node {
+	// Getting entity names
+	entityNames := make([]string, 0, len(searchEntities))
+	for _, e := range searchEntities {
+		entityNames = append(entityNames, e.Name)
+	}
 
 	var entityCheckboxes []g.Node
-	for _, entity := range searchEntitiesList {
-		c := cases.Title(language.English)
-		entityTitle := c.String(entity)
+	for _, entity := range searchEntities {
 
-		fmt.Println(entity)
-		fmt.Println(entityTitle)
+		c := cases.Title(language.English)
+		entityTitle := c.String(entity.Title)
 
 		entityCheckboxes = append(entityCheckboxes,
 			h.Label(
 				h.Input(
 					h.Type("checkbox"),
-					h.Value(entity),
+					h.Value(entity.Name),
 					h.Name("E"),
 					h.Class("filter-checkbox"),
-					g.If(arrayutil.Includes(searchEntities, entity),
+					g.If(arrayutil.Includes(entityNames, entity.Name),
 						g.Attr("checked", "checked")),
 				),
 				g.Text(entityTitle),
@@ -179,17 +182,23 @@ func UserResults(users []model.UserSearchResult) []g.Node {
 	for _, user := range users {
 		fullName := strings.TrimSpace(fmt.Sprintf("%v %v", user.FirstName, user.LastName))
 
+		userURL := fmt.Sprintf("/users/%d", user.ID)
+
 		nodes = append(nodes,
-			h.Li(
-				h.Class("search-result-item"),
-				h.Div(h.Strong(g.Text(fullName))),
-				h.Div(
-					h.Strong(g.Text("Username: ")),
-					g.Text(user.Username),
-				),
-				h.Div(
-					h.Strong(g.Text("Email: ")),
-					g.Text(user.Email),
+			h.A(
+				h.Href(userURL),
+
+				h.Li(
+					h.Class("search-result-item"),
+					h.Div(h.Strong(g.Text(fullName))),
+					h.Div(
+						h.Strong(g.Text("Username: ")),
+						g.Text(user.Username),
+					),
+					h.Div(
+						h.Strong(g.Text("Email: ")),
+						g.Text(user.Email),
+					),
 				),
 			),
 		)

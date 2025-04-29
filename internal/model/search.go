@@ -20,6 +20,7 @@ type BaseSearchResult struct {
 
 type UserSearchResult struct {
 	BaseSearchResult
+	ID        int
 	Email     string
 	Username  string
 	FirstName string
@@ -33,4 +34,10 @@ type RecentSearch struct {
 	SearchEntities []string
 	UserID         int
 	LastSearchedAt time.Time
+}
+
+type SearchEntity struct {
+	Name          string
+	Title         string
+	HasPermission func(UserPermissions) bool
 }

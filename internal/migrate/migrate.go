@@ -48,6 +48,12 @@ func RunMigrations() {
 	}
 	defer pgPool.Close()
 
+	tx, err := pgPool.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Failed to create transaction: %v\n", err)
+	}
+	defer tx.Rollback(ctx)
+
 	// Check if database is initialised
 	initialised, err := checkInitialised(ctx, pgPool)
 	if err != nil {
@@ -57,13 +63,13 @@ func RunMigrations() {
 	// Initialise if needed
 	if !initialised {
 		log.Println("Database is not initialised. Initialising...")
-		if err := initialise(ctx, pgPool); err != nil {
+		if err := initialise(ctx, tx); err != nil {
 			log.Fatalf("Error initialising database: %v", err)
 		}
 	}
 
 	// Check if migrations are required
-	migrationsRequired, err := checkMigrationRequired(ctx, pgPool)
+	migrationsRequired, err := checkMigrationRequired(ctx, tx)
 	if err != nil {
 		log.Fatalf("Error checking for required migrations: %v", err)
 	}
@@ -71,8 +77,16 @@ func RunMigrations() {
 	// Apply migrations if needed
 	if migrationsRequired {
 		log.Println("Applying database migrations...")
-		if err := migrate(ctx, pgPool); err != nil {
+
+		if err := migrate(ctx, tx); err != nil {
 			log.Fatalf("Error applying migrations: %v", err)
 		}
+
+		fmt.Println("Migration complete!")
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(ctx); err != nil {
+		log.Fatalf("error committing transaction: %v", err)
 	}
 }

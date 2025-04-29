@@ -29,20 +29,29 @@ func NewSearchService(
 func (s *SearchService) Search(
 	ctx context.Context,
 	searchTerm string,
-	searchEntities []string,
+	searchEntities []model.SearchEntity,
 	userID int,
 ) (model.SearchResults, error) {
 
 	results := model.SearchResults{}
 
+	entityNames := make([]string, 0, len(searchEntities))
+	for _, e := range searchEntities {
+		entityNames = append(entityNames, e.Name)
+	}
+
 	searchEntitiesFilter := make(map[string]bool)
-	for _, t := range searchEntities {
+	for _, t := range entityNames {
 		searchEntitiesFilter[t] = true
 	}
 
 	searchInput := model.SearchInput{
 		Q: searchTerm,
-		E: searchEntities,
+		E: entityNames,
+	}
+
+	if err := s.SearchRepo.CreateRecentSearch(ctx, s.db, searchInput, userID); err != nil {
+		log.Printf("Failed to save recent search: %v", err)
 	}
 
 	recentSearches, err := s.SearchRepo.FetchRecentSearches(ctx, s.db, searchInput, userID)
@@ -69,10 +78,6 @@ func (s *SearchService) Search(
 				return results.Users[i].Relevance > results.Users[j].Relevance
 			})
 		}
-	}
-
-	if err := s.SearchRepo.CreateRecentSearch(ctx, s.db, searchInput, userID); err != nil {
-		log.Printf("Failed to save recent search: %v", err)
 	}
 
 	return results, nil

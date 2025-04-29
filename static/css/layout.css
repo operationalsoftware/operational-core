@@ -144,6 +144,10 @@ body {
         section {
           padding: var(--spacing-md);
 
+          p {
+            margin: var(--spacing-md) 0;
+          }
+
           &:not(.actions) {
             display: flex;
             flex-direction: column;

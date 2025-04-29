@@ -3,142 +3,39 @@ package migrate
 import (
 	"app/internal/model"
 	"app/internal/repository"
-	"app/pkg/db"
 	"context"
-	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Apply migrations if required (queries will be added later)
-func migrate(ctx context.Context, pgPool *pgxpool.Pool) error {
-	// Create users table
-	_, err := pgPool.Exec(context.Background(), `
-CREATE TABLE app_user (
-	user_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    is_api_user BOOLEAN DEFAULT FALSE NOT NULL,
-    username TEXT NOT NULL UNIQUE,
-    email TEXT UNIQUE, 
-    first_name TEXT,
-    last_name TEXT,
-    created TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMPTZ DEFAULT NULL,
-    hashed_password TEXT NOT NULL,
-    failed_login_attempts INTEGER DEFAULT 0 NOT NULL,
-    login_blocked_until TIMESTAMPTZ DEFAULT NULL,
-    permissions JSONB DEFAULT '{}'::JSONB NOT NULL,
-    user_data JSONB DEFAULT '{}'::JSONB NOT NULL
-);
-`)
-	if err != nil {
-		return err
-	}
+func migrate(ctx context.Context, tx pgx.Tx) error {
+	// Create Recent search table
+	_, err := tx.Exec(context.Background(), `
+		CREATE TABLE recent_search (
+			recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+			search_term TEXT NOT NULL,
+			search_entities TEXT[] NOT NULL,
+			user_id INT REFERENCES app_user(user_id), 
+			last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
-	// Populate users table
-	sqLiteDB := db.UseDB()
-
-	rows, err := sqLiteDB.Query(`
-SELECT
-	IsAPIUser,
-	Username,
-	Email,
-	FirstName,
-	LastName,
-	Created,
-	LastLogin,
-	HashedPassword,
-	FailedLoginAttempts,
-	LoginBlockedUntil,
-	Permissions,
-	UserData
-FROM
-	User
-ORDER BY UserID ASC;
+			CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
+		);
 	`)
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var (
-			isAPIUser           bool
-			username            string
-			email               sql.NullString
-			firstName           sql.NullString
-			lastName            sql.NullString
-			created             time.Time
-			lastLogin           sql.NullTime
-			hashedPassword      string
-			failedLoginAttempts int
-			loginBlockedUntil   sql.NullTime
-			permissions         string
-			userData            string
-		)
-
-		rows.Scan(
-			&isAPIUser,
-			&username,
-			&email,
-			&firstName,
-			&lastName,
-			&created,
-			&lastLogin,
-			&hashedPassword,
-			&failedLoginAttempts,
-			&loginBlockedUntil,
-			&permissions,
-			&userData,
-		)
-
-		pgPool.Exec(
-			ctx,
-			`
-INSERT INTO app_user (
-	is_api_user,
-	username,
-	email,
-	first_name,
-	last_name,
-	created,
-	last_login,
-	hashed_password,
-	failed_login_attempts,
-	login_blocked_until,
-	permissions,
-	user_data
-)
-VALUES (
-	$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
-)
-			`,
-			isAPIUser,
-			username,
-			email,
-			firstName,
-			lastName,
-			created,
-			lastLogin,
-			hashedPassword,
-			failedLoginAttempts,
-			loginBlockedUntil,
-			permissions,
-			userData,
-		)
-	}
-
-	// Users table end
+	// Recent search table end
 
 	return nil
 }
 
 // Initialise the database (actual queries will be added later)
-func initialise(ctx context.Context, pgPool *pgxpool.Pool) error {
+func initialise(ctx context.Context, tx pgx.Tx) error {
 
-	tx, err := pgPool.Begin(ctx)
+	tx, err := tx.Begin(ctx)
 	if err != nil {
 		return err
 	}

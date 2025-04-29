@@ -30,7 +30,22 @@ SELECT EXISTS (
 }
 
 // Check if migrations are required (query will be added later)
-func checkMigrationRequired(ctx context.Context, pgPool *pgxpool.Pool) (bool, error) {
+func checkMigrationRequired(ctx context.Context, tx pgx.Tx) (bool, error) {
 	// TODO: Add query logic
-	return false, nil
+	var exists bool
+
+	err := tx.QueryRow(ctx, `
+SELECT EXISTS (
+	SELECT 1
+	FROM information_schema.tables
+	WHERE table_schema = 'public'
+	AND table_name = 'recent_search'
+)
+`).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return !exists, nil
+
 }

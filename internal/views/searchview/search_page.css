@@ -51,8 +51,9 @@ main {
 
   .search-results {
     .result-type-heading {
+      color: var(--text-color-light);
       margin-top: 1.5rem;
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: bold;
       border-bottom: 1px solid #ccc;
       padding-bottom: 0.3rem;
@@ -62,13 +63,17 @@ main {
       list-style: none;
       padding-left: 0;
       margin-bottom: 1.5rem;
+
+      a {
+        color: unset;
+      }
     }
 
     .search-result-item {
       padding: 10px;
       border: 1px solid #e2e2e2;
       border-radius: 5px;
-      margin-bottom: 10px;
+      margin-bottom: var(--spacing-sm);
       background-color: #fafafa;
 
       div {

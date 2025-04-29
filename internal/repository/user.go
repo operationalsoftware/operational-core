@@ -426,6 +426,7 @@ func (r *UserRepository) SearchUsers(
 
 	rows, err := db.Query(ctx, `
 		SELECT
+			user_id,
 			email,
 			username,
 			first_name,
@@ -474,9 +475,10 @@ func (r *UserRepository) SearchUsers(
 	var results []model.UserSearchResult
 	for rows.Next() {
 		var ur model.UserSearchResult
-		if err := rows.Scan(&ur.Email, &ur.Username, &ur.FirstName, &ur.LastName, &ur.Relevance); err != nil {
+		if err := rows.Scan(&ur.ID, &ur.Email, &ur.Username, &ur.FirstName, &ur.LastName, &ur.Relevance); err != nil {
 			return nil, err
 		}
+
 		results = append(results, ur)
 	}
 

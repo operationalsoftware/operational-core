@@ -22,28 +22,48 @@ func (h *SearchHandler) SearchPage(w http.ResponseWriter, r *http.Request) {
 
 	var params model.SearchInput
 
+	var searchEntities = []model.SearchEntity{
+		{
+			Name:  "user",
+			Title: "Users",
+			HasPermission: func(permissions model.UserPermissions) bool {
+				return permissions.UserAdmin.Access
+			},
+		},
+		// Add more entities as needed
+	}
+
 	err := appurl.Unmarshal(r.URL.Query(), &params)
 	if err != nil {
 		http.Error(w, "Error decoding url values", http.StatusBadRequest)
 		return
 	}
 
-	results, err := h.searchService.Search(r.Context(), params.Q, params.E, ctx.User.UserID)
+	var allowedSearchEntities []model.SearchEntity
+	for _, entity := range searchEntities {
+		if entity.HasPermission(ctx.User.Permissions) {
+			allowedSearchEntities = append(allowedSearchEntities, entity)
+		}
+	}
+
+	results, err := h.searchService.Search(r.Context(), params.Q, allowedSearchEntities, ctx.User.UserID)
 	if err != nil {
 		_ = searchview.SearchPage(searchview.SearchPageProps{
-			Ctx:            ctx,
-			SearchTerm:     params.Q,
-			SearchEntities: params.E,
+			Ctx:             ctx,
+			SearchTerm:      params.Q,
+			SearchEntities:  allowedSearchEntities,
+			UserPermissions: ctx.User.Permissions,
 		}).
 			Render(w)
 		return
 	}
 
 	_ = searchview.SearchPage(searchview.SearchPageProps{
-		Ctx:            ctx,
-		SearchTerm:     params.Q,
-		SearchEntities: params.E,
-		Results:        results,
+		Ctx:             ctx,
+		SearchTerm:      params.Q,
+		SearchEntities:  allowedSearchEntities,
+		Results:         results,
+		UserPermissions: ctx.User.Permissions,
 	}).
 		Render(w)
 
