@@ -1,0 +1,11 @@
+[Unit]
+Description=Database backup service
+
+[Service]
+Type=oneshot
+User=app
+WorkingDirectory=/opt/app
+ExecStart=/opt/app/db-backup.sh
+EnvironmentFile=/opt/app/.env
+StandardOutput=journal
+StandardError=journal

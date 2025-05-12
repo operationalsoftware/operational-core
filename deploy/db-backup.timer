@@ -1,0 +1,10 @@
+[Unit]
+Description=Run DB backup every 15 minutes on quarter-hour marks
+
+[Timer]
+OnCalendar=*:0/15
+Unit=db-backup.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -7,7 +7,7 @@ set -e
 deploy_dir="$(cd "$(dirname "$0")" && pwd)"
 
 # Set the working directory to that of this script
-cd $deploy_dir
+cd "$deploy_dir"
 
 # Source the get-deploy-config script to read the configuration values
 . ./get-deploy-config.sh
@@ -35,17 +35,21 @@ echo "Deploying branch '$(git rev-parse --abbrev-ref HEAD)' to $host..."
 
 # Copy built app to server
 scp $ssh_key_flag ./app "$host:~"
+scp $ssh_key_flag ./deploy/staging.env "$host:~"
 
 # Remove the local binary
 rm ./app
 
 # Move back into this directory
-cd $deploy_dir
+cd "$deploy_dir"
 
 # Copy config files to server
 scp $ssh_key_flag ./Caddyfile "$host:~"
 scp $ssh_key_flag ./caddy.service "$host:~"
 scp $ssh_key_flag ./app.service "$host:~"
+scp $ssh_key_flag ./db-backup.service "$host:~"
+scp $ssh_key_flag ./db-backup.sh "$host:~"
+scp $ssh_key_flag ./db-backup.timer "$host:~"
 
 # Ensure app directory exists on the host
 ssh $ssh_key_flag "$host" "sudo mkdir -p /opt/app"
@@ -55,7 +59,12 @@ ssh $ssh_key_flag "$host" "sudo mkdir -p /opt/app"
 ssh $ssh_key_flag "$host" "sudo mv ./Caddyfile /etc/caddy/Caddyfile"
 ssh $ssh_key_flag "$host" "sudo mv ./caddy.service /etc/systemd/system/caddy.service"
 ssh $ssh_key_flag "$host" "sudo mv ./app.service /etc/systemd/system/app.service"
+ssh $ssh_key_flag "$host" "sudo mv ./db-backup.service /etc/systemd/system/db-backup.service"
+ssh $ssh_key_flag "$host" "sudo mv ./db-backup.timer /etc/systemd/system/db-backup.timer"
 ssh $ssh_key_flag "$host" "sudo mv ./app /opt/app/app.new"
+ssh $ssh_key_flag "$host" "sudo mv ./staging.env /opt/app/.env"
+ssh $ssh_key_flag "$host" "sudo mv ./db-backup.sh /opt/app/db-backup.sh && sudo chmod +x /opt/app/db-backup.sh"
+
 
 # Set ownership
 ssh $ssh_key_flag "$host" "sudo chown caddy:caddy /etc/caddy/Caddyfile"
@@ -70,11 +79,24 @@ ssh $ssh_key_flag "$host" "sudo mv /opt/app/app.new /opt/app/app"
 # Enable the services
 ssh $ssh_key_flag "$host" "sudo systemctl daemon-reload"
 ssh $ssh_key_flag "$host" "sudo systemctl enable app"
+ssh $ssh_key_flag "$host" "sudo systemctl enable --now db-backup.timer"
 ssh $ssh_key_flag "$host" "sudo systemctl enable caddy"
 
 # Restart the services
-ssh $ssh_key_flag "$host" "sudo service app restart"
-ssh $ssh_key_flag "$host" "sudo service caddy restart"
+ssh $ssh_key_flag "$host" <<'EOF'
+    set -e
+    echo "🔄 Reloading systemd..."
+    sudo systemctl daemon-reexec
+    sudo systemctl daemon-reload
+
+    echo "🚀 Restarting legacy-node and waiting for it to be active..."
+    sudo systemctl restart legacy-node
+    sudo systemctl is-active --quiet legacy-node || (sudo journalctl -u legacy-node --no-pager -n 50 && exit 1)
+
+    echo "✅ legacy-node is running. Starting app..."
+    sudo systemctl restart app
+    sudo systemctl restart caddy
+EOF
 
 # Remove the old binary on the host if it exists
 if ssh $ssh_key_flag "$host" "sudo [ -f /opt/app/app.old ]"; then
