@@ -35,7 +35,7 @@ echo "Deploying branch '$(git rev-parse --abbrev-ref HEAD)' to $host..."
 
 # Copy built app to server
 scp $ssh_key_flag ./app "$host:~"
-scp $ssh_key_flag "./deploy/$branch.env" "$host:~"
+scp $ssh_key_flag ./deploy/staging.env "$host:~"
 
 # Remove the local binary
 rm ./app
@@ -52,37 +52,40 @@ scp $ssh_key_flag ./db-backup.sh "$host:~"
 scp $ssh_key_flag ./db-backup.timer "$host:~"
 
 # Ensure app directory exists on the host
-ssh $ssh_key_flag "$host" <<EOF
-    set -e
-    sudo mkdir -p /opt/app
+# ssh $ssh_key_flag "$host" <<'EOF'
+ssh $ssh_key_flag "$host" "sudo mkdir -p /opt/app"
 
-    echo "📦 Moving config and app files..."
-    sudo mv ./Caddyfile /etc/caddy/Caddyfile"
-    sudo mv ./caddy.service /etc/systemd/system/caddy.service"
-    sudo mv ./app.service /etc/systemd/system/app.service"
-    sudo mv ./db-backup.service /etc/systemd/system/db-backup.service"
-    sudo mv ./db-backup.timer /etc/systemd/system/db-backup.timer"
-    sudo mv ./app /opt/app/app.new
-    sudo mv "./$branch.env" /opt/app/.env
-    sudo mv ./db-backup.sh /opt/app/db-backup.sh
-    sudo chmod +x /opt/app/db-backup.sh
+# Move the scp'd files to their correct locations without overwriting the
+# running app yet
+ssh $ssh_key_flag "$host" "sudo mv ./Caddyfile /etc/caddy/Caddyfile"
+ssh $ssh_key_flag "$host" "sudo mv ./caddy.service /etc/systemd/system/caddy.service"
+ssh $ssh_key_flag "$host" "sudo mv ./app.service /etc/systemd/system/app.service"
+ssh $ssh_key_flag "$host" "sudo mv ./db-backup.service /etc/systemd/system/db-backup.service"
+ssh $ssh_key_flag "$host" "sudo mv ./db-backup.timer /etc/systemd/system/db-backup.timer"
+ssh $ssh_key_flag "$host" "sudo mv ./app /opt/app/app.new"
+ssh $ssh_key_flag "$host" "sudo mv ./staging.env /opt/app/.env"
+ssh $ssh_key_flag "$host" "sudo mv ./db-backup.sh /opt/app/db-backup.sh && sudo chmod +x /opt/app/db-backup.sh"
 
-    echo "📦 Setting ownership..."
-    sudo chown caddy:caddy /etc/caddy/Caddyfile
-    sudo chown -R app:app /opt/app
+
+# Set ownership
+ssh $ssh_key_flag "$host" "sudo chown caddy:caddy /etc/caddy/Caddyfile"
+ssh $ssh_key_flag "$host" "sudo chown -R app:app /opt/app"
                   
-    echo "📦 Renaming binaries on the host..."
-    if sudo [ -f /opt/app/app ]; then
-      sudo mv /opt/app/app /opt/app/app.old
-    fi
-    sudo mv /opt/app/app.new /opt/app/app
+# Rename the binaries on the host
+if ssh $ssh_key_flag "$host" "sudo [ -f /opt/app/app ]"; then
+  ssh $ssh_key_flag "$host" "sudo mv /opt/app/app /opt/app/app.old"
+fi
+ssh $ssh_key_flag "$host" "sudo mv /opt/app/app.new /opt/app/app"
 
-    echo "🛠️ Enabling and reloading services..."
-    sudo systemctl daemon-reload
-    sudo systemctl enable app
-    sudo systemctl enable --now db-backup.timer
-    sudo systemctl enable caddy
+# Enable the services
+ssh $ssh_key_flag "$host" "sudo systemctl daemon-reload"
+ssh $ssh_key_flag "$host" "sudo systemctl enable app"
+ssh $ssh_key_flag "$host" "sudo systemctl enable --now db-backup.timer"
+ssh $ssh_key_flag "$host" "sudo systemctl enable caddy"
 
+# Restart the services
+ssh $ssh_key_flag "$host" <<'EOF'
+    set -e
     echo "🔄 Reloading systemd..."
     sudo systemctl daemon-reexec
     sudo systemctl daemon-reload
@@ -94,13 +97,11 @@ ssh $ssh_key_flag "$host" <<EOF
     echo "✅ legacy-node is running. Starting app..."
     sudo systemctl restart app
     sudo systemctl restart caddy
-
-    # Remove the old binary on the host if it exists
-    if sudo [ -f /opt/app/app.old ]; then
-      sudo rm /opt/app/app.old
-    fi
 EOF
 
-
+# Remove the old binary on the host if it exists
+if ssh $ssh_key_flag "$host" "sudo [ -f /opt/app/app.old ]"; then
+  ssh $ssh_key_flag "$host" "sudo rm /opt/app/app.old"
+fi
 
 echo "Deployment completed successfully."
