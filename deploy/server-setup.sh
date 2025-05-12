@@ -71,7 +71,7 @@ APP_DB_NAME="batten_allen"
 
 echo "----- Creating PostgreSQL User and Database -----"
 sudo -u postgres psql <<EOF
-CREATE DATABASE $APP_DB_NAME OWNER postgres;
+CREATE DATABASE "$APP_DB_NAME" OWNER postgres;
 EOF
 
 # Ensure only local access

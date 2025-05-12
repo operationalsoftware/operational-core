@@ -51,7 +51,7 @@ scp $ssh_key_flag ./db-backup.service "$host:~"
 scp $ssh_key_flag ./db-backup.sh "$host:~"
 scp $ssh_key_flag ./db-backup.timer "$host:~"
 
-# Ensure app directory exists on the host
+# Running commands in remote server via ssh
 ssh $ssh_key_flag "$host" <<EOF
     set -e
     sudo mkdir -p /opt/app
