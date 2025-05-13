@@ -10,27 +10,29 @@ import (
 )
 
 type UserDB struct {
-	UserID      int
-	Username    string
-	IsAPIUser   bool
-	Email       pgtype.Text
-	FirstName   pgtype.Text
-	LastName    pgtype.Text
-	Created     time.Time
-	LastLogin   pgtype.Timestamptz
-	Permissions json.RawMessage
+	UserID                 int
+	Username               string
+	IsAPIUser              bool
+	Email                  pgtype.Text
+	FirstName              pgtype.Text
+	LastName               pgtype.Text
+	Created                time.Time
+	LastLogin              pgtype.Timestamptz
+	Permissions            json.RawMessage
+	SessionDurationMinutes *int
 }
 
 type User struct {
-	UserID      int
-	Username    string
-	IsAPIUser   bool
-	Email       *string
-	FirstName   *string
-	LastName    *string
-	Created     time.Time
-	LastLogin   *time.Time
-	Permissions UserPermissions
+	UserID                 int
+	Username               string
+	IsAPIUser              bool
+	Email                  *string
+	FirstName              *string
+	LastName               *string
+	Created                time.Time
+	LastLogin              *time.Time
+	Permissions            UserPermissions
+	SessionDurationMinutes *int
 }
 
 func (u UserDB) ToDomain() User {
@@ -45,15 +47,16 @@ func (u UserDB) ToDomain() User {
 	}
 
 	return User{
-		UserID:      u.UserID,
-		Username:    u.Username,
-		IsAPIUser:   u.IsAPIUser,
-		Email:       pgconv.PGTextToStringPtr(u.Email),
-		FirstName:   pgconv.PGTextToStringPtr(u.FirstName),
-		LastName:    pgconv.PGTextToStringPtr(u.LastName),
-		Created:     u.Created,
-		LastLogin:   pgconv.PGTimestamptzToTimePtr(u.LastLogin),
-		Permissions: permissions,
+		UserID:                 u.UserID,
+		Username:               u.Username,
+		IsAPIUser:              u.IsAPIUser,
+		Email:                  pgconv.PGTextToStringPtr(u.Email),
+		FirstName:              pgconv.PGTextToStringPtr(u.FirstName),
+		LastName:               pgconv.PGTextToStringPtr(u.LastName),
+		Created:                u.Created,
+		LastLogin:              pgconv.PGTimestamptzToTimePtr(u.LastLogin),
+		Permissions:            permissions,
+		SessionDurationMinutes: u.SessionDurationMinutes,
 	}
 }
 

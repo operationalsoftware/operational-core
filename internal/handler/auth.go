@@ -21,6 +21,8 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
+const DefaultSessionDurationMinutes = time.Hour * 24 * 30
+
 func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
@@ -53,7 +55,6 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	var out model.VerifyPasswordLoginOutput
 
 	out, err = h.authService.VerifyPasswordLogin(r.Context(), formData)
-
 	if err != nil {
 		retryPageProps.HasServerError = true
 		retryPageProps.Username = formData.Username
@@ -68,7 +69,13 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = setSessionCookie(w, out.AuthUser.UserID)
+	duration := DefaultSessionDurationMinutes
+
+	if out.AuthUser.SessionDurationMinutes != nil {
+		duration = time.Duration(*out.AuthUser.SessionDurationMinutes) * time.Minute
+	}
+
+	err = cookie.SetSessionCookie(w, out.AuthUser.UserID, duration)
 	if err != nil {
 		retryPageProps.HasServerError = true
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
@@ -139,7 +146,12 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = setSessionCookie(w, out.AuthUser.UserID)
+	duration := DefaultSessionDurationMinutes
+	if out.AuthUser.SessionDurationMinutes != nil {
+		duration = time.Duration(*out.AuthUser.SessionDurationMinutes)
+	}
+
+	err = cookie.SetSessionCookie(w, out.AuthUser.UserID, time.Duration(duration))
 	if err != nil {
 		retryPageProps.HasServerError = true
 		_ = authview.QRcodeLoginPage(retryPageProps).Render(w)
@@ -166,25 +178,4 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return
-}
-
-func setSessionCookie(w http.ResponseWriter, userID int) error {
-	// set session cookie!
-	encoded, err := cookie.CookieInstance.Encode("login-session", userID)
-	if err != nil {
-		return err
-	}
-	cookie := &http.Cookie{
-		Name:     "login-session",
-		Value:    encoded,
-		HttpOnly: true,
-		Secure:   true,
-		Expires:  time.Now().Add(time.Hour * 24 * 30),
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(w, cookie)
-
-	return nil
 }

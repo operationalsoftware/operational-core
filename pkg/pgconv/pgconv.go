@@ -21,3 +21,13 @@ func PGTimestamptzToTimePtr(pgTimestamptz pgtype.Timestamptz) *time.Time {
 	}
 	return nil
 }
+
+// Converts pgtype.Int4 to *int
+func PGInt4ToIntPtr(pgInt pgtype.Int4) *int {
+	if pgInt.Valid {
+		val := int(pgInt.Int32)
+		return &val
+	}
+
+	return nil
+}

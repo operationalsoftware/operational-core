@@ -218,7 +218,8 @@ SELECT
     last_name,
     created,
     last_login,
-    permissions
+    permissions,
+	session_duration_minutes
 FROM
     app_user
 WHERE
@@ -236,6 +237,7 @@ WHERE
 		&userDB.Created,
 		&userDB.LastLogin,
 		&userDB.Permissions,
+		&userDB.SessionDurationMinutes,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil

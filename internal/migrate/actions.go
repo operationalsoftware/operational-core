@@ -13,20 +13,29 @@ import (
 func migrate(ctx context.Context, tx pgx.Tx) error {
 	// Create Recent search table
 	_, err := tx.Exec(context.Background(), `
-		CREATE TABLE recent_search (
-			recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-			search_term TEXT NOT NULL,
-			search_entities TEXT[] NOT NULL,
-			user_id INT REFERENCES app_user(user_id), 
-			last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE 
+	recent_search (
+		recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		search_term TEXT NOT NULL,
+		search_entities TEXT[] NOT NULL,
+		user_id INT REFERENCES app_user(user_id), 
+		last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
-			CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
-		);
+		CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
+);
 	`)
 	if err != nil {
 		return err
 	}
+	// Recent search table end
 
+	// Alter column for app_user table
+	_, err = tx.Exec(context.Background(), `
+ALTER TABLE app_user ADD COLUMN session_duration_minutes INT;
+	`)
+	if err != nil {
+		return err
+	}
 	// Recent search table end
 
 	return nil
@@ -57,7 +66,8 @@ CREATE TABLE app_user (
     failed_login_attempts INTEGER DEFAULT 0 NOT NULL,
     login_blocked_until TIMESTAMPTZ DEFAULT NULL,
     permissions JSONB DEFAULT '{}'::JSONB NOT NULL,
-    user_data JSONB DEFAULT '{}'::JSONB NOT NULL
+    user_data JSONB DEFAULT '{}'::JSONB NOT NULL,
+	session_duration_minutes INT
 );
 `)
 	if err != nil {
@@ -86,6 +96,23 @@ CREATE TABLE app_user (
 
 	fmt.Println("done")
 	fmt.Println("System user details:\n\tusername: system\n\tpassword: " + password)
+
+	// Create Recent search table
+	_, err = tx.Exec(context.Background(), `
+			CREATE TABLE recent_search (
+				recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+				search_term TEXT NOT NULL,
+				search_entities TEXT[] NOT NULL,
+				user_id INT REFERENCES app_user(user_id),
+				last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+
+				CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
+			);
+		`)
+	if err != nil {
+		return err
+	}
+	// Recent search table end
 
 	//
 	// END OF INITIALISATION

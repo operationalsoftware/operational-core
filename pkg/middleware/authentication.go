@@ -6,6 +6,7 @@ import (
 	"app/pkg/cookie"
 	"app/pkg/reqcontext"
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -35,6 +36,7 @@ func (m *AuthenticationMiddleware) Authentication(next http.Handler) http.Handle
 
 		var id int
 		sesscookie, err := r.Cookie("login-session")
+		fmt.Println(err)
 		if err == nil {
 			err = cookie.CookieInstance.Decode("login-session", sesscookie.Value, &id)
 			if err != nil {
@@ -96,6 +98,21 @@ func (m *AuthenticationMiddleware) Authentication(next http.Handler) http.Handle
 			log.Println("user wth id", id, "not found")
 			next.ServeHTTP(w, r)
 			return
+		}
+
+		fmt.Println("Decoded Cookie: ", sesscookie)
+
+		if user.SessionDurationMinutes != nil {
+			cookieStartTime := sesscookie.Expires
+
+			fmt.Println("Start Time: ", cookieStartTime)
+			fmt.Println("User session duration: ", *user.SessionDurationMinutes*9/10)
+			fmt.Println("User session duration: ", *user.SessionDurationMinutes)
+
+			// if timeLeft <= refreshThreshold {
+			// 	// refresh
+			// 	_ = setSessionCookie(w, userID, sessionDuration)
+			// }
 		}
 
 		ctx := context.WithValue(r.Context(), reqcontext.ReqContextKeyUser, *user)

@@ -35,7 +35,7 @@ echo "Deploying branch '$(git rev-parse --abbrev-ref HEAD)' to $host..."
 
 # Copy built app to server
 scp $ssh_key_flag ./app "$host:~"
-scp $ssh_key_flag "./deploy/$branch.env" "$host:~"
+scp $ssh_key_flag "./deploy/$branch.env" "$host:~/.env"
 
 # Remove the local binary
 rm ./app
@@ -63,7 +63,7 @@ ssh $ssh_key_flag "$host" <<EOF
     sudo mv ./db-backup.service /etc/systemd/system/db-backup.service"
     sudo mv ./db-backup.timer /etc/systemd/system/db-backup.timer"
     sudo mv ./app /opt/app/app.new
-    sudo mv "./$branch.env" /opt/app/.env
+    sudo mv "./.env" /opt/app/.env
     sudo mv ./db-backup.sh /opt/app/db-backup.sh
     sudo chmod +x /opt/app/db-backup.sh
 

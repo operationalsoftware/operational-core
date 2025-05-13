@@ -2,8 +2,11 @@ package cookie
 
 import (
 	"encoding/hex"
+	"fmt"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/gorilla/securecookie"
 )
@@ -41,6 +44,29 @@ func InitCookieInstance() error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func SetSessionCookie(w http.ResponseWriter, userID int, duration time.Duration) error {
+	// set session cookie!
+	fmt.Println("Setting cookie with expiration time: ", time.Now().Add(duration))
+
+	encoded, err := CookieInstance.Encode("login-session", userID)
+	if err != nil {
+		return err
+	}
+	cookie := &http.Cookie{
+		Name:     "login-session",
+		Value:    encoded,
+		HttpOnly: true,
+		Secure:   true,
+		Expires:  time.Now().Add(duration),
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w, cookie)
 
 	return nil
 }

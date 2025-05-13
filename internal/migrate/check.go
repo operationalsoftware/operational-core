@@ -37,9 +37,10 @@ func checkMigrationRequired(ctx context.Context, tx pgx.Tx) (bool, error) {
 	err := tx.QueryRow(ctx, `
 SELECT EXISTS (
 	SELECT 1
-	FROM information_schema.tables
+	FROM information_schema.columns
 	WHERE table_schema = 'public'
-	AND table_name = 'recent_search'
+	AND table_name = 'app_user'
+	AND column_name = 'session_duration_minutes'
 )
 `).Scan(&exists)
 	if err != nil {

@@ -39,7 +39,8 @@ SELECT
 	last_login,
 	hashed_password,
 	failed_login_attempts,
-	login_blocked_until
+	login_blocked_until,
+	session_duration_minutes
 FROM
 	app_user
 WHERE
@@ -56,6 +57,7 @@ WHERE
 		&authUserDB.HashedPassword,
 		&authUserDB.FailedLoginAttempts,
 		&authUserDB.LoginBlockedUntil,
+		&authUserDB.SessionDurationMinutes,
 	)
 
 	if err == sql.ErrNoRows {
