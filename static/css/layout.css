@@ -35,6 +35,15 @@ body {
     }
   }
 
+  .env-banner {
+    text-align: center;
+    font-size: 10px;
+    background-color: var(--success-color);
+    letter-spacing: 1px;
+    color: var(--color-white);
+    padding: var(--spacing-xs);
+  }
+
   /* Navbar */
   nav#navbar {
     height: 60px;

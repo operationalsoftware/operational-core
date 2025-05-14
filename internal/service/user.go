@@ -300,6 +300,10 @@ func (s *UserService) validateUserUpdate(
 		validate.Email(&ve, "Email", *update.Email)
 	}
 
+	if update.SessionDurationMinutes != nil {
+		validate.IntGT(&ve, "SessionDurationMinutes", *update.SessionDurationMinutes, 1)
+	}
+
 	// user permissions don't need to be validated. See description in validateNewUser
 
 	return ve, nil
@@ -373,4 +377,13 @@ func (s *UserService) validateLastName(
 ) {
 	validate.MinLength(ve, lastNameKey, lastName, 1)
 	validate.MaxLength(ve, lastNameKey, lastName, 20)
+}
+
+func (s *UserService) validateSessionDuration(
+	ve *validate.ValidationErrors,
+	sessDurationKey string,
+	firstName string,
+) {
+	validate.MinLength(ve, sessDurationKey, firstName, 1)
+	validate.MaxLength(ve, sessDurationKey, firstName, 20)
 }

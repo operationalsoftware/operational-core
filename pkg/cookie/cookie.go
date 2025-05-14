@@ -2,7 +2,6 @@ package cookie
 
 import (
 	"encoding/hex"
-	"fmt"
 	"net/http"
 	"os"
 	"sync"
@@ -16,6 +15,13 @@ var (
 	once           sync.Once
 	err            error
 )
+
+const DefaultSessionDurationMinutes = time.Hour * 24 * 30
+
+type SessionData struct {
+	UserID    int
+	ExpiresAt time.Time
+}
 
 func InitCookieInstance() error {
 	once.Do(func() {
@@ -50,9 +56,12 @@ func InitCookieInstance() error {
 
 func SetSessionCookie(w http.ResponseWriter, userID int, duration time.Duration) error {
 	// set session cookie!
-	fmt.Println("Setting cookie with expiration time: ", time.Now().Add(duration))
+	cookieDate := SessionData{
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(duration),
+	}
 
-	encoded, err := CookieInstance.Encode("login-session", userID)
+	encoded, err := CookieInstance.Encode("login-session", cookieDate)
 	if err != nil {
 		return err
 	}

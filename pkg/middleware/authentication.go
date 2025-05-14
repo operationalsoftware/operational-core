@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type AuthenticationMiddleware struct {
@@ -34,18 +35,17 @@ func (m *AuthenticationMiddleware) Authentication(next http.Handler) http.Handle
 			return
 		}
 
-		var id int
+		var cookieData cookie.SessionData
 		sesscookie, err := r.Cookie("login-session")
-		fmt.Println(err)
 		if err == nil {
-			err = cookie.CookieInstance.Decode("login-session", sesscookie.Value, &id)
+			err = cookie.CookieInstance.Decode("login-session", sesscookie.Value, &cookieData)
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return
 			}
 		}
 
-		if id == 0 {
+		if cookieData.UserID == 0 {
 			params := r.URL.Query()
 			authToken := params.Get("authToken")
 			if authToken == "" {
@@ -77,17 +77,17 @@ func (m *AuthenticationMiddleware) Authentication(next http.Handler) http.Handle
 					return
 				}
 
-				id = out.AuthUser.UserID
+				cookieData.UserID = out.AuthUser.UserID
 			}
 		}
 
 		// If id is still 0, then the user is not authenticated
-		if id == 0 {
+		if cookieData.UserID == 0 {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		user, err := m.userService.GetUserByID(r.Context(), id)
+		user, err := m.userService.GetUserByID(r.Context(), cookieData.UserID)
 		if err != nil {
 			log.Println(err)
 			next.ServeHTTP(w, r)
@@ -95,24 +95,25 @@ func (m *AuthenticationMiddleware) Authentication(next http.Handler) http.Handle
 		}
 
 		if user == nil {
-			log.Println("user wth id", id, "not found")
+			log.Println("user wth id", cookieData.UserID, "not found")
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		fmt.Println("Decoded Cookie: ", sesscookie)
-
+		// Refreshing cookie if elapsed time more than 1 minute than set time
+		duration := cookie.DefaultSessionDurationMinutes
 		if user.SessionDurationMinutes != nil {
-			cookieStartTime := sesscookie.Expires
+			duration = time.Duration(*user.SessionDurationMinutes) * time.Minute
+		}
 
-			fmt.Println("Start Time: ", cookieStartTime)
-			fmt.Println("User session duration: ", *user.SessionDurationMinutes*9/10)
-			fmt.Println("User session duration: ", *user.SessionDurationMinutes)
+		timeLeft := time.Until(cookieData.ExpiresAt)
+		totalDuration := duration
 
-			// if timeLeft <= refreshThreshold {
-			// 	// refresh
-			// 	_ = setSessionCookie(w, userID, sessionDuration)
-			// }
+		if timeLeft < (totalDuration - time.Minute) {
+			err = cookie.SetSessionCookie(w, user.UserID, duration)
+			if err != nil {
+				fmt.Println("Failed to set cookie")
+			}
 		}
 
 		ctx := context.WithValue(r.Context(), reqcontext.ReqContextKeyUser, *user)

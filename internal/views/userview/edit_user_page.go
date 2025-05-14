@@ -4,11 +4,13 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
+	"app/pkg/cookie"
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"fmt"
 	"net/url"
+	"strconv"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
@@ -133,6 +135,25 @@ func editUserForm(p *editUserFormProps) g.Node {
 		emailHelperType = components.InputHelperTypeError
 	}
 
+	sessdurationLabel := "Session Duration In Minutes"
+	sessdurationKey := "SessionDurationMinutes"
+	var sessdurationValue string
+	if p.values.Get(sessdurationKey) != "" {
+		sessdurationValue = p.values.Get(sessdurationKey)
+	} else {
+		if p.user.SessionDurationMinutes != nil {
+			sessdurationValue = strconv.Itoa(*p.user.SessionDurationMinutes)
+		}
+	}
+	sessdurationError := fmt.Sprintf("* Leave unset to use organization default: %d", int(cookie.DefaultSessionDurationMinutes.Minutes()))
+	if p.isSubmission || sessdurationValue != "" {
+		sessdurationError = p.validationErrors.GetError(sessdurationKey, sessdurationLabel)
+	}
+	sessdurationHelperType := components.InputHelperTypeNone
+	if sessdurationError != "" {
+		sessdurationHelperType = components.InputHelperTypeError
+	}
+
 	return components.Form(
 		h.ID("edit-user-form"),
 		h.Method("POST"),
@@ -190,6 +211,24 @@ func editUserForm(p *editUserFormProps) g.Node {
 				InputProps: []g.Node{
 					h.Value(emailValue),
 					h.AutoComplete("off"),
+				},
+			}),
+		),
+
+		g.If(
+			!isAPIUser,
+			components.Input(&components.InputProps{
+				Label:       sessdurationLabel,
+				Name:        sessdurationKey,
+				Placeholder: "Enter session duration in minutes",
+				HelperText:  sessdurationError,
+				HelperType:  sessdurationHelperType,
+				InputType:   "number",
+				InputProps: []g.Node{
+					h.Value(sessdurationValue),
+					h.AutoComplete("off"),
+					h.Min("1"),
+					h.Max("525600"),
 				},
 			}),
 		),

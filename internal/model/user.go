@@ -76,11 +76,12 @@ type NewAPIUser struct {
 }
 
 type UserUpdate struct {
-	Username    string
-	Email       *string
-	FirstName   string
-	LastName    string
-	Permissions UserPermissions
+	Username               string
+	Email                  *string
+	FirstName              string
+	LastName               string
+	Permissions            UserPermissions
+	SessionDurationMinutes *int
 }
 
 type PasswordReset struct {

@@ -21,8 +21,6 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
-const DefaultSessionDurationMinutes = time.Hour * 24 * 30
-
 func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
@@ -69,7 +67,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	duration := DefaultSessionDurationMinutes
+	duration := cookie.DefaultSessionDurationMinutes
 
 	if out.AuthUser.SessionDurationMinutes != nil {
 		duration = time.Duration(*out.AuthUser.SessionDurationMinutes) * time.Minute
@@ -146,7 +144,7 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	duration := DefaultSessionDurationMinutes
+	duration := cookie.DefaultSessionDurationMinutes
 	if out.AuthUser.SessionDurationMinutes != nil {
 		duration = time.Duration(*out.AuthUser.SessionDurationMinutes)
 	}

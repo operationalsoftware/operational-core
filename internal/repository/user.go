@@ -143,10 +143,11 @@ SET
 	last_name = $2,
 	email = $3,
 	username = $4,
-	permissions = $5
+	permissions = $5,
+	session_duration_minutes = $6
 
 WHERE
-	user_id = $6
+	user_id = $7
 	`
 
 	permissionsJSON, err := json.Marshal(update.Permissions)
@@ -164,6 +165,7 @@ WHERE
 		update.Email,
 		update.Username,
 		string(permissionsJSON),
+		update.SessionDurationMinutes,
 		userID,
 	)
 

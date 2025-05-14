@@ -2,6 +2,7 @@ package layout
 
 import (
 	"app/pkg/reqcontext"
+	"os"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -17,12 +18,23 @@ type layoutProps struct {
 
 func layout(p *layoutProps) g.Node {
 
+	appEnv := os.Getenv("APP_ENV")
+	showBanner := appEnv != "dev" && appEnv != "production"
+
 	mainPadding := true
 	if p.mainPadding != nil {
 		mainPadding = *p.mainPadding
 	}
 
 	return g.Group([]g.Node{
+		g.If(
+			showBanner,
+			h.Div(
+				h.Class("env-banner"),
+
+				g.Text("Staging"),
+			),
+		),
 		navbar(&navbarProps{
 			ctx: p.ctx,
 		}),
