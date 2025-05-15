@@ -145,7 +145,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 			sessdurationValue = strconv.Itoa(*p.user.SessionDurationMinutes)
 		}
 	}
-	sessdurationError := fmt.Sprintf("* Leave unset to use organization default: %d", int(cookie.DefaultSessionDurationMinutes.Minutes()))
+	sessdurationError := ""
 	if p.isSubmission || sessdurationValue != "" {
 		sessdurationError = p.validationErrors.GetError(sessdurationKey, sessdurationLabel)
 	}
@@ -217,20 +217,28 @@ func editUserForm(p *editUserFormProps) g.Node {
 
 		g.If(
 			!isAPIUser,
-			components.Input(&components.InputProps{
-				Label:       sessdurationLabel,
-				Name:        sessdurationKey,
-				Placeholder: "Enter session duration in minutes",
-				HelperText:  sessdurationError,
-				HelperType:  sessdurationHelperType,
-				InputType:   "number",
-				InputProps: []g.Node{
-					h.Value(sessdurationValue),
-					h.AutoComplete("off"),
-					h.Min("1"),
-					h.Max("525600"),
-				},
-			}),
+			h.Div(
+				components.Input(&components.InputProps{
+					Label:       sessdurationLabel,
+					Name:        sessdurationKey,
+					Placeholder: "Enter session duration in minutes",
+					HelperText:  sessdurationError,
+					HelperType:  sessdurationHelperType,
+					InputType:   "number",
+					InputProps: []g.Node{
+						h.Value(sessdurationValue),
+						h.AutoComplete("off"),
+						h.Min("1"),
+						h.Max("525600"),
+					},
+				}),
+
+				h.P(
+					h.Class("session-helper"),
+
+					g.Text(fmt.Sprintf("* Leave unset to use organization default: %d", int(cookie.DefaultSessionDurationMinutes.Minutes()))),
+				),
+			),
 		),
 
 		permissionsCheckboxesPartial(p.user.Permissions),

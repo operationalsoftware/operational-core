@@ -4,9 +4,11 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
+	"app/pkg/cookie"
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
+	"strconv"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -22,6 +24,11 @@ type UserPageProps struct {
 func UserPage(p *UserPageProps) g.Node {
 
 	user := p.User
+
+	sessionDuration := nilsafe.Int(user.SessionDurationMinutes)
+	if sessionDuration == 0 {
+		sessionDuration = int(cookie.DefaultSessionDurationMinutes.Minutes())
+	}
 
 	userContent := g.Group([]g.Node{
 		g.If(
@@ -74,6 +81,12 @@ func UserPage(p *UserPageProps) g.Node {
 						),
 						h.Span(
 							g.Text(nilsafe.Str(user.Email)),
+						),
+						h.Span(
+							h.Strong(g.Text("Session Duration In Minutes")),
+						),
+						h.Span(
+							g.Text(strconv.Itoa(sessionDuration)),
 						),
 					}),
 				),

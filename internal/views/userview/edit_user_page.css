@@ -6,3 +6,9 @@
 .main form {
   max-width: 400px;
 }
+
+.session-helper {
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-sm);
+  color: var(--text-color-light);
+}
