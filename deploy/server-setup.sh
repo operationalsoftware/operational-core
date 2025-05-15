@@ -8,6 +8,9 @@ sudo apt update && sudo apt upgrade -y
 echo "----- Installing Required Packages -----"
 sudo apt install -y curl git rsync gnupg2 net-tools ca-certificates lsb-release apt-transport-https
 
+echo "----- Installing Chromium -----"
+sudo apt install -y chromium chromium-driver
+
 echo "----- Installing Node.js (LTS) -----"
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
