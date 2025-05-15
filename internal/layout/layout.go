@@ -19,7 +19,7 @@ type layoutProps struct {
 func layout(p *layoutProps) g.Node {
 
 	appEnv := os.Getenv("APP_ENV")
-	showBanner := appEnv != "dev" && appEnv != "production"
+	showBanner := appEnv == "staging"
 
 	mainPadding := true
 	if p.mainPadding != nil {
