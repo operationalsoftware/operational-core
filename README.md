@@ -14,6 +14,14 @@ go install github.com/jessevdk/go-assets-builder@latest
 
 -------------------------------------------------------------
 
+### Run Development Server
+- To start the development server, run the following command in your terminal:
+```bash
+./start-dev.sh
+```
+
+-------------------------------------------------------------
+
 ## Migration Guidelines
 
 - The `initialise` function for migration runs for new clients who does not have the `app_user` table in their database.
