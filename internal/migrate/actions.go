@@ -5,6 +5,7 @@ import (
 	"app/internal/repository"
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -50,6 +51,12 @@ func initialise(ctx context.Context, tx pgx.Tx) error {
 	}
 	defer tx.Rollback(ctx) // Ensures rollback on error
 
+	fmt.Println("Checking for system password in .env... ")
+	systemPassword := os.Getenv("SYSTEM_USER_PASSWORD")
+	if systemPassword == "" {
+		return fmt.Errorf("system password not set in .env file")
+	}
+
 	// Create users table
 	fmt.Print("Creating User table... ")
 	_, err = tx.Exec(context.Background(), `
@@ -82,6 +89,7 @@ CREATE TABLE app_user (
 
 	var newAPIUser = model.NewAPIUser{
 		Username: "system",
+		Password: systemPassword,
 		Permissions: model.UserPermissions{
 			UserAdmin: model.UserAdminPermissions{
 				Access: true,

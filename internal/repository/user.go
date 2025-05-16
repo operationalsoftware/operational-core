@@ -79,8 +79,11 @@ func (r *UserRepository) CreateAPIUser(
 	if err != nil {
 		log.Panic(err)
 	}
+	if user.Password != "" {
+		password = user.Password
+	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}

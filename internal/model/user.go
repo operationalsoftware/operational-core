@@ -72,6 +72,7 @@ type NewUser struct {
 
 type NewAPIUser struct {
 	Username    string
+	Password    string
 	Permissions UserPermissions
 }
 
