@@ -120,7 +120,39 @@ CREATE TABLE app_user (
 	if err != nil {
 		return err
 	}
-	// Recent search table end
+	// end
+
+	// Create Stock ledger tables
+	_, err = tx.Exec(context.Background(), `
+			CREATE TABLE stock_transaction (
+				stock_transaction_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+				stock_transaction_type TEXT NOT NULL,
+				transaction_by INT REFERENCES app_user(user_id),
+				transaction_note TEXT,
+				timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+			);
+		`)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(context.Background(), `
+			CREATE TABLE stock_transaction_entry (
+				stock_transaction_entry_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+				account TEXT NOT NULL,
+				stock_code TEXT NOT NULL,
+				location TEXT NOT NULL,
+				bin TEXT NOT NULL,
+				lot_number TEXT,
+				quantity NUMERIC NOT NULL,
+				running_total NUMERIC NOT NULL,
+				stock_transaction_id INT REFERENCES stock_transaction(stock_transaction_id)
+			);
+		`)
+	if err != nil {
+		return err
+	}
+	// end Stock ledger
 
 	//
 	// END OF INITIALISATION

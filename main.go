@@ -60,12 +60,14 @@ func main() {
 	// Instantiate repositories
 	authRepository := repository.NewAuthRepository()
 	userRepository := repository.NewUserRepository()
+	stockTrxRepository := repository.NewStockTrxRepository()
 
 	// Instantiate services
 	services := &router.Services{
-		AuthService:   *service.NewAuthService(pgPool, authRepository),
-		UserService:   *service.NewUserService(pgPool, userRepository),
-		SearchService: *service.NewSearchService(pgPool, userRepository),
+		AuthService:     *service.NewAuthService(pgPool, authRepository),
+		UserService:     *service.NewUserService(pgPool, userRepository),
+		SearchService:   *service.NewSearchService(pgPool, userRepository),
+		StockTrxService: *service.NewStockTrxService(pgPool, stockTrxRepository),
 	}
 
 	// define server
