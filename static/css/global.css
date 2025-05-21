@@ -1,6 +1,17 @@
 @import "./reset.css";
 @import "./variables.css";
 
+* {
+  accent-color: var(--primary-color);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
 body {
   font-family: var(--font-family);
   font-weight: var(--font-weight);

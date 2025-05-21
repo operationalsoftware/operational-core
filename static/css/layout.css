@@ -46,7 +46,8 @@ body {
 
   /* Navbar */
   nav#navbar {
-    height: 60px;
+    height: 50px;
+    /* height: 60px; */
     background-color: var(--navbar-color);
     display: flex;
     justify-content: space-between;
@@ -70,8 +71,8 @@ body {
       button.menu-button {
         border: none;
 
-        height: 50px;
-        width: 50px;
+        height: 45px;
+        width: 45px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -206,6 +207,12 @@ body {
 
                 &.show {
                   display: block;
+                }
+              }
+
+              &#fullscreen-toggle-button {
+                @media (max-width: 640px) {
+                  display: none;
                 }
               }
             }
