@@ -14,14 +14,20 @@ type avatarMenuProps struct {
 }
 
 func avatarMenu(p *avatarMenuProps) g.Node {
-
 	if p.Ctx.User.UserID == 0 {
 		return nil
 	}
 
 	return h.Div(
-		h.Class("flex"),
+		h.Class("avatar-menu"),
 
+		h.Button(
+			h.ID("navbar-collapse-menu-button"),
+			h.Class("menu-button"),
+			components.Icon(&components.IconProps{
+				Identifier: "chevron-double-up",
+			}),
+		),
 		h.A(
 			h.ID("search-button"),
 			h.Class("search-button"),
