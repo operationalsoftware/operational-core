@@ -24,9 +24,9 @@ func NewStockTrxService(
 	}
 }
 
-func (s *StockTrxService) CreateStockTransaction(
+func (s *StockTrxService) PostStockTransaction(
 	ctx context.Context,
-	input *model.StockTrxPostInput,
+	input *model.PostStockTransactionsInput,
 	userID int,
 ) error {
 	tx, err := s.db.Begin(ctx)
@@ -35,7 +35,7 @@ func (s *StockTrxService) CreateStockTransaction(
 	}
 	defer tx.Rollback(ctx)
 
-	err = s.stockTrxRepository.CreateStockTransaction(ctx, tx, input, userID)
+	err = s.stockTrxRepository.PostStockTransactions(ctx, tx, input, userID)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (s *StockTrxService) CreateStockTransaction(
 
 func (s *StockTrxService) GetStockTransaction(
 	ctx context.Context,
-	input *model.StockTrxPostInput,
+	input *model.GetTransactionsInput,
 	userID int,
 ) ([]model.StockTransactionEntry, error) {
 

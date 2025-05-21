@@ -34,26 +34,23 @@ type GetTransactionsInput struct {
 	PageSize     int
 }
 
-type StockTrxInputItem struct {
-	Timestamp     *time.Time
-	StockCode     string
-	Qty           decimal.Decimal
-	FromAccount   string
-	FromLocation  string
-	FromBin       string
-	FromLotNumber *string
-	ToAccount     string
-	ToLocation    string
-	ToBin         string
-	ToLotNumber   *string
+type NewStockTransaction struct {
+	Timestamp            *time.Time
+	StockCode            string
+	Qty                  decimal.Decimal
+	FromAccount          string
+	FromLocation         string
+	FromBin              string
+	FromLotNumber        *string
+	ToAccount            string
+	ToLocation           string
+	ToBin                string
+	ToLotNumber          *string
+	StockTransactionType string
+	StockTransactionNote string
 }
 
-type StockTrxInput []StockTrxInputItem
-
-type StockTrxPostInput struct {
-	Timestamp    time.Time
-	Transactions []StockTrxInputItem
-}
+type PostStockTransactionsInput []NewStockTransaction
 
 type GetStockLevelsInput struct {
 	Account      *string

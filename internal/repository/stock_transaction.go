@@ -1,10 +1,11 @@
 package repository
 
 import (
-	m "app/internal/model"
+	"app/internal/model"
 	"app/pkg/db"
 	"app/pkg/nilsafe"
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -17,7 +18,7 @@ func NewStockTrxRepository() *StockTrxRepository {
 	return &StockTrxRepository{}
 }
 
-func (r *StockTrxRepository) GetStockLevels(ctx context.Context, exec db.PGExecutor, input *m.GetStockLevelsInput) ([]m.StockLevel, error) {
+func (r *StockTrxRepository) GetStockLevels(ctx context.Context, exec db.PGExecutor, input *model.GetStockLevelsInput) ([]model.StockLevel, error) {
 
 	query := `
 WITH RankedStock AS (
@@ -102,9 +103,9 @@ LIMIT $13 OFFSET $14
 	}
 	defer rows.Close()
 
-	var results []m.StockLevel
+	var results []model.StockLevel
 	for rows.Next() {
-		var sl m.StockLevel
+		var sl model.StockLevel
 		err := rows.Scan(
 			&sl.Account,
 			&sl.StockCode,
@@ -132,10 +133,14 @@ LIMIT $13 OFFSET $14
 	return results, nil
 }
 
-func (r *StockTrxRepository) CreateStockTransaction(ctx context.Context, exec pgx.Tx, transactions *m.StockTrxPostInput, userID int) error {
+func (r *StockTrxRepository) PostStockTransactions(
+	ctx context.Context,
+	exec pgx.Tx,
+	transactions *model.PostStockTransactionsInput,
+	userID int,
+) error {
 
-	var stockTrxID int
-	initQuery := `
+	insertTrxQuery := `
 INSERT INTO
 	stock_transaction (
 		stock_transaction_type,
@@ -146,58 +151,111 @@ INSERT INTO
 VALUES (
 	$1, $2, $3, COALESCE($4, NOW())
 )
-	RETURNING stock_transaction_id
+	RETURNING 
+		stock_transaction_id, timestamp
 	`
 
 	// Combined insert query for both From and To transactions
-	insertQuery := `
-INSERT INTO stock_transaction_entry
-	(account, stock_code, location, bin, lot_number, quantity, running_total, stock_transaction_id)
-VALUES
-	($1, $2, $3, $4, $5, $6, 
-		COALESCE((
-			SELECT running_total
-			FROM stock_transaction_entry
-			WHERE Account = $7
-			AND stock_code = $8
-			AND location = $9
-			AND bin = $10
-			AND (lot_number = $11 OR lot_number IS NULL)
-			LIMIT 1
-		), 0) + $12,
-	$13),
-	($14, $15, $16, $17, $18, $19, 
-		COALESCE((
-			SELECT running_total
-			FROM stock_transaction_entry
-			WHERE account = $20
-			AND stock_code = $21
-			AND location = $22
-			AND bin = $23
-			AND (lot_number = $24 OR lot_number IS NULL)
-			LIMIT 1
-		), 0) + $25,
-	$26)
+	insertEntriesQuery := `
+-- $1 = stock transaction id
+-- $2 = timestamp
+-- $3 = stock_code
+-- $4 = quantity
+-- $5 = from_account
+-- $6 = from_location
+-- $7 = from_bin
+-- $8 = from_lot_number
+-- $9 = to_account
+-- $10 = to_location
+-- $11 = to_bin
+-- $12 = to_lot_number
+
+INSERT INTO stock_transaction_entry (
+	stock_transaction_id,
+	quantity,
+	account, 
+	stock_code, 
+	location, 
+	bin,
+	lot_number,
+	running_total
+)
+VALUES 
+	-- From entry
+	($1, -1 * $4, $5, $3, $6, $7, $8,
+	COALESCE((
+		SELECT running_total
+		FROM 
+			stock_transaction_entry
+			INNER JOIN stock_transaction
+			USING (stock_transaction_id)
+		WHERE 
+			account = $5
+			AND stock_code = $3
+			AND location = $6
+			AND bin = $7
+			AND (lot_number = $8 OR lot_number IS NULL)
+			AND timestamp <= $2
+		ORDER BY
+			timestamp DESC, stock_transaction_id DESC
+		LIMIT 1
+	), 0) - $4),
+
+	-- To entry
+	($1, $4, $9, $3, $10, $11, $12,
+	COALESCE((
+		SELECT running_total
+		FROM stock_transaction_entry
+		INNER JOIN stock_transaction
+		USING (stock_transaction_id)
+		WHERE account = $9
+		AND stock_code = $3
+		AND location = $10
+		AND bin = $11
+		AND (lot_number = $12 OR lot_number IS NULL)
+		AND timestamp <= $2
+		ORDER BY timestamp DESC, stock_transaction_id DESC
+		LIMIT 1
+	), 0) + $4)
 `
 
 	// Update future RunningTotal for the From and To accounts
 	updateQuery := `
-UPDATE stock_transaction_entry
-SET running_total = running_total + $1
-WHERE account = $2
-AND stock_code = $3
-AND location = $4
-AND bin = $5
-AND (lot_number = $6 OR lot_number IS NULL)
-`
-	// AND timestamp > $7
+UPDATE 
+    stock_transaction_entry ste
+SET 
+    running_total = running_total + $1
+FROM
+    stock_transaction st
+WHERE 
+    ste.stock_transaction_id = st.stock_transaction_id
+    AND ste.account = $4
+    AND ste.stock_code = $3
+    AND ste.location = $5
+    AND ste.bin = $6
+    AND (ste.lot_number = $7 OR ste.lot_number IS NULL)
+    AND st.timestamp > $2`
+	// 	updateQuery := `
+	// UPDATE
+	// 	stock_transaction_entry
+	// SET
+	// 	running_total = running_total + $1
+	// WHERE
+	// 	account = $4
+	// 	AND stock_code = $3
+	// 	AND location = $5
+	// 	AND bin = $6
+	// 	AND (lot_number = $7 OR lot_number IS NULL)
+	// 	AND timestamp > $2`
 
-	err := exec.QueryRow(ctx, initQuery, "STOCK FROM", userID, "This is test note", transactions.Timestamp).Scan(&stockTrxID)
-	if err != nil {
-		return fmt.Errorf("failed to create stock transaction: %v", err)
-	}
+	for _, t := range *transactions {
 
-	for _, t := range transactions.Transactions {
+		var stockTrxID int
+		var stockTrxTimestamp sql.NullTime
+		err := exec.QueryRow(ctx, insertTrxQuery, "STOCK FROM", userID, "This is test note", t.Timestamp).Scan(&stockTrxID, &stockTrxTimestamp)
+		if err != nil {
+			return fmt.Errorf("failed to create stock transaction: %v", err)
+		}
 
 		// IMPORTANT: posting from and to the same Account, Location, Bin and
 		// LotNumber is not allowed as it is not compatible with how running totals
@@ -215,36 +273,22 @@ AND (lot_number = $6 OR lot_number IS NULL)
 			continue
 		}
 
-		_, err := exec.Exec(ctx, insertQuery,
-			// From transaction
-			t.FromAccount,
-			t.StockCode,
-			t.FromLocation,
-			t.FromBin,
-			t.FromLotNumber,
-			t.Qty.Mul(decimal.NewFromInt(-1)), // negative for "From"
-			t.FromAccount,
-			t.StockCode,
-			t.FromLocation,
-			t.FromBin,
-			t.FromLotNumber,
-			t.Qty.Mul(decimal.NewFromInt(-1)), // negative for "From"
+		_, err = exec.Exec(ctx, insertEntriesQuery,
 			stockTrxID,
+			t.Timestamp,
+			// From transaction
+			t.StockCode,
+			t.Qty,
+			t.FromAccount,
+			t.FromLocation,
+			t.FromBin,
+			t.FromLotNumber,
 
 			// To transaction
 			t.ToAccount,
-			t.StockCode,
 			t.ToLocation,
 			t.ToBin,
 			t.ToLotNumber,
-			t.Qty, // positive for "To"
-			t.ToAccount,
-			t.StockCode,
-			t.ToLocation,
-			t.ToBin,
-			t.ToLotNumber,
-			t.Qty, // positive for "To"
-			stockTrxID,
 		)
 
 		if err != nil {
@@ -253,6 +297,7 @@ AND (lot_number = $6 OR lot_number IS NULL)
 
 		_, err = exec.Exec(ctx, updateQuery,
 			t.Qty.Mul(decimal.NewFromInt(-1)), // negative for "From"
+			t.Timestamp,
 			t.FromAccount,
 			t.StockCode,
 			t.FromLocation,
@@ -266,6 +311,7 @@ AND (lot_number = $6 OR lot_number IS NULL)
 
 		_, err = exec.Exec(ctx, updateQuery,
 			t.Qty, // positive for "To"
+			t.Timestamp,
 			t.ToAccount,
 			t.StockCode,
 			t.ToLocation,
@@ -281,7 +327,7 @@ AND (lot_number = $6 OR lot_number IS NULL)
 	return nil
 }
 
-func (r *StockTrxRepository) GetStockTransactions(ctx context.Context, exec db.PGExecutor, input *m.GetTransactionsInput) ([]m.StockTransactionEntry, error) {
+func (r *StockTrxRepository) GetStockTransactions(ctx context.Context, exec db.PGExecutor, input *model.GetTransactionsInput) ([]model.StockTransactionEntry, error) {
 
 	// Base query
 	query := `
@@ -349,9 +395,9 @@ LIMIT $7 OFFSET $8
 	defer rows.Close()
 
 	// Collect results
-	var transactions []m.StockTransactionEntry
+	var transactions []model.StockTransactionEntry
 	for rows.Next() {
-		var st m.StockTransactionEntry
+		var st model.StockTransactionEntry
 		err := rows.Scan(
 			&st.StockTransactionID,
 			&st.Account,
