@@ -32,11 +32,11 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 		},
 		{
 			TitleContents: g.Text("First Name"),
-			SortKey:       "FirstName",
+			SortKey:       "First_Name",
 		},
 		{
 			TitleContents: g.Text("Last Name"),
-			SortKey:       "LastName",
+			SortKey:       "Last_Name",
 		},
 		{
 			TitleContents: g.Text("Email"),
@@ -48,7 +48,7 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 		},
 		{
 			TitleContents: g.Text("Last Login"),
-			SortKey:       "LastLogin",
+			SortKey:       "Last_Login",
 		},
 	}
 
