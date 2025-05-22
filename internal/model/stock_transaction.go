@@ -7,6 +7,8 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+var StockAccounts = []string{"STOCK", "PRODUCTION", "CONSUMED"}
+
 type StockTransactionEntry struct {
 	StockTransactionEntryID int
 	StockTransactionType    string
@@ -53,12 +55,12 @@ type NewStockTransaction struct {
 type PostStockTransactionsInput []NewStockTransaction
 
 type GetStockLevelsInput struct {
-	Account      *string
-	StockCode    *string
-	Location     *string
-	Bin          *string
-	LotNumber    *string
-	LTETimestamp *time.Time
+	Account      sql.NullString
+	StockCode    sql.NullString
+	Location     sql.NullString
+	Bin          sql.NullString
+	LotNumber    sql.NullString
+	LTETimestamp sql.NullTime
 	Page         int
 	PageSize     int
 }

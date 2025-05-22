@@ -3,9 +3,11 @@ package handler
 import (
 	"app/internal/model"
 	"app/internal/service"
+	"app/internal/views/stockview"
+	"app/pkg/appurl"
 	"app/pkg/reqcontext"
+	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -18,6 +20,68 @@ type StockTrxHandler struct {
 
 func NewStockTrxHandler(stockTrxService service.StockTrxService) *StockTrxHandler {
 	return &StockTrxHandler{stockTrxService: stockTrxService}
+}
+
+type homePageUrlVals struct {
+	Account      sql.NullString
+	StockCode    sql.NullString
+	Location     sql.NullString
+	Bin          sql.NullString
+	LotNumber    sql.NullString
+	LTETimestamp sql.NullTime
+	Page         int
+	PageSize     int
+}
+
+func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	var uv homePageUrlVals
+
+	err := appurl.Unmarshal(r.URL.Query(), &uv)
+	if err != nil {
+		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+		return
+	}
+
+	if uv.Page == 0 {
+		uv.Page = 1
+	}
+	if uv.PageSize == 0 {
+		uv.PageSize = stockview.HomePageDefaultPageSize
+	}
+
+	stockLevels, err := h.stockTrxService.GetStockLevels(r.Context(), &model.GetStockLevelsInput{
+		Account:      uv.Account,
+		StockCode:    uv.StockCode,
+		Location:     uv.Location,
+		Bin:          uv.Bin,
+		LotNumber:    uv.LotNumber,
+		LTETimestamp: uv.LTETimestamp,
+		Page:         uv.Page,
+		PageSize:     uv.PageSize,
+	})
+	if err != nil {
+		http.Error(w, "Error fetching stock levels", http.StatusInternalServerError)
+		return
+	}
+
+	_ = stockview.StockLevelsPage(stockview.StockLevelsPageProps{
+		Ctx:          ctx,
+		StockLevels:  &stockLevels,
+		Account:      uv.Account,
+		StockCode:    uv.StockCode,
+		Location:     uv.Location,
+		Bin:          uv.Bin,
+		LotNumber:    uv.LotNumber,
+		LTETimestamp: uv.LTETimestamp,
+		Page:         uv.Page,
+		PageSize:     uv.PageSize,
+		Total:        len(stockLevels),
+	}).
+		Render(w)
+
+	return
 }
 
 func (h *StockTrxHandler) CreateStockTransaction(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +107,6 @@ func (h *StockTrxHandler) CreateStockTransaction(w http.ResponseWriter, r *http.
 
 	err := h.stockTrxService.PostStockTransaction(r.Context(), &stockTrxs, ctx.User.UserID)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Failed to create stock transaction", http.StatusInternalServerError)
 		return
 	}

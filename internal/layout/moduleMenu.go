@@ -21,6 +21,17 @@ var AppMenu = []components.GridMenuGroup{
 			},
 		}},
 	},
+	{
+		GroupName: "Stock",
+		Items: []components.GridMenuItem{{
+			Icon: "package-variant-closed",
+			Name: "Stock",
+			Link: "/stock",
+			Show: func(permissions model.UserPermissions) bool {
+				return true
+			},
+		}},
+	},
 }
 
 type moduleMenuProps struct {

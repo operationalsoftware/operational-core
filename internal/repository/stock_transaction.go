@@ -404,15 +404,6 @@ LIMIT $7 OFFSET $8
 	lotNumber := input.LotNumber
 	lteTimestamp := input.LTETimestamp
 
-	fmt.Println(account,
-		stockCode,
-		location,
-		bin,
-		lotNumber,
-		lteTimestamp,
-		limit,
-		offset)
-
 	// Execute
 	rows, err := exec.Query(ctx, query,
 		account,

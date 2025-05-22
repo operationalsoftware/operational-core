@@ -1,0 +1,34 @@
+.stock-levels-filters {
+  margin-top: var(--spacing-sm);
+  margin-bottom: var(--spacing-xl);
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 220px);
+  gap: var(--spacing-lg);
+  justify-content: start;
+
+  .filter {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .go-button-wrapper {
+    display: flex;
+    align-items: end;
+  }
+}
+
+.stock-table {
+  margin-top: var(--spacing-xl);
+}
+
+nav.stock-nav {
+  display: flex;
+  gap: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+
+  a.active {
+    text-decoration: underline;
+  }
+}
