@@ -35,7 +35,7 @@ type GetTransactionsInput struct {
 }
 
 type NewStockTransaction struct {
-	Timestamp            *time.Time
+	Timestamp            time.Time
 	StockCode            string
 	Qty                  decimal.Decimal
 	FromAccount          string

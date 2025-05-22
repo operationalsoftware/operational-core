@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -22,24 +23,21 @@ func NewStockTrxHandler(stockTrxService service.StockTrxService) *StockTrxHandle
 func (h *StockTrxHandler) CreateStockTransaction(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	fromLot := "LOT123"
-	toLot := "LOT456"
-
-	// stockTrxs := model.PostStockTransactionsInput{}
+	lotNumber := "LOT123"
 
 	stockTrxs := model.PostStockTransactionsInput{
 		{
-			// Timestamp:     time.Now(),
+			Timestamp:     time.Now(),
 			StockCode:     "STK001",
 			Qty:           decimal.NewFromFloat32(12.0),
 			FromAccount:   "ACC001",
 			FromLocation:  "LOC001",
 			FromBin:       "BIN001",
-			FromLotNumber: &fromLot,
+			FromLotNumber: &lotNumber,
 			ToAccount:     "ACC002",
 			ToLocation:    "LOC002",
 			ToBin:         "BIN002",
-			ToLotNumber:   &toLot,
+			ToLotNumber:   &lotNumber,
 		},
 	}
 
@@ -62,75 +60,56 @@ func (h *StockTrxHandler) CreateStockTransaction(w http.ResponseWriter, r *http.
 
 }
 
-// func (h *StockTrxHandler) TestStock(w http.ResponseWriter, r *http.Request) {
-// 	// ctx := reqcontext.GetContext(r)
-// 	fmt.Println("TESTING 123.....")
-
-// 	return
-// }
-
 func ptr[T any](v T) *T {
 	return &v
 }
 
 func (h *StockTrxHandler) GetStockTransactions(w http.ResponseWriter, r *http.Request) {
-	// ctx := reqcontext.GetContext(r)
-	// now := time.Now()
+	ctx := reqcontext.GetContext(r)
 
 	// filterInput := model.GetTransactionsInput{
-	// 	Account:      ptr("INV-001"),
-	// 	StockCode:    ptr("STK-123"),
-	// 	Location:     ptr("LOC-A"),
-	// 	Bin:          ptr("BIN-5"),
-	// 	LotNumber:    ptr("LOT-77"),
-	// 	LTETimestamp: &now,
-	// 	Page:         1,
-	// 	PageSize:     20,
+	// 	// Account:      ptr("INV-001"),
+	// 	// StockCode:    ptr("STK-123"),
+	// 	// Location:     ptr("LOC-A"),
+	// 	// Bin:          ptr("BIN-5"),
+	// 	// LotNumber:    ptr("LOT-77"),
+	// 	// LTETimestamp: &now,
+	// 	// Page:         1,
+	// 	// PageSize:     20,
 	// }
 
-	// input := model.GetTransactionsInput{
-	// 	StockCode: ptr("STK-123"),
-	// 	Page:      1,
-	// 	PageSize:  10,
-	// }
+	input := model.GetTransactionsInput{
+		StockCode: ptr("STK001"),
+		Location:  ptr("LOC002"),
+		Page:      1,
+		PageSize:  10,
+	}
 
-	// transactions, err := h.stockTrxService.GetStockTransaction(r.Context(), &stockTrxs, ctx.User.UserID)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	http.Error(w, "Failed to create stock transaction", http.StatusInternalServerError)
-	// 	return
-	// }
+	transactions, err := h.stockTrxService.GetStockTransaction(r.Context(), &input, ctx.User.UserID)
+	if err != nil {
+		http.Error(w, "Failed to get stock transactions", http.StatusInternalServerError)
+		return
+	}
 
-	// w.Header().Set("Content-Type", "application/json")
-	// w.WriteHeader(http.StatusCreated)
-	// json.NewEncoder(w).Encode(map[string]interface{}{"data": transactions})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{"data": transactions})
 }
 
 func (h *StockTrxHandler) GetStockLevels(w http.ResponseWriter, r *http.Request) {
 	// ctx := reqcontext.GetContext(r)
 
-	// var params model.SearchInput
+	input := &model.GetStockLevelsInput{
+		// Account: sql.NullString{String: "ACC001", Valid: true},
+	}
 
-	// results, err := h.searchService.Search(r.Context(), params.Q, allowedSearchEntities, ctx.User.UserID)
-	// if err != nil {
-	// 	_ = searchview.SearchPage(searchview.SearchPageProps{
-	// 		Ctx:             ctx,
-	// 		SearchTerm:      params.Q,
-	// 		SearchEntities:  allowedSearchEntities,
-	// 		UserPermissions: ctx.User.Permissions,
-	// 	}).
-	// 		Render(w)
-	// 	return
-	// }
+	levels, err := h.stockTrxService.GetStockLevels(r.Context(), input)
+	if err != nil {
+		http.Error(w, "Failed to GET stock levels", http.StatusInternalServerError)
+		return
+	}
 
-	// _ = searchview.SearchPage(searchview.SearchPageProps{
-	// 	Ctx:             ctx,
-	// 	SearchTerm:      params.Q,
-	// 	SearchEntities:  allowedSearchEntities,
-	// 	Results:         results,
-	// 	UserPermissions: ctx.User.Permissions,
-	// }).
-	// 	Render(w)
-
-	return
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{"data": levels})
 }

@@ -63,42 +63,13 @@ func (s *StockTrxService) GetStockTransaction(
 
 func (s *StockTrxService) GetStockLevels(
 	ctx context.Context,
-	input model.VerifyPasswordLoginInput,
-) (model.VerifyPasswordLoginOutput, error) {
+	input *model.GetStockLevelsInput,
+) ([]model.StockLevel, error) {
 
-	out := model.VerifyPasswordLoginOutput{}
-
-	tx, err := s.db.Begin(ctx)
+	levels, err := s.stockTrxRepository.GetStockLevels(ctx, s.db, input)
 	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback(ctx) // Ensures rollback on error
-
-	// authUser, err := s.stockTrxRepository.GetAuthUserByUsername(
-	// 	ctx,
-	// 	tx,
-	// 	input.Username,
-	// )
-	// if err != nil {
-	// 	return out, err
-	// }
-	// if authUser == nil {
-	// 	out.FailureReason = INVALID_USERNAME_PASSWORD_MSG
-	// 	return out, nil
-	// }
-
-	// // Successful login
-	// err = s.authRepository.UpdateLastLogin(
-	// 	ctx, tx, authUser.UserID,
-	// )
-	// if err != nil {
-	// 	return out, err
-	// }
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return out, err
+		return nil, err
 	}
 
-	return out, nil
+	return levels, nil
 }

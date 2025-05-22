@@ -12,8 +12,8 @@ func addStockTrxRoutes(
 ) {
 	stockTrxHandler := handler.NewStockTrxHandler(stockTrxService)
 
-	mux.HandleFunc("GET /stock/test", stockTrxHandler.CreateStockTransaction)
-	mux.HandleFunc("GET /stock/transaction/levels", stockTrxHandler.GetStockLevels)
+	mux.HandleFunc("GET /stock/test", stockTrxHandler.GetStockLevels)
+	mux.HandleFunc("GET /stock/levels", stockTrxHandler.GetStockLevels)
 	mux.HandleFunc("POST /stock/transaction", stockTrxHandler.CreateStockTransaction)
 	mux.HandleFunc("GET /stock/transactions", stockTrxHandler.GetStockTransactions)
 
