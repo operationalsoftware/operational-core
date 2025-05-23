@@ -143,7 +143,7 @@ CREATE TABLE app_user (
 				stock_code TEXT NOT NULL,
 				location TEXT NOT NULL,
 				bin TEXT NOT NULL,
-				lot_number TEXT,
+				lot_number TEXT NOT NULL,
 				quantity NUMERIC NOT NULL,
 				running_total NUMERIC NOT NULL,
 				stock_transaction_id INT REFERENCES stock_transaction(stock_transaction_id)
