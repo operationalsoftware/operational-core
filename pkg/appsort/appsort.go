@@ -1,6 +1,8 @@
 package appsort
 
-import "strings"
+import (
+	"strings"
+)
 
 type Direction string
 

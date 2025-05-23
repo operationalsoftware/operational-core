@@ -35,6 +35,37 @@ body {
     }
   }
 
+  /* Navbar expand button */
+  .navbar-expand-button {
+    position: fixed;
+    top: var(--spacing-xl);
+    right: var(--spacing-xxl);
+    height: 40px;
+    width: 40px;
+    z-index: 50;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: auto;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-color);
+    padding: var(--spacing-sm);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+
+    .icon {
+      width: var(--font-size-xl);
+      height: var(--font-size-xl);
+    }
+
+    &.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
   .env-banner {
     text-align: center;
     font-size: 10px;
@@ -46,7 +77,8 @@ body {
 
   /* Navbar */
   nav#navbar {
-    height: 60px;
+    height: 50px;
+    /* height: 60px; */
     background-color: var(--navbar-color);
     display: flex;
     justify-content: space-between;
@@ -62,6 +94,11 @@ body {
       }
     }
 
+    .avatar-menu {
+      display: flex;
+      align-items: center;
+    }
+
     #navbar-menus {
       display: flex;
       align-items: center;
@@ -70,8 +107,8 @@ body {
       button.menu-button {
         border: none;
 
-        height: 50px;
-        width: 50px;
+        height: 45px;
+        width: 45px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -116,6 +153,21 @@ body {
 
       #navbar-module-menu {
         padding: var(--spacing-md);
+      }
+
+      #navbar-collapse-menu-button {
+        margin-right: var(--spacing-md);
+        height: 30px;
+        width: 30px;
+
+        @media (max-width: 640px) {
+          display: none;
+        }
+
+        .icon {
+          width: var(--font-size-xl);
+          height: var(--font-size-xl);
+        }
       }
 
       #navbar-avatar-menu {
@@ -222,10 +274,10 @@ body {
     align-items: center;
     justify-content: center;
     color: var(--text-color-light);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
 
     sup {
-      font-size: var(--font-size-xs);
+      font-size: var(--font-size-icon);
     }
   }
 }
@@ -233,7 +285,7 @@ body {
 /* Start Breadcrumbs */
 .breadcrumbs {
   background: var(--background-color-grey);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
 }
 
 .breadcrumbs ol {
@@ -252,15 +304,15 @@ body {
 }
 
 .breadcrumbs ol li .icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   fill: var(--text-color-light);
   margin-right: var(--spacing-xs);
 }
 
 .breadcrumbs ol li .divider {
-  padding: var(--spacing-sm);
-  font-size: var(--font-size-lg);
+  /* padding: var(--spacing-sm); */
+  font-size: var(--font-size-md);
   color: var(--text-color-light);
 }
 

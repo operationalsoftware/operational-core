@@ -1,8 +1,24 @@
 "use strict";
 // block scoping
 {
+  const navbarEl = document.getElementById("navbar");
   const buttonEl = document.getElementById("navbar-avatar-menu-button");
   const panelEl = document.getElementById("navbar-avatar-menu");
+  const navbarCollapseEl = document.getElementById(
+    "navbar-collapse-menu-button"
+  );
+  const navbarExpandEl = document.getElementById("navbar-expand-menu-button");
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const makeNavbarCollapse = JSON.parse(
+      localStorage.getItem("navbar-collapse")
+    );
+
+    if (makeNavbarCollapse) {
+      navbarEl.classList.add("hidden");
+      navbarExpandEl.classList.add("hidden");
+    }
+  });
 
   buttonEl.addEventListener("click", showPanel);
 
@@ -108,6 +124,34 @@
     if (event.ctrlKey && event.key === "/") {
       event.preventDefault();
       window.location.href = "/search";
+    }
+  });
+
+  navbarCollapseEl.addEventListener("click", (e) => {
+    if (navbarEl) {
+      navbarEl.classList.add("hidden");
+      localStorage.setItem("navbar-collapse", true);
+    }
+  });
+
+  navbarExpandEl.addEventListener("click", (e) => {
+    if (navbarEl) {
+      navbarEl.classList.remove("hidden");
+      localStorage.setItem("navbar-collapse", false);
+      navbarExpandEl.classList.add("hidden");
+    }
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    const widthThreshold = window.outerWidth - e.clientX;
+    if (
+      e.clientY <= 150 &&
+      widthThreshold < 150 &&
+      navbarEl.classList.contains("hidden")
+    ) {
+      navbarExpandEl.classList.remove("hidden");
+    } else {
+      navbarExpandEl.classList.add("hidden");
     }
   });
 }

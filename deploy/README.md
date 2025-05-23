@@ -8,8 +8,7 @@
     - Run the following pg_restore command for restoring database backup:
         * pg_restore -U postgres -d batten_allen backup_file.dump
 3. Update the *.env file for the corresponding branch.
-5. Run the deploy/deploy.sh
-
+4. Run the deploy/deploy.sh
 
 ## Some commands for Database backup service:
 

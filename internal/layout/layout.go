@@ -1,6 +1,7 @@
 package layout
 
 import (
+	"app/internal/components"
 	"app/pkg/reqcontext"
 	"os"
 
@@ -27,6 +28,13 @@ func layout(p *layoutProps) g.Node {
 	}
 
 	return g.Group([]g.Node{
+		h.Button(
+			h.ID("navbar-expand-menu-button"),
+			h.Class("menu-button navbar-expand-button hidden"),
+			components.Icon(&components.IconProps{
+				Identifier: "chevron-double-down",
+			}),
+		),
 		g.If(
 			showBanner,
 			h.Div(
