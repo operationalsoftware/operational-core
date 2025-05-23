@@ -274,7 +274,7 @@ SELECT running_total
 
 		var stockTrxID int
 		var stockTrxTimestamp time.Time
-		err = exec.QueryRow(ctx, insertTrxQuery, "STOCK FROM", userID, "This is test note", t.Timestamp).Scan(&stockTrxID, &stockTrxTimestamp)
+		err = exec.QueryRow(ctx, insertTrxQuery, "STOCK", userID, "This is test note", t.Timestamp).Scan(&stockTrxID, &stockTrxTimestamp)
 		if err != nil {
 			return fmt.Errorf("failed to create stock transaction: %v", err)
 		}

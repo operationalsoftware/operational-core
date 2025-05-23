@@ -47,7 +47,7 @@ func (s *StockTrxService) PostStockTransaction(
 	return nil
 }
 
-func (s *StockTrxService) GetStockTransaction(
+func (s *StockTrxService) GetStockTransactions(
 	ctx context.Context,
 	input *model.GetTransactionsInput,
 	userID int,

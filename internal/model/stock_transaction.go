@@ -17,7 +17,7 @@ type StockTransactionEntry struct {
 	Location                string
 	Bin                     string
 	Quantity                decimal.Decimal
-	LotNumber               string
+	LotNumber               sql.NullString
 	RunningTotal            decimal.Decimal
 	TransactionBy           string
 	TransactionByUsername   string
@@ -26,12 +26,12 @@ type StockTransactionEntry struct {
 }
 
 type GetTransactionsInput struct {
-	Account      *string
-	StockCode    *string
-	Location     *string
-	Bin          *string
-	LotNumber    *string
-	LTETimestamp *time.Time
+	Account      sql.NullString
+	StockCode    sql.NullString
+	Location     sql.NullString
+	Bin          sql.NullString
+	LotNumber    sql.NullString
+	LTETimestamp sql.NullTime
 	Page         int
 	PageSize     int
 }
@@ -74,3 +74,16 @@ type StockLevel struct {
 	StockLevel decimal.Decimal
 	Timestamp  time.Time
 }
+
+type Movement struct {
+	StockCode     string
+	Qty           decimal.Decimal
+	FromLocation  string
+	FromBin       string
+	FromLotNumber sql.NullString
+	ToLocation    string
+	ToBin         string
+	ToLotNumber   sql.NullString
+}
+
+type Movements []Movement
