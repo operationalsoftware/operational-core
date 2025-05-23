@@ -285,7 +285,7 @@ body {
 /* Start Breadcrumbs */
 .breadcrumbs {
   background: var(--background-color-grey);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
 }
 
 .breadcrumbs ol {
@@ -304,15 +304,15 @@ body {
 }
 
 .breadcrumbs ol li .icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   fill: var(--text-color-light);
   margin-right: var(--spacing-xs);
 }
 
 .breadcrumbs ol li .divider {
-  padding: var(--spacing-sm);
-  font-size: var(--font-size-lg);
+  /* padding: var(--spacing-sm); */
+  font-size: var(--font-size-md);
   color: var(--text-color-light);
 }
 
