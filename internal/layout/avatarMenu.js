@@ -16,6 +16,8 @@
 
     if (makeNavbarCollapse) {
       navbarEl.classList.add("hidden");
+      navbarEl.style.height = "0px";
+      navbarEl.style.padding = "0";
       navbarExpandEl.classList.add("hidden");
     }
   });
@@ -130,6 +132,8 @@
   navbarCollapseEl.addEventListener("click", (e) => {
     if (navbarEl) {
       navbarEl.classList.add("hidden");
+      navbarEl.style.height = "0px";
+      navbarEl.style.padding = "0";
       localStorage.setItem("navbar-collapse", true);
     }
   });
@@ -137,6 +141,8 @@
   navbarExpandEl.addEventListener("click", (e) => {
     if (navbarEl) {
       navbarEl.classList.remove("hidden");
+      navbarEl.style.height = "50px";
+      navbarEl.style.padding = "8px";
       localStorage.setItem("navbar-collapse", false);
       navbarExpandEl.classList.add("hidden");
     }
