@@ -3,8 +3,8 @@ package stockview
 import (
 	"app/internal/components"
 	"app/pkg/reqcontext"
-	"database/sql"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/shopspring/decimal"
@@ -14,15 +14,17 @@ type PostStockMovementPageProps struct {
 	Ctx         reqcontext.ReqContext
 	SuccessText string
 	ErrorText   string
-	ReturnTo    sql.NullString
+	ReturnTo    pgtype.Text
 
-	StockCode    string
-	LotNumber    sql.NullString
-	Qty          decimal.Decimal
-	FromLocation string
-	FromBin      string
-	ToLocation   string
-	ToBin        string
+	TransactionType string
+	StockCode       string
+	LotNumber       pgtype.Text
+	Qty             decimal.Decimal
+	FromLocation    string
+	FromBin         string
+	ToLocation      string
+	ToBin           string
+	TransactionNote string
 }
 
 func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
@@ -74,7 +76,7 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 						p.Qty.GreaterThan(decimal.Zero),
 						h.Value(p.Qty.String()),
 					),
-					h.Placeholder("Enter qty"),
+					h.Placeholder("Enter quantity"),
 					h.AutoComplete("off"),
 				),
 			),
@@ -130,6 +132,20 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 			),
 		),
 
+		h.Div(
+			h.Class("form-row"),
+
+			h.Label(
+				g.Text("Note (optional)"),
+				h.Textarea(
+					h.Name("TransactionNote"),
+					h.Value(p.TransactionNote),
+					h.Placeholder("Enter transaction note"),
+					h.AutoComplete("off"),
+				),
+			),
+		),
+
 		// hidden input to store returnTo
 		g.If(
 			p.ReturnTo.Valid,
@@ -149,7 +165,7 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 	)
 
 	return postTransactionPageLayout(&postTransactionPageLayoutProps{
-		transactionType: "Stock Movement",
+		transactionType: p.TransactionType,
 		content:         content,
 		ctx:             p.Ctx,
 		successText:     p.SuccessText,

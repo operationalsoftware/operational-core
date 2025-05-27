@@ -1,9 +1,9 @@
 package model
 
 import (
-	"database/sql"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/shopspring/decimal"
 )
 
@@ -17,7 +17,7 @@ type StockTransactionEntry struct {
 	Location                string
 	Bin                     string
 	Quantity                decimal.Decimal
-	LotNumber               sql.NullString
+	LotNumber               pgtype.Text
 	RunningTotal            decimal.Decimal
 	TransactionBy           string
 	TransactionByUsername   string
@@ -26,12 +26,12 @@ type StockTransactionEntry struct {
 }
 
 type GetTransactionsInput struct {
-	Account      sql.NullString
-	StockCode    sql.NullString
-	Location     sql.NullString
-	Bin          sql.NullString
-	LotNumber    sql.NullString
-	LTETimestamp sql.NullTime
+	Account      pgtype.Text
+	StockCode    pgtype.Text
+	Location     pgtype.Text
+	Bin          pgtype.Text
+	LotNumber    pgtype.Text
+	LTETimestamp pgtype.Timestamptz
 	Page         int
 	PageSize     int
 }
@@ -55,12 +55,12 @@ type NewStockTransaction struct {
 type PostStockTransactionsInput []NewStockTransaction
 
 type GetStockLevelsInput struct {
-	Account      sql.NullString
-	StockCode    sql.NullString
-	Location     sql.NullString
-	Bin          sql.NullString
-	LotNumber    sql.NullString
-	LTETimestamp sql.NullTime
+	Account      pgtype.Text
+	StockCode    pgtype.Text
+	Location     pgtype.Text
+	Bin          pgtype.Text
+	LotNumber    pgtype.Text
+	LTETimestamp pgtype.Timestamptz
 	Page         int
 	PageSize     int
 }
@@ -70,7 +70,7 @@ type StockLevel struct {
 	StockCode  string
 	Location   string
 	Bin        string
-	LotNumber  sql.NullString
+	LotNumber  pgtype.Text
 	StockLevel decimal.Decimal
 	Timestamp  time.Time
 }
@@ -80,10 +80,10 @@ type Movement struct {
 	Qty           decimal.Decimal
 	FromLocation  string
 	FromBin       string
-	FromLotNumber sql.NullString
+	FromLotNumber pgtype.Text
 	ToLocation    string
 	ToBin         string
-	ToLotNumber   sql.NullString
+	ToLotNumber   pgtype.Text
 }
 
 type Movements []Movement

@@ -4,9 +4,7 @@ import (
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
-	"database/sql"
 	"fmt"
-	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -55,19 +53,6 @@ func (s *StockTrxService) GetStockTransactions(
 	userID int,
 ) ([]model.StockTransactionEntry, error) {
 
-	input.StockCode = sql.NullString{
-		String: strings.ToUpper(strings.TrimSpace(input.StockCode.String)),
-	}
-	input.Location = sql.NullString{
-		String: strings.ToUpper(strings.TrimSpace(input.Location.String)),
-	}
-	input.Bin = sql.NullString{
-		String: strings.ToUpper(strings.TrimSpace(input.Bin.String)),
-	}
-	input.LotNumber = sql.NullString{
-		String: strings.ToUpper(strings.TrimSpace(input.LotNumber.String)),
-	}
-
 	transactions, err := s.stockTrxRepository.GetStockTransactions(ctx, s.db, input)
 	if err != nil {
 		return nil, err
@@ -80,18 +65,6 @@ func (s *StockTrxService) GetStockLevels(
 	ctx context.Context,
 	input *model.GetStockLevelsInput,
 ) ([]model.StockLevel, error) {
-	input.StockCode = sql.NullString{
-		String: strings.ToUpper(strings.TrimSpace(input.StockCode.String)),
-	}
-	input.Location = sql.NullString{
-		String: strings.ToUpper(strings.TrimSpace(input.Location.String)),
-	}
-	input.Bin = sql.NullString{
-		String: strings.ToUpper(strings.TrimSpace(input.Bin.String)),
-	}
-	input.LotNumber = sql.NullString{
-		String: strings.ToUpper(strings.TrimSpace(input.LotNumber.String)),
-	}
 
 	levels, err := s.stockTrxRepository.GetStockLevels(ctx, s.db, input)
 	if err != nil {

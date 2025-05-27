@@ -7,11 +7,11 @@ import (
 	"app/pkg/appsort"
 	"app/pkg/format"
 	"app/pkg/reqcontext"
-	"database/sql"
 	"fmt"
 	"net/url"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -22,12 +22,12 @@ var TransactionsPageDefaultPageSize = 200
 type StockTransactionsPageProps struct {
 	Ctx               reqcontext.ReqContext
 	StockTransactions *[]model.StockTransactionEntry
-	Account           sql.NullString
-	StockCode         sql.NullString
-	Location          sql.NullString
-	Bin               sql.NullString
-	LotNumber         sql.NullString
-	LTETimestamp      sql.NullTime
+	Account           pgtype.Text
+	StockCode         pgtype.Text
+	Location          pgtype.Text
+	Bin               pgtype.Text
+	LotNumber         pgtype.Text
+	LTETimestamp      pgtype.Timestamptz
 	Page              int
 	PageSize          int
 	Total             int

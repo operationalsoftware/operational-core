@@ -2,7 +2,8 @@
 
 /* Native inputs/select by type */
 input,
-select {
+select,
+textarea {
   border: 1.5px solid var(--border-color-dark);
   border-radius: var(--border-radius);
   background-color: var(--background-color-content);

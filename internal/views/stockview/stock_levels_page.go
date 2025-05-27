@@ -7,11 +7,11 @@ import (
 	"app/pkg/appsort"
 	"app/pkg/format"
 	"app/pkg/reqcontext"
-	"database/sql"
 	"fmt"
 	"net/url"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -22,12 +22,12 @@ var HomePageDefaultPageSize = 200
 type StockLevelsPageProps struct {
 	Ctx          reqcontext.ReqContext
 	StockLevels  *[]model.StockLevel
-	Account      sql.NullString
-	StockCode    sql.NullString
-	Location     sql.NullString
-	Bin          sql.NullString
-	LotNumber    sql.NullString
-	LTETimestamp sql.NullTime
+	Account      pgtype.Text
+	StockCode    pgtype.Text
+	Location     pgtype.Text
+	Bin          pgtype.Text
+	LotNumber    pgtype.Text
+	LTETimestamp pgtype.Timestamptz
 	Page         int
 	PageSize     int
 	Total        int
@@ -82,8 +82,8 @@ func StockLevelsPage(p StockLevelsPageProps) g.Node {
 }
 
 func filters(
-	account, stockCode, location, bin, lotNumber sql.NullString,
-	lteTimestamp sql.NullTime,
+	account, stockCode, location, bin, lotNumber pgtype.Text,
+	lteTimestamp pgtype.Timestamptz,
 ) g.Node {
 
 	accountStr := "STOCK" // Default

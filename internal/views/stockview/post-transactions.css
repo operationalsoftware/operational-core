@@ -16,6 +16,7 @@ main {
 
     .transaction-info {
       color: var(--secondary-color);
+      font-size: var(--font-size-sm);
 
       .icon {
         width: 20px;
