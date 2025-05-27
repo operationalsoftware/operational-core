@@ -18,6 +18,7 @@ func NewStockTrxRepository() *StockTrxRepository {
 }
 
 func (r *StockTrxRepository) GetStockLevels(ctx context.Context, exec db.PGExecutor, input *model.GetStockLevelsInput) ([]model.StockLevel, error) {
+	// dbInput := input.ToDB()
 
 	query := `
 WITH RankedStock AS (
@@ -34,20 +35,20 @@ WITH RankedStock AS (
 			PARTITION BY ste.account, ste.stock_code, ste.location, ste.bin, COALESCE(ste.lot_number, 'NO_LOT')
 			ORDER BY st.timestamp DESC, ste.stock_transaction_id DESC
 		) AS rn
-	FROM 
+	FROM
 		stock_transaction_entry ste
-	JOIN
-		stock_transaction st ON ste.stock_transaction_id = st.stock_transaction_id
+		JOIN
+			stock_transaction st ON ste.stock_transaction_id = st.stock_transaction_id
 	WHERE
-		($1::text IS NULL OR ste.account = $1::text)
-		AND
-		($2::text IS NULL OR ste.stock_code = $2::text)
-		AND
-		($3::text IS NULL OR ste.location = $3::text)
-		AND
-		($4::text IS NULL OR ste.bin = $4::text)
-		AND
-		($5::text IS NULL OR ste.lot_number = $5::text)
+		($1 = '' OR ste.account = $1)
+		AND 
+		($2 = '' OR ste.stock_code = $2)
+		AND 
+		($3 = '' OR ste.location = $3)
+		AND 
+		($4 = '' OR ste.bin = $4)
+		AND 
+		($5 = '' OR ste.lot_number = $5)
 		AND
 		($6::timestamp IS NULL OR st.timestamp <= $6::timestamp)  -- If LTETimestamp provided, only match up until it
 )
@@ -78,12 +79,6 @@ LIMIT $7 OFFSET $8
 	binParam := input.Bin
 	lotNumberParam := input.LotNumber
 	lteTimestampParam := input.LTETimestamp
-	// accountParam := db.NullStringToParam(input.Account)
-	// stockCodeParam := db.NullStringToParam(input.StockCode)
-	// locationParam := db.NullStringToParam(input.Location)
-	// binParam := db.NullStringToParam(input.Bin)
-	// lotNumberParam := db.NullStringToParam(input.LotNumber)
-	// lteTimestampParam := db.NullTimeToParam(input.LTETimestamp)
 
 	limit := 1000
 	if input.PageSize > 0 {
@@ -230,7 +225,7 @@ SELECT running_total
 		AND stock_code = $2
 		AND location = $3
 		AND bin = $4
-		AND (lot_number IS NOT DISTINCT FROM $5)
+		AND lot_number = $5
 		AND timestamp <= $6
 	ORDER BY
 		timestamp DESC, stock_transaction_id DESC
@@ -352,6 +347,7 @@ SELECT running_total
 }
 
 func (r *StockTrxRepository) GetStockTransactions(ctx context.Context, exec db.PGExecutor, input *model.GetTransactionsInput) ([]model.StockTransactionEntry, error) {
+	// dbInput := input.ToDBModel()
 
 	// Base query
 	query := `
@@ -360,11 +356,16 @@ WITH matched_tx_ids AS (
 	FROM stock_transaction_entry ste
 	JOIN stock_transaction st ON st.stock_transaction_id = ste.stock_transaction_id
 	WHERE
-		($1::text IS NULL OR ste.account = $1::text) AND
-		($2::text IS NULL OR ste.stock_code = $2::text) AND
-		($3::text IS NULL OR ste.location = $3::text) AND
-		($4::text IS NULL OR ste.bin = $4::text) AND
-		($5::text IS NULL OR ste.lot_number = $5::text) AND
+		($1 = '' OR ste.account = $1)
+		AND 
+		($2 = '' OR ste.stock_code = $2)
+		AND 
+		($3 = '' OR ste.location = $3)
+		AND 
+		($4 = '' OR ste.bin = $4)
+		AND 
+		($5 = '' OR ste.lot_number = $5)
+		AND
 		($6::timestamp IS NULL OR st.timestamp <= $6::timestamp)
 )
 
@@ -438,6 +439,7 @@ LIMIT $7 OFFSET $8
 			&st.Timestamp,               // 12
 			&st.StockTransactionID,
 		)
+
 		if err != nil {
 			return nil, err
 		}

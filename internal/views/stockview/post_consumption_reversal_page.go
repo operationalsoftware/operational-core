@@ -4,7 +4,6 @@ import (
 	"app/internal/components"
 	"app/pkg/reqcontext"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/shopspring/decimal"
@@ -19,7 +18,7 @@ type PostConsumptionReversalPageProps struct {
 	StockCode       string
 	Location        string
 	Bin             string
-	LotNumber       pgtype.Text
+	LotNumber       string
 	Qty             decimal.Decimal
 	TransactionNote string
 }

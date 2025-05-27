@@ -67,6 +67,7 @@ func (s *StockTrxService) GetStockLevels(
 ) ([]model.StockLevel, error) {
 
 	levels, err := s.stockTrxRepository.GetStockLevels(ctx, s.db, input)
+
 	if err != nil {
 		return nil, err
 	}

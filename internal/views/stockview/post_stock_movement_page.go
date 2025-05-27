@@ -2,9 +2,9 @@ package stockview
 
 import (
 	"app/internal/components"
+	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/shopspring/decimal"
@@ -14,11 +14,11 @@ type PostStockMovementPageProps struct {
 	Ctx         reqcontext.ReqContext
 	SuccessText string
 	ErrorText   string
-	ReturnTo    pgtype.Text
+	ReturnTo    *string
 
 	TransactionType string
 	StockCode       string
-	LotNumber       pgtype.Text
+	LotNumber       string
 	Qty             decimal.Decimal
 	FromLocation    string
 	FromBin         string
@@ -55,7 +55,7 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 				h.Input(
 					h.Type("text"),
 					h.Name("LotNumber"),
-					h.Value(p.LotNumber.String),
+					h.Value(p.LotNumber),
 					h.Placeholder("Enter lot number"),
 					h.AutoComplete("off"),
 				),
@@ -148,11 +148,11 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 
 		// hidden input to store returnTo
 		g.If(
-			p.ReturnTo.Valid,
+			p.ReturnTo != nil,
 			h.Input(
 				h.Type("hidden"),
 				h.Name("ReturnTo"),
-				h.Value(p.ReturnTo.String),
+				h.Value(nilsafe.Str(p.ReturnTo)),
 			),
 		),
 

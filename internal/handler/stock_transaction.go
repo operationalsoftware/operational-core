@@ -5,15 +5,14 @@ import (
 	"app/internal/service"
 	"app/internal/views/stockview"
 	"app/pkg/appurl"
+	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/shopspring/decimal"
 )
 
@@ -25,37 +24,45 @@ func NewStockTrxHandler(stockTrxService service.StockTrxService) *StockTrxHandle
 	return &StockTrxHandler{stockTrxService: stockTrxService}
 }
 
-type transactionTableUrlVals struct {
-	Account      pgtype.Text
-	StockCode    pgtype.Text
-	Location     pgtype.Text
-	Bin          pgtype.Text
-	LotNumber    pgtype.Text
-	LTETimestamp pgtype.Timestamptz
-	Page         int
-	PageSize     int
+func normalise(uv *model.GetTransactionsInput) {
+	uv.StockCode = strings.ToUpper(strings.TrimSpace(uv.StockCode))
+
+	uv.Location = strings.ToUpper(strings.TrimSpace(uv.Location))
+
+	uv.Bin = strings.ToUpper(strings.TrimSpace(uv.Bin))
+
+	uv.LotNumber = strings.ToUpper(strings.TrimSpace(uv.LotNumber))
+
 }
 
-func (uv *transactionTableUrlVals) sanitize() {
-	uv.StockCode = pgtype.Text{
-		String: strings.ToUpper(strings.TrimSpace(uv.StockCode.String)),
-	}
-	uv.Location = pgtype.Text{
-		String: strings.ToUpper(strings.TrimSpace(uv.Location.String)),
-	}
-	uv.Bin = pgtype.Text{
-		String: strings.ToUpper(strings.TrimSpace(uv.Bin.String)),
-	}
-	uv.LotNumber = pgtype.Text{
-		String: strings.ToUpper(strings.TrimSpace(uv.LotNumber.String)),
-	}
-}
+// func normalise(uv *model.GetStockLevelsInput) {
+// 	if uv.StockCode != nil {
+// 		stCode := strings.ToUpper(strings.TrimSpace(*uv.StockCode))
+// 		uv.StockCode = &stCode
+// 	}
+
+// 	if uv.Location != nil {
+// 		loc := strings.ToUpper(strings.TrimSpace(*uv.Location))
+// 		uv.Location = &loc
+// 	}
+
+// 	if uv.Bin != nil {
+// 		bin := strings.ToUpper(strings.TrimSpace(*uv.Bin))
+// 		uv.Bin = &bin
+// 	}
+
+// 	if uv.LotNumber != nil {
+// 		lotNo := strings.ToUpper(strings.TrimSpace(*uv.LotNumber))
+// 		uv.LotNumber = &lotNo
+// 	}
+
+// }
 
 // Pages
 func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	var uv transactionTableUrlVals
+	var uv model.GetTransactionsInput
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
@@ -63,7 +70,7 @@ func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	uv.sanitize()
+	normalise(&uv)
 
 	if uv.Page == 0 {
 		uv.Page = 1
@@ -102,13 +109,25 @@ func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request
 	}).
 		Render(w)
 
-	return
+}
+
+func (h *StockTrxHandler) StockDetailsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	stockCode := r.PathValue("id")
+
+	_ = stockview.StockDetailPage(stockview.StockDetailPageProps{
+		Ctx:       ctx,
+		StockCode: stockCode,
+	}).
+		Render(w)
+
 }
 
 func (h *StockTrxHandler) StockTransactionsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	var uv transactionTableUrlVals
+	var uv model.GetTransactionsInput
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
@@ -116,7 +135,7 @@ func (h *StockTrxHandler) StockTransactionsPage(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	uv.sanitize()
+	normalise(&uv)
 
 	if uv.Page == 0 {
 		uv.Page = 1
@@ -155,7 +174,6 @@ func (h *StockTrxHandler) StockTransactionsPage(w http.ResponseWriter, r *http.R
 		Total:             len(stockTransactions),
 	}).Render(w)
 
-	return
 }
 
 func (h *StockTrxHandler) PostStockMovementPage(w http.ResponseWriter, r *http.Request) {
@@ -174,13 +192,13 @@ func (h *StockTrxHandler) PostStockMovementPage(w http.ResponseWriter, r *http.R
 
 	type postMovementUrlValues struct {
 		StockCode    string
-		LotNumber    pgtype.Text
+		LotNumber    string
 		Qty          decimal.Decimal
 		FromLocation string
 		FromBin      string
 		ToLocation   string
 		ToBin        string
-		ReturnTo     pgtype.Text
+		ReturnTo     *string
 	}
 
 	var uv postMovementUrlValues
@@ -206,7 +224,6 @@ func (h *StockTrxHandler) PostStockMovementPage(w http.ResponseWriter, r *http.R
 		},
 	).Render(w)
 
-	return
 }
 
 func (h *StockTrxHandler) PostProductionPage(w http.ResponseWriter, r *http.Request) {
@@ -308,7 +325,7 @@ func (h *StockTrxHandler) PostStockTransactions(w http.ResponseWriter, r *http.R
 
 	stockTrxs := model.PostStockTransactionsInput{
 		{
-			Timestamp:     time.Now(),
+			Timestamp:     nil,
 			StockCode:     "STK001",
 			Qty:           decimal.NewFromFloat32(12.0),
 			FromAccount:   "ACC001",
@@ -338,10 +355,6 @@ func (h *StockTrxHandler) PostStockTransactions(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Stock Transaction created successfully"})
 
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }
 
 func (h *StockTrxHandler) GetStockTransactions(w http.ResponseWriter, r *http.Request) {
@@ -377,11 +390,8 @@ func (h *StockTrxHandler) GetStockTransactions(w http.ResponseWriter, r *http.Re
 }
 
 func (h *StockTrxHandler) GetStockLevels(w http.ResponseWriter, r *http.Request) {
-	// ctx := reqcontext.GetContext(r)
 
-	input := &model.GetStockLevelsInput{
-		// Account: pgtype.Text{String: "ACC001", Valid: true},
-	}
+	input := &model.GetStockLevelsInput{}
 
 	levels, err := h.stockTrxService.GetStockLevels(r.Context(), input)
 	if err != nil {
@@ -440,7 +450,6 @@ func (h *StockTrxHandler) PostStockMovement(w http.ResponseWriter, r *http.Reque
 				TransactionType: transactionType,
 			},
 		).Render(w)
-		return
 	}
 
 	if fd.Qty.LessThanOrEqual(decimal.Zero) {
@@ -470,11 +479,11 @@ func (h *StockTrxHandler) PostStockMovement(w http.ResponseWriter, r *http.Reque
 			FromAccount:          "STOCK",
 			FromLocation:         fd.FromLocation,
 			FromBin:              fd.FromBin,
-			FromLotNumber:        &fd.LotNumber.String,
+			FromLotNumber:        &fd.LotNumber,
 			ToAccount:            "STOCK",
 			ToLocation:           fd.ToLocation,
 			ToBin:                fd.ToBin,
-			ToLotNumber:          &fd.LotNumber.String,
+			ToLotNumber:          &fd.LotNumber,
 			StockTransactionNote: fd.TransactionNote,
 		}},
 		ctx.User.UserID,
@@ -485,8 +494,8 @@ func (h *StockTrxHandler) PostStockMovement(w http.ResponseWriter, r *http.Reque
 	}
 
 	// success if we got here
-	if fd.ReturnTo.Valid {
-		http.Redirect(w, r, fd.ReturnTo.String, http.StatusFound)
+	if fd.ReturnTo != nil {
+		http.Redirect(w, r, nilsafe.Str(fd.ReturnTo), http.StatusFound)
 	}
 
 	_ = stockview.PostStockMovementPage(
@@ -564,11 +573,11 @@ func (h *StockTrxHandler) PostProduction(w http.ResponseWriter, r *http.Request)
 			FromAccount:          "PRODUCTION",
 			FromLocation:         fd.Location,
 			FromBin:              fd.Bin,
-			FromLotNumber:        &fd.LotNumber.String,
+			FromLotNumber:        &fd.LotNumber,
 			ToAccount:            "STOCK",
 			ToLocation:           fd.Location,
 			ToBin:                fd.Bin,
-			ToLotNumber:          &fd.LotNumber.String,
+			ToLotNumber:          &fd.LotNumber,
 			StockTransactionNote: fd.TransactionNote,
 		}},
 		ctx.User.UserID,
@@ -656,11 +665,11 @@ func (h *StockTrxHandler) PostProductionReversal(w http.ResponseWriter, r *http.
 			FromAccount:          "STOCK",
 			FromLocation:         fd.Location,
 			FromBin:              fd.Bin,
-			FromLotNumber:        &fd.LotNumber.String,
+			FromLotNumber:        &fd.LotNumber,
 			ToAccount:            "PRODUCTION",
 			ToLocation:           fd.Location,
 			ToBin:                fd.Bin,
-			ToLotNumber:          &fd.LotNumber.String,
+			ToLotNumber:          &fd.LotNumber,
 			StockTransactionNote: fd.TransactionNote,
 		}},
 		ctx.User.UserID,
@@ -747,11 +756,11 @@ func (h *StockTrxHandler) PostConsumption(w http.ResponseWriter, r *http.Request
 			FromAccount:          "STOCK",
 			FromLocation:         fd.Location,
 			FromBin:              fd.Bin,
-			FromLotNumber:        &fd.LotNumber.String,
+			FromLotNumber:        &fd.LotNumber,
 			ToAccount:            "CONSUMED",
 			ToLocation:           fd.Location,
 			ToBin:                fd.Bin,
-			ToLotNumber:          &fd.LotNumber.String,
+			ToLotNumber:          &fd.LotNumber,
 			StockTransactionNote: fd.TransactionNote,
 		}},
 		ctx.User.UserID,
@@ -838,11 +847,11 @@ func (h *StockTrxHandler) PostConsumptionReversal(w http.ResponseWriter, r *http
 			FromAccount:          "CONSUMED",
 			FromLocation:         fd.Location,
 			FromBin:              fd.Bin,
-			FromLotNumber:        &fd.LotNumber.String,
+			FromLotNumber:        &fd.LotNumber,
 			ToAccount:            "STOCK",
 			ToLocation:           fd.Location,
 			ToBin:                fd.Bin,
-			ToLotNumber:          &fd.LotNumber.String,
+			ToLotNumber:          &fd.LotNumber,
 			StockTransactionNote: fd.TransactionNote,
 		}},
 		ctx.User.UserID,
@@ -867,7 +876,7 @@ type postFormData struct {
 	StockCode       string
 	Location        string
 	Bin             string
-	LotNumber       pgtype.Text
+	LotNumber       string
 	Qty             decimal.Decimal
 	TransactionNote string
 }
@@ -877,14 +886,14 @@ type postFormData struct {
 type postStockMovementFormData struct {
 	StockCode       string
 	Account         string
-	LotNumber       pgtype.Text
+	LotNumber       string
 	Qty             decimal.Decimal
 	FromLocation    string
 	FromBin         string
 	ToLocation      string
 	ToBin           string
 	TransactionNote string
-	ReturnTo        pgtype.Text
+	ReturnTo        *string
 }
 
 func mouldPostStockMovementFormData(fd postStockMovementFormData) postStockMovementFormData {
@@ -897,7 +906,7 @@ func mouldPostStockMovementFormData(fd postStockMovementFormData) postStockMovem
 	fd.FromBin = strings.TrimSpace(fd.FromBin)
 	fd.ToLocation = strings.TrimSpace(fd.ToLocation)
 	fd.ToBin = strings.TrimSpace(fd.ToBin)
-	fd.LotNumber.String = strings.TrimSpace(fd.LotNumber.String)
+	fd.LotNumber = strings.TrimSpace(fd.LotNumber)
 	fd.TransactionNote = strings.TrimSpace(fd.TransactionNote)
 
 	return fd
@@ -925,7 +934,7 @@ func mouldPostProductionReversalFormData(fd postFormData) postFormData {
 	// trim
 	fd.Location = strings.TrimSpace(fd.Location)
 	fd.Bin = strings.TrimSpace(fd.Bin)
-	fd.LotNumber.String = strings.TrimSpace(fd.LotNumber.String)
+	fd.LotNumber = strings.TrimSpace(fd.LotNumber)
 
 	return fd
 }
@@ -939,7 +948,7 @@ func mouldPostConsumptionFormData(fd postFormData) postFormData {
 	// trim
 	fd.Location = strings.TrimSpace(fd.Location)
 	fd.Bin = strings.TrimSpace(fd.Bin)
-	fd.LotNumber.String = strings.TrimSpace(fd.LotNumber.String)
+	fd.LotNumber = strings.TrimSpace(fd.LotNumber)
 
 	return fd
 }
@@ -953,7 +962,7 @@ func mouldPostConsumptionReversalFormData(fd postFormData) postFormData {
 	// trim
 	fd.Location = strings.TrimSpace(fd.Location)
 	fd.Bin = strings.TrimSpace(fd.Bin)
-	fd.LotNumber.String = strings.TrimSpace(fd.LotNumber.String)
+	fd.LotNumber = strings.TrimSpace(fd.LotNumber)
 
 	return fd
 }

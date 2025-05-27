@@ -18,6 +18,9 @@ func addStockTrxRoutes(
 	// Stock transactions page
 	mux.HandleFunc("GET /stock/transactions", stockTrxHandler.StockTransactionsPage)
 
+	// Stock details page
+	mux.HandleFunc("GET /stock/{id}", stockTrxHandler.StockDetailsPage)
+
 	// Post transaction pages
 	mux.HandleFunc("GET /stock/post-transaction", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/stock/post-transaction/stock-movement", http.StatusSeeOther)

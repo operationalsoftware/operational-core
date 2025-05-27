@@ -4,7 +4,6 @@ import (
 	"app/internal/components"
 	"app/pkg/reqcontext"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/shopspring/decimal"
@@ -19,7 +18,7 @@ type PostGenericPageProps struct {
 	StockCode       string
 	Location        string
 	Bin             string
-	LotNumber       pgtype.Text
+	LotNumber       string
 	Qty             decimal.Decimal
 	TransactionNote string
 
@@ -125,7 +124,7 @@ func formPartialStockCodeLocBinLot(p *PostGenericPageProps) g.Node {
 				h.Input(
 					h.Type("text"),
 					h.Name("LotNumber"),
-					h.Value(p.LotNumber.String),
+					h.Value(p.LotNumber),
 					h.Placeholder("Enter lot number"),
 					h.AutoComplete("off"),
 				),

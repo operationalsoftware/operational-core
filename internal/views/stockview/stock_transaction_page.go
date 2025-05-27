@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -22,12 +21,12 @@ var TransactionsPageDefaultPageSize = 200
 type StockTransactionsPageProps struct {
 	Ctx               reqcontext.ReqContext
 	StockTransactions *[]model.StockTransactionEntry
-	Account           pgtype.Text
-	StockCode         pgtype.Text
-	Location          pgtype.Text
-	Bin               pgtype.Text
-	LotNumber         pgtype.Text
-	LTETimestamp      pgtype.Timestamptz
+	Account           string
+	StockCode         string
+	Location          string
+	Bin               string
+	LotNumber         string
+	LTETimestamp      *time.Time
 	Page              int
 	PageSize          int
 	Total             int
@@ -124,7 +123,7 @@ func transactionsTable(p *transactionsTableProps) g.Node {
 
 	for _, st := range p.stockTransactions {
 
-		lotNumber := st.LotNumber.String
+		lotNumber := st.LotNumber
 		if lotNumber == "" {
 			lotNumber = "\u2013"
 		}
@@ -134,14 +133,12 @@ func transactionsTable(p *transactionsTableProps) g.Node {
 		trxParams.Add("StockCode", st.StockCode)
 		trxParams.Add("Location", st.Location)
 		trxParams.Add("Bin", st.Bin)
-		if st.LotNumber.Valid {
-			trxParams.Add("LotNumber", st.LotNumber.String)
-		}
+		trxParams.Add("LotNumber", st.LotNumber)
 		trxParams.Add("LTETimestamp", st.Timestamp.Format("2006-01-02T15:04"))
 		transactionsLink := fmt.Sprintf("/stock/transactions?%s", trxParams.Encode())
 
 		rowCells := []components.TableCell{{
-			Contents: g.Text(fmt.Sprintf("%d", st.StockTransactionID)),
+			Contents: g.Text(fmt.Sprintf("%d", st.StockTransactionEntryID)),
 		}, {
 			Contents: g.Text(st.Account),
 		}, {

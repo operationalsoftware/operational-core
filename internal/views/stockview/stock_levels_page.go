@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -22,12 +21,12 @@ var HomePageDefaultPageSize = 200
 type StockLevelsPageProps struct {
 	Ctx          reqcontext.ReqContext
 	StockLevels  *[]model.StockLevel
-	Account      pgtype.Text
-	StockCode    pgtype.Text
-	Location     pgtype.Text
-	Bin          pgtype.Text
-	LotNumber    pgtype.Text
-	LTETimestamp pgtype.Timestamptz
+	Account      string
+	StockCode    string
+	Location     string
+	Bin          string
+	LotNumber    string
+	LTETimestamp *time.Time
 	Page         int
 	PageSize     int
 	Total        int
@@ -82,17 +81,18 @@ func StockLevelsPage(p StockLevelsPageProps) g.Node {
 }
 
 func filters(
-	account, stockCode, location, bin, lotNumber pgtype.Text,
-	lteTimestamp pgtype.Timestamptz,
+	account, stockCode, location, bin, lotNumber string,
+	lteTimestamp *time.Time,
 ) g.Node {
 
 	accountStr := "STOCK" // Default
-	if account.Valid {
-		accountStr = account.String
+	if account != "" {
+		accountStr = account
 	}
+
 	lteTimestampStr := ""
-	if lteTimestamp.Valid {
-		lteTimestampStr = lteTimestamp.Time.Format("2006-01-02T15:04")
+	if lteTimestamp != nil {
+		lteTimestampStr = lteTimestamp.Format("2006-01-02T15:04")
 	}
 
 	return h.Div(
@@ -120,7 +120,7 @@ func filters(
 			h.Input(
 				h.Class("lg"),
 				h.Name("StockCode"),
-				h.Value(stockCode.String),
+				h.Value(stockCode),
 				h.AutoComplete("off"),
 				h.Placeholder("Enter stock code"),
 			),
@@ -132,7 +132,7 @@ func filters(
 			h.Input(
 				h.Class("lg"),
 				h.Name("Location"),
-				h.Value(location.String),
+				h.Value(location),
 				h.AutoComplete("off"),
 				h.Placeholder("Enter location"),
 			),
@@ -144,7 +144,7 @@ func filters(
 			h.Input(
 				h.Class("lg"),
 				h.Name("Bin"),
-				h.Value(bin.String),
+				h.Value(bin),
 				h.AutoComplete("off"),
 				h.Placeholder("Enter bin"),
 			),
@@ -156,7 +156,7 @@ func filters(
 			h.Input(
 				h.Class("lg"),
 				h.Name("LotNumber"),
-				h.Value(lotNumber.String),
+				h.Value(lotNumber),
 				h.AutoComplete("off"),
 				h.Placeholder("Enter lot number"),
 			),
@@ -220,7 +220,7 @@ func stockLevelsTable(p *stockLevelsTableProps) g.Node {
 
 	for _, sl := range p.stockLevels {
 
-		lotNumber := sl.LotNumber.String
+		lotNumber := sl.LotNumber
 		if lotNumber == "" {
 			lotNumber = "\u2013"
 		}
@@ -230,9 +230,7 @@ func stockLevelsTable(p *stockLevelsTableProps) g.Node {
 		trxParams.Add("StockCode", sl.StockCode)
 		trxParams.Add("Location", sl.Location)
 		trxParams.Add("Bin", sl.Bin)
-		if sl.LotNumber.Valid {
-			trxParams.Add("LotNumber", sl.LotNumber.String)
-		}
+		trxParams.Add("LotNumber", sl.LotNumber)
 		trxParams.Add("LTETimestamp", sl.Timestamp.Format("2006-01-02T15:04"))
 		transactionsLink := fmt.Sprintf("/stock/transactions?%s", trxParams.Encode())
 
