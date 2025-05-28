@@ -45,13 +45,13 @@ WITH RankedStock AS (
 			stock_transaction st ON ste.stock_transaction_id = st.stock_transaction_id
 	WHERE
 		($1 = '' OR ste.account = $1)
-		AND 
+		AND
 		($2 = '' OR ste.stock_code = $2)
-		AND 
+		AND
 		($3 = '' OR ste.location = $3)
-		AND 
+		AND
 		($4 = '' OR ste.bin = $4)
-		AND 
+		AND
 		($5 = '' OR ste.lot_number = $5)
 		AND
 		($6::timestamp IS NULL OR st.timestamp <= $6::timestamp)  -- If LTETimestamp provided, only match up until it
@@ -67,7 +67,7 @@ SELECT
 	timestamp
 FROM
 	RankedStock
-WHERE 
+WHERE
 	rn = 1
 	AND
 	stock_level <> 0
@@ -117,10 +117,6 @@ LIMIT $7 OFFSET $8
 		if err != nil {
 			return nil, err
 		}
-
-		// temp do some rounding of Decimals to correct floating point representation errors
-		// round to 8 d.p. to align with SyteLine
-		sl.StockLevel = sl.StockLevel.Round(8)
 
 		results = append(results, sl)
 	}
@@ -246,8 +242,6 @@ SELECT
 	`
 
 	for _, t := range *transactions {
-		// Fetch previous running_total
-
 		// IMPORTANT: posting from and to the same Account, Location, Bin and
 		// LotNumber is not allowed as it is not compatible with how running totals
 		// are calculated
@@ -255,7 +249,7 @@ SELECT
 			t.FromLocation == t.ToLocation &&
 			t.FromBin == t.ToBin &&
 			t.FromLotNumber == t.ToLotNumber {
-			return fmt.Errorf("Account, Location, Bin and LotNumber cannot be the same for 'From' and 'To'")
+			return fmt.Errorf("account, location, bin and lot number cannot be the same for 'From' and 'To'")
 		}
 
 		if t.Qty.Equal(decimal.Zero) {
@@ -291,7 +285,6 @@ SELECT
 }
 
 func (r *StockTransactionRepository) GetStockTransactions(ctx context.Context, exec db.PGExecutor, input *model.GetTransactionsInput) ([]model.StockTransactionEntry, error) {
-	// dbInput := input.ToDBModel()
 
 	// Base query
 	query := `
@@ -301,19 +294,19 @@ WITH matched_tx_ids AS (
 	JOIN stock_transaction st ON st.stock_transaction_id = ste.stock_transaction_id
 	WHERE
 		($1 = '' OR ste.account = $1)
-		AND 
+		AND
 		($2 = '' OR ste.stock_code = $2)
-		AND 
+		AND
 		($3 = '' OR ste.location = $3)
-		AND 
+		AND
 		($4 = '' OR ste.bin = $4)
-		AND 
+		AND
 		($5 = '' OR ste.lot_number = $5)
 		AND
 		($6::timestamp IS NULL OR st.timestamp <= $6::timestamp)
 )
 
-SELECT 
+SELECT
 	ste.stock_transaction_entry_id,
 	st.transaction_type,
 	ste.account,
@@ -369,29 +362,24 @@ LIMIT $7 OFFSET $8
 	for rows.Next() {
 		var st model.StockTransactionEntry
 		err := rows.Scan(
-			&st.StockTransactionEntryID, // 1
-			&st.TransactionType,         // 2
-			&st.Account,                 // 3
-			&st.StockCode,               // 4
-			&st.Location,                // 5
-			&st.Bin,                     // 6
-			&st.Quantity,                // 7
-			&st.LotNumber,               // 8
-			&st.RunningTotal,            // 9
-			&st.TransactionBy,           // 10
-			&st.TransactionByUsername,   // 11
-			&st.Timestamp,               // 12
+			&st.StockTransactionEntryID,
+			&st.TransactionType,
+			&st.Account,
+			&st.StockCode,
+			&st.Location,
+			&st.Bin,
+			&st.Quantity,
+			&st.LotNumber,
+			&st.RunningTotal,
+			&st.TransactionBy,
+			&st.TransactionByUsername,
+			&st.Timestamp,
 			&st.StockTransactionID,
 		)
 
 		if err != nil {
 			return nil, err
 		}
-
-		// temp do some rounding of Decimals to correct floating point representation errors
-		// round to 8 d.p. to align with SyteLine
-		st.Quantity = st.Quantity.Round(8)
-		st.RunningTotal = st.RunningTotal.Round(8)
 
 		transactions = append(transactions, st)
 	}

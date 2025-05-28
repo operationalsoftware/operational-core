@@ -127,8 +127,8 @@ CREATE TABLE app_user (
 			CREATE TABLE stock_transaction (
 				stock_transaction_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 				transaction_type TEXT NOT NULL,
-				transaction_by INT REFERENCES app_user(user_id),
-				transaction_note TEXT,
+				transaction_by INT NOT NULL REFERENCES app_user(user_id),
+				transaction_note NOT NULL TEXT,
 				timestamp TIMESTAMPTZ NOT NULL
 			);
 		`)
@@ -146,7 +146,7 @@ CREATE TABLE app_user (
 				lot_number TEXT NOT NULL,
 				quantity NUMERIC NOT NULL,
 				running_total NUMERIC NOT NULL,
-				stock_transaction_id INT REFERENCES stock_transaction(stock_transaction_id)
+				stock_transaction_id INT NOT NULL REFERENCES stock_transaction(stock_transaction_id)
 			);
 		`)
 	if err != nil {

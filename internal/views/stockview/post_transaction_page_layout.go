@@ -96,7 +96,7 @@ func postTransactionPageLayout(p *postTransactionPageLayoutProps) g.Node {
 		},
 		AppendHead: []g.Node{
 			components.InlineStyle(
-				"/internal/views/stockview/post-transactions.css",
+				"/internal/views/stockview/post_transactions.css",
 			),
 		},
 	})

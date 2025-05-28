@@ -14,7 +14,6 @@ type PostGenericPageProps struct {
 	SuccessText string
 	ErrorText   string
 
-	TransactionType string
 	StockCode       string
 	Location        string
 	Bin             string
@@ -60,7 +59,7 @@ func PostProductionPage(p *PostGenericPageProps) g.Node {
 		),
 	})
 	return postTransactionPageLayout(&postTransactionPageLayoutProps{
-		transactionType: p.TransactionType,
+		transactionType: "Production",
 		content:         content,
 		ctx:             p.Ctx,
 		successText:     p.SuccessText,

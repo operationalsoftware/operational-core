@@ -43,7 +43,7 @@ func StockLevelsPage(p StockLevelsPageProps) g.Node {
 			h.Class("stock-nav"),
 			h.A(h.Href("/stock/transactions"), g.Text("See all transactions")),
 			g.If(
-				perms.SupplyChain.Admin || perms.Production.Admin || true,
+				perms.SupplyChain.Admin,
 				h.A(h.Href("/stock/post-transaction/stock-movement"), g.Text("Post transaction")),
 			),
 		),
@@ -75,7 +75,7 @@ func StockLevelsPage(p StockLevelsPageProps) g.Node {
 			},
 		},
 		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/stockview/index.css"),
+			components.InlineStyle("/internal/views/stockview/stock_table.css"),
 		},
 	})
 }

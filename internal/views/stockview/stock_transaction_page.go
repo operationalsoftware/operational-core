@@ -42,7 +42,7 @@ func StockTransactionsPage(p *StockTransactionsPageProps) g.Node {
 		h.Nav(
 			h.Class("stock-nav"),
 			g.If(
-				perms.SupplyChain.Admin || perms.Production.Admin || true,
+				perms.SupplyChain.Admin,
 				h.A(h.Href("/stock/post-transaction/stock-movement"), g.Text("Post transaction")),
 			),
 		),
@@ -77,7 +77,7 @@ func StockTransactionsPage(p *StockTransactionsPageProps) g.Node {
 			},
 		},
 		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/stockview/index.css"),
+			components.InlineStyle("/internal/views/stockview/stock_table.css"),
 		},
 	})
 }

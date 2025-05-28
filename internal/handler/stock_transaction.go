@@ -35,7 +35,7 @@ type stockInputURLVals struct {
 	PageSize     int
 }
 
-func (uv *stockInputURLVals) normaliseStockFilter() {
+func (uv *stockInputURLVals) normalise() {
 
 	if uv.Account == "" {
 		uv.Account = "STOCK" // Default
@@ -69,7 +69,7 @@ func (h *StockTransactionHandler) StockLevelsPage(w http.ResponseWriter, r *http
 		return
 	}
 
-	uv.normaliseStockFilter()
+	uv.normalise()
 
 	stockLevels, err := h.stockTransactionService.GetStockLevels(r.Context(), &model.GetStockLevelsInput{
 		Account:      uv.Account,
@@ -128,7 +128,7 @@ func (h *StockTransactionHandler) StockTransactionsPage(w http.ResponseWriter, r
 		return
 	}
 
-	uv.normaliseStockFilter()
+	uv.normalise()
 
 	stockTransactions, err := h.stockTransactionService.GetStockTransactions(r.Context(), &model.GetTransactionsInput{
 		Account:      uv.Account,
@@ -173,8 +173,6 @@ func (h *StockTransactionHandler) PostStockMovementPage(w http.ResponseWriter, r
 		return
 	}
 
-	transactionType := "Stock Movement"
-
 	type postMovementUrlValues struct {
 		StockCode    string
 		LotNumber    string
@@ -196,16 +194,15 @@ func (h *StockTransactionHandler) PostStockMovementPage(w http.ResponseWriter, r
 
 	_ = stockview.PostStockMovementPage(
 		&stockview.PostStockMovementPageProps{
-			Ctx:             ctx,
-			StockCode:       uv.StockCode,
-			LotNumber:       uv.LotNumber,
-			Qty:             uv.Qty,
-			FromLocation:    uv.FromLocation,
-			FromBin:         uv.FromBin,
-			ToLocation:      uv.ToLocation,
-			ToBin:           uv.ToBin,
-			ReturnTo:        uv.ReturnTo,
-			TransactionType: transactionType,
+			Ctx:          ctx,
+			StockCode:    uv.StockCode,
+			LotNumber:    uv.LotNumber,
+			Qty:          uv.Qty,
+			FromLocation: uv.FromLocation,
+			FromBin:      uv.FromBin,
+			ToLocation:   uv.ToLocation,
+			ToBin:        uv.ToBin,
+			ReturnTo:     uv.ReturnTo,
 		},
 	).Render(w)
 
@@ -222,12 +219,9 @@ func (h *StockTransactionHandler) PostProductionPage(w http.ResponseWriter, r *h
 		return
 	}
 
-	transactionType := "Production"
-
 	_ = stockview.PostProductionPage(
 		&stockview.PostGenericPageProps{
-			Ctx:             ctx,
-			TransactionType: transactionType,
+			Ctx: ctx,
 		},
 	).Render(w)
 
@@ -244,12 +238,9 @@ func (h *StockTransactionHandler) PostProductionReversalPage(w http.ResponseWrit
 		return
 	}
 
-	transactionType := "Production Reversal"
-
 	_ = stockview.PostProductionReversalPage(
 		&stockview.PostGenericPageProps{
-			Ctx:             ctx,
-			TransactionType: transactionType,
+			Ctx: ctx,
 		},
 	).Render(w)
 
@@ -266,12 +257,9 @@ func (h *StockTransactionHandler) PostConsumptionPage(w http.ResponseWriter, r *
 		return
 	}
 
-	transactionType := "Consumption"
-
 	_ = stockview.PostConsumptionPage(
 		&stockview.PostGenericPageProps{
-			Ctx:             ctx,
-			TransactionType: transactionType,
+			Ctx: ctx,
 		},
 	).Render(w)
 
@@ -288,12 +276,9 @@ func (h *StockTransactionHandler) PostConsumptionReversalPage(w http.ResponseWri
 		return
 	}
 
-	transactionType := "Consumption Reversal"
-
 	_ = stockview.PostConsumptionReversalPage(
 		&stockview.PostGenericPageProps{
-			Ctx:             ctx,
-			TransactionType: transactionType,
+			Ctx: ctx,
 		},
 	).Render(w)
 
@@ -328,22 +313,19 @@ func (h *StockTransactionHandler) PostStockMovement(w http.ResponseWriter, r *ht
 
 	fd.normalise()
 
-	transactionType := "Stock Movement"
-
 	renderWithError := func(errorText string) {
 		_ = stockview.PostStockMovementPage(
 			&stockview.PostStockMovementPageProps{
-				Ctx:             ctx,
-				StockCode:       fd.StockCode,
-				LotNumber:       fd.LotNumber,
-				Qty:             fd.Qty,
-				FromLocation:    fd.FromLocation,
-				FromBin:         fd.FromBin,
-				ToLocation:      fd.ToLocation,
-				ToBin:           fd.ToBin,
-				ReturnTo:        fd.ReturnTo,
-				ErrorText:       errorText,
-				TransactionType: transactionType,
+				Ctx:          ctx,
+				StockCode:    fd.StockCode,
+				LotNumber:    fd.LotNumber,
+				Qty:          fd.Qty,
+				FromLocation: fd.FromLocation,
+				FromBin:      fd.FromBin,
+				ToLocation:   fd.ToLocation,
+				ToBin:        fd.ToBin,
+				ReturnTo:     fd.ReturnTo,
+				ErrorText:    errorText,
 			},
 		).Render(w)
 	}
@@ -380,9 +362,8 @@ func (h *StockTransactionHandler) PostStockMovement(w http.ResponseWriter, r *ht
 
 	_ = stockview.PostStockMovementPage(
 		&stockview.PostStockMovementPageProps{
-			Ctx:             ctx,
-			SuccessText:     "Successfully posted stock movement",
-			TransactionType: transactionType,
+			Ctx:         ctx,
+			SuccessText: "Successfully posted stock movement",
 		},
 	).Render(w)
 }
@@ -390,9 +371,8 @@ func (h *StockTransactionHandler) PostStockMovement(w http.ResponseWriter, r *ht
 func (h *StockTransactionHandler) PostProduction(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	transactionType := "Production"
-	// perms := ctx.User.Permissions
-	hasPermission := true
+	perms := ctx.User.Permissions
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -418,14 +398,13 @@ func (h *StockTransactionHandler) PostProduction(w http.ResponseWriter, r *http.
 	renderWithError := func(errorText string) {
 		_ = stockview.PostProductionPage(
 			&stockview.PostGenericPageProps{
-				Ctx:             ctx,
-				StockCode:       fd.StockCode,
-				Location:        fd.Location,
-				Bin:             fd.Bin,
-				LotNumber:       fd.LotNumber,
-				Qty:             fd.Qty,
-				ErrorText:       errorText,
-				TransactionType: transactionType,
+				Ctx:       ctx,
+				StockCode: fd.StockCode,
+				Location:  fd.Location,
+				Bin:       fd.Bin,
+				LotNumber: fd.LotNumber,
+				Qty:       fd.Qty,
+				ErrorText: errorText,
 			},
 		).Render(w)
 	}
@@ -456,9 +435,8 @@ func (h *StockTransactionHandler) PostProduction(w http.ResponseWriter, r *http.
 
 	_ = stockview.PostProductionPage(
 		&stockview.PostGenericPageProps{
-			Ctx:             ctx,
-			SuccessText:     "Production operation posted successfully",
-			TransactionType: transactionType,
+			Ctx:         ctx,
+			SuccessText: "Production operation posted successfully",
 		},
 	).Render(w)
 
@@ -467,10 +445,8 @@ func (h *StockTransactionHandler) PostProduction(w http.ResponseWriter, r *http.
 func (h *StockTransactionHandler) PostProductionReversal(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	transactionType := "Production Reversal"
-
-	// perms := ctx.User.Permissions
-	hasPermission := true
+	perms := ctx.User.Permissions
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -496,14 +472,13 @@ func (h *StockTransactionHandler) PostProductionReversal(w http.ResponseWriter, 
 	renderWithError := func(errorText string) {
 		_ = stockview.PostProductionReversalPage(
 			&stockview.PostGenericPageProps{
-				Ctx:             ctx,
-				StockCode:       fd.StockCode,
-				Location:        fd.Location,
-				Bin:             fd.Bin,
-				LotNumber:       fd.LotNumber,
-				Qty:             fd.Qty,
-				ErrorText:       errorText,
-				TransactionType: transactionType,
+				Ctx:       ctx,
+				StockCode: fd.StockCode,
+				Location:  fd.Location,
+				Bin:       fd.Bin,
+				LotNumber: fd.LotNumber,
+				Qty:       fd.Qty,
+				ErrorText: errorText,
 			},
 		).Render(w)
 	}
@@ -534,9 +509,8 @@ func (h *StockTransactionHandler) PostProductionReversal(w http.ResponseWriter, 
 
 	_ = stockview.PostProductionReversalPage(
 		&stockview.PostGenericPageProps{
-			Ctx:             ctx,
-			SuccessText:     "Production reversal operation posted successfully",
-			TransactionType: transactionType,
+			Ctx:         ctx,
+			SuccessText: "Production reversal operation posted successfully",
 		},
 	).Render(w)
 }
@@ -544,10 +518,8 @@ func (h *StockTransactionHandler) PostProductionReversal(w http.ResponseWriter, 
 func (h *StockTransactionHandler) PostConsumption(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	transactionType := "Consumption"
-
-	// perms := ctx.User.Permissions
-	hasPermission := true
+	perms := ctx.User.Permissions
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -573,14 +545,13 @@ func (h *StockTransactionHandler) PostConsumption(w http.ResponseWriter, r *http
 	renderWithError := func(errorText string) {
 		_ = stockview.PostConsumptionPage(
 			&stockview.PostGenericPageProps{
-				Ctx:             ctx,
-				StockCode:       fd.StockCode,
-				Location:        fd.Location,
-				Bin:             fd.Bin,
-				LotNumber:       fd.LotNumber,
-				Qty:             fd.Qty,
-				ErrorText:       errorText,
-				TransactionType: transactionType,
+				Ctx:       ctx,
+				StockCode: fd.StockCode,
+				Location:  fd.Location,
+				Bin:       fd.Bin,
+				LotNumber: fd.LotNumber,
+				Qty:       fd.Qty,
+				ErrorText: errorText,
 			},
 		).Render(w)
 	}
@@ -611,9 +582,8 @@ func (h *StockTransactionHandler) PostConsumption(w http.ResponseWriter, r *http
 
 	_ = stockview.PostConsumptionPage(
 		&stockview.PostGenericPageProps{
-			Ctx:             ctx,
-			SuccessText:     "Consumption operation posted successfully",
-			TransactionType: transactionType,
+			Ctx:         ctx,
+			SuccessText: "Consumption operation posted successfully",
 		},
 	).Render(w)
 }
@@ -621,10 +591,8 @@ func (h *StockTransactionHandler) PostConsumption(w http.ResponseWriter, r *http
 func (h *StockTransactionHandler) PostConsumptionReversal(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	transactionType := "Consumption Reversal"
-
-	// perms := ctx.User.Permissions
-	hasPermission := true
+	perms := ctx.User.Permissions
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -650,14 +618,13 @@ func (h *StockTransactionHandler) PostConsumptionReversal(w http.ResponseWriter,
 	renderWithError := func(errorText string) {
 		_ = stockview.PostConsumptionReversalPage(
 			&stockview.PostGenericPageProps{
-				Ctx:             ctx,
-				StockCode:       fd.StockCode,
-				Location:        fd.Location,
-				Bin:             fd.Bin,
-				LotNumber:       fd.LotNumber,
-				Qty:             fd.Qty,
-				ErrorText:       errorText,
-				TransactionType: transactionType,
+				Ctx:       ctx,
+				StockCode: fd.StockCode,
+				Location:  fd.Location,
+				Bin:       fd.Bin,
+				LotNumber: fd.LotNumber,
+				Qty:       fd.Qty,
+				ErrorText: errorText,
 			},
 		).Render(w)
 	}
@@ -688,14 +655,12 @@ func (h *StockTransactionHandler) PostConsumptionReversal(w http.ResponseWriter,
 
 	_ = stockview.PostConsumptionReversalPage(
 		&stockview.PostGenericPageProps{
-			Ctx:             ctx,
-			SuccessText:     "Consumption reversal operation posted successfully",
-			TransactionType: transactionType,
+			Ctx:         ctx,
+			SuccessText: "Consumption reversal operation posted successfully",
 		},
 	).Render(w)
 }
 
-// FORM DATA
 type postGenericTransactionFormData struct {
 	StockCode       string
 	Location        string
@@ -705,7 +670,6 @@ type postGenericTransactionFormData struct {
 	TransactionNote string
 }
 
-// Stock movement
 type postStockMovementFormData struct {
 	StockCode       string
 	Account         string
@@ -753,7 +717,6 @@ func (fd *postStockMovementFormData) validate() string {
 	return ""
 }
 
-// Production
 func (fd *postGenericTransactionFormData) normalise() {
 
 	// trim and uppercase

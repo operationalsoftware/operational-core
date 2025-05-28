@@ -37,7 +37,7 @@ func StockDetailPage(p StockDetailPageProps) g.Node {
 			},
 		},
 		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/stockview/index.css"),
+			components.InlineStyle("/internal/views/stockview/stock_table.css"),
 		},
 	})
 }

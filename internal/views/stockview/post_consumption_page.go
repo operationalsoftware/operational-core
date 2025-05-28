@@ -14,7 +14,6 @@ type PostConsumptionPageProps struct {
 	SuccessText string
 	ErrorText   string
 
-	TransactionType string
 	StockCode       string
 	Location        string
 	Bin             string
@@ -55,7 +54,7 @@ func PostConsumptionPage(p *PostGenericPageProps) g.Node {
 		),
 	})
 	return postTransactionPageLayout(&postTransactionPageLayoutProps{
-		transactionType: p.TransactionType,
+		transactionType: "Consumption",
 		content:         content,
 		ctx:             p.Ctx,
 		successText:     p.SuccessText,

@@ -16,7 +16,6 @@ type PostStockMovementPageProps struct {
 	ErrorText   string
 	ReturnTo    *string
 
-	TransactionType string
 	StockCode       string
 	LotNumber       string
 	Qty             decimal.Decimal
@@ -165,7 +164,7 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 	)
 
 	return postTransactionPageLayout(&postTransactionPageLayoutProps{
-		transactionType: p.TransactionType,
+		transactionType: "Stock Movement",
 		content:         content,
 		ctx:             p.Ctx,
 		successText:     p.SuccessText,

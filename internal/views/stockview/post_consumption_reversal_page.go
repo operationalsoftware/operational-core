@@ -14,7 +14,6 @@ type PostConsumptionReversalPageProps struct {
 	SuccessText string
 	ErrorText   string
 
-	TransactionType string
 	StockCode       string
 	Location        string
 	Bin             string

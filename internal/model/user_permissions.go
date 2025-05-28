@@ -5,19 +5,13 @@ type UserAdminPermissions struct {
 	Access bool `description:"Able to manage users and permissions"`
 }
 
-type ProductionPermissions struct {
-	Admin      bool `description:"Administrative tasks relating to production"`
-	TeamMember bool `description:"General tasks relating to production"`
-}
-
 type SupplyChainPermissions struct {
-	Admin      bool `description:"Administrative supply chain tasks such as configuring KANBAN"`
-	TeamMember bool `description:"General supply chain tasks such as picking and moving KANBAN"`
+	Admin      bool `description:"Administrative supply chain tasks"`
+	TeamMember bool `description:"General supply chain tasks"`
 }
 
 // Finally, group under the UserPermissions struct
 type UserPermissions struct {
 	UserAdmin   UserAdminPermissions
-	Production  ProductionPermissions
 	SupplyChain SupplyChainPermissions
 }
