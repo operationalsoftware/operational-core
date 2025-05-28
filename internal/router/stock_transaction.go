@@ -6,20 +6,20 @@ import (
 	"net/http"
 )
 
-func addStockTrxRoutes(
+func addStockTransactionRoutes(
 	mux *http.ServeMux,
-	stockTrxService service.StockTrxService,
+	stockTransactionService service.StockTransactionService,
 ) {
-	stockTrxHandler := handler.NewStockTrxHandler(stockTrxService)
+	stockTransactionHandler := handler.NewStockTransactionHandler(stockTransactionService)
 
 	// Stock Home page
-	mux.HandleFunc("GET /stock", stockTrxHandler.StockLevelsPage)
+	mux.HandleFunc("GET /stock", stockTransactionHandler.StockLevelsPage)
 
 	// Stock transactions page
-	mux.HandleFunc("GET /stock/transactions", stockTrxHandler.StockTransactionsPage)
+	mux.HandleFunc("GET /stock/transactions", stockTransactionHandler.StockTransactionsPage)
 
 	// Stock details page
-	mux.HandleFunc("GET /stock/{id}", stockTrxHandler.StockDetailsPage)
+	mux.HandleFunc("GET /stock/{id}", stockTransactionHandler.StockDetailsPage)
 
 	// Post transaction pages
 	mux.HandleFunc("GET /stock/post-transaction", func(w http.ResponseWriter, r *http.Request) {
@@ -27,23 +27,23 @@ func addStockTrxRoutes(
 	})
 
 	// Stock Movement
-	mux.HandleFunc("GET /stock/post-transaction/stock-movement", stockTrxHandler.PostStockMovementPage)
-	mux.HandleFunc("POST /stock/post-transaction/stock-movement", stockTrxHandler.PostStockMovement)
+	mux.HandleFunc("GET /stock/post-transaction/stock-movement", stockTransactionHandler.PostStockMovementPage)
+	mux.HandleFunc("POST /stock/post-transaction/stock-movement", stockTransactionHandler.PostStockMovement)
 
 	// Production
-	mux.HandleFunc("GET /stock/post-transaction/production", stockTrxHandler.PostProductionPage)
-	mux.HandleFunc("POST /stock/post-transaction/production", stockTrxHandler.PostProduction)
+	mux.HandleFunc("GET /stock/post-transaction/production", stockTransactionHandler.PostProductionPage)
+	mux.HandleFunc("POST /stock/post-transaction/production", stockTransactionHandler.PostProduction)
 
 	// Production Reversal
-	mux.HandleFunc("GET /stock/post-transaction/production-reversal", stockTrxHandler.PostProductionReversalPage)
-	mux.HandleFunc("POST /stock/post-transaction/production-reversal", stockTrxHandler.PostProductionReversal)
+	mux.HandleFunc("GET /stock/post-transaction/production-reversal", stockTransactionHandler.PostProductionReversalPage)
+	mux.HandleFunc("POST /stock/post-transaction/production-reversal", stockTransactionHandler.PostProductionReversal)
 
 	// Consumption
-	mux.HandleFunc("GET /stock/post-transaction/consumption", stockTrxHandler.PostConsumptionPage)
-	mux.HandleFunc("POST /stock/post-transaction/consumption", stockTrxHandler.PostConsumption)
+	mux.HandleFunc("GET /stock/post-transaction/consumption", stockTransactionHandler.PostConsumptionPage)
+	mux.HandleFunc("POST /stock/post-transaction/consumption", stockTransactionHandler.PostConsumption)
 
 	// Consumption Reversal
-	mux.HandleFunc("GET /stock/post-transaction/consumption-reversal", stockTrxHandler.PostConsumptionReversalPage)
-	mux.HandleFunc("POST /stock/post-transaction/consumption-reversal", stockTrxHandler.PostConsumptionReversal)
+	mux.HandleFunc("GET /stock/post-transaction/consumption-reversal", stockTransactionHandler.PostConsumptionReversalPage)
+	mux.HandleFunc("POST /stock/post-transaction/consumption-reversal", stockTransactionHandler.PostConsumptionReversal)
 
 }

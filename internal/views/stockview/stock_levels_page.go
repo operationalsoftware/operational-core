@@ -85,11 +85,6 @@ func filters(
 	lteTimestamp *time.Time,
 ) g.Node {
 
-	accountStr := "STOCK" // Default
-	if account != "" {
-		accountStr = account
-	}
-
 	lteTimestampStr := ""
 	if lteTimestamp != nil {
 		lteTimestampStr = lteTimestamp.Format("2006-01-02T15:04")
@@ -108,7 +103,7 @@ func filters(
 					return h.Option(
 						h.Value(a),
 						g.Text(a),
-						g.If(accountStr == a, h.Selected()),
+						g.If(account == a, h.Selected()),
 					)
 				})),
 			),

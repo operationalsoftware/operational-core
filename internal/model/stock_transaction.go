@@ -11,7 +11,7 @@ var StockAccounts = []string{"STOCK", "PRODUCTION", "CONSUMED"}
 
 type StockTransactionEntry struct {
 	StockTransactionEntryID int
-	StockTransactionType    string
+	TransactionType         string
 	Account                 string
 	StockCode               string
 	Location                string
@@ -85,39 +85,59 @@ type GetTransactionsDBInput struct {
 // }
 
 type NewStockTransaction struct {
-	Timestamp            *time.Time
-	StockCode            string
-	Qty                  decimal.Decimal
-	FromAccount          string
-	FromLocation         string
-	FromBin              string
-	FromLotNumber        *string
-	ToAccount            string
-	ToLocation           string
-	ToBin                string
-	ToLotNumber          *string
-	StockTransactionType string
-	StockTransactionNote string
+	Timestamp       *time.Time
+	StockCode       string
+	Qty             decimal.Decimal
+	FromAccount     string
+	FromLocation    string
+	FromBin         string
+	FromLotNumber   string
+	ToAccount       string
+	ToLocation      string
+	ToBin           string
+	ToLotNumber     string
+	TransactionType string
+	TransactionNote string
 }
 
 type NewStockTransactionDB struct {
-	Timestamp            time.Time
-	StockCode            string
-	Qty                  decimal.Decimal
-	FromAccount          string
-	FromLocation         string
-	FromBin              string
-	FromLotNumber        pgtype.Text
-	ToAccount            string
-	ToLocation           string
-	ToBin                string
-	ToLotNumber          pgtype.Text
-	StockTransactionType string
-	StockTransactionNote string
+	Timestamp       time.Time
+	StockCode       string
+	Qty             decimal.Decimal
+	FromAccount     string
+	FromLocation    string
+	FromBin         string
+	FromLotNumber   pgtype.Text
+	ToAccount       string
+	ToLocation      string
+	ToBin           string
+	ToLotNumber     pgtype.Text
+	TransactionType string
+	TransactionNote string
 }
 
 type PostStockTransactionsInput []NewStockTransaction
 type PostStockTransactionsInputDB []NewStockTransactionDB
+
+type PostManualGenericStockTransactionInput struct {
+	StockCode       string
+	Qty             decimal.Decimal
+	Location        string
+	Bin             string
+	LotNumber       string
+	TransactionNote string
+}
+
+type PostManualStockMovementInput struct {
+	StockCode       string
+	Qty             decimal.Decimal
+	FromLocation    string
+	FromBin         string
+	ToLocation      string
+	ToBin           string
+	LotNumber       string
+	TransactionNote string
+}
 
 type GetStockLevelsInput struct {
 	Account      string

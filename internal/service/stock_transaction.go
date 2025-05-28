@@ -9,33 +9,47 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type StockTrxService struct {
-	db                 *pgxpool.Pool
-	stockTrxRepository *repository.StockTrxRepository
+type StockTransactionService struct {
+	db                         *pgxpool.Pool
+	stockTransactionRepository *repository.StockTransactionRepository
 }
 
-func NewStockTrxService(
+func NewStockTransactionService(
 	db *pgxpool.Pool,
-	stockTrxRepository *repository.StockTrxRepository,
-) *StockTrxService {
-	return &StockTrxService{
-		db:                 db,
-		stockTrxRepository: stockTrxRepository,
+	stockTransactionRepository *repository.StockTransactionRepository,
+) *StockTransactionService {
+	return &StockTransactionService{
+		db:                         db,
+		stockTransactionRepository: stockTransactionRepository,
 	}
 }
 
-func (s *StockTrxService) PostStockTransaction(
+func (s *StockTransactionService) PostManualStockMovement(
 	ctx context.Context,
-	input *model.PostStockTransactionsInput,
+	input *model.PostManualStockMovementInput,
 	userID int,
 ) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("Failed to begin transaction")
+		return fmt.Errorf("failed to begin transaction")
 	}
 	defer tx.Rollback(ctx)
 
-	err = s.stockTrxRepository.PostStockTransactions(ctx, tx, input, userID)
+	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
+		TransactionType: "Stock Movement",
+		StockCode:       input.StockCode,
+		Qty:             input.Qty,
+		FromAccount:     "STOCK",
+		FromLocation:    input.FromLocation,
+		FromBin:         input.FromBin,
+		FromLotNumber:   input.LotNumber,
+		ToAccount:       "STOCK",
+		ToLocation:      input.ToLocation,
+		ToBin:           input.ToBin,
+		ToLotNumber:     input.LotNumber,
+		TransactionNote: input.TransactionNote,
+		Timestamp:       nil,
+	}}, userID)
 	if err != nil {
 		return err
 	}
@@ -47,13 +61,161 @@ func (s *StockTrxService) PostStockTransaction(
 	return nil
 }
 
-func (s *StockTrxService) GetStockTransactions(
+func (s *StockTransactionService) PostManualProduction(
+	ctx context.Context,
+	input *model.PostManualGenericStockTransactionInput,
+	userID int,
+) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction")
+	}
+	defer tx.Rollback(ctx)
+
+	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
+		TransactionType: "Production",
+		StockCode:       input.StockCode,
+		Qty:             input.Qty,
+		FromAccount:     "PRODUCTION",
+		FromLocation:    input.Location,
+		FromBin:         input.Bin,
+		FromLotNumber:   input.LotNumber,
+		ToAccount:       "STOCK",
+		ToLocation:      input.Location,
+		ToBin:           input.Bin,
+		ToLotNumber:     input.LotNumber,
+		TransactionNote: input.TransactionNote,
+		Timestamp:       nil,
+	}}, userID)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("error committing transaction: %v", err)
+	}
+
+	return nil
+}
+
+func (s *StockTransactionService) PostManualProductionReversal(
+	ctx context.Context,
+	input *model.PostManualGenericStockTransactionInput,
+	userID int,
+) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction")
+	}
+	defer tx.Rollback(ctx)
+
+	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
+		TransactionType: "Production Reversal",
+		StockCode:       input.StockCode,
+		Qty:             input.Qty,
+		FromAccount:     "STOCK",
+		FromLocation:    input.Location,
+		FromBin:         input.Bin,
+		FromLotNumber:   input.LotNumber,
+		ToAccount:       "PRODUCTION",
+		ToLocation:      input.Location,
+		ToBin:           input.Bin,
+		ToLotNumber:     input.LotNumber,
+		TransactionNote: input.TransactionNote,
+		Timestamp:       nil,
+	}}, userID)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("error committing transaction: %v", err)
+	}
+
+	return nil
+}
+
+func (s *StockTransactionService) PostManualConsumption(
+	ctx context.Context,
+	input *model.PostManualGenericStockTransactionInput,
+	userID int,
+) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction")
+	}
+	defer tx.Rollback(ctx)
+
+	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
+		TransactionType: "Consumption",
+		StockCode:       input.StockCode,
+		Qty:             input.Qty,
+		FromAccount:     "STOCK",
+		FromLocation:    input.Location,
+		FromBin:         input.Bin,
+		FromLotNumber:   input.LotNumber,
+		ToAccount:       "CONSUMED",
+		ToLocation:      input.Location,
+		ToBin:           input.Bin,
+		ToLotNumber:     input.LotNumber,
+		TransactionNote: input.TransactionNote,
+		Timestamp:       nil,
+	}}, userID)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("error committing transaction: %v", err)
+	}
+
+	return nil
+}
+
+func (s *StockTransactionService) PostManualConsumptionReversal(
+	ctx context.Context,
+	input *model.PostManualGenericStockTransactionInput,
+	userID int,
+) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction")
+	}
+	defer tx.Rollback(ctx)
+
+	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
+		TransactionType: "Consumption Reversal",
+		StockCode:       input.StockCode,
+		Qty:             input.Qty,
+		FromAccount:     "CONSUMED",
+		FromLocation:    input.Location,
+		FromBin:         input.Bin,
+		FromLotNumber:   input.LotNumber,
+		ToAccount:       "STOCK",
+		ToLocation:      input.Location,
+		ToBin:           input.Bin,
+		ToLotNumber:     input.LotNumber,
+		TransactionNote: input.TransactionNote,
+		Timestamp:       nil,
+	}}, userID)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("error committing transaction: %v", err)
+	}
+
+	return nil
+}
+
+func (s *StockTransactionService) GetStockTransactions(
 	ctx context.Context,
 	input *model.GetTransactionsInput,
 	userID int,
 ) ([]model.StockTransactionEntry, error) {
 
-	transactions, err := s.stockTrxRepository.GetStockTransactions(ctx, s.db, input)
+	transactions, err := s.stockTransactionRepository.GetStockTransactions(ctx, s.db, input)
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +223,12 @@ func (s *StockTrxService) GetStockTransactions(
 	return transactions, nil
 }
 
-func (s *StockTrxService) GetStockLevels(
+func (s *StockTransactionService) GetStockLevels(
 	ctx context.Context,
 	input *model.GetStockLevelsInput,
 ) ([]model.StockLevel, error) {
 
-	levels, err := s.stockTrxRepository.GetStockLevels(ctx, s.db, input)
+	levels, err := s.stockTransactionRepository.GetStockLevels(ctx, s.db, input)
 
 	if err != nil {
 		return nil, err

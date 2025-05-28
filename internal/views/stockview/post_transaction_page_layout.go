@@ -19,12 +19,12 @@ type postTransactionPageLayoutProps struct {
 
 func postTransactionPageLayout(p *postTransactionPageLayoutProps) g.Node {
 
-	type trxType struct {
+	type transactionType struct {
 		title    string
 		linkPart string
 	}
 
-	trxTypes := []trxType{{
+	transactionTypes := []transactionType{{
 		title:    "Stock Movement",
 		linkPart: "stock-movement",
 	}, {
@@ -39,26 +39,11 @@ func postTransactionPageLayout(p *postTransactionPageLayoutProps) g.Node {
 	}, {
 		title:    "Consumption Reversal",
 		linkPart: "consumption-reversal",
-	},
-	// {
-	// 	title:    "Subassembly Production",
-	// 	linkPart: "subassembly-production",
-	// }, {
-	// 	title:    "Subassembly Production Reversal",
-	// 	linkPart: "subassembly-production-reversal",
-	// }, {
-	// 	title:    "Subassembly Consumption",
-	// 	linkPart: "subassembly-consumption",
-	// }, {
-	// 	title:    "Subassembly Consumption Reversal",
-	// 	linkPart: "subassembly-consumption-reversal",
-	// },
-	}
+	}}
 
 	content := components.Card(
-
 		h.Nav(
-			g.Group(g.Map(trxTypes, func(tt trxType) g.Node {
+			g.Group(g.Map(transactionTypes, func(tt transactionType) g.Node {
 				return h.A(
 					g.If(tt.title == p.transactionType, h.Class("active")),
 					h.Href("/stock/post-transaction/"+tt.linkPart),

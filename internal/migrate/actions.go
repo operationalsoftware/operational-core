@@ -126,10 +126,10 @@ CREATE TABLE app_user (
 	_, err = tx.Exec(context.Background(), `
 			CREATE TABLE stock_transaction (
 				stock_transaction_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-				stock_transaction_type TEXT NOT NULL,
+				transaction_type TEXT NOT NULL,
 				transaction_by INT REFERENCES app_user(user_id),
 				transaction_note TEXT,
-				timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+				timestamp TIMESTAMPTZ NOT NULL
 			);
 		`)
 	if err != nil {

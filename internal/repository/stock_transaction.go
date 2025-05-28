@@ -3,22 +3,26 @@ package repository
 import (
 	"app/internal/model"
 	"app/pkg/db"
+	"app/pkg/pgconv"
 	"context"
 	"fmt"
-	"time"
+	"log"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 )
 
-type StockTrxRepository struct{}
+type StockTransactionRepository struct{}
 
-func NewStockTrxRepository() *StockTrxRepository {
-	return &StockTrxRepository{}
+func NewStockTransactionRepository() *StockTransactionRepository {
+	return &StockTransactionRepository{}
 }
 
-func (r *StockTrxRepository) GetStockLevels(ctx context.Context, exec db.PGExecutor, input *model.GetStockLevelsInput) ([]model.StockLevel, error) {
-	// dbInput := input.ToDB()
+func (r *StockTransactionRepository) GetStockLevels(
+	ctx context.Context,
+	exec db.PGExecutor,
+	input *model.GetStockLevelsInput,
+) ([]model.StockLevel, error) {
 
 	query := `
 WITH RankedStock AS (
@@ -32,7 +36,7 @@ WITH RankedStock AS (
 		ste.running_total AS stock_level,
 		st.timestamp,
 		ROW_NUMBER() OVER (
-			PARTITION BY ste.account, ste.stock_code, ste.location, ste.bin, COALESCE(ste.lot_number, 'NO_LOT')
+			PARTITION BY ste.account, ste.stock_code, ste.location, ste.bin, ste.lot_number
 			ORDER BY st.timestamp DESC, ste.stock_transaction_id DESC
 		) AS rn
 	FROM
@@ -72,14 +76,6 @@ ORDER BY
 LIMIT $7 OFFSET $8
     `
 
-	// Prepare params with NULL handling
-	accountParam := input.Account
-	stockCodeParam := input.StockCode
-	locationParam := input.Location
-	binParam := input.Bin
-	lotNumberParam := input.LotNumber
-	lteTimestampParam := input.LTETimestamp
-
 	limit := 1000
 	if input.PageSize > 0 {
 		limit = input.PageSize
@@ -91,12 +87,12 @@ LIMIT $7 OFFSET $8
 
 	// Prepare the query and execute it with the provided filters
 	rows, err := exec.Query(ctx, query,
-		accountParam,
-		stockCodeParam,
-		locationParam,
-		binParam,
-		lotNumberParam,
-		lteTimestampParam,
+		input.Account,
+		input.StockCode,
+		input.Location,
+		input.Bin,
+		input.LotNumber,
+		pgconv.TimePtrToPGTimestamptz(input.LTETimestamp),
 
 		limit, offset, // Pagination parameters
 	)
@@ -136,143 +132,121 @@ LIMIT $7 OFFSET $8
 	return results, nil
 }
 
-func (r *StockTrxRepository) PostStockTransactions(
+func (r *StockTransactionRepository) PostStockTransactions(
 	ctx context.Context,
 	exec pgx.Tx,
 	transactions *model.PostStockTransactionsInput,
 	userID int,
 ) error {
 
-	insertTrxQuery := `
-INSERT INTO
-	stock_transaction (
-		stock_transaction_type,
-		transaction_by,
-		transaction_note,
-		timestamp
-	)
-VALUES (
-	$1, $2, $3, COALESCE($4, NOW())
+	query := `
+/*
+Parameter mapping:
+$1    → transaction_type
+$2    → stock_code
+$3    → quantity
+$4    → transaction_note
+$5    → transaction_by
+$6    → timestamp
+$7    → from_account
+$8    → from_location
+$9    → from_bin
+$10   → from_lot_number
+$11   → to_account
+$12   → to_location
+$13   → to_bin
+$14   → to_lot_number
+*/
+
+WITH inserted_tx AS (
+    INSERT INTO stock_transaction (
+        transaction_type, transaction_note, transaction_by, timestamp
+    )
+    VALUES ($1, $4, $5, COALESCE($6, NOW()))
+    RETURNING stock_transaction_id, timestamp
+),
+
+inserted_from_entry AS (
+    INSERT INTO stock_transaction_entry (
+        stock_transaction_id, account, stock_code, location, bin, lot_number, quantity, running_total
+    )
+    SELECT inserted_tx.stock_transaction_id, $7, $2, $8, $9, $10, -1 * $3,
+        COALESCE((
+            SELECT running_total
+            FROM stock_transaction_entry e
+            JOIN stock_transaction t ON t.stock_transaction_id = e.stock_transaction_id
+            WHERE e.account = $7
+              AND e.stock_code = $2
+              AND e.location = $8
+              AND e.bin = $9
+              AND e.lot_number = $10
+              AND t.timestamp <= inserted_tx.timestamp
+            ORDER BY t.timestamp DESC, e.stock_transaction_entry_id DESC
+            LIMIT 1
+        ), 0) - $3
+    FROM inserted_tx
+    RETURNING stock_transaction_entry_id
+),
+
+inserted_to_entry AS (
+    INSERT INTO stock_transaction_entry (
+        stock_transaction_id, account, stock_code, location, bin, lot_number, quantity, running_total
+    )
+    SELECT inserted_tx.stock_transaction_id, $11, $2, $12, $13, $14, $3,
+        COALESCE((
+            SELECT running_total
+            FROM stock_transaction_entry e
+            JOIN stock_transaction t ON t.stock_transaction_id = e.stock_transaction_id
+            WHERE e.account = $11
+              AND e.stock_code = $2
+              AND e.location = $12
+              AND e.bin = $13
+              AND e.lot_number = $14
+              AND t.timestamp <= inserted_tx.timestamp
+            ORDER BY t.timestamp DESC, e.stock_transaction_entry_id DESC
+            LIMIT 1
+        ), 0) + $3
+    FROM inserted_tx
+    RETURNING stock_transaction_entry_id
+),
+
+updated_future_from AS (
+    UPDATE stock_transaction_entry e
+    SET running_total = running_total - $3
+    FROM stock_transaction t, inserted_tx
+    WHERE e.stock_transaction_id = t.stock_transaction_id
+      AND e.account = $7
+      AND e.stock_code = $2
+      AND e.location = $8
+      AND e.bin = $9
+      AND e.lot_number = $10
+      AND t.timestamp > inserted_tx.timestamp
+    RETURNING e.stock_transaction_entry_id
+),
+
+updated_future_to AS (
+    UPDATE stock_transaction_entry e
+    SET running_total = running_total + $3
+    FROM stock_transaction t, inserted_tx
+    WHERE e.stock_transaction_id = t.stock_transaction_id
+      AND e.account = $11
+      AND e.stock_code = $2
+      AND e.location = $12
+      AND e.bin = $13
+      AND e.lot_number = $14
+      AND t.timestamp > inserted_tx.timestamp
+    RETURNING e.stock_transaction_entry_id
 )
-	RETURNING 
-		stock_transaction_id, timestamp
+
+SELECT
+    (SELECT count(*) FROM inserted_from_entry) AS inserted_from_count,
+    (SELECT count(*) FROM inserted_to_entry) AS inserted_to_count,
+    (SELECT count(*) FROM updated_future_from) AS updated_from_count,
+    (SELECT count(*) FROM updated_future_to) AS updated_to_count;
 	`
-
-	// Combined insert query for both From and To transactions
-	insertEntriesQuery := `
--- $1 = stock transaction id
--- $2 = timestamp
--- $3 = stock_code
--- $4 = quantity
--- $5 = from_account
--- $6 = from_location
--- $7 = from_bin
--- $8 = from_lot_number
--- $9 = to_account
--- $10 = to_location
--- $11 = to_bin
--- $12 = to_lot_number
-
-INSERT INTO stock_transaction_entry (
-	stock_transaction_id,
-	quantity,
-	stock_code, 
-	account, 
-	location, 
-	bin,
-	lot_number,
-	running_total
-)
-VALUES 
-	-- From entry
-	($1, -1 * $3, $2, $4, $5, $6, $7,
-	COALESCE($12, 0) - $3),
-
-	-- To entry
-	($1, $3, $2, $8, $9, $10, $11,
-	COALESCE($13, 0) + $3)
-`
-
-	// Update future RunningTotal for the From and To accounts
-	updateQuery := `
-	UPDATE
-	    stock_transaction_entry ste
-	SET
-	    running_total = running_total + $1
-	FROM
-	    stock_transaction st
-	WHERE
-	    ste.stock_transaction_id = st.stock_transaction_id
-	    AND ste.account = $4
-	    AND ste.stock_code = $3
-	    AND ste.location = $5
-	    AND ste.bin = $6
-	    AND (ste.lot_number = $7 OR ste.lot_number IS NULL)
-	    AND st.timestamp > $2`
 
 	for _, t := range *transactions {
 		// Fetch previous running_total
-		var fromRunningTotal, toRunningTotal decimal.Decimal
-
-		err := exec.QueryRow(ctx, `
-SELECT running_total
-	FROM 
-		stock_transaction_entry
-		INNER JOIN stock_transaction
-		USING (stock_transaction_id)
-	WHERE 
-		account = $1
-		AND stock_code = $2
-		AND location = $3
-		AND bin = $4
-		AND lot_number = $5
-		AND timestamp <= $6
-	ORDER BY
-		timestamp DESC, stock_transaction_id DESC
-	LIMIT 1
-`,
-			t.FromAccount,
-			t.StockCode,
-			t.FromLocation,
-			t.FromBin,
-			t.FromLotNumber,
-			t.Timestamp).Scan(&fromRunningTotal)
-		if err != nil && err != pgx.ErrNoRows {
-			return fmt.Errorf("failed to fetch running_total for FROM entry: %v", err)
-		}
-
-		err = exec.QueryRow(ctx, `
-SELECT running_total
-	FROM stock_transaction_entry
-		INNER JOIN stock_transaction
-		USING (stock_transaction_id)
-	WHERE account = $1
-		AND stock_code = $2
-		AND location = $3
-		AND bin = $4
-		AND (lot_number IS NOT DISTINCT FROM $5)
-		AND timestamp <= $6
-	ORDER BY timestamp DESC, stock_transaction_id DESC
-	LIMIT 1
-`,
-			t.ToAccount,
-			t.StockCode,
-			t.ToLocation,
-			t.ToBin,
-			t.ToLotNumber,
-			t.Timestamp).Scan(&toRunningTotal)
-		if err != nil && err != pgx.ErrNoRows {
-			return fmt.Errorf("failed to fetch running_total for TO entry: %v", err)
-		}
-
-		// newFromRunningTotal := prevFromRunningTotal.Sub(t.Qty)
-
-		var stockTrxID int
-		var stockTrxTimestamp time.Time
-		err = exec.QueryRow(ctx, insertTrxQuery, t.StockTransactionType, userID, t.StockTransactionNote, t.Timestamp).Scan(&stockTrxID, &stockTrxTimestamp)
-		if err != nil {
-			return fmt.Errorf("failed to create stock transaction: %v", err)
-		}
 
 		// IMPORTANT: posting from and to the same Account, Location, Bin and
 		// LotNumber is not allowed as it is not compatible with how running totals
@@ -280,8 +254,7 @@ SELECT running_total
 		if t.FromAccount == t.ToAccount &&
 			t.FromLocation == t.ToLocation &&
 			t.FromBin == t.ToBin &&
-			((t.FromLotNumber != nil && t.ToLotNumber != nil && t.FromLotNumber == t.ToLotNumber) ||
-				(t.FromLotNumber != nil == false && t.ToLotNumber != nil == false)) {
+			t.FromLotNumber == t.ToLotNumber {
 			return fmt.Errorf("Account, Location, Bin and LotNumber cannot be the same for 'From' and 'To'")
 		}
 
@@ -290,63 +263,34 @@ SELECT running_total
 			continue
 		}
 
-		_, err = exec.Exec(ctx, insertEntriesQuery,
-			stockTrxID,
-			// t.Timestamp,
+		var insertedFromCount, insertedToCount, updatedFromCount, updatedToCount int
+		err := exec.QueryRow(ctx, query,
+			t.TransactionType,
 			t.StockCode,
 			t.Qty,
-			// From transaction
+			t.TransactionNote,
+			userID,
+			t.Timestamp,
 			t.FromAccount,
 			t.FromLocation,
 			t.FromBin,
 			t.FromLotNumber,
-
-			// To transaction
 			t.ToAccount,
 			t.ToLocation,
 			t.ToBin,
 			t.ToLotNumber,
-			fromRunningTotal,
-			toRunningTotal,
-		)
-
+		).Scan(&insertedFromCount, &insertedToCount, &updatedFromCount, &updatedToCount)
 		if err != nil {
-			return fmt.Errorf("failed to insert transactions: %v", err)
+			log.Println(err)
+			return fmt.Errorf("failed to create stock transaction: %v", err)
 		}
 
-		_, err = exec.Exec(ctx, updateQuery,
-			t.Qty.Mul(decimal.NewFromInt(-1)), // negative for "From"
-			t.Timestamp,
-			t.FromAccount,
-			t.StockCode,
-			t.FromLocation,
-			t.FromBin,
-			t.FromLotNumber,
-		)
-
-		if err != nil {
-			return fmt.Errorf("failed to update future RunningTotal for From account: %v", err)
-		}
-
-		_, err = exec.Exec(ctx, updateQuery,
-			t.Qty, // positive for "To"
-			t.Timestamp,
-			t.ToAccount,
-			t.StockCode,
-			t.ToLocation,
-			t.ToBin,
-			t.ToLotNumber,
-		)
-
-		if err != nil {
-			return fmt.Errorf("failed to update future RunningTotal for To account: %v", err)
-		}
 	}
 
 	return nil
 }
 
-func (r *StockTrxRepository) GetStockTransactions(ctx context.Context, exec db.PGExecutor, input *model.GetTransactionsInput) ([]model.StockTransactionEntry, error) {
+func (r *StockTransactionRepository) GetStockTransactions(ctx context.Context, exec db.PGExecutor, input *model.GetTransactionsInput) ([]model.StockTransactionEntry, error) {
 	// dbInput := input.ToDBModel()
 
 	// Base query
@@ -371,7 +315,7 @@ WITH matched_tx_ids AS (
 
 SELECT 
 	ste.stock_transaction_entry_id,
-	st.stock_transaction_type,
+	st.transaction_type,
 	ste.account,
 	ste.stock_code,
 	ste.location,
@@ -387,7 +331,7 @@ FROM stock_transaction_entry ste
 JOIN stock_transaction st ON st.stock_transaction_id = ste.stock_transaction_id
 LEFT JOIN app_user u ON u.user_id = st.transaction_by
 JOIN matched_tx_ids m ON m.stock_transaction_id = ste.stock_transaction_id
-ORDER BY ste.stock_transaction_id DESC, ste.stock_transaction_entry_id ASC
+ORDER BY st.timestamp DESC, ste.stock_transaction_entry_id DESC
 LIMIT $7 OFFSET $8
 	`
 
@@ -426,7 +370,7 @@ LIMIT $7 OFFSET $8
 		var st model.StockTransactionEntry
 		err := rows.Scan(
 			&st.StockTransactionEntryID, // 1
-			&st.StockTransactionType,    // 2
+			&st.TransactionType,         // 2
 			&st.Account,                 // 3
 			&st.StockCode,               // 4
 			&st.Location,                // 5
@@ -460,181 +404,3 @@ LIMIT $7 OFFSET $8
 	return transactions, nil
 
 }
-
-// func GetTransactions(ctx context.Context, exec db.PGExecutor, input *m.GetTransactionsInput) ([]m.StockTransactionEntry, error) {
-// 	query := `
-// WITH WideTransactions AS (
-//     -- Create a wide table with both "out" and "in" transactions in the same row
-//     SELECT
-//         outTxn.StockTransactionID AS OutTransactionID,
-//         outTxn.Account AS OutAccount,
-//         outTxn.StockCode AS OutStockCode,
-//         outTxn.Location AS OutLocation,
-//         outTxn.Bin AS OutBin,
-//         outTxn.LotNumber AS OutLotNumber,
-//         outTxn.Qty AS OutQty,
-//         outTxn.RunningTotal AS OutRunningTotal,
-//         outTxn.TransactionBy AS OutTransactionBy,
-//         outTxn.Timestamp AS OutTimestamp,
-//         inTxn.StockTransactionID AS InTransactionID,
-//         inTxn.Account AS InAccount,
-//         inTxn.StockCode AS InStockCode,
-//         inTxn.Location AS InLocation,
-//         inTxn.Bin AS InBin,
-//         inTxn.LotNumber AS InLotNumber,
-//         inTxn.Qty AS InQty,
-//         inTxn.RunningTotal AS InRunningTotal,
-//         inTxn.TransactionBy AS InTransactionBy,
-//         inTxn.Timestamp AS InTimestamp,
-// 		u.Username AS TransactionByUsername
-//     FROM StockTransaction outTxn
-//     INNER JOIN StockTransaction inTxn
-//     ON outTxn.StockTransactionID + 1 = inTxn.StockTransactionID
-//     AND outTxn.StockTransactionID % 2 = 1  -- Ensure we only join "out" to "in"
-// 	INNER JOIN User u
-// 	ON u.UserID = outTxn.TransactionBy
-//     WHERE
-// 		(
-// 			-- Apply filters to "out" transaction
-// 			(outTxn.Account = ? OR ? IS NULL)
-// 			AND (outTxn.StockCode = ? OR ? IS NULL)
-// 			AND (outTxn.Location = ? OR ? IS NULL)
-// 			AND (outTxn.Bin = ? OR ? IS NULL)
-// 			AND (outTxn.LotNumber = ? OR ? IS NULL)
-// 			AND (? IS NULL OR strftime('%Y-%m-%d %H:%M', outTxn.Timestamp) <= strftime('%Y-%m-%d %H:%M', ?))
-// 		) OR (
-// 			-- Apply filters to "in" transaction
-// 			(inTxn.Account = ? OR ? IS NULL)
-// 			AND (inTxn.StockCode = ? OR ? IS NULL)
-// 			AND (inTxn.Location = ? OR ? IS NULL)
-// 			AND (inTxn.Bin = ? OR ? IS NULL)
-// 			AND (inTxn.LotNumber = ? OR ? IS NULL)
-// 			AND (? IS NULL OR strftime('%Y-%m-%d %H:%M', inTxn.Timestamp) <= strftime('%Y-%m-%d %H:%M', ?))
-// 		)
-// ),
-// SplitTransactions AS (
-//     -- Split the wide table into two rows: one for "out" and one for "in"
-//     SELECT
-//         OutTransactionID AS StockTransactionID,
-//         OutAccount AS Account,
-//         OutStockCode AS StockCode,
-//         OutLocation AS Location,
-//         OutBin AS Bin,
-//         OutLotNumber AS LotNumber,
-//         OutQty AS Qty,
-//         OutRunningTotal AS RunningTotal,
-//         OutTransactionBy AS TransactionBy,
-// 		TransactionByUsername,
-//         OutTimestamp AS Timestamp
-//     FROM WideTransactions
-//     WHERE OutTransactionID IS NOT NULL
-
-//     UNION ALL
-
-//     SELECT
-//         InTransactionID AS StockTransactionID,
-//         InAccount AS Account,
-//         InStockCode AS StockCode,
-//         InLocation AS Location,
-//         InBin AS Bin,
-//         InLotNumber AS LotNumber,
-//         InQty AS Qty,
-//         InRunningTotal AS RunningTotal,
-//         InTransactionBy AS TransactionBy,
-// 		TransactionByUsername,
-//         InTimestamp AS Timestamp
-//     FROM WideTransactions
-//     WHERE InTransactionID IS NOT NULL
-// )
-
-// SELECT
-//     StockTransactionID,
-//     Account,
-//     StockCode,
-//     Location,
-//     Bin,
-//     LotNumber,
-//     Qty,
-//     RunningTotal,
-//     TransactionBy,
-// 	TransactionByUsername,
-//     Timestamp
-// FROM SplitTransactions
-// ORDER BY StockTransactionID DESC
-// LIMIT ? OFFSET ?
-//     `
-
-// 	// Prepare params with NULL handling
-// 	accountParam := db.NullStringToParam(input.Account)
-// 	stockCodeParam := db.NullStringToParam(input.StockCode)
-// 	locationParam := db.NullStringToParam(input.Location)
-// 	binParam := db.NullStringToParam(input.Bin)
-// 	lotNumberParam := db.NullStringToParam(input.LotNumber)
-// 	lteTimestampParam := db.NullTimeToParam(input.LTETimestamp)
-
-// 	// Pagination defaults
-// 	limit := input.PageSize
-// 	if limit == 0 {
-// 		limit = 1000
-// 	}
-// 	offset := (input.Page - 1) * limit
-
-// 	// Execute query
-// 	rows, err := exec.Query(ctx, query,
-// 		accountParam, accountParam,
-// 		stockCodeParam, stockCodeParam,
-// 		locationParam, locationParam,
-// 		binParam, binParam,
-// 		lotNumberParam, lotNumberParam,
-// 		lteTimestampParam, lteTimestampParam,
-
-// 		accountParam, accountParam,
-// 		stockCodeParam, stockCodeParam,
-// 		locationParam, locationParam,
-// 		binParam, binParam,
-// 		lotNumberParam, lotNumberParam,
-// 		lteTimestampParam, lteTimestampParam,
-
-// 		limit, offset,
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-
-// 	// Collect results
-// 	var transactions []m.StockTransactionEntry
-// 	for rows.Next() {
-// 		var st m.StockTransactionEntry
-// 		err := rows.Scan(
-// 			&st.StockTransactionID,
-// 			&st.Account,
-// 			&st.StockCode,
-// 			&st.Location,
-// 			&st.Bin,
-// 			&st.LotNumber,
-// 			&st.Quantity,
-// 			&st.RunningTotal,
-// 			&st.TransactionBy,
-// 			&st.TransactionByUsername,
-// 			&st.Timestamp,
-// 		)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		// temp do some rounding of Decimals to correct floating point representation errors
-// 		// round to 8 d.p. to align with SyteLine
-// 		st.Quantity = st.Quantity.Round(8)
-// 		st.RunningTotal = st.RunningTotal.Round(8)
-
-// 		transactions = append(transactions, st)
-// 	}
-
-// 	// Check for errors after iteration
-// 	if err := rows.Err(); err != nil {
-// 		return nil, err
-// 	}
-
-// 	return transactions, nil
-// }

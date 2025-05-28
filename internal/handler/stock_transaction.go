@@ -7,7 +7,6 @@ import (
 	"app/pkg/appurl"
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,15 +16,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type StockTrxHandler struct {
-	stockTrxService service.StockTrxService
+type StockTransactionHandler struct {
+	stockTransactionService service.StockTransactionService
 }
 
-func NewStockTrxHandler(stockTrxService service.StockTrxService) *StockTrxHandler {
-	return &StockTrxHandler{stockTrxService: stockTrxService}
+func NewStockTransactionHandler(stockTransactionService service.StockTransactionService) *StockTransactionHandler {
+	return &StockTransactionHandler{stockTransactionService: stockTransactionService}
 }
 
-type urlVals struct {
+type stockInputURLVals struct {
 	Account      string
 	StockCode    string
 	Location     string
@@ -36,7 +35,12 @@ type urlVals struct {
 	PageSize     int
 }
 
-func (uv *urlVals) normalise() {
+func (uv *stockInputURLVals) normaliseStockFilter() {
+
+	if uv.Account == "" {
+		uv.Account = "STOCK" // Default
+	}
+
 	uv.StockCode = strings.ToUpper(strings.TrimSpace(uv.StockCode))
 
 	uv.Location = strings.ToUpper(strings.TrimSpace(uv.Location))
@@ -45,13 +49,19 @@ func (uv *urlVals) normalise() {
 
 	uv.LotNumber = strings.ToUpper(strings.TrimSpace(uv.LotNumber))
 
+	if uv.Page == 0 {
+		uv.Page = 1
+	}
+	if uv.PageSize == 0 {
+		uv.PageSize = stockview.HomePageDefaultPageSize
+	}
 }
 
 // Pages
-func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	var uv urlVals
+	var uv stockInputURLVals
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
@@ -59,16 +69,9 @@ func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	uv.normalise()
+	uv.normaliseStockFilter()
 
-	if uv.Page == 0 {
-		uv.Page = 1
-	}
-	if uv.PageSize == 0 {
-		uv.PageSize = stockview.HomePageDefaultPageSize
-	}
-
-	stockLevels, err := h.stockTrxService.GetStockLevels(r.Context(), &model.GetStockLevelsInput{
+	stockLevels, err := h.stockTransactionService.GetStockLevels(r.Context(), &model.GetStockLevelsInput{
 		Account:      uv.Account,
 		StockCode:    uv.StockCode,
 		Location:     uv.Location,
@@ -79,6 +82,7 @@ func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request
 		PageSize:     uv.PageSize,
 	})
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error fetching stock levels", http.StatusInternalServerError)
 		return
 	}
@@ -100,7 +104,7 @@ func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request
 
 }
 
-func (h *StockTrxHandler) StockDetailsPage(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) StockDetailsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	stockCode := r.PathValue("id")
@@ -113,10 +117,10 @@ func (h *StockTrxHandler) StockDetailsPage(w http.ResponseWriter, r *http.Reques
 
 }
 
-func (h *StockTrxHandler) StockTransactionsPage(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) StockTransactionsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	var uv urlVals
+	var uv stockInputURLVals
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
@@ -124,16 +128,9 @@ func (h *StockTrxHandler) StockTransactionsPage(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	uv.normalise()
+	uv.normaliseStockFilter()
 
-	if uv.Page == 0 {
-		uv.Page = 1
-	}
-	if uv.PageSize == 0 {
-		uv.PageSize = stockview.HomePageDefaultPageSize
-	}
-
-	stockTransactions, err := h.stockTrxService.GetStockTransactions(r.Context(), &model.GetTransactionsInput{
+	stockTransactions, err := h.stockTransactionService.GetStockTransactions(r.Context(), &model.GetTransactionsInput{
 		Account:      uv.Account,
 		StockCode:    uv.StockCode,
 		Location:     uv.Location,
@@ -165,19 +162,18 @@ func (h *StockTrxHandler) StockTransactionsPage(w http.ResponseWriter, r *http.R
 
 }
 
-func (h *StockTrxHandler) PostStockMovementPage(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostStockMovementPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	transactionType := "Stock Movement"
-
-	// perms := ctx.User.Permissions
-	hasPermission := true
-	// hasPermission := perms.Production.Admin || perms.SupplyChain.Admin
+	perms := ctx.User.Permissions
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
+
+	transactionType := "Stock Movement"
 
 	type postMovementUrlValues struct {
 		StockCode    string
@@ -215,18 +211,18 @@ func (h *StockTrxHandler) PostStockMovementPage(w http.ResponseWriter, r *http.R
 
 }
 
-func (h *StockTrxHandler) PostProductionPage(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostProductionPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	transactionType := "Production"
 	perms := ctx.User.Permissions
-	hasPermission := perms.Production.Admin || perms.SupplyChain.Admin || true
-	// hasPermission := perms.Production.Admin || perms.SupplyChain.Admin
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
+
+	transactionType := "Production"
 
 	_ = stockview.PostProductionPage(
 		&stockview.PostGenericPageProps{
@@ -237,19 +233,18 @@ func (h *StockTrxHandler) PostProductionPage(w http.ResponseWriter, r *http.Requ
 
 }
 
-func (h *StockTrxHandler) PostProductionReversalPage(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostProductionReversalPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	transactionType := "Production Reversal"
-
 	perms := ctx.User.Permissions
-	hasPermission := perms.Production.Admin || perms.SupplyChain.Admin || true
-	// hasPermission := perms.Production.Admin || perms.SupplyChain.Admin
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
+
+	transactionType := "Production Reversal"
 
 	_ = stockview.PostProductionReversalPage(
 		&stockview.PostGenericPageProps{
@@ -260,19 +255,18 @@ func (h *StockTrxHandler) PostProductionReversalPage(w http.ResponseWriter, r *h
 
 }
 
-func (h *StockTrxHandler) PostConsumptionPage(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostConsumptionPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	transactionType := "Consumption"
-
 	perms := ctx.User.Permissions
-	hasPermission := perms.Production.Admin || perms.SupplyChain.Admin || true
-	// hasPermission := perms.Production.Admin || perms.SupplyChain.Admin
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
+
+	transactionType := "Consumption"
 
 	_ = stockview.PostConsumptionPage(
 		&stockview.PostGenericPageProps{
@@ -283,19 +277,18 @@ func (h *StockTrxHandler) PostConsumptionPage(w http.ResponseWriter, r *http.Req
 
 }
 
-func (h *StockTrxHandler) PostConsumptionReversalPage(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostConsumptionReversalPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	transactionType := "Consumption Reversal"
-
 	perms := ctx.User.Permissions
-	hasPermission := perms.Production.Admin || perms.SupplyChain.Admin || true
-	// hasPermission := perms.Production.Admin || perms.SupplyChain.Admin
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
+
+	transactionType := "Consumption Reversal"
 
 	_ = stockview.PostConsumptionReversalPage(
 		&stockview.PostGenericPageProps{
@@ -306,101 +299,13 @@ func (h *StockTrxHandler) PostConsumptionReversalPage(w http.ResponseWriter, r *
 
 }
 
-// Request handlers
-func (h *StockTrxHandler) PostStockTransactions(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-
-	lotNumber := "LOT123"
-
-	stockTrxs := model.PostStockTransactionsInput{
-		{
-			Timestamp:     nil,
-			StockCode:     "STK001",
-			Qty:           decimal.NewFromFloat32(12.0),
-			FromAccount:   "ACC001",
-			FromLocation:  "LOC001",
-			FromBin:       "BIN001",
-			FromLotNumber: &lotNumber,
-			ToAccount:     "ACC002",
-			ToLocation:    "LOC002",
-			ToBin:         "BIN002",
-			ToLotNumber:   &lotNumber,
-		},
-	}
-
-	err := h.stockTrxService.PostStockTransaction(r.Context(), &stockTrxs, ctx.User.UserID)
-	if err != nil {
-		http.Error(w, "Failed to create stock transaction", http.StatusInternalServerError)
-		return
-	}
-
-	// err := json.Unmarshal(r.Body, &stockTrxInput)
-	// if err != nil {
-	// 	http.Error(w, "Error decoding url values", http.StatusBadRequest)
-	// 	return
-	// }
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Stock Transaction created successfully"})
-
-}
-
-func (h *StockTrxHandler) GetStockTransactions(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-
-	// filterInput := model.GetTransactionsInput{
-	// 	// Account:      ptr("INV-001"),
-	// 	// StockCode:    ptr("STK-123"),
-	// 	// Location:     ptr("LOC-A"),
-	// 	// Bin:          ptr("BIN-5"),
-	// 	// LotNumber:    ptr("LOT-77"),
-	// 	// LTETimestamp: &now,
-	// 	// Page:         1,
-	// 	// PageSize:     20,
-	// }
-
-	input := model.GetTransactionsInput{
-		// StockCode: ptr("STK001"),
-		// Location:  ptr("LOC002"),
-		Page:     1,
-		PageSize: 10,
-	}
-
-	transactions, err := h.stockTrxService.GetStockTransactions(r.Context(), &input, ctx.User.UserID)
-	if err != nil {
-		http.Error(w, "Failed to get stock transactions", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{"data": transactions})
-}
-
-func (h *StockTrxHandler) GetStockLevels(w http.ResponseWriter, r *http.Request) {
-
-	input := &model.GetStockLevelsInput{}
-
-	levels, err := h.stockTrxService.GetStockLevels(r.Context(), input)
-	if err != nil {
-		http.Error(w, "Failed to GET stock levels", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{"data": levels})
-}
-
 // Post Stock Transaction handlers
 
-func (h *StockTrxHandler) PostStockMovement(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostStockMovement(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	// perms := ctx.User.Permissions
-	hasPermission := true
-	transactionType := "Stock Movement"
+	perms := ctx.User.Permissions
+	hasPermission := perms.SupplyChain.Admin
 
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -421,7 +326,9 @@ func (h *StockTrxHandler) PostStockMovement(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	fd = mouldPostStockMovementFormData(fd)
+	fd.normalise()
+
+	transactionType := "Stock Movement"
 
 	renderWithError := func(errorText string) {
 		_ = stockview.PostStockMovementPage(
@@ -441,40 +348,24 @@ func (h *StockTrxHandler) PostStockMovement(w http.ResponseWriter, r *http.Reque
 		).Render(w)
 	}
 
-	if fd.Qty.LessThanOrEqual(decimal.Zero) {
-		renderWithError("Qty must be greater than 0")
+	errorText := fd.validate()
+	if errorText != "" {
+		renderWithError(errorText)
 		return
 	}
 
-	if fd.StockCode == "" {
-		renderWithError("Stock code cannot be empty")
-		return
-	}
-	if fd.FromLocation == "" {
-		renderWithError("From location cannot be empty")
-		return
-	}
-	if fd.ToLocation == "" {
-		renderWithError("To location cannot be empty")
-		return
-	}
-
-	err = h.stockTrxService.PostStockTransaction(
+	err = h.stockTransactionService.PostManualStockMovement(
 		r.Context(),
-		&model.PostStockTransactionsInput{{
-			StockTransactionType: transactionType,
-			StockCode:            fd.StockCode,
-			Qty:                  fd.Qty,
-			FromAccount:          "STOCK",
-			FromLocation:         fd.FromLocation,
-			FromBin:              fd.FromBin,
-			FromLotNumber:        &fd.LotNumber,
-			ToAccount:            "STOCK",
-			ToLocation:           fd.ToLocation,
-			ToBin:                fd.ToBin,
-			ToLotNumber:          &fd.LotNumber,
-			StockTransactionNote: fd.TransactionNote,
-		}},
+		&model.PostManualStockMovementInput{
+			StockCode:       fd.StockCode,
+			Qty:             fd.Qty,
+			FromLocation:    fd.FromLocation,
+			FromBin:         fd.FromBin,
+			LotNumber:       fd.LotNumber,
+			ToLocation:      fd.ToLocation,
+			ToBin:           fd.ToBin,
+			TransactionNote: fd.TransactionNote,
+		},
 		ctx.User.UserID,
 	)
 	if err != nil {
@@ -496,7 +387,7 @@ func (h *StockTrxHandler) PostStockMovement(w http.ResponseWriter, r *http.Reque
 	).Render(w)
 }
 
-func (h *StockTrxHandler) PostProduction(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostProduction(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	transactionType := "Production"
@@ -514,7 +405,7 @@ func (h *StockTrxHandler) PostProduction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var fd postFormData
+	var fd postGenericTransactionFormData
 
 	err = appurl.Unmarshal(r.Form, &fd)
 	if err != nil {
@@ -522,7 +413,7 @@ func (h *StockTrxHandler) PostProduction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	fd = mouldPostProductionFormData(fd)
+	fd.normalise()
 
 	renderWithError := func(errorText string) {
 		_ = stockview.PostProductionPage(
@@ -539,36 +430,22 @@ func (h *StockTrxHandler) PostProduction(w http.ResponseWriter, r *http.Request)
 		).Render(w)
 	}
 
-	if fd.Qty.LessThanOrEqual(decimal.Zero) {
-		renderWithError("Qty must be greater than 0")
+	errorText := fd.validate()
+	if errorText != "" {
+		renderWithError(errorText)
 		return
 	}
 
-	if fd.StockCode == "" {
-		renderWithError("Stock code cannot be empty")
-		return
-	}
-	if fd.Location == "" {
-		renderWithError("Location cannot be empty")
-		return
-	}
-
-	err = h.stockTrxService.PostStockTransaction(
+	err = h.stockTransactionService.PostManualProduction(
 		r.Context(),
-		&model.PostStockTransactionsInput{{
-			StockTransactionType: transactionType,
-			StockCode:            fd.StockCode,
-			Qty:                  fd.Qty,
-			FromAccount:          "PRODUCTION",
-			FromLocation:         fd.Location,
-			FromBin:              fd.Bin,
-			FromLotNumber:        &fd.LotNumber,
-			ToAccount:            "STOCK",
-			ToLocation:           fd.Location,
-			ToBin:                fd.Bin,
-			ToLotNumber:          &fd.LotNumber,
-			StockTransactionNote: fd.TransactionNote,
-		}},
+		&model.PostManualGenericStockTransactionInput{
+			StockCode:       fd.StockCode,
+			Qty:             fd.Qty,
+			Location:        fd.Location,
+			Bin:             fd.Bin,
+			LotNumber:       fd.LotNumber,
+			TransactionNote: fd.TransactionNote,
+		},
 		ctx.User.UserID,
 	)
 
@@ -587,7 +464,7 @@ func (h *StockTrxHandler) PostProduction(w http.ResponseWriter, r *http.Request)
 
 }
 
-func (h *StockTrxHandler) PostProductionReversal(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostProductionReversal(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	transactionType := "Production Reversal"
@@ -606,7 +483,7 @@ func (h *StockTrxHandler) PostProductionReversal(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var fd postFormData
+	var fd postGenericTransactionFormData
 
 	err = appurl.Unmarshal(r.Form, &fd)
 	if err != nil {
@@ -614,7 +491,7 @@ func (h *StockTrxHandler) PostProductionReversal(w http.ResponseWriter, r *http.
 		return
 	}
 
-	fd = mouldPostProductionReversalFormData(fd)
+	fd.normalise()
 
 	renderWithError := func(errorText string) {
 		_ = stockview.PostProductionReversalPage(
@@ -631,36 +508,22 @@ func (h *StockTrxHandler) PostProductionReversal(w http.ResponseWriter, r *http.
 		).Render(w)
 	}
 
-	if fd.Qty.LessThanOrEqual(decimal.Zero) {
-		renderWithError("Qty must be greater than 0")
+	errorText := fd.validate()
+	if errorText != "" {
+		renderWithError(errorText)
 		return
 	}
 
-	if fd.StockCode == "" {
-		renderWithError("Stock code cannot be empty")
-		return
-	}
-	if fd.Location == "" {
-		renderWithError("Location cannot be empty")
-		return
-	}
-
-	err = h.stockTrxService.PostStockTransaction(
+	err = h.stockTransactionService.PostManualProductionReversal(
 		r.Context(),
-		&model.PostStockTransactionsInput{{
-			StockTransactionType: transactionType,
-			StockCode:            fd.StockCode,
-			Qty:                  fd.Qty,
-			FromAccount:          "STOCK",
-			FromLocation:         fd.Location,
-			FromBin:              fd.Bin,
-			FromLotNumber:        &fd.LotNumber,
-			ToAccount:            "PRODUCTION",
-			ToLocation:           fd.Location,
-			ToBin:                fd.Bin,
-			ToLotNumber:          &fd.LotNumber,
-			StockTransactionNote: fd.TransactionNote,
-		}},
+		&model.PostManualGenericStockTransactionInput{
+			StockCode:       fd.StockCode,
+			Qty:             fd.Qty,
+			Location:        fd.Location,
+			Bin:             fd.Bin,
+			LotNumber:       fd.LotNumber,
+			TransactionNote: fd.TransactionNote,
+		},
 		ctx.User.UserID,
 	)
 
@@ -678,7 +541,7 @@ func (h *StockTrxHandler) PostProductionReversal(w http.ResponseWriter, r *http.
 	).Render(w)
 }
 
-func (h *StockTrxHandler) PostConsumption(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostConsumption(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	transactionType := "Consumption"
@@ -697,7 +560,7 @@ func (h *StockTrxHandler) PostConsumption(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var fd postFormData
+	var fd postGenericTransactionFormData
 
 	err = appurl.Unmarshal(r.Form, &fd)
 	if err != nil {
@@ -705,7 +568,7 @@ func (h *StockTrxHandler) PostConsumption(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	fd = mouldPostConsumptionFormData(fd)
+	fd.normalise()
 
 	renderWithError := func(errorText string) {
 		_ = stockview.PostConsumptionPage(
@@ -722,36 +585,22 @@ func (h *StockTrxHandler) PostConsumption(w http.ResponseWriter, r *http.Request
 		).Render(w)
 	}
 
-	if fd.Qty.LessThanOrEqual(decimal.Zero) {
-		renderWithError("Qty must be greater than 0")
+	errorText := fd.validate()
+	if errorText != "" {
+		renderWithError(errorText)
 		return
 	}
 
-	if fd.StockCode == "" {
-		renderWithError("Stock code cannot be empty")
-		return
-	}
-	if fd.Location == "" {
-		renderWithError("Location cannot be empty")
-		return
-	}
-
-	err = h.stockTrxService.PostStockTransaction(
+	err = h.stockTransactionService.PostManualConsumption(
 		r.Context(),
-		&model.PostStockTransactionsInput{{
-			StockTransactionType: transactionType,
-			StockCode:            fd.StockCode,
-			Qty:                  fd.Qty,
-			FromAccount:          "STOCK",
-			FromLocation:         fd.Location,
-			FromBin:              fd.Bin,
-			FromLotNumber:        &fd.LotNumber,
-			ToAccount:            "CONSUMED",
-			ToLocation:           fd.Location,
-			ToBin:                fd.Bin,
-			ToLotNumber:          &fd.LotNumber,
-			StockTransactionNote: fd.TransactionNote,
-		}},
+		&model.PostManualGenericStockTransactionInput{
+			StockCode:       fd.StockCode,
+			Qty:             fd.Qty,
+			Location:        fd.Location,
+			Bin:             fd.Bin,
+			LotNumber:       fd.LotNumber,
+			TransactionNote: fd.TransactionNote,
+		},
 		ctx.User.UserID,
 	)
 
@@ -769,7 +618,7 @@ func (h *StockTrxHandler) PostConsumption(w http.ResponseWriter, r *http.Request
 	).Render(w)
 }
 
-func (h *StockTrxHandler) PostConsumptionReversal(w http.ResponseWriter, r *http.Request) {
+func (h *StockTransactionHandler) PostConsumptionReversal(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	transactionType := "Consumption Reversal"
@@ -788,7 +637,7 @@ func (h *StockTrxHandler) PostConsumptionReversal(w http.ResponseWriter, r *http
 		return
 	}
 
-	var fd postFormData
+	var fd postGenericTransactionFormData
 
 	err = appurl.Unmarshal(r.Form, &fd)
 	if err != nil {
@@ -796,7 +645,7 @@ func (h *StockTrxHandler) PostConsumptionReversal(w http.ResponseWriter, r *http
 		return
 	}
 
-	fd = mouldPostConsumptionReversalFormData(fd)
+	fd.normalise()
 
 	renderWithError := func(errorText string) {
 		_ = stockview.PostConsumptionReversalPage(
@@ -813,36 +662,22 @@ func (h *StockTrxHandler) PostConsumptionReversal(w http.ResponseWriter, r *http
 		).Render(w)
 	}
 
-	if fd.Qty.LessThanOrEqual(decimal.Zero) {
-		renderWithError("Qty must be greater than 0")
+	errorText := fd.validate()
+	if errorText != "" {
+		renderWithError(errorText)
 		return
 	}
 
-	if fd.StockCode == "" {
-		renderWithError("Stock code cannot be empty")
-		return
-	}
-	if fd.Location == "" {
-		renderWithError("Location cannot be empty")
-		return
-	}
-
-	err = h.stockTrxService.PostStockTransaction(
+	err = h.stockTransactionService.PostManualConsumptionReversal(
 		r.Context(),
-		&model.PostStockTransactionsInput{{
-			StockTransactionType: transactionType,
-			StockCode:            fd.StockCode,
-			Qty:                  fd.Qty,
-			FromAccount:          "CONSUMED",
-			FromLocation:         fd.Location,
-			FromBin:              fd.Bin,
-			FromLotNumber:        &fd.LotNumber,
-			ToAccount:            "STOCK",
-			ToLocation:           fd.Location,
-			ToBin:                fd.Bin,
-			ToLotNumber:          &fd.LotNumber,
-			StockTransactionNote: fd.TransactionNote,
-		}},
+		&model.PostManualGenericStockTransactionInput{
+			StockCode:       fd.StockCode,
+			Qty:             fd.Qty,
+			Location:        fd.Location,
+			Bin:             fd.Bin,
+			LotNumber:       fd.LotNumber,
+			TransactionNote: fd.TransactionNote,
+		},
 		ctx.User.UserID,
 	)
 
@@ -861,7 +696,7 @@ func (h *StockTrxHandler) PostConsumptionReversal(w http.ResponseWriter, r *http
 }
 
 // FORM DATA
-type postFormData struct {
+type postGenericTransactionFormData struct {
 	StockCode       string
 	Location        string
 	Bin             string
@@ -871,7 +706,6 @@ type postFormData struct {
 }
 
 // Stock movement
-
 type postStockMovementFormData struct {
 	StockCode       string
 	Account         string
@@ -885,73 +719,66 @@ type postStockMovementFormData struct {
 	ReturnTo        *string
 }
 
-func mouldPostStockMovementFormData(fd postStockMovementFormData) postStockMovementFormData {
+func (fd *postStockMovementFormData) normalise() {
 
 	// trim and uppercase
 	fd.StockCode = strings.ToUpper(strings.TrimSpace(fd.StockCode))
+	fd.FromLocation = strings.ToUpper(strings.TrimSpace(fd.FromLocation))
+	fd.FromBin = strings.ToUpper(strings.TrimSpace(fd.FromBin))
+	fd.ToLocation = strings.ToUpper(strings.TrimSpace(fd.ToLocation))
+	fd.ToBin = strings.ToUpper(strings.TrimSpace(fd.ToBin))
+	fd.LotNumber = strings.ToUpper(strings.TrimSpace(fd.LotNumber))
 
 	// trim
-	fd.FromLocation = strings.TrimSpace(fd.FromLocation)
-	fd.FromBin = strings.TrimSpace(fd.FromBin)
-	fd.ToLocation = strings.TrimSpace(fd.ToLocation)
-	fd.ToBin = strings.TrimSpace(fd.ToBin)
-	fd.LotNumber = strings.TrimSpace(fd.LotNumber)
 	fd.TransactionNote = strings.TrimSpace(fd.TransactionNote)
 
-	return fd
+}
+
+func (fd *postStockMovementFormData) validate() string {
+
+	if fd.Qty.LessThanOrEqual(decimal.Zero) {
+		return "Qty must be greater than 0"
+	}
+
+	if fd.StockCode == "" {
+		return "Stock code cannot be empty"
+	}
+	if fd.FromLocation == "" {
+		return "From location cannot be empty"
+	}
+	if fd.ToLocation == "" {
+		return "To location cannot be empty"
+	}
+
+	return ""
 }
 
 // Production
-func mouldPostProductionFormData(fd postFormData) postFormData {
+func (fd *postGenericTransactionFormData) normalise() {
 
 	// trim and uppercase
 	fd.StockCode = strings.ToUpper(strings.TrimSpace(fd.StockCode))
+	fd.Location = strings.ToUpper(strings.TrimSpace(fd.Location))
+	fd.Bin = strings.ToUpper(strings.TrimSpace(fd.Bin))
+	fd.LotNumber = strings.ToUpper(strings.TrimSpace(fd.LotNumber))
 
 	// trim
-	fd.Location = strings.TrimSpace(fd.Location)
-	fd.Bin = strings.TrimSpace(fd.Bin)
+	fd.TransactionNote = strings.TrimSpace(fd.TransactionNote)
 
-	return fd
 }
 
-// Production Reversal
-func mouldPostProductionReversalFormData(fd postFormData) postFormData {
+func (fd *postGenericTransactionFormData) validate() string {
 
-	// trim and uppercase
-	fd.StockCode = strings.ToUpper(strings.TrimSpace(fd.StockCode))
+	if fd.Qty.LessThanOrEqual(decimal.Zero) {
+		return "Qty must be greater than 0"
+	}
 
-	// trim
-	fd.Location = strings.TrimSpace(fd.Location)
-	fd.Bin = strings.TrimSpace(fd.Bin)
-	fd.LotNumber = strings.TrimSpace(fd.LotNumber)
+	if fd.StockCode == "" {
+		return "Stock code cannot be empty"
+	}
+	if fd.Location == "" {
+		return "Location cannot be empty"
+	}
 
-	return fd
-}
-
-// Consumption
-func mouldPostConsumptionFormData(fd postFormData) postFormData {
-
-	// trim and uppercase
-	fd.StockCode = strings.ToUpper(strings.TrimSpace(fd.StockCode))
-
-	// trim
-	fd.Location = strings.TrimSpace(fd.Location)
-	fd.Bin = strings.TrimSpace(fd.Bin)
-	fd.LotNumber = strings.TrimSpace(fd.LotNumber)
-
-	return fd
-}
-
-// Consumption Reversal
-func mouldPostConsumptionReversalFormData(fd postFormData) postFormData {
-
-	// trim and uppercase
-	fd.StockCode = strings.ToUpper(strings.TrimSpace(fd.StockCode))
-
-	// trim
-	fd.Location = strings.TrimSpace(fd.Location)
-	fd.Bin = strings.TrimSpace(fd.Bin)
-	fd.LotNumber = strings.TrimSpace(fd.LotNumber)
-
-	return fd
+	return ""
 }

@@ -142,7 +142,7 @@ func transactionsTable(p *transactionsTableProps) g.Node {
 		}, {
 			Contents: g.Text(st.Account),
 		}, {
-			Contents: g.Text(st.StockTransactionType),
+			Contents: g.Text(st.TransactionType),
 		}, {
 			Contents: components.StockItemAnchor(st.StockCode),
 		}, {
