@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -24,7 +25,18 @@ func NewStockTrxHandler(stockTrxService service.StockTrxService) *StockTrxHandle
 	return &StockTrxHandler{stockTrxService: stockTrxService}
 }
 
-func normalise(uv *model.GetTransactionsInput) {
+type urlVals struct {
+	Account      string
+	StockCode    string
+	Location     string
+	Bin          string
+	LotNumber    string
+	LTETimestamp *time.Time
+	Page         int
+	PageSize     int
+}
+
+func (uv *urlVals) normalise() {
 	uv.StockCode = strings.ToUpper(strings.TrimSpace(uv.StockCode))
 
 	uv.Location = strings.ToUpper(strings.TrimSpace(uv.Location))
@@ -35,34 +47,11 @@ func normalise(uv *model.GetTransactionsInput) {
 
 }
 
-// func normalise(uv *model.GetStockLevelsInput) {
-// 	if uv.StockCode != nil {
-// 		stCode := strings.ToUpper(strings.TrimSpace(*uv.StockCode))
-// 		uv.StockCode = &stCode
-// 	}
-
-// 	if uv.Location != nil {
-// 		loc := strings.ToUpper(strings.TrimSpace(*uv.Location))
-// 		uv.Location = &loc
-// 	}
-
-// 	if uv.Bin != nil {
-// 		bin := strings.ToUpper(strings.TrimSpace(*uv.Bin))
-// 		uv.Bin = &bin
-// 	}
-
-// 	if uv.LotNumber != nil {
-// 		lotNo := strings.ToUpper(strings.TrimSpace(*uv.LotNumber))
-// 		uv.LotNumber = &lotNo
-// 	}
-
-// }
-
 // Pages
 func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	var uv model.GetTransactionsInput
+	var uv urlVals
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
@@ -70,7 +59,7 @@ func (h *StockTrxHandler) StockLevelsPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	normalise(&uv)
+	uv.normalise()
 
 	if uv.Page == 0 {
 		uv.Page = 1
@@ -127,7 +116,7 @@ func (h *StockTrxHandler) StockDetailsPage(w http.ResponseWriter, r *http.Reques
 func (h *StockTrxHandler) StockTransactionsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	var uv model.GetTransactionsInput
+	var uv urlVals
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
@@ -135,7 +124,7 @@ func (h *StockTrxHandler) StockTransactionsPage(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	normalise(&uv)
+	uv.normalise()
 
 	if uv.Page == 0 {
 		uv.Page = 1
