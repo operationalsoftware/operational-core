@@ -242,10 +242,12 @@ SELECT
 	`
 
 	for _, t := range *transactions {
+		accounts, _ := model.StockTransacationTypeMap[t.TransactionType]
+
 		// IMPORTANT: posting from and to the same Account, Location, Bin and
 		// LotNumber is not allowed as it is not compatible with how running totals
 		// are calculated
-		if t.FromAccount == t.ToAccount &&
+		if accounts.From == accounts.To &&
 			t.FromLocation == t.ToLocation &&
 			t.FromBin == t.ToBin &&
 			t.FromLotNumber == t.ToLotNumber {
@@ -265,11 +267,11 @@ SELECT
 			t.TransactionNote,
 			userID,
 			t.Timestamp,
-			t.FromAccount,
+			accounts.From,
 			t.FromLocation,
 			t.FromBin,
 			t.FromLotNumber,
-			t.ToAccount,
+			accounts.To,
 			t.ToLocation,
 			t.ToBin,
 			t.ToLotNumber,

@@ -6,12 +6,60 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-var StockAccounts = []string{"STOCK", "PRODUCTION", "CONSUMED"}
+type StockAccount string
+
+const (
+	StockStockAccount      StockAccount = "STOCK"
+	ProductionStockAccount StockAccount = "PRODUCTION"
+	ConsumedStockAccount   StockAccount = "CONSUMED"
+)
+
+var StockAccounts = []StockAccount{
+	StockStockAccount,
+	ProductionStockAccount,
+	ConsumedStockAccount,
+}
+
+type StockTransactionType string
+
+const (
+	StockMovementTransactionType       StockTransactionType = "Stock Movement"
+	ProductionTransactionType          StockTransactionType = "Production"
+	ProductionReversalTransactionType  StockTransactionType = "Production Reversal"
+	ConsumptionTransactionType         StockTransactionType = "Consumption"
+	ConsumptionReversalTransactionType StockTransactionType = "Consumption Reversal"
+)
+
+var StockTransacationTypeMap = map[StockTransactionType]struct {
+	From StockAccount
+	To   StockAccount
+}{
+	StockMovementTransactionType: {
+		From: StockStockAccount,
+		To:   StockStockAccount,
+	},
+	ProductionTransactionType: {
+		From: ProductionStockAccount,
+		To:   StockStockAccount,
+	},
+	ProductionReversalTransactionType: {
+		From: StockStockAccount,
+		To:   ProductionStockAccount,
+	},
+	ConsumptionTransactionType: {
+		From: StockStockAccount,
+		To:   ConsumedStockAccount,
+	},
+	ConsumptionReversalTransactionType: {
+		From: ConsumedStockAccount,
+		To:   StockStockAccount,
+	},
+}
 
 type StockTransactionEntry struct {
 	StockTransactionEntryID int
-	TransactionType         string
-	Account                 string
+	TransactionType         StockTransactionType
+	Account                 StockAccount
 	StockCode               string
 	Location                string
 	Bin                     string
@@ -25,7 +73,7 @@ type StockTransactionEntry struct {
 }
 
 type GetTransactionsInput struct {
-	Account      string
+	Account      StockAccount
 	StockCode    string
 	Location     string
 	Bin          string
@@ -36,18 +84,16 @@ type GetTransactionsInput struct {
 }
 
 type NewStockTransaction struct {
+	TransactionType StockTransactionType
 	Timestamp       *time.Time
 	StockCode       string
 	Qty             decimal.Decimal
-	FromAccount     string
 	FromLocation    string
 	FromBin         string
 	FromLotNumber   string
-	ToAccount       string
 	ToLocation      string
 	ToBin           string
 	ToLotNumber     string
-	TransactionType string
 	TransactionNote string
 }
 
@@ -74,7 +120,7 @@ type PostManualStockMovementInput struct {
 }
 
 type GetStockLevelsInput struct {
-	Account      string
+	Account      StockAccount
 	StockCode    string
 	Location     string
 	Bin          string
@@ -85,7 +131,7 @@ type GetStockLevelsInput struct {
 }
 
 type StockLevel struct {
-	Account    string
+	Account    StockAccount
 	StockCode  string
 	Location   string
 	Bin        string

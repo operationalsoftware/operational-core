@@ -72,7 +72,7 @@ func (h *StockTransactionHandler) StockLevelsPage(w http.ResponseWriter, r *http
 	uv.normalise()
 
 	stockLevels, err := h.stockTransactionService.GetStockLevels(r.Context(), &model.GetStockLevelsInput{
-		Account:      uv.Account,
+		Account:      model.StockAccount(uv.Account),
 		StockCode:    uv.StockCode,
 		Location:     uv.Location,
 		Bin:          uv.Bin,
@@ -131,7 +131,7 @@ func (h *StockTransactionHandler) StockTransactionsPage(w http.ResponseWriter, r
 	uv.normalise()
 
 	stockTransactions, err := h.stockTransactionService.GetStockTransactions(r.Context(), &model.GetTransactionsInput{
-		Account:      uv.Account,
+		Account:      model.StockAccount(uv.Account),
 		StockCode:    uv.StockCode,
 		Location:     uv.Location,
 		Bin:          uv.Bin,

@@ -129,7 +129,7 @@ func transactionsTable(p *transactionsTableProps) g.Node {
 		}
 
 		trxParams := url.Values{}
-		trxParams.Add("Account", st.Account)
+		trxParams.Add("Account", string(st.Account))
 		trxParams.Add("StockCode", st.StockCode)
 		trxParams.Add("Location", st.Location)
 		trxParams.Add("Bin", st.Bin)
@@ -140,9 +140,9 @@ func transactionsTable(p *transactionsTableProps) g.Node {
 		rowCells := []components.TableCell{{
 			Contents: g.Text(fmt.Sprintf("%d", st.StockTransactionEntryID)),
 		}, {
-			Contents: g.Text(st.Account),
+			Contents: g.Text(string(st.Account)),
 		}, {
-			Contents: g.Text(st.TransactionType),
+			Contents: g.Text(string(st.TransactionType)),
 		}, {
 			Contents: components.StockItemAnchor(st.StockCode),
 		}, {

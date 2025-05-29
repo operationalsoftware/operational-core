@@ -99,11 +99,11 @@ func filters(
 			h.Select(
 				h.Class("lg"),
 				h.Name("Account"),
-				g.Group(g.Map(model.StockAccounts, func(a string) g.Node {
+				g.Group(g.Map(model.StockAccounts, func(a model.StockAccount) g.Node {
 					return h.Option(
-						h.Value(a),
-						g.Text(a),
-						g.If(account == a, h.Selected()),
+						h.Value(string(a)),
+						g.Text(string(a)),
+						g.If(account == string(a), h.Selected()),
 					)
 				})),
 			),
@@ -221,7 +221,7 @@ func stockLevelsTable(p *stockLevelsTableProps) g.Node {
 		}
 
 		trxParams := url.Values{}
-		trxParams.Add("Account", sl.Account)
+		trxParams.Add("Account", string(sl.Account))
 		trxParams.Add("StockCode", sl.StockCode)
 		trxParams.Add("Location", sl.Location)
 		trxParams.Add("Bin", sl.Bin)
@@ -230,7 +230,7 @@ func stockLevelsTable(p *stockLevelsTableProps) g.Node {
 		transactionsLink := fmt.Sprintf("/stock/transactions?%s", trxParams.Encode())
 
 		rowCells := []components.TableCell{{
-			Contents: g.Text(sl.Account),
+			Contents: g.Text(string(sl.Account)),
 		}, {
 			Contents: components.StockItemAnchor(sl.StockCode),
 		}, {
