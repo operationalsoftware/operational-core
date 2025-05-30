@@ -12,32 +12,38 @@ import (
 
 // Apply migrations if required (queries will be added later)
 func migrate(ctx context.Context, tx pgx.Tx) error {
-	// Create Recent search table
-	_, err := tx.Exec(context.Background(), `
-CREATE TABLE 
-	recent_search (
-		recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-		search_term TEXT NOT NULL,
-		search_entities TEXT[] NOT NULL,
-		user_id INT REFERENCES app_user(user_id), 
-		last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
-		CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
+	// Team table
+	_, err := tx.Exec(ctx, `
+CREATE TABLE team (
+	team_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	team_name TEXT NOT NULL,
+	is_archived BOOLEAN NOT NULL DEFAULT FALSE
 );
-	`)
+		`)
 	if err != nil {
 		return err
 	}
-	// Recent search table end
+	// Team table end
 
-	// Alter column for app_user table
+	// Andon Issue table
 	_, err = tx.Exec(context.Background(), `
-ALTER TABLE app_user ADD COLUMN session_duration_minutes INT;
-	`)
+CREATE TABLE andon_issue (
+    andon_issue_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    issue_name TEXT NOT NULL,
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+    parent_id INTEGER REFERENCES andon_issue(andon_issue_id),
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by INTEGER NOT NULL REFERENCES app_user(user_id),
+    updated_at TIMESTAMPTZ,
+    updated_by INTEGER REFERENCES app_user(user_id)
+);
+		`)
 	if err != nil {
 		return err
 	}
-	// Recent search table end
+	// Andon Issue table end
 
 	return nil
 }
@@ -107,20 +113,52 @@ CREATE TABLE app_user (
 
 	// Create Recent search table
 	_, err = tx.Exec(context.Background(), `
-			CREATE TABLE recent_search (
-				recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-				search_term TEXT NOT NULL,
-				search_entities TEXT[] NOT NULL,
-				user_id INT REFERENCES app_user(user_id),
-				last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE recent_search (
+	recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	search_term TEXT NOT NULL,
+	search_entities TEXT[] NOT NULL,
+	user_id INT REFERENCES app_user(user_id),
+	last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
-				CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
-			);
+	CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
+);
 		`)
 	if err != nil {
 		return err
 	}
 	// Recent search table end
+
+	// Team table
+	_, err = tx.Exec(context.Background(), `
+CREATE TABLE team (
+	team_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	team_name TEXT NOT NULL,
+	is_archived BOOLEAN NOT NULL DEFAULT FALSE
+);
+		`)
+	if err != nil {
+		return err
+	}
+	// Team table end
+
+	// Andon Issue table
+	_, err = tx.Exec(context.Background(), `
+CREATE TABLE andon_issue (
+    andon_issue_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    issue_name TEXT NOT NULL,
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+    parent_id INTEGER REFERENCES andon_issue(andon_issue_id),
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by INTEGER NOT NULL REFERENCES app_user(user_id),
+    updated_at TIMESTAMPTZ,
+    updated_by INTEGER REFERENCES app_user(user_id)
+);
+		`)
+	if err != nil {
+		return err
+	}
+	// Andon Issue table end
 
 	//
 	// END OF INITIALISATION

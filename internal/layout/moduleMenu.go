@@ -13,9 +13,16 @@ var AppMenu = []components.GridMenuGroup{
 	{
 		GroupName: "Admin",
 		Items: []components.GridMenuItem{{
-			Icon: "account-group",
+			Icon: "account-multiple",
 			Name: "Users",
 			Link: "/users",
+			Show: func(permissions model.UserPermissions) bool {
+				return permissions.UserAdmin.Access
+			},
+		}, {
+			Icon: "account-group",
+			Name: "Teams",
+			Link: "/teams",
 			Show: func(permissions model.UserPermissions) bool {
 				return permissions.UserAdmin.Access
 			},

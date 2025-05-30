@@ -16,7 +16,6 @@ import (
 )
 
 type UserPageProps struct {
-	Id   int
 	Ctx  reqcontext.ReqContext
 	User model.User
 }
@@ -40,7 +39,7 @@ func UserPage(p *UserPageProps) g.Node {
 					Classes: c.Classes{
 						"edit-button": true,
 					},
-					Link: fmt.Sprintf("/users/%d/edit", p.Id),
+					Link: fmt.Sprintf("/users/%d/edit", user.UserID),
 				},
 					components.Icon(&components.IconProps{
 						Identifier: "pencil",
@@ -51,7 +50,7 @@ func UserPage(p *UserPageProps) g.Node {
 					Classes: c.Classes{
 						"reset-pw-button": true,
 					},
-					Link: fmt.Sprintf("/users/%d/reset-password", p.Id),
+					Link: fmt.Sprintf("/users/%d/reset-password", user.UserID),
 				},
 					g.Text("Reset Password"),
 				),

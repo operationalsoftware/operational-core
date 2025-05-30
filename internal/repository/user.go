@@ -223,26 +223,27 @@ SELECT
     last_name,
     created,
     last_login,
-    permissions,
-	session_duration_minutes
+	session_duration_minutes,
+    permissions
 FROM
     app_user
 WHERE
     user_id = $1
 	`
 
-	userDB := model.UserDB{}
+	user := model.User{}
+	var permissions json.RawMessage
 	err := exec.QueryRow(ctx, query, userID).Scan(
-		&userDB.UserID,
-		&userDB.IsAPIUser,
-		&userDB.Username,
-		&userDB.Email,
-		&userDB.FirstName,
-		&userDB.LastName,
-		&userDB.Created,
-		&userDB.LastLogin,
-		&userDB.Permissions,
-		&userDB.SessionDurationMinutes,
+		&user.UserID,
+		&user.IsAPIUser,
+		&user.Username,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Created,
+		&user.LastLogin,
+		&user.SessionDurationMinutes,
+		&permissions,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -250,7 +251,11 @@ WHERE
 		return nil, err
 	}
 
-	user := userDB.ToDomain()
+	err = json.Unmarshal(permissions, &user.Permissions)
+	if err != nil {
+		user.Permissions = model.UserPermissions{}
+	}
+
 	return &user, nil
 }
 
@@ -270,6 +275,7 @@ SELECT
     last_name,
     created,
     last_login,
+	session_duration_minutes,
     permissions
 FROM
     app_user
@@ -277,17 +283,19 @@ WHERE
     username = $1
 	`
 
-	userDB := model.UserDB{}
+	user := model.User{}
+	var permissions json.RawMessage
 	err := exec.QueryRow(ctx, query, username).Scan(
-		&userDB.UserID,
-		&userDB.IsAPIUser,
-		&userDB.Username,
-		&userDB.Email,
-		&userDB.FirstName,
-		&userDB.LastName,
-		&userDB.Created,
-		&userDB.LastLogin,
-		&userDB.Permissions,
+		&user.UserID,
+		&user.IsAPIUser,
+		&user.Username,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Created,
+		&user.LastLogin,
+		&user.SessionDurationMinutes,
+		&permissions,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -295,7 +303,11 @@ WHERE
 		return nil, err
 	}
 
-	user := userDB.ToDomain()
+	err = json.Unmarshal(permissions, &user.Permissions)
+	if err != nil {
+		user.Permissions = model.UserPermissions{}
+	}
+
 	return &user, nil
 }
 
@@ -305,15 +317,15 @@ func (r *UserRepository) GetUsers(
 	q model.GetUsersQuery,
 ) ([]model.User, error) {
 
-	offset := (q.Page - 1) * q.PageSize
 	limit := q.PageSize
-	orderByClause := q.Sort.ToOrderByClause(map[string]string{})
+	offset := (q.Page - 1) * q.PageSize
+	orderByClause, err := q.Sort.ToOrderByClause(model.User{})
 
 	if orderByClause == "" {
 		orderByClause = "ORDER BY username ASC"
 	}
 
-	query := fmt.Sprintf(`
+	query := `
 SELECT
     user_id,
     is_api_user,
@@ -323,16 +335,15 @@ SELECT
     last_name,
     created,
     last_login,
+	session_duration_minutes,
     permissions
 FROM
     app_user
 
-%s
+` + orderByClause + `
 
 LIMIT $1 OFFSET $2
-	`,
-		orderByClause,
-	)
+`
 
 	rows, err := exec.Query(ctx, query, limit, offset)
 	if err != nil {
@@ -343,23 +354,37 @@ LIMIT $1 OFFSET $2
 
 	users := []model.User{}
 	for rows.Next() {
-		var userDB model.UserDB
+		// Email                  pgtype.Text
+		// FirstName              pgtype.Text
+		// LastName               pgtype.Text
+		// LastLogin              pgtype.Timestamptz
+		// SessionDurationMinutes *int
+
+		var user model.User
+		var permissions json.RawMessage
+
 		err := rows.Scan(
-			&userDB.UserID,
-			&userDB.IsAPIUser,
-			&userDB.Username,
-			&userDB.Email,
-			&userDB.FirstName,
-			&userDB.LastName,
-			&userDB.Created,
-			&userDB.LastLogin,
-			&userDB.Permissions,
+			&user.UserID,
+			&user.IsAPIUser,
+			&user.Username,
+			&user.Email,
+			&user.FirstName,
+			&user.LastName,
+			&user.Created,
+			&user.LastLogin,
+			&user.SessionDurationMinutes,
+			&permissions,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		users = append(users, userDB.ToDomain())
+		err = json.Unmarshal(permissions, &user.Permissions)
+		if err != nil {
+			user.Permissions = model.UserPermissions{}
+		}
+
+		users = append(users, user)
 	}
 
 	return users, nil

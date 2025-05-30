@@ -1,0 +1,32 @@
+.main .button-container {
+  display: flex;
+  justify-content: flex-end;
+  column-gap: var(--spacing-md);
+}
+
+:root[data-theme="dark"] .button-container svg {
+  fill: currentColor;
+}
+
+.main h3 {
+  margin-bottom: var(--spacing-md);
+}
+
+.main .properties-grid {
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+  grid-gap: var(--spacing-lg);
+}
+
+.main .permission-group-title {
+  margin: var(--spacing-sm) 0;
+}
+
+.main .permission-group-list {
+  margin-top: var(--spacing-md);
+}
+
+.main .permission-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}

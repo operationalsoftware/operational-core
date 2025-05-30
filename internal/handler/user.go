@@ -30,13 +30,7 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type urlVals struct {
-		Sort     string
-		Page     int
-		PageSize int
-	}
-
-	var uv urlVals
+	var uv usersHomePageURLVals
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
@@ -44,14 +38,13 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sort := appsort.Sort{}
-	sort.ParseQueryParam(uv.Sort, model.GetUsersSortableKeys)
+	uv.normalise()
 
-	if uv.Page == 0 {
-		uv.Page = 1
-	}
-	if uv.PageSize == 0 {
-		uv.PageSize = 50
+	sort := appsort.Sort{}
+	err = sort.ParseQueryParam(model.User{}, uv.Sort)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error parsing sort: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	users, count, err := h.userService.GetUsers(r.Context(), model.GetUsersQuery{
@@ -73,6 +66,21 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		Page:      uv.Page,
 		PageSize:  uv.PageSize,
 	}).Render(w)
+}
+
+type usersHomePageURLVals struct {
+	Sort     string
+	Page     int
+	PageSize int
+}
+
+func (uv *usersHomePageURLVals) normalise() {
+	if uv.Page == 0 {
+		uv.Page = 1
+	}
+	if uv.PageSize == 0 {
+		uv.PageSize = 50
+	}
 }
 
 func (h *UserHandler) UserPage(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +109,6 @@ func (h *UserHandler) UserPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = userview.UserPage(&userview.UserPageProps{
-		Id:   id,
 		Ctx:  ctx,
 		User: *user,
 	}).Render(w)

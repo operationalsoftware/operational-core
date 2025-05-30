@@ -58,14 +58,18 @@ func main() {
 	}
 
 	// Instantiate repositories
+	andonIssueRepository := repository.NewAndonIssueRepository()
 	authRepository := repository.NewAuthRepository()
+	teamRepository := repository.NewTeamRepository()
 	userRepository := repository.NewUserRepository()
 
 	// Instantiate services
 	services := &router.Services{
-		AuthService:   *service.NewAuthService(pgPool, authRepository),
-		UserService:   *service.NewUserService(pgPool, userRepository),
-		SearchService: *service.NewSearchService(pgPool, userRepository),
+		AndonIssueService: *service.NewAndonIssueService(pgPool, andonIssueRepository),
+		AuthService:       *service.NewAuthService(pgPool, authRepository),
+		SearchService:     *service.NewSearchService(pgPool, userRepository),
+		TeamService:       *service.NewTeamService(pgPool, teamRepository),
+		UserService:       *service.NewUserService(pgPool, userRepository),
 	}
 
 	// define server

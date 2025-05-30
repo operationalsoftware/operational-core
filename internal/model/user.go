@@ -41,7 +41,6 @@ func (u UserDB) ToDomain() User {
 	if u.Permissions != nil {
 		err := json.Unmarshal(u.Permissions, &permissions)
 		if err != nil {
-			// If unmarshalling fails, leave the permissions empty or set a default
 			permissions = UserPermissions{}
 		}
 	}

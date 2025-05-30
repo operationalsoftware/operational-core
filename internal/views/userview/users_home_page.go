@@ -155,14 +155,11 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/userview/users_home_page.css"),
 		},
-		AppendBody: []g.Node{
-			components.InlineScript("/internal/views/userview/users_home_page.js"),
-		},
 	})
 }
 
 var usersBreadCrumb = layout.Breadcrumb{
-	IconIdentifier: "account-group",
+	IconIdentifier: "account-multiple",
 	Title:          "Users",
 	URLPart:        "users",
 }

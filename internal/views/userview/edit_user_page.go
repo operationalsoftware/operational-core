@@ -36,7 +36,7 @@ func EditUserPage(p *EditUserPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Title: fmt.Sprintf("Edit User: %s", p.User.Username),
+		Title: fmt.Sprintf("Edit: %s", p.User.Username),
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
 			usersBreadCrumb,

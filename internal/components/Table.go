@@ -60,7 +60,7 @@ func generateSortString(currentSort appsort.Sort, key string) string {
 
 	isInSort := false
 	for i, s := range sort {
-		if s.Key == key {
+		if s.Field == key {
 			isInSort = true
 			if i == len(sort)-1 && s.Sort == appsort.DirectionDesc {
 				// remove it
@@ -78,8 +78,8 @@ func generateSortString(currentSort appsort.Sort, key string) string {
 
 	if !isInSort {
 		sort = append(sort, appsort.SortItem{
-			Key:  key,
-			Sort: appsort.DirectionAsc,
+			Field: key,
+			Sort:  appsort.DirectionAsc,
 		})
 	}
 

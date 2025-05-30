@@ -1,6 +1,8 @@
 package appsort
 
 import (
+	"app/pkg/modelutil"
+	"fmt"
 	"strings"
 )
 
@@ -12,40 +14,42 @@ const (
 )
 
 type SortItem struct {
-	Key  string
-	Sort Direction
+	Field string
+	Sort  Direction
 }
 
 type Sort []SortItem
 
-func (s *Sort) ParseQueryParam(queryParam string, allowedKeys []string) {
+func (s *Sort) ParseQueryParam(modelType any, queryParam string) error {
 	sort := Sort{}
 	if queryParam != "" {
 		sortItems := strings.Split(queryParam, "-")
 		for i := 0; i < len(sortItems); i += 2 {
-			key := sortItems[i]
+			field := sortItems[i]
 			direction := Direction(sortItems[i+1])
 			// validate direction
 			if direction != DirectionAsc && direction != DirectionDesc {
 				continue
 			}
-			// validate parsed key is in allowed keys
-			for j, allowedKey := range allowedKeys {
-				if key == allowedKey {
-					break
-				} else if j == len(allowedKeys)-1 {
-					continue
-				}
+			// validate sortable field
+			isFieldSortable, err := modelutil.IsFieldSortable(modelType, field)
+			if err != nil {
+				return fmt.Errorf("error parsing sort: %v", err)
+			}
+			if !isFieldSortable {
+				return fmt.Errorf("error parsing sort: %v", err)
 			}
 
 			sort = append(sort, SortItem{
-				Key:  sortItems[i],
-				Sort: Direction(sortItems[i+1]),
+				Field: sortItems[i],
+				Sort:  direction,
 			})
 		}
 	}
 
 	*s = sort
+
+	return nil
 }
 
 func (s *Sort) EncodeQueryParam() string {
@@ -54,7 +58,7 @@ func (s *Sort) EncodeQueryParam() string {
 		if i != 0 {
 			sortString += "-"
 		}
-		sortString += si.Key + "-" + string(si.Sort)
+		sortString += si.Field + "-" + string(si.Sort)
 	}
 
 	return sortString
@@ -62,7 +66,7 @@ func (s *Sort) EncodeQueryParam() string {
 
 func (s *Sort) IsSortedBy(key string) bool {
 	for _, si := range *s {
-		if si.Key == key {
+		if si.Field == key {
 			return true
 		}
 	}
@@ -72,7 +76,7 @@ func (s *Sort) IsSortedBy(key string) bool {
 
 func (s *Sort) GetIndex(key string) int {
 	for i, si := range *s {
-		if si.Key == key {
+		if si.Field == key {
 			return i
 		}
 	}
@@ -82,7 +86,7 @@ func (s *Sort) GetIndex(key string) int {
 
 func (s *Sort) GetDirection(key string) Direction {
 	for _, si := range *s {
-		if si.Key == key {
+		if si.Field == key {
 			return si.Sort
 		}
 	}
@@ -90,16 +94,21 @@ func (s *Sort) GetDirection(key string) Direction {
 	return ""
 }
 
-func (s *Sort) ToOrderByClause(keyMap map[string]string) string {
+func (s *Sort) ToOrderByClause(modelType any) (string, error) {
 	sql := ""
 	for i, si := range *s {
 		if i != 0 {
 			sql += ", "
 		}
 
-		column, ok := keyMap[si.Key]
-		if !ok {
-			column = si.Key
+		isFieldSortable, err := modelutil.IsFieldSortable(modelType, si.Field)
+		if !isFieldSortable {
+			return "", fmt.Errorf("sort error: field %s is not sortable", si.Field)
+		}
+
+		column, err := modelutil.GetFieldColumnName(modelType, si.Field)
+		if err != nil {
+			return "", fmt.Errorf("sort error: %v", err)
 		}
 
 		sql += column + " " + strings.ToUpper(string(si.Sort))
@@ -109,5 +118,5 @@ func (s *Sort) ToOrderByClause(keyMap map[string]string) string {
 		sql = "ORDER BY " + sql
 	}
 
-	return sql
+	return sql, nil
 }
