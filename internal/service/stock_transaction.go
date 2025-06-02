@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shopspring/decimal"
 )
 
 type StockTransactionService struct {
@@ -177,6 +178,49 @@ func (s *StockTransactionService) PostManualConsumptionReversal(
 
 	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
 		TransactionType: "Consumption Reversal",
+		StockCode:       input.StockCode,
+		Qty:             input.Qty,
+		FromLocation:    input.Location,
+		FromBin:         input.Bin,
+		FromLotNumber:   input.LotNumber,
+		ToLocation:      input.Location,
+		ToBin:           input.Bin,
+		ToLotNumber:     input.LotNumber,
+		TransactionNote: input.TransactionNote,
+		Timestamp:       nil,
+	}}, userID)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("error committing transaction: %v", err)
+	}
+
+	return nil
+}
+
+func (s *StockTransactionService) PostManualStockAdjustment(
+	ctx context.Context,
+	input *model.PostManualGenericStockTransactionInput,
+	userID int,
+) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction")
+	}
+	defer tx.Rollback(ctx)
+
+	var transactionType model.StockTransactionType
+
+	if input.Qty.GreaterThan(decimal.Zero) {
+		transactionType = "Stock Adjust Up"
+	} else {
+		transactionType = "Stock Adjust Down"
+	}
+
+	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
+		TransactionType: transactionType,
 		StockCode:       input.StockCode,
 		Qty:             input.Qty,
 		FromLocation:    input.Location,

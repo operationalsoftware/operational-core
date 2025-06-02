@@ -284,6 +284,26 @@ func (h *StockTransactionHandler) PostConsumptionReversalPage(w http.ResponseWri
 
 }
 
+func (h *StockTransactionHandler) PostStockAdjustmentPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	perms := ctx.User.Permissions
+	hasPermission := perms.SupplyChain.Admin
+
+	if !hasPermission {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	_ = stockview.PostStockAdjustPage(
+		&stockview.PostGenericPageProps{
+			Ctx:               ctx,
+			IsStockAdjustment: true,
+		},
+	).Render(w)
+
+}
+
 // Post Stock Transaction handlers
 
 func (h *StockTransactionHandler) PostStockMovement(w http.ResponseWriter, r *http.Request) {
@@ -661,13 +681,88 @@ func (h *StockTransactionHandler) PostConsumptionReversal(w http.ResponseWriter,
 	).Render(w)
 }
 
+func (h *StockTransactionHandler) PostStockAdjustment(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	perms := ctx.User.Permissions
+	hasPermission := perms.SupplyChain.Admin
+
+	if !hasPermission {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var fd postGenericTransactionFormData
+	fd.IsStockAdjustment = true
+
+	err = appurl.Unmarshal(r.Form, &fd)
+	if err != nil {
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	fd.normalise()
+
+	renderWithError := func(errorText string) {
+		_ = stockview.PostStockAdjustPage(
+			&stockview.PostGenericPageProps{
+				Ctx:       ctx,
+				StockCode: fd.StockCode,
+				Location:  fd.Location,
+				Bin:       fd.Bin,
+				LotNumber: fd.LotNumber,
+				Qty:       fd.Qty,
+				ErrorText: errorText,
+			},
+		).Render(w)
+	}
+
+	errorText := fd.validate()
+	if errorText != "" {
+		renderWithError(errorText)
+		return
+	}
+
+	err = h.stockTransactionService.PostManualStockAdjustment(
+		r.Context(),
+		&model.PostManualGenericStockTransactionInput{
+			StockCode:       fd.StockCode,
+			Qty:             fd.Qty,
+			Location:        fd.Location,
+			Bin:             fd.Bin,
+			LotNumber:       fd.LotNumber,
+			TransactionNote: fd.TransactionNote,
+		},
+		ctx.User.UserID,
+	)
+
+	if err != nil {
+		renderWithError(err.Error())
+		return
+	}
+
+	_ = stockview.PostStockAdjustPage(
+		&stockview.PostGenericPageProps{
+			Ctx:         ctx,
+			SuccessText: "Stock adjustment operation posted successfully",
+		},
+	).Render(w)
+}
+
 type postGenericTransactionFormData struct {
-	StockCode       string
-	Location        string
-	Bin             string
-	LotNumber       string
-	Qty             decimal.Decimal
-	TransactionNote string
+	StockCode         string
+	Location          string
+	Bin               string
+	LotNumber         string
+	Qty               decimal.Decimal
+	TransactionNote   string
+	IsStockAdjustment bool
 }
 
 type postStockMovementFormData struct {
@@ -732,7 +827,7 @@ func (fd *postGenericTransactionFormData) normalise() {
 
 func (fd *postGenericTransactionFormData) validate() string {
 
-	if fd.Qty.LessThanOrEqual(decimal.Zero) {
+	if fd.Qty.LessThanOrEqual(decimal.Zero) && !fd.IsStockAdjustment {
 		return "Qty must be greater than 0"
 	}
 

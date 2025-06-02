@@ -12,12 +12,14 @@ const (
 	StockStockAccount      StockAccount = "STOCK"
 	ProductionStockAccount StockAccount = "PRODUCTION"
 	ConsumedStockAccount   StockAccount = "CONSUMED"
+	AdjustStockAccount     StockAccount = "ADJUST"
 )
 
 var StockAccounts = []StockAccount{
 	StockStockAccount,
 	ProductionStockAccount,
 	ConsumedStockAccount,
+	AdjustStockAccount,
 }
 
 type StockTransactionType string
@@ -28,6 +30,8 @@ const (
 	ProductionReversalTransactionType  StockTransactionType = "Production Reversal"
 	ConsumptionTransactionType         StockTransactionType = "Consumption"
 	ConsumptionReversalTransactionType StockTransactionType = "Consumption Reversal"
+	StockAdjustUpTransactionType       StockTransactionType = "Stock Adjust Up"
+	StockAdjustDownTransactionType     StockTransactionType = "Stock Adjust Down"
 )
 
 var StockTransacationTypeMap = map[StockTransactionType]struct {
@@ -53,6 +57,14 @@ var StockTransacationTypeMap = map[StockTransactionType]struct {
 	ConsumptionReversalTransactionType: {
 		From: ConsumedStockAccount,
 		To:   StockStockAccount,
+	},
+	StockAdjustUpTransactionType: {
+		From: AdjustStockAccount,
+		To:   StockStockAccount,
+	},
+	StockAdjustDownTransactionType: {
+		From: StockStockAccount,
+		To:   AdjustStockAccount,
 	},
 }
 

@@ -46,4 +46,8 @@ func addStockTransactionRoutes(
 	mux.HandleFunc("GET /stock/post-transaction/consumption-reversal", stockTransactionHandler.PostConsumptionReversalPage)
 	mux.HandleFunc("POST /stock/post-transaction/consumption-reversal", stockTransactionHandler.PostConsumptionReversal)
 
+	// Stock Adjustment
+	mux.HandleFunc("GET /stock/post-transaction/stock-adjustment", stockTransactionHandler.PostStockAdjustmentPage)
+	mux.HandleFunc("POST /stock/post-transaction/stock-adjustment", stockTransactionHandler.PostStockAdjustment)
+
 }

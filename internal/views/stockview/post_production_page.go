@@ -21,6 +21,8 @@ type PostGenericPageProps struct {
 	Qty             decimal.Decimal
 	TransactionNote string
 
+	IsStockAdjustment bool
+
 	// Placeholders
 	StockCodePlaceholder string
 	QtyPlaceholder       string
@@ -137,11 +139,12 @@ func formPartialStockCodeLocBinLot(p *PostGenericPageProps) g.Node {
 				g.Text("Qty"),
 				h.Input(
 					h.Type("number"),
-					h.Min("0"),
+					g.If(!p.IsStockAdjustment, h.Min("0")),
+					// h.Min("0"),
 					h.Name("Qty"),
 					h.Step("any"),
 					g.If(
-						p.Qty.GreaterThan(decimal.Zero),
+						p.Qty.GreaterThan(decimal.Zero) || p.Qty.LessThan(decimal.Zero),
 						h.Value(p.Qty.String()),
 					),
 					h.Placeholder(p.QtyPlaceholder),

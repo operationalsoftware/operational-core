@@ -39,6 +39,9 @@ func postTransactionPageLayout(p *postTransactionPageLayoutProps) g.Node {
 	}, {
 		title:    "Consumption Reversal",
 		linkPart: "consumption-reversal",
+	}, {
+		title:    "Stock Adjustment",
+		linkPart: "stock-adjustment",
 	}}
 
 	content := components.Card(
