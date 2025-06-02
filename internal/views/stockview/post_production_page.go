@@ -140,7 +140,6 @@ func formPartialStockCodeLocBinLot(p *PostGenericPageProps) g.Node {
 				h.Input(
 					h.Type("number"),
 					g.If(!p.IsStockAdjustment, h.Min("0")),
-					// h.Min("0"),
 					h.Name("Qty"),
 					h.Step("any"),
 					g.If(
