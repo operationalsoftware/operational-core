@@ -296,6 +296,18 @@ hr {
           background-color: var(--background-color);
         }
       }
+
+      .grid-menu-item-name {
+        font-size: var(--font-size-xs);
+      }
+
+      @media (max-width: 640px) {
+        grid-template-columns: repeat(4, minmax(50px, 1fr));
+      }
+
+      @media (max-width: 480px) {
+        grid-template-columns: repeat(3, minmax(50px, 1fr));
+      }
     }
   }
 }
