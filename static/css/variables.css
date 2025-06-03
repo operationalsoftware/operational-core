@@ -80,6 +80,9 @@
   --color-white: #ffffff;
   --bg-normal: rgba(255, 255, 255, 0.15);
   --bg-hover: rgba(255, 255, 255, 0.25);
+
+  /* Card background */
+  --card-bg: rgba(224, 224, 224, 0.8);
 }
 
 /* override colours for dark theme */
@@ -94,4 +97,6 @@
   --border-color: #2f2f2f;
 
   --disabled-color: #5f5f5f;
+
+  --card-bg: rgba(0, 0, 0, 0.8);
 }
