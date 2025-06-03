@@ -31,6 +31,11 @@ select {
   &.lg {
     font-size: var(--font-size-lg);
   }
+
+  &:not([type="checkbox"]):not([type="radio"]) {
+    display: block;
+    width: 100%;
+  }
 }
 
 /* Native hr */
@@ -88,10 +93,10 @@ hr {
   cursor: pointer;
   display: inline-block;
   text-align: center;
-}
 
-.button[data-loading="true"] .loading-spinner {
-  margin-right: var(--spacing-sm);
+  svg {
+    fill: currentColor;
+  }
 }
 
 .button.secondary {
@@ -305,54 +310,6 @@ hr {
   fill: var(--text-color);
 }
 /* End Icon */
-
-/* Start Input */
-.input-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.input-container input {
-  border: 1.5px solid var(--border-color-dark);
-  border-radius: var(--border-radius);
-  background-color: var(--background-color-content);
-  color: var(--text-color);
-  padding: var(--spacing);
-  font-family: var(--font-family);
-  transition: border-color 0.2s ease-in-out, border-width 0.2s ease-in-out,
-    box-shadow 0.2s ease-in-out;
-  position: relative;
-  z-index: 1;
-}
-
-.input-container input:hover {
-  border-color: var(--border-hover-color);
-}
-
-.input-container input:focus-visible {
-  outline: none;
-  border-color: var(--border-hover-color);
-  box-shadow: 0 0 0.1px 0.5px var(--border-hover-color);
-}
-
-.input-container input.sm {
-  font-size: var(--font-size-xs);
-}
-
-.input-container input.md {
-  font-size: var(--font-size-sm);
-}
-
-.input-container input.lg {
-  font-size: var(--font-size-md);
-}
-
-.input-container input:disabled {
-  background-color: var(--disabled-color);
-  cursor: not-allowed;
-}
-/* End Input */
 
 /* Start Input Helper */
 .input-helper {
@@ -1465,5 +1422,11 @@ div.table-pagination {
         color: var(--text-color-contrast);
       }
     }
+  }
+
+  select.page-size-select {
+    /* to override our default input and select styling */
+    display: inline-block;
+    width: auto;
   }
 }

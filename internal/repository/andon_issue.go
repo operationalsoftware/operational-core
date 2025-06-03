@@ -20,16 +20,25 @@ func (r *AndonIssueRepository) Create(
 	ctx context.Context,
 	exec db.PGExecutor,
 	andonIssue model.NewAndonIssue,
+	userID int,
 ) error {
 
 	query := `
 INSERT INTO andon_issue (
 	issue_name,
-	parent_id
+	parent_id,
+	assigned_to_team,
+	resolvable_by_raiser,
+	will_stop_process,
+	created_by
 )
 VALUES (
 	$1,
-	$2
+	$2,
+	$3,
+	$4,
+	$5,
+	$6
 )
 `
 	_, err := exec.Exec(
@@ -37,12 +46,16 @@ VALUES (
 
 		andonIssue.IssueName,
 		andonIssue.ParentID,
+		andonIssue.AssignedToTeam,
+		andonIssue.ResolvableByRaiser,
+		andonIssue.WillStopProcess,
+		userID,
 	)
 
 	return err
 }
 
-var andonIssueTreeCTE = `
+var andonIssueCTE = `
 RECURSIVE andon_issue_tree AS (
     SELECT
         ai.andon_issue_id,
@@ -55,11 +68,7 @@ RECURSIVE andon_issue_tree AS (
             SELECT COUNT(*)
             FROM andon_issue c
             WHERE c.parent_id = ai.andon_issue_id
-        ) AS children_count, 
-        ai.created_at,
-        ai.created_by,
-        ai.updated_at,
-        ai.updated_by
+        ) AS children_count
     FROM andon_issue ai
     WHERE ai.parent_id IS NULL
 
@@ -76,29 +85,63 @@ RECURSIVE andon_issue_tree AS (
             SELECT COUNT(*)
             FROM andon_issue c
             WHERE c.parent_id = child.andon_issue_id
-        ) AS children_count,
-        child.created_at,
-        child.created_by,
-        child.updated_at,
-        child.updated_by
+        ) AS children_count
     FROM andon_issue child
     JOIN andon_issue_tree parent ON child.parent_id = parent.andon_issue_id
+),
+
+final AS (
+	SELECT
+        ait.andon_issue_id,
+        ait.issue_name,
+        ait.parent_id,
+        ait.name_path,
+        ait.depth,
+        ait.is_archived,
+        ait.children_count,
+		ai.resolvable_by_raiser,
+		ai.will_stop_process,
+		ai.assigned_to_team,
+		t.team_name AS assigned_to_team_name,
+		ai.created_at,
+		ai.created_by,
+		cu.username AS created_by_username,
+		ai.updated_at,
+		ai.updated_by,
+		uu.username AS updated_by_username
+	
+	FROM
+		andon_issue_tree ait
+		INNER JOIN andon_issue ai USING(andon_issue_id)
+		INNER JOIN team t ON
+			t.team_id = ai.assigned_to_team
+		INNER JOIN app_user cu ON
+			cu.user_id = ai.created_by
+		LEFT JOIN app_user uu ON
+			uu.user_id = ai.updated_by
 )
 `
 
 var andonIssueSelect = `
-SELECT 
-	andon_issue_id, 
-	issue_name, 
-	name_path, 
-	depth, 
-	parent_id, 
-	is_archived, 
+SELECT
+	andon_issue_id,
+	issue_name,
+	name_path,
+	depth,
+	parent_id,
+	is_archived,
 	children_count,
-	created_at, 
-	created_by, 
-	updated_at, 
-	updated_by
+	resolvable_by_raiser,
+	will_stop_process,
+	assigned_to_team,
+	assigned_to_team_name,
+
+	created_at,
+	created_by,
+	created_by_username,
+	updated_at,
+	updated_by,
+	updated_by_username
 `
 
 // Read
@@ -108,12 +151,12 @@ func (r *AndonIssueRepository) GetByID(
 	andonIssueID int,
 ) (*model.AndonIssue, error) {
 	query := `
-WITH ` + andonIssueTreeCTE + `
+WITH ` + andonIssueCTE + `
 
 ` + andonIssueSelect + `
 
 FROM
-	andon_issue_tree
+	final
 
 WHERE
 	andon_issue_id = $1
@@ -128,10 +171,16 @@ WHERE
 		&andonIssue.ParentID,
 		&andonIssue.IsArchived,
 		&andonIssue.ChildrenCount,
+		&andonIssue.ResolvableByRaiser,
+		&andonIssue.WillStopProcess,
+		&andonIssue.AssignedToTeam,
+		&andonIssue.AssignedToTeamName,
 		&andonIssue.CreatedAt,
 		&andonIssue.CreatedBy,
+		&andonIssue.CreatedByUsername,
 		&andonIssue.UpdatedAt,
 		&andonIssue.UpdatedBy,
+		&andonIssue.UpdatedByUsername,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -159,12 +208,12 @@ func (r *AndonIssueRepository) List(
 	}
 
 	query := `
-WITH ` + andonIssueTreeCTE + `
+WITH ` + andonIssueCTE + `
 
 ` + andonIssueSelect + `
 
 FROM
-	andon_issue_tree
+	final
 
 ` + whereClause + `
 
@@ -189,10 +238,16 @@ LIMIT $1 OFFSET $2
 			&andonIssue.ParentID,
 			&andonIssue.IsArchived,
 			&andonIssue.ChildrenCount,
+			&andonIssue.ResolvableByRaiser,
+			&andonIssue.WillStopProcess,
+			&andonIssue.AssignedToTeam,
+			&andonIssue.AssignedToTeamName,
 			&andonIssue.CreatedAt,
 			&andonIssue.CreatedBy,
+			&andonIssue.CreatedByUsername,
 			&andonIssue.UpdatedAt,
 			&andonIssue.UpdatedBy,
+			&andonIssue.UpdatedByUsername,
 		); err != nil {
 			return nil, err
 		}
@@ -212,13 +267,13 @@ func (r *AndonIssueRepository) Count(
 	whereClause := r.generateWhereClause(q)
 
 	query := `
-WITH ` + andonIssueTreeCTE + `
+WITH ` + andonIssueCTE + `
 
 SELECT
 	COUNT(*)
 
 FROM
-	andon_issue_tree
+	final
 
 ` + whereClause
 
@@ -248,6 +303,7 @@ func (r *AndonIssueRepository) Update(
 	exec db.PGExecutor,
 	andonIssueID int,
 	update model.AndonIssueUpdate,
+	userID int,
 ) error {
 
 	// Ensure exists
@@ -259,14 +315,31 @@ func (r *AndonIssueRepository) Update(
 		return fmt.Errorf("andon issue with ID %d not found", andonIssueID)
 	}
 
+	// Check if anything changed
+	hasChange := update.IssueName != existing.IssueName ||
+		update.ParentID != existing.ParentID ||
+		update.IsArchived != existing.IsArchived ||
+		update.AssignedToTeam != existing.AssignedToTeam ||
+		update.ResolvableByRaiser != existing.ResolvableByRaiser ||
+		update.WillStopProcess != existing.WillStopProcess
+
+	if !hasChange {
+		return nil
+	}
+
 	query := `
-UPDATE team
+UPDATE andon_issue
 SET
 	issue_name = $1,
 	parent_id = $2,
-    is_archived = $3
+    is_archived = $3,
+	assigned_to_team = $4,
+	resolvable_by_raiser = $5,
+	will_stop_process = $6,
+	updated_by = $7,
+	updated_at = NOW()
 WHERE
-	andon_issue_id = $4
+	andon_issue_id = $8
 `
 	_, err = exec.Exec(
 		ctx,
@@ -275,6 +348,10 @@ WHERE
 		update.IssueName,
 		update.ParentID,
 		update.IsArchived,
+		update.AssignedToTeam,
+		update.ResolvableByRaiser,
+		update.WillStopProcess,
+		userID,
 		andonIssueID,
 	)
 
@@ -294,7 +371,7 @@ func (r *AndonIssueRepository) HasActiveChildIssues(
                 ai.andon_issue_id,
                 ai.parent_id,
                 ai.is_archived
-            FROM andon_issues ai
+            FROM andon_issue ai
             WHERE ai.parent_id = $1
 
             UNION ALL
@@ -303,7 +380,7 @@ func (r *AndonIssueRepository) HasActiveChildIssues(
                 child.andon_issue_id,
                 child.parent_id,
                 child.is_archived
-            FROM andon_issues child
+            FROM andon_issue child
             JOIN child_issues parent ON child.parent_id = parent.andon_issue_id
         )
         SELECT EXISTS (

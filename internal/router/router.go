@@ -44,7 +44,7 @@ func NewRouter(services *Services) http.Handler {
 
 	// add routes for services
 	addAuthRoutes(mux, services.AuthService)
-	addAndonIssueRoutes(mux, services.AndonIssueService)
+	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
 	addSearchRoutes(mux, services.SearchService)
 	addTeamRoutes(mux, services.TeamService)
 	addUserRoutes(mux, services.UserService)
@@ -56,7 +56,6 @@ func NewRouter(services *Services) http.Handler {
 		_ = camerascannerview.CameraScannerApp(&camerascannerview.CameraScannerAppProps{
 			Ctx: ctx,
 		}).Render(w)
-
 	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

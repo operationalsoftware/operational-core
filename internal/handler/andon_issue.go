@@ -17,13 +17,16 @@ import (
 
 type AndonIssueHandler struct {
 	andonIssueService service.AndonIssueService
+	teamService       service.TeamService
 }
 
 func NewAndonIssueHandler(
 	andonIssueService service.AndonIssueService,
+	teamService service.TeamService,
 ) *AndonIssueHandler {
 	return &AndonIssueHandler{
 		andonIssueService: andonIssueService,
+		teamService:       teamService,
 	}
 }
 
@@ -126,8 +129,28 @@ func (h *AndonIssueHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	andonIssues, _, err := h.andonIssueService.List(
+		r.Context(),
+		model.ListAndonIssuesQuery{
+			Page: 1, PageSize: 10000,
+		})
+	if err != nil {
+		http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
+		return
+	}
+
+	teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
+		Page: 1, PageSize: 10000,
+	})
+	if err != nil {
+		http.Error(w, "Error fetching teams", http.StatusInternalServerError)
+		return
+	}
+
 	_ = andonissueview.AddPage(&andonissueview.AddPageProps{
-		Ctx: ctx,
+		Ctx:         ctx,
+		AndonIssues: andonIssues,
+		Teams:       teams,
 	}).Render(w)
 }
 
@@ -154,19 +177,46 @@ func (h *AndonIssueHandler) Add(w http.ResponseWriter, r *http.Request) {
 	validationErrors := fd.validate()
 
 	if len(validationErrors) > 0 {
+		andonIssues, _, err := h.andonIssueService.List(
+			r.Context(),
+			model.ListAndonIssuesQuery{
+				Page: 1, PageSize: 10000,
+			})
+		if err != nil {
+			http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
+			return
+		}
+
+		teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
+			Page: 1, PageSize: 10000,
+		})
+		if err != nil {
+			http.Error(w, "Error fetching teams", http.StatusInternalServerError)
+			return
+		}
+
 		_ = andonissueview.AddPage(&andonissueview.AddPageProps{
 			Ctx:              ctx,
 			Values:           r.Form,
 			ValidationErrors: validationErrors,
 			IsSubmission:     true,
+			AndonIssues:      andonIssues,
+			Teams:            teams,
 		}).Render(w)
 		return
 	}
 
-	err := h.andonIssueService.Create(r.Context(), model.NewAndonIssue{
-		IssueName: fd.IssueName,
-	})
-	if err != nil {
+	if err := h.andonIssueService.Create(
+		r.Context(),
+		model.NewAndonIssue{
+			IssueName:          fd.IssueName,
+			ParentID:           fd.ParentID,
+			AssignedToTeam:     fd.AssignedToTeam,
+			ResolvableByRaiser: fd.ResolvableByRaiser,
+			WillStopProcess:    fd.WillStopProcess,
+		},
+		ctx.User.UserID,
+	); err != nil {
 		log.Println(err)
 		http.Error(w, "Error creating andon issue", http.StatusInternalServerError)
 		return
@@ -176,7 +226,11 @@ func (h *AndonIssueHandler) Add(w http.ResponseWriter, r *http.Request) {
 }
 
 type addAndonIssueFormData struct {
-	IssueName string
+	IssueName          string
+	ParentID           *int
+	AssignedToTeam     int
+	ResolvableByRaiser bool
+	WillStopProcess    bool
 }
 
 func (fd *addAndonIssueFormData) normalise() {
@@ -215,9 +269,28 @@ func (h *AndonIssueHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	andonIssues, _, err := h.andonIssueService.List(
+		r.Context(),
+		model.ListAndonIssuesQuery{
+			Page: 1, PageSize: 10000,
+		})
+	if err != nil {
+		http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
+		return
+	}
+	teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
+		Page: 1, PageSize: 10000,
+	})
+	if err != nil {
+		http.Error(w, "Error fetching teams", http.StatusInternalServerError)
+		return
+	}
+
 	_ = andonissueview.EditPage(&andonissueview.EditPageProps{
-		Ctx:        ctx,
-		AndonIssue: *andonIssue,
+		Ctx:         ctx,
+		AndonIssue:  *andonIssue,
+		AndonIssues: andonIssues,
+		Teams:       teams,
 	}).Render(w)
 }
 
@@ -249,25 +322,53 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 
 	validationErrors := fd.validate()
 
-	if len(*validationErrors) == 0 {
-		validationErrors, err = h.andonIssueService.Update(r.Context(), andonIssueID, model.AndonIssueUpdate{
-			IssueName:  fd.IssueName,
-			IsArchived: fd.IsArchived,
-		})
+	if validationErrors == nil {
+		validationErrors, err = h.andonIssueService.Update(
+			r.Context(),
+			andonIssueID,
+			model.AndonIssueUpdate{
+				IssueName:          fd.IssueName,
+				ParentID:           fd.ParentID,
+				IsArchived:         fd.IsArchived,
+				AssignedToTeam:     fd.AssignedToTeam,
+				ResolvableByRaiser: fd.ResolvableByRaiser,
+				WillStopProcess:    fd.WillStopProcess,
+			},
+			ctx.User.UserID,
+		)
 
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Error updating andonIssue", http.StatusInternalServerError)
+			http.Error(w, "Error updating andon issue", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	if len(*validationErrors) > 0 {
+	if validationErrors != nil {
+		andonIssues, _, err := h.andonIssueService.List(
+			r.Context(),
+			model.ListAndonIssuesQuery{
+				Page: 1, PageSize: 10000,
+			})
+		if err != nil {
+			http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
+			return
+		}
+		teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
+			Page: 1, PageSize: 10000,
+		})
+		if err != nil {
+			http.Error(w, "Error fetching teams", http.StatusInternalServerError)
+			return
+		}
+
 		_ = andonissueview.EditPage(&andonissueview.EditPageProps{
 			Ctx:              ctx,
 			Values:           r.Form,
 			ValidationErrors: *validationErrors,
 			IsSubmission:     true,
+			AndonIssues:      andonIssues,
+			Teams:            teams,
 		}).Render(w)
 		return
 	}
@@ -276,8 +377,12 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 type editAndonIssueFormData struct {
-	IssueName  string
-	IsArchived bool
+	IssueName          string
+	IsArchived         bool
+	ParentID           *int
+	AssignedToTeam     int
+	ResolvableByRaiser bool
+	WillStopProcess    bool
 }
 
 func (fd *editAndonIssueFormData) normalise() {
@@ -289,6 +394,10 @@ func (fd *editAndonIssueFormData) validate() *validate.ValidationErrors {
 
 	validate.MinLength(&ve, "IssueName", fd.IssueName, 3)
 	validate.MaxLength(&ve, "IssueName", fd.IssueName, 50)
+
+	if len(ve) == 0 {
+		return nil
+	}
 
 	return &ve
 }

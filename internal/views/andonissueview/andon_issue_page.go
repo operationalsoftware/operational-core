@@ -6,6 +6,7 @@ import (
 	"app/internal/model"
 	"app/pkg/reqcontext"
 	"fmt"
+	"strings"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -49,6 +50,29 @@ func AndonIssuePage(p *AndonIssuePageProps) g.Node {
 					),
 
 					h.Span(
+						h.Strong(g.Text("Issue Path")),
+					),
+					h.Span(
+						g.Text(strings.Join(andonIssue.NamePath, " > ")),
+					),
+
+					h.Span(
+						h.Strong(g.Text("Resolvable by Raiser?")),
+					),
+					h.Span(
+						g.If(andonIssue.ResolvableByRaiser, g.Text("Yes")),
+						g.If(!andonIssue.ResolvableByRaiser, g.Text("No")),
+					),
+
+					h.Span(
+						h.Strong(g.Text("Will Stop Process?")),
+					),
+					h.Span(
+						g.If(andonIssue.WillStopProcess, g.Text("Yes")),
+						g.If(!andonIssue.WillStopProcess, g.Text("No")),
+					),
+
+					h.Span(
 						h.Strong(g.Text("Is Archived?")),
 					),
 					h.Span(
@@ -66,7 +90,7 @@ func AndonIssuePage(p *AndonIssuePageProps) g.Node {
 			layout.HomeBreadcrumb,
 			andonIssuesBreadCrumb,
 			{
-				IconIdentifier: "account-group",
+				IconIdentifier: "alert-octagon-outline",
 				Title:          andonIssue.IssueName,
 			},
 		},

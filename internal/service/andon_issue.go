@@ -29,6 +29,7 @@ func NewAndonIssueService(
 func (s *AndonIssueService) Create(
 	ctx context.Context,
 	andonIssue model.NewAndonIssue,
+	userID int,
 ) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -36,7 +37,12 @@ func (s *AndonIssueService) Create(
 	}
 	defer tx.Rollback(ctx)
 
-	if err := s.andonIssueRepository.Create(ctx, tx, andonIssue); err != nil {
+	if err := s.andonIssueRepository.Create(
+		ctx,
+		tx,
+		andonIssue,
+		userID,
+	); err != nil {
 		return err
 	}
 
@@ -89,6 +95,7 @@ func (s *AndonIssueService) Update(
 	ctx context.Context,
 	andonIssueID int,
 	update model.AndonIssueUpdate,
+	userID int,
 ) (*validate.ValidationErrors, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -111,11 +118,19 @@ func (s *AndonIssueService) Update(
 		}
 		if hasActiveChild {
 			validationErrors := validate.ValidationErrors{}
-			validationErrors.Add("IsArchived", "Cannot archive and andon issue which has active children")
+			validationErrors.Add("IsArchived", "Cannot archive an andon issue which has active children")
+
+			return &validationErrors, nil
 		}
 	}
 
-	if err := s.andonIssueRepository.Update(ctx, tx, andonIssueID, update); err != nil {
+	if err := s.andonIssueRepository.Update(
+		ctx,
+		tx,
+		andonIssueID,
+		update,
+		userID,
+	); err != nil {
 		return nil, err
 	}
 

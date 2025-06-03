@@ -7,6 +7,7 @@ import (
 	"app/pkg/appsort"
 	"app/pkg/reqcontext"
 	"fmt"
+	"strings"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
@@ -27,7 +28,19 @@ func HomePage(p *HomePageProps) g.Node {
 	var columns = components.TableColumns{
 		{
 			TitleContents: g.Text("Issue Name"),
-			SortKey:       "IssueName",
+			SortKey:       "NamePath",
+		},
+		{
+			TitleContents: g.Text("Assigned to Team"),
+			SortKey:       "AssignedToTeamName",
+		},
+		{
+			TitleContents: g.Text("Resolvable by Raiser?"),
+			SortKey:       "ResolvableByRaiser",
+		},
+		{
+			TitleContents: g.Text("Will Stop Process?"),
+			SortKey:       "WillStopProcess",
 		},
 	}
 
@@ -39,21 +52,38 @@ func HomePage(p *HomePageProps) g.Node {
 	}
 
 	var tableRows components.TableRows
-	for _, t := range p.AndonIssues {
+	for _, ai := range p.AndonIssues {
+
+		namePathStr := strings.Join(ai.NamePath, " > ")
 
 		cells := []components.TableCell{
 			{
 				Contents: h.A(
-					g.Text(t.IssueName),
+					g.Text(namePathStr),
 					g.Attr("href",
-						fmt.Sprintf("/andon-issues/%d", t.AndonIssueID))),
+						fmt.Sprintf("/andon-issues/%d", ai.AndonIssueID))),
+			},
+			{
+				Contents: g.Text(ai.AssignedToTeamName),
+			},
+			{
+				Contents: g.Group([]g.Node{
+					g.If(ai.ResolvableByRaiser, g.Text("Yes")),
+					g.If(!ai.ResolvableByRaiser, g.Text("No")),
+				}),
+			},
+			{
+				Contents: g.Group([]g.Node{
+					g.If(ai.WillStopProcess, g.Text("Yes")),
+					g.If(!ai.WillStopProcess, g.Text("No")),
+				}),
 			},
 		}
 
 		if p.ShowArchived {
 			cells = append(cells, components.TableCell{
 				Contents: g.Group([]g.Node{
-					g.If(t.IsArchived,
+					g.If(ai.IsArchived,
 						g.Text("Archived"),
 					),
 				}),
@@ -78,7 +108,7 @@ func HomePage(p *HomePageProps) g.Node {
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
 				}),
-				g.Text("AndonIssue"),
+				g.Text("Andon Issue"),
 			),
 		),
 
@@ -129,7 +159,7 @@ func HomePage(p *HomePageProps) g.Node {
 }
 
 var andonIssuesBreadCrumb = layout.Breadcrumb{
-	IconIdentifier: "account-group",
-	Title:          "AndonIssues",
+	IconIdentifier: "alert-octagon-outline",
+	Title:          "Andon Issues",
 	URLPart:        "andon-issues",
 }

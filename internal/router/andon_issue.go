@@ -9,8 +9,9 @@ import (
 func addAndonIssueRoutes(
 	mux *http.ServeMux,
 	andonIssueService service.AndonIssueService,
+	teamService service.TeamService,
 ) {
-	andonIssueHandler := handler.NewAndonIssueHandler(andonIssueService)
+	andonIssueHandler := handler.NewAndonIssueHandler(andonIssueService, teamService)
 
 	mux.HandleFunc("GET /andon-issues", andonIssueHandler.HomePage)
 

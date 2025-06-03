@@ -33,6 +33,9 @@ CREATE TABLE andon_issue (
     issue_name TEXT NOT NULL,
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     parent_id INTEGER REFERENCES andon_issue(andon_issue_id),
+	assigned_to_team INTEGER REFERENCES team(team_id) NOT NULL,
+	resolvable_by_raiser BOOLEAN NOT NULL,
+	will_stop_process BOOLEAN NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by INTEGER NOT NULL REFERENCES app_user(user_id),
@@ -148,6 +151,9 @@ CREATE TABLE andon_issue (
     issue_name TEXT NOT NULL,
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     parent_id INTEGER REFERENCES andon_issue(andon_issue_id),
+	assigned_to_team INTEGER REFERENCES team(team_id) NOT NULL,
+	resolvable_by_raiser BOOLEAN NOT NULL,
+	will_stop_process BOOLEAN NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_by INTEGER NOT NULL REFERENCES app_user(user_id),
