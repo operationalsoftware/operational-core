@@ -89,6 +89,17 @@ sudo sed -i "s/^listen_addresses = '\*'/listen_addresses = 'localhost'/" "$POSTG
 sudo sed -i "s/^local\s\+all\s\+all\s\+peer/local all all md5/" "$PG_HBA"
 sudo sed -i "s/^local\s\+all\s\+postgres\s\+peer/local all postgres md5/" "$PG_HBA"
 
+# Enable logging collector (required for logging to file)
+sudo sed -i "s/^#logging_collector = off/logging_collector = on/" "$POSTGRES_CONF"
+
+# Set log directory and file name (optional but recommended)
+sudo sed -i "s|^#log_directory = 'log'|log_directory = 'log'|" "$POSTGRES_CONF"
+sudo sed -i "s/^#log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'/log_filename = 'postgresql-%Y-%m-%d.log'/" "$POSTGRES_CONF"
+
+# Set log_min_duration_statement to 500ms
+sudo sed -i "s/^#log_min_duration_statement = -1/log_min_duration_statement = 500/" "$POSTGRES_CONF"
+sudo sed -i "s/^log_min_duration_statement = -1/log_min_duration_statement = 500/" "$POSTGRES_CONF"
+
 
 sudo systemctl restart postgresql
 
