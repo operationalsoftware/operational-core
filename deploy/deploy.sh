@@ -77,15 +77,12 @@ ssh $ssh_key_flag "$host" <<EOF
     fi
     sudo mv /opt/app/app.new /opt/app/app
 
-    echo "🛠️ Enabling and reloading services..."
+    echo "🔄 Reloading systemd and 🛠️ Enabling services..."
+    sudo systemctl daemon-reexec
     sudo systemctl daemon-reload
     sudo systemctl enable app
     sudo systemctl enable --now db-backup.timer
     sudo systemctl enable caddy
-
-    echo "🔄 Reloading systemd..."
-    sudo systemctl daemon-reexec
-    sudo systemctl daemon-reload
 
     echo "🚀 Restarting legacy-node and waiting for it to be active..."
     sudo systemctl restart legacy-node
