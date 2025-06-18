@@ -21,6 +21,7 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 			g.El("form",
 				g.Attr("method", "POST"),
 				g.Attr("action", ""),
+				g.Attr("target", "_blank"),
 				h.Class("pdf-form"),
 				g.Group([]g.Node{
 					h.H1(g.Text("Generate PDF")),
@@ -58,9 +59,6 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 		Title:   "PDF Templates",
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/pdfview/pdf_page.css"),
-		},
-		AppendBody: []g.Node{
-			components.InlineScript("/internal/views/pdfview/pdf_page.js"),
 		},
 	})
 
