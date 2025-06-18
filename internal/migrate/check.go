@@ -39,8 +39,8 @@ SELECT EXISTS (
 	SELECT 1
 	FROM information_schema.columns
 	WHERE table_schema = 'public'
-	AND table_name = 'app_user'
-	AND column_name = 'session_duration_minutes'
+	AND table_name = 'file'
+	AND column_name = 'file_id'
 )
 `).Scan(&exists)
 	if err != nil {

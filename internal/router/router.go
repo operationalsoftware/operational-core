@@ -17,6 +17,8 @@ type Services struct {
 	UserService             service.UserService
 	StockTransactionService service.StockTransactionService
 	SearchService           service.SearchService
+	PDFService              service.PDFService
+	FileService             service.FileService
 }
 
 func NewRouter(services *Services) http.Handler {
@@ -46,6 +48,8 @@ func NewRouter(services *Services) http.Handler {
 	addUserRoutes(mux, services.UserService)
 	addStockTransactionRoutes(mux, services.StockTransactionService)
 	addSearchRoutes(mux, services.SearchService)
+	addPDFRoutes(mux, services.PDFService)
+	addFileRoutes(mux, services.PDFService)
 
 	// Camera scanner route
 	mux.HandleFunc("/camera-scanner", func(w http.ResponseWriter, r *http.Request) {

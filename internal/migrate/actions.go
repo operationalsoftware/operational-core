@@ -14,12 +14,12 @@ import (
 func migrate(ctx context.Context, tx pgx.Tx) error {
 	// Create Recent search table
 	_, err := tx.Exec(context.Background(), `
-CREATE TABLE 
+CREATE TABLE
 	recent_search (
 		recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 		search_term TEXT NOT NULL,
 		search_entities TEXT[] NOT NULL,
-		user_id INT REFERENCES app_user(user_id), 
+		user_id INT REFERENCES app_user(user_id),
 		last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
 		CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
@@ -37,7 +37,22 @@ ALTER TABLE app_user ADD COLUMN session_duration_minutes INT;
 	if err != nil {
 		return err
 	}
-	// Recent search table end
+	// end
+
+	// Alter column for app_user table
+	_, err = tx.Exec(context.Background(), `
+CREATE TABLE file (
+	file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	file_name TEXT,
+	mime_type TEXT,
+	file_ext TEXT,
+	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+	`)
+	if err != nil {
+		return err
+	}
+	// end
 
 	return nil
 }

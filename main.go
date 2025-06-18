@@ -15,6 +15,7 @@ import (
 	"app/pkg/db"
 	"app/pkg/env"
 	"app/pkg/localip"
+	"app/pkg/pdf"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -75,6 +76,10 @@ func main() {
 		Addr:    ":3000",
 		Handler: router.NewRouter(services),
 	}
+
+	// Initialising chromium instance for pdf generations
+	pdf.InitChromium()
+	defer pdf.ShutdownChromium()
 
 	// Bind to a port and pass our router in
 	fmt.Println("Local: 		https://localhost:3000")

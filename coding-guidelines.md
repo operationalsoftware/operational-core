@@ -1,38 +1,45 @@
 # Coding Guidelines
 
--------------------------------------------------------------
+This document outlines the coding standards and best practices followed in this project. These guidelines ensure consistency, maintainability, and clarity across all components of the codebase.
 
-## Database
+---
 
-### Use "Text" type instead of "varchar"
-    Since varchar type does not provide noticeable performance benefits so we should use text type instead of it.
+## Database Guidelines
 
-### Always Use "timestamp with time zone"
-    Always Use "timestamp with time zone" data type for timestamp related column.
+### Use `TEXT` Instead of `VARCHAR`
+    Avoid using the `VARCHAR` data type unless a strict character limit is required. In most cases, `TEXT` offers greater flexibility with no significant performance difference, making it the preferred choice.
 
-### Always Use "table_name_id" format for primary keys of table
-    The primary key of a table should always have the following format where `_id` will be preceeded by the table name.
+### Use `TIMESTAMP WITH TIME ZONE`
+    Always use the `TIMESTAMP WITH TIME ZONE` data type for timestamp-related columns. This ensures proper handling of time across different time zones and environments.
 
-### Always Use "INTEGER GENERATED ALWAYS AS IDENTITY" type for primary keys
-    The primary key of a table should always have the following type i.e. "INTEGER GENERATED ALWAYS AS IDENTITY".
+### Use `table_name_id` for Primary Key columns
+    The primary key of every table must follow the naming convention:
+        `table_name_id`
+    This format improves schema readability and prevents ambiguity when joining tables.
 
 
--------------------------------------------------------------
+### Use `INTEGER GENERATED ALWAYS AS IDENTITY` for Primary Keys
+    All primary key columns must be defined using the following SQL standard:
+```sql
+INTEGER GENERATED ALWAYS AS IDENTITY
+```
 
-## Standards
+---
 
-### Getting Structured data from request
-    - Use appurl for parsing the query params from the url.
+## Development Standards
 
-### Don't use html injection using javascript:
-    - The primary source of html will be the backend instead of injecting it from javascript.
+### Parsing Structured Data from Requests
+    Use the appurl utility for parsing query parameters from the request URL. This ensures a consistent and reliable approach to handling structured request data across the application.
 
-### Manage Data Primarily from backend
-    -  Manage data from backend whenever possible.
+### Avoid HTML Injection via JavaScript
+    Avoid injecting raw HTML using JavaScript. All dynamic HTML rendering should be handled by the backend to improve security, reduce complexity, and prevent XSS vulnerabilities.
 
-### Creating `data models` in GO
-    * The model that will be used to scan the data from pgx query will be using pg data types.
-    * The model that will contains results for returning will have primitive data types from Go where *pointer types will be used if null to be returned otherwise falsy value for that data type will be returned.
-    * The ToDomain() method of the DB model will be used to map results to the primitive data model which will be the output of that method.
-    * The UserDB models will be restricted to repository layer and kept away from other layers for the seperation of concerns.
-    * Similarly the data model used in handler layer or the one used to read values from forms or query params will also have primitive data.
+### Prefer Backend-Driven Data Management
+    Data should primarily be managed and rendered by the backend whenever possible. This improves maintainability, scalability, and separation of concerns between frontend and backend layers.
+
+---
+
+### Structuring Go Models
+    * The data models used outside the repository should be using primitive GO data types while the ones used in repository should be using `pgtypes` for NOT NULL fields.
+    * The model that will return response data should have primitive Go data types in models and *pointer types will be used for fields where null needs to be returned otherwise falsy value for that data type will be returned.
+    * The ToDomain() method of the DB model should be used to map pgtype data to the primitive data which will be then be sent in the response.

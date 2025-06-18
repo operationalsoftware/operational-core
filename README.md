@@ -12,22 +12,37 @@ go install github.com/githubnemo/CompileDaemon@latest
 go install github.com/jessevdk/go-assets-builder@latest
 ```
 
--------------------------------------------------------------
-
-### Run Development Server
-- To start the development server, run the following command in your terminal:
+### Generate SSL certificates
 ```bash
-./start-dev.sh
+./gen-dev-certs.sh
 ```
 
--------------------------------------------------------------
+---
+
+### Run Development Server
+
+To start the development server, follow the steps below:
+
+1. **Make the startup script executable**  
+   Run the following command to ensure the `start-dev.sh` script has execute permissions:
+
+   ```
+   chmod +x start-dev.sh
+
+2. **Start the development server**  
+   Execute the script to launch the development environment:
+
+   ```
+   ./start-dev.sh
+
+---
 
 ## Migration Guidelines
 
-- The `initialise` function for migration runs for new clients who does not have the `app_user` table in their database.
+- The `initialise` function for migration runs for each new client.
 - The `migrate` function for migration contains new migrations that have not reached production yet, for local migrations one can comment the ones that have already been applied so that any error could be avoided.
 
--------------------------------------------------------------
+---
 
 ## GIT Merge Guidelines
 
