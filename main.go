@@ -16,6 +16,7 @@ import (
 	"app/pkg/env"
 	"app/pkg/localip"
 	"app/pkg/pdf"
+	"app/pkg/tracker"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -69,6 +70,7 @@ func main() {
 		UserService:             *service.NewUserService(pgPool, userRepository),
 		SearchService:           *service.NewSearchService(pgPool, userRepository),
 		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),
+		Tracker:                 tracker.NewTracker(pgPool),
 	}
 
 	// define server

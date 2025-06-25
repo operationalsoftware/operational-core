@@ -3,14 +3,16 @@ package router
 import (
 	"app/internal/handler"
 	"app/internal/service"
+	"app/pkg/tracker"
 	"net/http"
 )
 
 func addAuthRoutes(
 	mux *http.ServeMux,
 	authService service.AuthService,
+	tracker *tracker.Tracker,
 ) {
-	authHandler := handler.NewAuthHandler(authService)
+	authHandler := handler.NewAuthHandler(authService, tracker)
 
 	mux.HandleFunc("GET /auth/password", authHandler.PasswordLogInPage)
 	mux.HandleFunc("POST /auth/password", authHandler.PasswordLogIn)

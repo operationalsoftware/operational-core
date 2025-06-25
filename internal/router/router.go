@@ -8,6 +8,7 @@ import (
 	"app/internal/views/notfoundview"
 	"app/pkg/middleware"
 	"app/pkg/reqcontext"
+	"app/pkg/tracker"
 	"fmt"
 	"net/http"
 )
@@ -19,6 +20,7 @@ type Services struct {
 	SearchService           service.SearchService
 	PDFService              service.PDFService
 	FileService             service.FileService
+	Tracker                 *tracker.Tracker
 }
 
 func NewRouter(services *Services) http.Handler {
@@ -44,7 +46,7 @@ func NewRouter(services *Services) http.Handler {
 	mux.Handle("/static/", staticFS)
 
 	// add routes for services
-	addAuthRoutes(mux, services.AuthService)
+	addAuthRoutes(mux, services.AuthService, services.Tracker)
 	addUserRoutes(mux, services.UserService)
 	addStockTransactionRoutes(mux, services.StockTransactionService)
 	addSearchRoutes(mux, services.SearchService)

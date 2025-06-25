@@ -39,7 +39,7 @@ ALTER TABLE app_user ADD COLUMN session_duration_minutes INT;
 	}
 	// end
 
-	// Alter column for app_user table
+	// File table
 	_, err = tx.Exec(context.Background(), `
 CREATE TABLE file (
 	file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -48,6 +48,26 @@ CREATE TABLE file (
 	file_ext TEXT,
 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+	`)
+	if err != nil {
+		return err
+	}
+	// end
+
+	// Activity tracker
+	_, err = tx.Exec(context.Background(), `
+CREATE TABLE user_event (
+	user_event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	user_id INT REFERENCES app_user(user_id),
+	event_name TEXT NOT NULL,
+	occurred_at TIMESTAMPTZ NOT NULL,
+	context TEXT,
+	metadata JSONB
+);
+
+CREATE INDEX idx_user_event_user_id ON user_event (user_id);
+CREATE INDEX idx_user_event_event_name ON user_event (event_name);
+CREATE INDEX idx_user_event_occurred_at ON user_event (occurred_at);
 	`)
 	if err != nil {
 		return err

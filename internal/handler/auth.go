@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -11,14 +12,17 @@ import (
 	"app/pkg/cookie"
 	"app/pkg/encryptcredentials"
 	"app/pkg/reqcontext"
+	"app/pkg/tracker"
 )
 
 type AuthHandler struct {
 	authService service.AuthService
+	tracker     *tracker.Tracker
 }
 
-func NewAuthHandler(authService service.AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(authService service.AuthService, tracker *tracker.Tracker) *AuthHandler {
+	return &AuthHandler{authService: authService,
+		tracker: tracker}
 }
 
 func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) {
@@ -78,6 +82,17 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 		retryPageProps.HasServerError = true
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
 		return
+	}
+
+	err = h.tracker.TrackEvent(r.Context(), tracker.TrackingEvent{
+		UserID:     out.AuthUser.UserID,
+		EventName:  "Auth.Login",
+		OccurredAt: time.Now(),
+		Context:    "PasswordLogIn",
+		MetaData:   map[string]interface{}{"foo": "bar"},
+	})
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
