@@ -80,6 +80,13 @@ func SearchPage(p SearchPageProps) g.Node {
 		Title:   "Search",
 		Content: content,
 		Ctx:     p.Ctx,
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			{
+				IconIdentifier: "magnify",
+				Title:          "Search",
+			},
+		},
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/searchview/search_page.css"),
 		},

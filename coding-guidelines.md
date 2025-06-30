@@ -40,6 +40,10 @@ INTEGER GENERATED ALWAYS AS IDENTITY
 ---
 
 ### Structuring Go Models
-    * The data models used outside the repository should be using primitive GO data types while the ones used in repository should be using `pgtypes` for NOT NULL fields.
-    * The model that will return response data should have primitive Go data types in models and *pointer types will be used for fields where null needs to be returned otherwise falsy value for that data type will be returned.
-    * The ToDomain() method of the DB model should be used to map pgtype data to the primitive data which will be then be sent in the response.
+    * Use pgtype.* only at the repository layer, when you need full control over nullability and Postgres-specific behavior.
+    * The ToDomain() method of the DB model should be used to map pgtype data to the primitive data.
+- For READ operation:
+    - For `StockItemDB` : Use pgtype.* only if database field is `NULLABLE`.
+    - For `StockItem` : Use Go-native types.
+- For INSERT & UPDATE operations:
+    - Use primitive GO types based on whether the field is optional. For optional fields use *pointer types.

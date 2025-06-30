@@ -14,6 +14,7 @@ import (
 )
 
 type Services struct {
+	AnalyticsService        service.AnalyticsService
 	AuthService             service.AuthService
 	UserService             service.UserService
 	StockTransactionService service.StockTransactionService
@@ -46,6 +47,7 @@ func NewRouter(services *Services) http.Handler {
 	mux.Handle("/static/", staticFS)
 
 	// add routes for services
+	addAnalyticsRoutes(mux, services.AnalyticsService)
 	addAuthRoutes(mux, services.AuthService, services.Tracker)
 	addUserRoutes(mux, services.UserService)
 	addStockTransactionRoutes(mux, services.StockTransactionService)
