@@ -1481,3 +1481,11 @@ div.table-pagination {
     }
   }
 }
+
+/* Highlight component */
+.highlight {
+  background-color: yellow;
+  color: black;
+  padding: var(--spacing-xs) 0;
+  border-radius: 2px;
+}
