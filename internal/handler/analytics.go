@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"app/internal/service"
@@ -26,8 +25,6 @@ func (h *AnalyticsHandler) DashboardHandler(w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Println("Stats: ", stats)
 
 	_ = analyticsview.DashboardPage(analyticsview.DashboardPageProps{
 		Ctx:   ctx,

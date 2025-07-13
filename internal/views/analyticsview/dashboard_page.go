@@ -18,22 +18,21 @@ type DashboardPageProps struct {
 	Stats tracker.EventStats
 }
 
+// func DashboardPage(p DashboardPageProps) g.Node {
+
+// 	content := g.Group([]g.Node{
+// 		h.H1(g.Text("Heading")),
+// 	})
+
+// 	return layout.Page(layout.PageProps{
+// 		Ctx:     p.Ctx,
+// 		Content: content,
+// 		Title:   "Log In",
+// 	})
+// }
+
 func DashboardPage(p DashboardPageProps) g.Node {
-
-	content := g.Group([]g.Node{
-		h.H1(g.Text("Heading")),
-	})
-
-	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Content: content,
-		Title:   "Log In",
-	})
-}
-
-func dashboardPage(p DashboardPageProps) g.Node {
 	content := h.Div(h.Class("container"),
-		// Header
 		h.Header(h.Class("header"),
 			h.H1(g.Text("📊 User Events Analytics")),
 			h.P(h.Class("subtitle"), g.Text("Real-time insights into user behavior")),
