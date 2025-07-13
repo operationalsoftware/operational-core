@@ -81,10 +81,6 @@ EOF
 PG_HBA="/etc/postgresql/16/main/pg_hba.conf"
 POSTGRES_CONF="/etc/postgresql/16/main/postgresql.conf"
 
-echo "----- Configuring PostgreSQL for Local-Only Access -----"
-sudo sed -i "s/^#listen_addresses = 'localhost'/listen_addresses = 'localhost'/" "$POSTGRES_CONF"
-sudo sed -i "s/^listen_addresses = '\*'/listen_addresses = 'localhost'/" "$POSTGRES_CONF"
-
 # Change local authentication from peer to md5 for password login (optional)
 sudo sed -i "s/^local\s\+all\s\+all\s\+peer/local all all md5/" "$PG_HBA"
 sudo sed -i "s/^local\s\+all\s\+postgres\s\+peer/local all postgres md5/" "$PG_HBA"
