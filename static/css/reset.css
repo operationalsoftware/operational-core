@@ -15,6 +15,14 @@ body {
   font-weight: normal
 }
 
+button,
+input[type="submit"],
+input[type="button"] {
+  background-color: transparent;
+}
+
+
+
 /* Clears the X from Internet Explorer */
 input[type="search"]::-ms-clear,
 input[type="search"]::-ms-reveal {

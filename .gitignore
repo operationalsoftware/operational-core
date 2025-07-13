@@ -2,7 +2,7 @@
 .vscode/
 
 # local env vars
-.env
+**/*.env
 
 # local deployment config
 deploy.config
