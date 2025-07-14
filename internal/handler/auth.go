@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -61,7 +62,12 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	// decrypt credentials if encrypted credentials submitted
 	if formData.EncryptedCredentials != "" {
+
+		fmt.Println("Decoding encrypted credentials")
+
 		decodedData, err := encryptcredentials.Decrypt(formData.EncryptedCredentials)
+
+		fmt.Println(err, decodedData)
 		if err != nil {
 			retryPageProps.HasServerError = true
 			retryPageProps.LogInFailedError = ""
