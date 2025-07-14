@@ -6,7 +6,6 @@ import (
 	"context"
 	"log"
 	"sort"
-	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -57,7 +56,6 @@ func (s *SearchService) Search(
 	}
 	results.RecentSearches = recentSearches
 
-	searchTerm = strings.TrimSpace(searchTerm)
 	if searchTerm == "" {
 		return results, err
 	}

@@ -7,6 +7,7 @@ import (
 	"app/pkg/appurl"
 	"app/pkg/reqcontext"
 	"net/http"
+	"strings"
 )
 
 type SearchHandler struct {
@@ -45,6 +46,8 @@ func (h *SearchHandler) SearchPage(w http.ResponseWriter, r *http.Request) {
 			allowedSearchEntities = append(allowedSearchEntities, entity)
 		}
 	}
+
+	params.Q = strings.TrimSpace(params.Q)
 
 	results, err := h.searchService.Search(r.Context(), params.Q, allowedSearchEntities, ctx.User.UserID)
 	if err != nil {
