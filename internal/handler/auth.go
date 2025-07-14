@@ -62,11 +62,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	// decrypt credentials if encrypted credentials submitted
 	if formData.EncryptedCredentials != "" {
-
-		fmt.Println("Decoding encrypted credentials")
-
 		decodedData, err := encryptcredentials.Decrypt(formData.EncryptedCredentials)
-
 		if err != nil {
 			retryPageProps.HasServerError = true
 			retryPageProps.LogInFailedError = ""
@@ -81,8 +77,6 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	retryPageProps.Username = formData.Username
 
 	out, err = h.authService.VerifyPasswordLogin(r.Context(), verifyLoginInput)
-
-	fmt.Println("verify password err:", err, "in:", verifyLoginInput, "out:", out)
 
 	if err != nil {
 		retryPageProps.HasServerError = true
