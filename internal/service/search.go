@@ -6,6 +6,7 @@ import (
 	"context"
 	"log"
 	"sort"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -50,18 +51,19 @@ func (s *SearchService) Search(
 		E: entityNames,
 	}
 
-	if err := s.SearchRepo.CreateRecentSearch(ctx, s.db, searchInput, userID); err != nil {
-		log.Printf("Failed to save recent search: %v", err)
-	}
-
 	recentSearches, err := s.SearchRepo.FetchRecentSearches(ctx, s.db, searchInput, userID)
 	if err != nil {
 		return results, err
 	}
 	results.RecentSearches = recentSearches
 
+	searchTerm = strings.TrimSpace(searchTerm)
 	if searchTerm == "" {
 		return results, err
+	}
+
+	if err := s.SearchRepo.CreateRecentSearch(ctx, s.db, searchInput, userID); err != nil {
+		log.Printf("Failed to save recent search: %v", err)
 	}
 
 	// User Search
