@@ -96,7 +96,7 @@ func Decrypt(encryptedCredentials string) (model.VerifyPasswordLoginInput, error
 	// Decode the encryption key from base64
 	key, err := base64.RawURLEncoding.DecodeString(encryptionKey)
 	if err != nil {
-		fmt.Println("error decoding key:", err, key) // TEMP
+		fmt.Println("error decoding key:", err, key, encryptionKey) // TEMP
 		return model.VerifyPasswordLoginInput{}, fmt.Errorf("invalid base64url encryption key: %v", err)
 	}
 	if len(key) != 32 {
