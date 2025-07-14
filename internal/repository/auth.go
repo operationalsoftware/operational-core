@@ -3,7 +3,6 @@ package repository
 import (
 	"app/internal/model"
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/jackc/pgx/v5"
