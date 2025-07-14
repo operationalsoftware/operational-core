@@ -84,11 +84,7 @@ ssh $ssh_key_flag "$host" <<EOF
     sudo systemctl enable --now db-backup.timer
     sudo systemctl enable caddy
 
-    echo "🚀 Restarting legacy-node and waiting for it to be active..."
-    sudo systemctl restart legacy-node
-    sudo systemctl is-active --quiet legacy-node || (sudo journalctl -u legacy-node --no-pager -n 50 && exit 1)
-
-    echo "✅ legacy-node is running. Starting app..."
+    echo "✅ Starting app..."
     sudo systemctl restart app
     sudo systemctl restart caddy
 
