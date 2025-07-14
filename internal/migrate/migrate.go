@@ -68,6 +68,10 @@ func RunMigrations() {
 		}
 
 		// we should never need to migrate if we have initialised
+		// commit the transaction and exit
+		if err := tx.Commit(ctx); err != nil {
+			log.Fatalf("error committing transaction: %v", err)
+		}
 		return
 	}
 
