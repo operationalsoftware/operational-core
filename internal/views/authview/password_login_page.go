@@ -35,7 +35,7 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 
 			components.Form(
 				h.Method("POST"),
-				h.ID("auto-login-form"),
+				h.ID("login-form"),
 
 				components.Input(&components.InputProps{
 					Label:       "Username",
@@ -55,6 +55,11 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 						h.Value(decoded.Password),
 					},
 				}),
+
+				h.Input(
+					h.Type("hidden"),
+					h.Name("EncryptedCredentials"),
+				),
 
 				h.Button(
 					h.Class("button"),

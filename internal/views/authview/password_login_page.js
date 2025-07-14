@@ -9,8 +9,18 @@ nfcLoginBtn.addEventListener("click", async () => {
       return;
     }
     const { tagContent } = await AppNFC.readNFCTag();
-    // await loginUserWithEncryptedCredentials(tagContent);
-    // refetchUser();
+
+    const form = document.querySelector("#login-form");
+
+    const encryptedInput = form.querySelector("input[name='EncryptedCredentials']");
+    if (!encryptedInput) {
+      console.error("EncryptedCredentials input not found");
+      return;
+    }
+
+    encryptedInput.value = tagContent;
+
+    form.submit();
   } catch (e) {
     console.error(e.message);
   }
