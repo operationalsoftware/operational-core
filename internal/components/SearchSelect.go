@@ -1,79 +1,90 @@
 package components
 
 import (
-	c "github.com/maragudk/gomponents/components"
+	g "github.com/maragudk/gomponents"
+	h "github.com/maragudk/gomponents/html"
 )
 
-type SearchSelectProps struct {
-	Name      string
-	Options   []Option
-	Classes   c.Classes
-	ID        string
-	OptionUrl string
-	Multiple  bool
-	Value     []string
+// SearchSelectOption represents <li data-value="...">Label</li>
+type SearchSelectOption struct {
+	Label string
+	Value string
 }
 
-// func SearchSelect(p *SearchSelectProps) g.Node {
-// 	if p.Classes == nil {
-// 		p.Classes = c.Classes{}
-// 	}
+// Select renders the markup expected by initCustomSelect.
+// name  – the form field name (e.g. "machine_ids[]" or "machine_id")
+// mode  – "single" | "multi"
+// opts  – the initial option list (can be empty; JS can fill it later)
 
-// 	if p.Multiple {
-// 		p.Classes["search-select"] = true
-// 	} else {
-// 		p.Classes["search-select-single"] = true
-// 	}
+type SearchSelectProps struct {
+	Name        string
+	Placeholder string
+	Mode        string // "single", "multi"
+	Options     []SearchSelectOption
+	Selected    string
+}
 
-// 	if p.Name == "" {
-// 		p.Name = "search-select"
-// 	}
+func SearchSelect(p *SearchSelectProps) g.Node {
 
-// 	if p.ID == "" {
-// 		p.ID = "search-select-dropdown"
-// 	} else {
-// 		p.ID = p.ID + "-search-select-dropdown"
-// 	}
+	var listOptions []g.Node
+	for _, o := range p.Options {
+		classes := "select-option"
+		if o.Value == p.Selected {
+			classes += " selected"
+		}
+		listOptions = append(listOptions,
+			h.Div(
+				h.Class(classes),
+				h.DataAttr("value", o.Value),
+				// g.Text(o.Label),
+				g.Text(o.Value+" - "+o.Label),
+			),
+		)
+	}
 
-// 	p.Classes["search-select-container"] = true
+	var inputText string
+	if p.Selected != "" {
+		for _, o := range p.Options {
+			if o.Value == p.Selected {
+				inputText = o.Label
+				break
+			}
+		}
+	} else {
+		inputText = p.Placeholder
+	}
 
-// 	return h.Div(
-// 		p.Classes,
-// 		g.If(p.Multiple, h.DataAttr("multiple", "true")),
-// 		h.Role("combobox"),
-// 		h.Aria("labelledby", "search-select button"),
-// 		h.Aria("haspopup", "listbox"),
-// 		h.Aria("expanded", "false"),
-// 		h.Aria("controls", "search-select-dropdown"),
-// 		h.Input(
-// 			h.Type("hidden"),
-// 			h.Class("hidden-input"),
-// 			h.Name(p.Name),
-// 			h.Value(""),
-// 		),
-// 		h.Div(
-// 			h.Class("content-container"),
-// 			g.If(p.Multiple, h.Div(
-// 				h.Class("selected-values"),
-// 			)),
-// 			h.Input(
-// 				h.Type("search"),
-// 				h.Aria("autocomplete", "off"),
-// 				h.Aria("label", "search-select button"),
-// 				h.Aria("controls", p.ID),
-// 				h.Aria("haspopup", "listbox"),
-// 				h.Aria("expanded", "false"),
-// 				h.Aria("role", "combobox"),
-// 				h.Name("search-value"),
-// 				ghtmx.Post(p.OptionUrl),
-// 				ghtmx.Trigger("keyup changed delay:500ms"),
-// 				ghtmx.Target(".search-select-dropdown"),
-// 				ghtmx.Swap("outerHTML"),
-// 			),
-// 			g.If(!p.Multiple, h.Span(h.Class("arrow"))),
-// 		),
-// 		MultiSelectOptions(p.Options, p.Value, p.Name, "search-select-dropdown", p.ID),
-// 		InlineScript("/components/SearchSelect.js"),
-// 	)
+	return h.Div(
+		h.Class("search-select"),
+		g.Attr("data-mode", p.Mode),
+		g.Attr("data-name", p.Name),
+		h.Div(
+			h.Class("select-input"),
+			g.Attr("tabindex", "0"),
 
-// }
+			h.Span(
+				g.Text(inputText),
+			),
+
+			Icon(&IconProps{
+				Identifier: "chevron-down",
+			}),
+		),
+		h.Div(
+			h.Class("select-dropdown"),
+
+			h.Input(
+				h.Class("select-search"),
+				h.Type("text"),
+				g.Attr("placeholder", "Search..."),
+			),
+			h.Ul(
+				h.Class("select-options"),
+				g.Group(listOptions),
+			),
+		),
+		h.Div(
+			h.Class("select-hidden-inputs"), // placeholder for dynamically injected hidden inputs
+		),
+	)
+}

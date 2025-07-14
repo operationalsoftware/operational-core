@@ -1049,6 +1049,136 @@ label .select {
 
 /* End Select */
 
+/* Start Search Select */
+.search-select {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  font-family: sans-serif;
+  font-size: 14px;
+  color: var(--text-color);
+  font-family: var(--font-family);
+
+  .select-input {
+    width: 100%;
+    display: flex;
+    padding: var(--spacing);
+    border: 1.5px solid var(--border-color-dark);
+    border-radius: var(--border-radius);
+    background-color: var(--background-color-content);
+    cursor: pointer;
+    user-select: none;
+    transition: border 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--font-size-sm);
+
+    &:hover {
+      border-color: var(--border-hover-color);
+    }
+
+    span {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    svg {
+      fill: currentColor;
+      float: right;
+    }
+  }
+}
+
+.select-option.focused {
+  background-color: #e0e0e0;
+}
+
+.select-option.active {
+  background-color: #e0e0e0;
+}
+
+.select-dropdown {
+  position: absolute;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  display: none;
+  border-radius: 0 0 6px 6px;
+}
+
+.select-dropdown.open {
+  display: block;
+  animation: fadeIn 0.15s ease-in;
+}
+
+.select-search {
+  width: 100%;
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  border: none;
+  outline: none;
+  font-size: var(--font-size-xs);
+  box-shadow: none;
+  border-radius: 0;
+
+  &:hover {
+    box-shadow: none;
+    outline: none;
+    border: none;
+  }
+
+  &:focus-visible {
+    box-shadow: none;
+    border: none;
+  }
+}
+
+.select-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: var(--background-color-content);
+  border-top: 1px solid #eee;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+.select-option {
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.select-option:hover {
+  background: var(--background-color-grey);
+}
+
+.select-option.selected {
+  background: var(--background-color-grey);
+  font-weight: 600;
+}
+
+.select-hidden-inputs {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* End Search Select */
+
 /* Start Slider */
 /*********** Baseline, reset styles ***********/
 .slider {
