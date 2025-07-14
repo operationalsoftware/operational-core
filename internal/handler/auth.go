@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -76,6 +77,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	retryPageProps.Username = formData.Username
 
 	out, err = h.authService.VerifyPasswordLogin(r.Context(), verifyLoginInput)
+
 	if err != nil {
 		retryPageProps.HasServerError = true
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)

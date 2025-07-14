@@ -3,7 +3,6 @@ package repository
 import (
 	"app/internal/model"
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -60,7 +59,7 @@ WHERE
 		&authUserDB.SessionDurationMinutes,
 	)
 
-	if err == sql.ErrNoRows {
+	if err == pgx.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
 		return &authUser, err
