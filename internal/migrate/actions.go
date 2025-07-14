@@ -143,7 +143,7 @@ CREATE TABLE app_user (
 				stock_transaction_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 				transaction_type TEXT NOT NULL,
 				transaction_by INT NOT NULL REFERENCES app_user(user_id),
-				transaction_note NOT NULL TEXT,
+				transaction_note TEXT NOT NULL,
 				timestamp TIMESTAMPTZ NOT NULL
 			);
 		`)
