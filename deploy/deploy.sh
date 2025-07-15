@@ -55,10 +55,10 @@ scp $ssh_key_flag ./rclone.conf "$host:~"
 # Running commands in remote server via ssh
 ssh $ssh_key_flag "$host" <<EOF
     set -e
-    sudo mkdir -p /opt/app
 
+    echo "📦 Ensuring directories exist..."
+    sudo mkdir -p /opt/app
     sudo mkdir -p /home/app/.config/rclone
-    sudo chown -R app:app /home/app/.config/rclone
 
     echo "📦 Moving config and app files..."
     sudo mv ./Caddyfile /etc/caddy/Caddyfile
@@ -67,15 +67,17 @@ ssh $ssh_key_flag "$host" <<EOF
     sudo mv ./db-backup.service /etc/systemd/system/db-backup.service
     sudo mv ./db-backup.timer /etc/systemd/system/db-backup.timer
     sudo mv ./rclone.conf /home/app/.config/rclone/rclone.conf
-    sudo chown app:app /home/app/.config/rclone/rclone.conf
     sudo mv ./app /opt/app/app.new
-    sudo mv "./.env" /opt/app/.env
+    sudo mv ./.env /opt/app/.env
     sudo mv ./db-backup.sh /opt/app/db-backup.sh
-    sudo chmod +x /opt/app/db-backup.sh
 
     echo "📦 Setting ownership..."
     sudo chown caddy:caddy /etc/caddy/Caddyfile
     sudo chown -R app:app /opt/app
+    sudo chown -R app:app /home/app/.config/rclone
+
+    echo "📦 Changing file permissions..."
+    sudo chmod +x /opt/app/db-backup.sh
                   
     echo "📦 Renaming binaries on the host..."
     if sudo [ -f /opt/app/app ]; then
