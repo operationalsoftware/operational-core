@@ -57,6 +57,9 @@ ssh $ssh_key_flag "$host" <<EOF
     set -e
     sudo mkdir -p /opt/app
 
+    sudo mkdir -p /home/app/.config/rclone
+    sudo chown -R app:app /home/app/.config/rclone
+
     echo "📦 Moving config and app files..."
     sudo mv ./Caddyfile /etc/caddy/Caddyfile
     sudo mv ./caddy.service /etc/systemd/system/caddy.service

@@ -42,11 +42,6 @@ EOF
 sudo chown app:app /home/app/.pgpass
 sudo chmod 600 /home/app/.pgpass
 
-echo "----- Creating Rclone config file -----"
-mkdir -p /home/app/.config/rclone
-touch /home/app/.config/rclone/rclone.conf
-sudo chown app:app /home/app/.config/rclone/rclone.conf
-
 echo "----- Installing PostgreSQL 16 -----"
 echo "----- Adding PostgreSQL APT Repository -----"
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
@@ -62,14 +57,7 @@ sudo systemctl start postgresql
 echo "----- Setting Password for 'postgres' User -----"
 sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
 
-APP_DB_NAME="batten_allen"
-
-echo "----- Creating PostgreSQL User and Database -----"
-sudo -u postgres psql <<EOF
-CREATE DATABASE "$APP_DB_NAME" OWNER postgres;
-EOF
-
-# Ensure only local access
+# Set variables for postgres config below
 PG_HBA="/etc/postgresql/16/main/pg_hba.conf"
 POSTGRES_CONF="/etc/postgresql/16/main/postgresql.conf"
 
