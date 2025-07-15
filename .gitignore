@@ -6,6 +6,7 @@
 
 # local deployment config
 deploy.config
+deploy/rclone.conf
 
 # compiled go binaries (dev and prod/staging)
 app-dev

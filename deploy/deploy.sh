@@ -50,6 +50,7 @@ scp $ssh_key_flag ./app.service "$host:~"
 scp $ssh_key_flag ./db-backup.service "$host:~"
 scp $ssh_key_flag ./db-backup.sh "$host:~"
 scp $ssh_key_flag ./db-backup.timer "$host:~"
+scp $ssh_key_flag ./rclone.conf "$host:~"
 
 # Running commands in remote server via ssh
 ssh $ssh_key_flag "$host" <<EOF
@@ -62,6 +63,7 @@ ssh $ssh_key_flag "$host" <<EOF
     sudo mv ./app.service /etc/systemd/system/app.service
     sudo mv ./db-backup.service /etc/systemd/system/db-backup.service
     sudo mv ./db-backup.timer /etc/systemd/system/db-backup.timer
+    sudo mv ./rclone.conf /home/app/.config/rclone/rclone.conf
     sudo mv ./app /opt/app/app.new
     sudo mv "./.env" /opt/app/.env
     sudo mv ./db-backup.sh /opt/app/db-backup.sh

@@ -44,15 +44,7 @@ sudo chmod 600 /home/app/.pgpass
 
 echo "----- Creating Rclone config file -----"
 mkdir -p /home/app/.config/rclone
-# UPDATE following config from orbit container
-cat <<EOF > /home/app/.config/rclone/rclone.conf
-[orbit]
-type = swift
-tenant = acc-abcdef
-user = cli-abcdef
-key = abcdefghi
-auth = https://orbit.brightbox.com/v3
-EOF
+touch /home/app/.config/rclone/rclone.conf
 sudo chown app:app /home/app/.config/rclone/rclone.conf
 
 echo "----- Installing PostgreSQL 16 -----"
