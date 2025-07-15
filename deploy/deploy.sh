@@ -64,6 +64,7 @@ ssh $ssh_key_flag "$host" <<EOF
     sudo mv ./db-backup.service /etc/systemd/system/db-backup.service
     sudo mv ./db-backup.timer /etc/systemd/system/db-backup.timer
     sudo mv ./rclone.conf /home/app/.config/rclone/rclone.conf
+    sudo chown app:app /home/app/.config/rclone/rclone.conf
     sudo mv ./app /opt/app/app.new
     sudo mv "./.env" /opt/app/.env
     sudo mv ./db-backup.sh /opt/app/db-backup.sh
