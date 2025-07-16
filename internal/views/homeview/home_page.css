@@ -5,6 +5,6 @@
     padding: var(--spacing-lg);
     margin: 0 auto;
     width: fit-content;
-    background-color: var(--card-bg);
+    background-color: var(--home-menu-bg);
   }
 }

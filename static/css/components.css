@@ -314,6 +314,14 @@ hr {
 }
 /* End GridMenu */
 
+/* Highlight component */
+.highlight {
+  background-color: yellow;
+  color: black;
+  padding: var(--spacing-xs) 0;
+  border-radius: 2px;
+}
+
 /* Start Icon */
 .icon {
   fill: var(--text-color);
@@ -1351,6 +1359,97 @@ label .select {
 }
 /* End Statistic */
 
+/*
+ * TABLE
+ */
+div.table {
+  width: 100%;
+
+  div.table-scroll {
+    width: 100%;
+    overflow-x: auto; /* Enable horizontal scrolling on small screens */
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background-color: var(--background-color-content);
+
+        th {
+          /* for sorting elements */
+          label {
+            cursor: pointer;
+
+            .icon {
+              width: 22px;
+              height: 22px;
+              vertical-align: middle;
+              margin-left: var(--spacing-sm);
+              fill: var(--text-color-light);
+              transition: fill 0.2s ease-in-out;
+
+              &:hover {
+                fill: var(--text-color);
+              }
+            }
+
+            input {
+              display: none;
+            }
+          }
+        }
+      }
+
+      th,
+      td {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #ccc;
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+      }
+
+      tr:hover td {
+        background-color: var(--background-color-content) !important;
+      }
+    }
+  }
+}
+
+/* Kept outside of table component for now as may want to use separately */
+div.table-pagination {
+  display: flex;
+  justify-content: end;
+  padding: var(--spacing-md) 0;
+  gap: var(--spacing-md);
+
+  div.table-pagination-pages {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+
+    label {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--border-radius);
+
+      &:hover {
+        background-color: var(--primary-color);
+        cursor: pointer;
+      }
+
+      &.disabled {
+        background-color: var(--disabled-color);
+        cursor: not-allowed;
+      }
+
+      &.active {
+        background-color: var(--primary-color);
+        color: var(--text-color-contrast);
+      }
+    }
+  }
+}
+
 /* Start Textarea */
 .textarea-container {
   display: flex;
@@ -1520,102 +1619,3 @@ label .select {
   font-weight: bold;
 }
 /* End Upload Button */
-
-/*
- * TABLE
- */
-div.table {
-  width: 100%;
-
-  div.table-scroll {
-    width: 100%;
-    overflow-x: auto; /* Enable horizontal scrolling on small screens */
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-
-      thead {
-        background-color: var(--background-color-content);
-
-        th {
-          /* for sorting elements */
-          label {
-            cursor: pointer;
-
-            .icon {
-              width: 22px;
-              height: 22px;
-              vertical-align: middle;
-              margin-left: var(--spacing-sm);
-              fill: var(--text-color-light);
-              transition: fill 0.2s ease-in-out;
-
-              &:hover {
-                fill: var(--text-color);
-              }
-            }
-
-            input {
-              display: none;
-            }
-          }
-        }
-      }
-
-      th,
-      td {
-        padding: 8px;
-        text-align: left;
-        border: 1px solid #ccc;
-        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-      }
-
-      tr:hover td {
-        background-color: var(--background-color-content) !important;
-      }
-    }
-  }
-}
-
-/* Kept outside of table component for now as may want to use separately */
-div.table-pagination {
-  display: flex;
-  justify-content: end;
-  padding: var(--spacing-md) 0;
-  gap: var(--spacing-md);
-
-  div.table-pagination-pages {
-    display: flex;
-    gap: var(--spacing-sm);
-    align-items: center;
-
-    label {
-      padding: var(--spacing-sm) var(--spacing-md);
-      border-radius: var(--border-radius);
-
-      &:hover {
-        background-color: var(--primary-color);
-        cursor: pointer;
-      }
-
-      &.disabled {
-        background-color: var(--disabled-color);
-        cursor: not-allowed;
-      }
-
-      &.active {
-        background-color: var(--primary-color);
-        color: var(--text-color-contrast);
-      }
-    }
-  }
-}
-
-/* Highlight component */
-.highlight {
-  background-color: yellow;
-  color: black;
-  padding: var(--spacing-xs) 0;
-  border-radius: 2px;
-}
