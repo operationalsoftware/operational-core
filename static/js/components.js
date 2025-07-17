@@ -1,8 +1,7 @@
 /*
  * START: SELECT
  * */
-(function() {
-
+(function () {
   // manage open state
   function toggleOpenSelect(selectEl) {
     selectEl.classList.toggle("open");
@@ -50,17 +49,17 @@
   // get an option element by a specified value
   function getOptionElByValue(selectEl, value) {
     let optionEl;
-    selectEl.querySelectorAll("div.option").forEach(function(el) {
+    selectEl.querySelectorAll("div.option").forEach(function (el) {
       const currOptionValue = getOptionValue(el);
       if (currOptionValue === value) optionEl = el;
-    })
+    });
 
     return optionEl;
   }
 
   function getChipElByValue(selectEl, value) {
     let checkboxEl;
-    selectEl.querySelectorAll("input[type=checkbox]").forEach(function(cb) {
+    selectEl.querySelectorAll("input[type=checkbox]").forEach(function (cb) {
       if (cb.value === value) checkboxEl = cb;
     });
     const chipEl = checkboxEl.closest("span.selected-value-chip");
@@ -95,7 +94,6 @@
     dropdownArrowEl.classList.add("hidden");
   }
 
-
   function getSelectedValue(selectEl) {
     const radioEl = selectEl.querySelector("input[type=radio]");
     if (!radioEl) return null;
@@ -103,8 +101,9 @@
   }
   function getMultiSelectValues(selectEl) {
     const values = [];
-    selectEl.querySelectorAll("input[type=checkbox]")
-      .forEach(function(checkboxEl) {
+    selectEl
+      .querySelectorAll("input[type=checkbox]")
+      .forEach(function (checkboxEl) {
         const checkboxVal = checkboxEl.getAttribute("value");
         if (checkboxVal) values.push(checkboxVal);
       });
@@ -118,7 +117,7 @@
     // firstly, if we are in single select mode, remove the selected class
     // from all options
     if (!isMultiple) {
-      selectEl.querySelectorAll("div.option").forEach(function(optionEl) {
+      selectEl.querySelectorAll("div.option").forEach(function (optionEl) {
         optionEl.classList.remove("selected");
       });
     }
@@ -213,9 +212,11 @@
 
   function clearSelect(selectEl) {
     // deselect all selected options
-    selectEl.querySelectorAll("div.option.selected").forEach(function(optionEl) {
-      optionEl.classList.remove("selected");
-    })
+    selectEl
+      .querySelectorAll("div.option.selected")
+      .forEach(function (optionEl) {
+        optionEl.classList.remove("selected");
+      });
 
     // clear contents of selected values
     const selectedValuesEl = getSelectedValuesEl(selectEl);
@@ -276,7 +277,7 @@
     }
   }
 
-  document.addEventListener("click", function(event) {
+  document.addEventListener("click", function (event) {
     const isInsideSelect = event.target.closest("div.select");
     if (isInsideSelect) {
       event.preventDefault();
@@ -284,18 +285,27 @@
       handleSelectClick(event);
     } else {
       // check if any selects are open and remove the open class if so
-      document.querySelectorAll("div.select.open").forEach(function(selectEl) {
+      document.querySelectorAll("div.select.open").forEach(function (selectEl) {
         selectEl.classList.remove("open");
       });
     }
   });
 
+  // Toast start
+  const toast = document.querySelector(".toast");
+  if (toast) {
+    toast.style.opacity = "1";
+    toast.style.pointerEvents = "auto";
+    setTimeout(() => {
+      toast.style.opacity = "0";
+    }, 4000);
+  }
+  // Toast end
 })();
 
 /*
  * END: SELECT
  * */
-
 
 /*
  * START TABLE
@@ -304,12 +314,12 @@
 // Function to remove duplicate page size fields and submit the form
 function submitTableForm(form) {
   // Find all select elements with name PageSize
-  const pageSizeSelects = form.querySelectorAll('select.page-size-select');
+  const pageSizeSelects = form.querySelectorAll("select.page-size-select");
 
   // Remove `name` attribute from all but one to avoid duplicates in form submission
   pageSizeSelects.forEach((select, index) => {
     if (index !== 0) {
-      select.removeAttribute('name');
+      select.removeAttribute("name");
     }
   });
 
@@ -320,13 +330,13 @@ function submitTableForm(form) {
 // Function to update PageSize, sync selects, and then submit the form
 function updatePageSizeAndSubmit(selectElement) {
   // Find the closest form that contains the changed select element
-  const form = selectElement.closest('form');
+  const form = selectElement.closest("form");
 
   // Find all select elements within the same form (pagination controls)
-  const pageSizeSelects = form.querySelectorAll('select.page-size-select');
+  const pageSizeSelects = form.querySelectorAll("select.page-size-select");
 
   // Sync all select elements' values within the same form
-  pageSizeSelects.forEach(select => select.value = selectElement.value);
+  pageSizeSelects.forEach((select) => (select.value = selectElement.value));
 
   // Submit the form using the utility function
   submitTableForm(form);
