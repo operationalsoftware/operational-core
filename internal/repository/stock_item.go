@@ -1,0 +1,445 @@
+package repository
+
+import (
+	"app/internal/model"
+	"app/pkg/db"
+	"context"
+	"errors"
+	"fmt"
+	"log"
+	"strings"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type StockItemRepository struct{}
+
+func NewStockItemRepository() *StockItemRepository {
+	return &StockItemRepository{}
+}
+
+func (r *StockItemRepository) CreateStockItem(
+	ctx context.Context,
+	exec db.PGExecutor,
+	stockItem *model.PostStockItem,
+) error {
+
+	insertUserStmt := `
+INSERT INTO stock_item (
+	stock_code,
+	description
+)
+VALUES ($1, $2)
+	`
+	_, err := exec.Exec(
+		ctx,
+
+		insertUserStmt,
+		stockItem.StockCode,
+		stockItem.Description,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *StockItemRepository) CreateSKUConfigItem(
+	ctx context.Context,
+	exec db.PGExecutor,
+	skuConfigItem *model.SKUConfigItem,
+) error {
+
+	insertQuery := `
+INSERT INTO sku_config (
+	sku_field,
+	label,
+	code
+)
+VALUES ($1, $2, $3)
+	`
+	_, err := exec.Exec(
+		ctx,
+
+		insertQuery,
+		skuConfigItem.SKUField,
+		skuConfigItem.Label,
+		skuConfigItem.Code,
+	)
+
+	// if err != nil {
+	// 	return err
+	// }
+	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			if strings.Contains(pgErr.ConstraintName, "unique_sku_field_label") {
+				return errors.New("duplicate label for this SKU field")
+
+			}
+			if strings.Contains(pgErr.ConstraintName, "unique_sku_field_code") {
+				return errors.New("duplicate code for this SKU field")
+
+			}
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (r *StockItemRepository) DeleteSKUConfigItem(
+	ctx context.Context,
+	exec db.PGExecutor,
+	skuField string,
+	skuCode string,
+) error {
+
+	deleteQuery := `
+DELETE FROM sku_config
+WHERE sku_field = $1 AND code = $2
+`
+
+	_, err := exec.Exec(ctx, deleteQuery, skuField, skuCode)
+	return err
+}
+
+func (r *StockItemRepository) UpdateStockItem(
+	ctx context.Context,
+	exec db.PGExecutor,
+	stockCode string,
+	input *model.PostStockItem,
+) error {
+
+	// get the user to check if it exists
+	stockItem, err := r.GetStockItem(ctx, exec, stockCode)
+	if err != nil {
+		return err
+	}
+	if stockItem == nil {
+		return fmt.Errorf("stock item does not exist")
+	}
+
+	query := `
+UPDATE
+	stock_item
+
+SET
+	stock_code = $2,
+	description = $3
+
+WHERE
+	stock_code = $1
+	`
+
+	_, err = exec.Exec(
+		ctx,
+		query,
+
+		stockCode,
+		input.StockCode,
+		input.Description,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *StockItemRepository) GetStockItem(
+	ctx context.Context,
+	exec db.PGExecutor,
+	stockCode string,
+) (*model.StockItem, error) {
+	query := `
+SELECT
+    stock_code,
+    description,
+    created_at
+FROM
+    stock_item
+WHERE
+    stock_code = $1
+	`
+
+	stockItem := model.StockItem{}
+	err := exec.QueryRow(ctx, query, stockCode).Scan(
+		&stockItem.StockCode,
+		&stockItem.Description,
+		&stockItem.CreatedAt,
+	)
+
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	parts := strings.Split(stockItem.StockCode, "-")
+	if len(parts) != 6 {
+		return nil, fmt.Errorf("invalid SKU format")
+	}
+	stockItem.ProductType = parts[0]
+	stockItem.YarnType = parts[1]
+	stockItem.StyleNumber = parts[2]
+	stockItem.Colour = parts[3]
+	stockItem.ToeClosing = parts[4]
+	stockItem.Size = parts[5]
+
+	return &stockItem, nil
+}
+
+func (r *StockItemRepository) GetStockItems(
+	ctx context.Context,
+	exec db.PGExecutor,
+	q *model.GetStockItemsQuery,
+) ([]model.StockItem, error) {
+
+	offset := (q.Page - 1) * q.PageSize
+	limit := q.PageSize
+	orderByClause := q.Sort.ToOrderByClause(map[string]string{})
+
+	if orderByClause == "" {
+		orderByClause = "ORDER BY created_at DESC"
+	}
+
+	query := fmt.Sprintf(`
+SELECT
+    stock_code,
+    description,
+    created_at
+FROM
+    stock_item
+
+%s
+
+LIMIT $1 OFFSET $2
+	`,
+		orderByClause,
+	)
+
+	rows, err := exec.Query(ctx, query, limit, offset)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	stockItems := []model.StockItem{}
+	for rows.Next() {
+		var stockItem model.StockItem
+		err := rows.Scan(
+			&stockItem.StockCode,
+			&stockItem.Description,
+			&stockItem.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		stockItems = append(stockItems, stockItem)
+	}
+
+	return stockItems, nil
+}
+
+func (r *StockItemRepository) GetSKUConfiguration(
+	ctx context.Context,
+	exec db.PGExecutor,
+) (model.SKUConfigData, error) {
+	query := `
+		SELECT sku_field, label, code
+		FROM sku_config;
+	`
+
+	rows, err := exec.Query(ctx, query)
+	if err != nil {
+		return model.SKUConfigData{}, err
+	}
+	defer rows.Close()
+
+	data := model.SKUConfigData{}
+
+	for rows.Next() {
+		var skuField, label, code string
+		if err := rows.Scan(&skuField, &label, &code); err != nil {
+			return model.SKUConfigData{}, err
+		}
+
+		item := model.SKUConfig{Label: label, Code: code}
+
+		switch skuField {
+		case "ProductType":
+			data.ProductType = append(data.ProductType, item)
+		case "YarnType":
+			data.YarnType = append(data.YarnType, item)
+		case "StyleNumber":
+			data.StyleNumber = append(data.StyleNumber, item)
+		case "Colour":
+			data.Colour = append(data.Colour, item)
+		case "ToeClosing":
+			data.ToeClosing = append(data.ToeClosing, item)
+		case "Size":
+			data.Size = append(data.Size, item)
+		}
+	}
+
+	return data, nil
+}
+
+func (r *StockItemRepository) GetStockItemsCount(
+	ctx context.Context,
+	exec db.PGExecutor,
+) (int, error) {
+
+	query := `
+SELECT
+	COUNT(*)
+FROM
+	app_user
+	`
+
+	var count int
+	err := exec.QueryRow(ctx, query).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (r *StockItemRepository) GetStockItemChanges(
+	ctx context.Context,
+	exec db.PGExecutor,
+	stockCode string,
+) ([]model.StockItemChange, error) {
+
+	query := `
+SELECT
+    sic.stock_code,
+    sic.stock_code_history,
+    sic.description,
+    u.username AS changed_by_username,
+    sic.change_at
+FROM
+    stock_item_change sic
+LEFT JOIN
+    app_user u ON sic.change_by = u.user_id
+WHERE
+    sic.stock_code = $1
+ORDER BY
+    sic.change_at DESC;
+`
+
+	rows, err := exec.Query(ctx, query, stockCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var changes []model.StockItemChange
+	for rows.Next() {
+		var c model.StockItemChange
+		err := rows.Scan(
+			&c.StockCode,
+			&c.StockCodeHistory,
+			&c.Description,
+			&c.ChangeByUsername,
+			&c.ChangeAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		changes = append(changes, c)
+	}
+
+	return changes, nil
+}
+
+func (r *StockItemRepository) AddStockItemChange(
+	ctx context.Context,
+	exec db.PGExecutor,
+	stockItemChange model.PostStockItemChange,
+) error {
+
+	insertQuery := `
+INSERT INTO stock_item_change (
+	stock_code,
+	stock_code_history,
+	description,
+	change_by
+)
+VALUES ($1, $2, $3, $4)
+	`
+	_, err := exec.Exec(
+		ctx,
+
+		insertQuery,
+		stockItemChange.StockCode,
+		stockItemChange.StockCodeHistory,
+		stockItemChange.Description,
+		stockItemChange.ChangeBy,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *StockItemRepository) SearchStockItems(
+	ctx context.Context,
+	db *pgxpool.Pool,
+	searchTerm string,
+) ([]model.StockItemSearchResult, error) {
+
+	rows, err := db.Query(ctx, `
+		SELECT
+			stock_code,
+			description,
+			(
+				CASE WHEN stock_code ILIKE $1 THEN 3
+					WHEN stock_code ILIKE $1 || '%' THEN 2
+					WHEN stock_code ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 3
+				+
+				CASE WHEN description ILIKE $1 THEN 3
+					WHEN description ILIKE $1 || '%' THEN 2
+					WHEN description ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 2
+			) AS relevance
+		FROM
+			stock_item
+		WHERE
+			stock_code ILIKE '%' || $1 || '%'
+		OR	description ILIKE '%' || $1 || '%'
+		ORDER BY
+			relevance DESC
+		LIMIT 7
+	`, searchTerm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []model.StockItemSearchResult
+	for rows.Next() {
+		var ur model.StockItemSearchResult
+		if err := rows.Scan(&ur.StockCode, &ur.Description, &ur.Relevance); err != nil {
+			return nil, err
+		}
+
+		results = append(results, ur)
+	}
+
+	return results, nil
+}

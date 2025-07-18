@@ -12,40 +12,27 @@ import (
 
 // Apply migrations if required (queries will be added later)
 func migrate(ctx context.Context, tx pgx.Tx) error {
-	// Create Recent search table
+
+	// 	// Alter column for app_user table
+	// 	_, err := tx.Exec(context.Background(), `
+	// CREATE TABLE file (
+	// 	file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	// 	file_name TEXT,
+	// 	mime_type TEXT,
+	// 	file_ext TEXT,
+	// 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+	// );
+	// 	`)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	// end
+
+	// Create stock_item table
 	_, err := tx.Exec(context.Background(), `
-CREATE TABLE
-	recent_search (
-		recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-		search_term TEXT NOT NULL,
-		search_entities TEXT[] NOT NULL,
-		user_id INT REFERENCES app_user(user_id),
-		last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-
-		CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
-);
-	`)
-	if err != nil {
-		return err
-	}
-	// Recent search table end
-
-	// Alter column for app_user table
-	_, err = tx.Exec(context.Background(), `
-ALTER TABLE app_user ADD COLUMN session_duration_minutes INT;
-	`)
-	if err != nil {
-		return err
-	}
-	// end
-
-	// Alter column for app_user table
-	_, err = tx.Exec(context.Background(), `
-CREATE TABLE file (
-	file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	file_name TEXT,
-	mime_type TEXT,
-	file_ext TEXT,
+CREATE TABLE stock_item (
+	stock_code TEXT PRIMARY KEY,
+	description TEXT NOT NULL,
 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 	`)
@@ -53,6 +40,36 @@ CREATE TABLE file (
 		return err
 	}
 	// end
+
+	// Create stock_item table
+	_, err = tx.Exec(context.Background(), `
+CREATE TABLE stock_item_change (
+	stock_item_change_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	stock_code TEXT NOT NULL REFERENCES stock_item(stock_code) ON UPDATE CASCADE, 
+	stock_code_history TEXT, 
+	description TEXT,
+	change_by INT REFERENCES app_user(user_id),
+	change_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Create sku_config table
+	_, err = tx.Exec(context.Background(), `
+CREATE TABLE sku_config (
+	sku_config_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	sku_field TEXT NOT NULL,
+	label TEXT NOT NULL,
+	code TEXT NOT NULL,
+	CONSTRAINT unique_sku_field_label UNIQUE (sku_field, label),
+  	CONSTRAINT unique_sku_field_code UNIQUE (sku_field, code)
+);
+	`)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

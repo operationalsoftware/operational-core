@@ -14,11 +14,12 @@ import (
 
 type Services struct {
 	AuthService             service.AuthService
-	UserService             service.UserService
-	StockTransactionService service.StockTransactionService
-	SearchService           service.SearchService
 	PDFService              service.PDFService
+	SearchService           service.SearchService
+	StockItemService        service.StockItemService
+	StockTransactionService service.StockTransactionService
 	FileService             service.FileService
+	UserService             service.UserService
 }
 
 func NewRouter(services *Services) http.Handler {
@@ -45,11 +46,12 @@ func NewRouter(services *Services) http.Handler {
 
 	// add routes for services
 	addAuthRoutes(mux, services.AuthService)
-	addUserRoutes(mux, services.UserService)
+	addStockItemRoutes(mux, services.StockItemService)
 	addStockTransactionRoutes(mux, services.StockTransactionService)
 	addSearchRoutes(mux, services.SearchService)
 	addPDFRoutes(mux, services.PDFService)
 	addFileRoutes(mux, services.PDFService)
+	addUserRoutes(mux, services.UserService)
 
 	// Camera scanner route
 	mux.HandleFunc("/camera-scanner", func(w http.ResponseWriter, r *http.Request) {

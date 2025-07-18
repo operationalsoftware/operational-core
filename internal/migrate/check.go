@@ -39,8 +39,7 @@ SELECT EXISTS (
 	SELECT 1
 	FROM information_schema.columns
 	WHERE table_schema = 'public'
-	AND table_name = 'file'
-	AND column_name = 'file_id'
+	AND table_name = 'stock_item'
 )
 `).Scan(&exists)
 	if err != nil {

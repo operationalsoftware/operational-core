@@ -1,0 +1,21 @@
+.sku-grid {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  .sku-option {
+    display: flex;
+    flex-direction: column;
+    width: 48%;
+
+    p {
+      margin-bottom: var(--spacing-md);
+    }
+  }
+}
+
+#add-stock-item-form {
+  margin-top: var(--spacing-lg);
+}

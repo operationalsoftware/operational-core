@@ -10,12 +10,19 @@ type SearchInput struct {
 }
 
 type SearchResults struct {
+	StockItems     []StockItemSearchResult
 	Users          []UserSearchResult
 	RecentSearches []RecentSearch
 }
 
 type BaseSearchResult struct {
 	Relevance int
+}
+
+type StockItemSearchResult struct {
+	BaseSearchResult
+	StockCode   string
+	Description string
 }
 
 type UserSearchResult struct {

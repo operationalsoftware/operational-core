@@ -1,0 +1,5 @@
+.sku-field {
+  p {
+    margin-bottom: var(--spacing-sm);
+  }
+}
