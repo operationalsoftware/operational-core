@@ -56,21 +56,6 @@ CREATE TABLE stock_item_change (
 		return err
 	}
 
-	// Create sku_config table
-	_, err = tx.Exec(context.Background(), `
-CREATE TABLE sku_config (
-	sku_config_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	sku_field TEXT NOT NULL,
-	label TEXT NOT NULL,
-	code TEXT NOT NULL,
-	CONSTRAINT unique_sku_field_label UNIQUE (sku_field, label),
-  	CONSTRAINT unique_sku_field_code UNIQUE (sku_field, code)
-);
-	`)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
