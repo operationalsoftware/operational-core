@@ -40,29 +40,51 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 		Ctx: ctx,
 	}
 
-	_ = r.ParseForm()
-	var formData model.VerifyPasswordLoginInput
-	err = appurl.Unmarshal(r.PostForm, &formData)
+	err = r.ParseForm()
 	if err != nil {
 		retryPageProps.HasServerError = true
-		retryPageProps.Username = formData.Username
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
 		return
 	}
 
-	var out model.VerifyPasswordLoginOutput
-
-	out, err = h.authService.VerifyPasswordLogin(r.Context(), formData)
+	var formData passwordLoginFormData
+	err = appurl.Unmarshal(r.PostForm, &formData)
 	if err != nil {
 		retryPageProps.HasServerError = true
-		retryPageProps.Username = formData.Username
+		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
+		return
+	}
+
+	verifyLoginInput := model.VerifyPasswordLoginInput{}
+	verifyLoginInput.Username = formData.Username
+	verifyLoginInput.Password = formData.Password
+
+	// decrypt credentials if encrypted credentials submitted
+	if formData.EncryptedCredentials != "" {
+		decodedData, err := encryptcredentials.Decrypt(formData.EncryptedCredentials)
+		if err != nil {
+			retryPageProps.HasServerError = true
+			retryPageProps.LogInFailedError = ""
+			_ = authview.PasswordLoginPage(retryPageProps).Render(w)
+			return
+		}
+		verifyLoginInput.Username = decodedData.Username
+		verifyLoginInput.Password = decodedData.Password
+	}
+
+	var out model.VerifyPasswordLoginOutput
+	retryPageProps.Username = formData.Username
+
+	out, err = h.authService.VerifyPasswordLogin(r.Context(), verifyLoginInput)
+
+	if err != nil {
+		retryPageProps.HasServerError = true
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
 		return
 	}
 
 	if out.FailureReason != "" {
 		retryPageProps.LogInFailedError = out.FailureReason
-		retryPageProps.Username = formData.Username
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
 		return
 	}
@@ -82,6 +104,12 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return
+}
+
+type passwordLoginFormData struct {
+	Username             string
+	Password             string
+	EncryptedCredentials string
 }
 
 func (h *AuthHandler) QRcodeLogInPage(w http.ResponseWriter, r *http.Request) {

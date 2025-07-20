@@ -3,7 +3,8 @@
 
   .card {
     padding: var(--spacing-lg);
+    margin: 0 auto;
+    width: fit-content;
+    background-color: var(--home-menu-bg);
   }
 }
-
-

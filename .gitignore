@@ -2,10 +2,11 @@
 .vscode/
 
 # local env vars
-.env
+**/*.env
 
 # local deployment config
 deploy.config
+deploy/rclone.conf
 
 # compiled go binaries (dev and prod/staging)
 app-dev

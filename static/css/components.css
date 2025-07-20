@@ -2,7 +2,8 @@
 
 /* Native inputs/select by type */
 input,
-select {
+select,
+textarea {
   border: 1.5px solid var(--border-color-dark);
   border-radius: var(--border-radius);
   background-color: var(--background-color-content);
@@ -172,6 +173,7 @@ hr {
   width: 20px;
   height: 20px;
   vertical-align: middle;
+  fill: currentColor;
 }
 /* End Button */
 
@@ -300,10 +302,30 @@ hr {
           background-color: var(--background-color);
         }
       }
+
+      .grid-menu-item-name {
+        font-size: var(--font-size-xs);
+      }
+
+      @media (max-width: 640px) {
+        grid-template-columns: repeat(4, minmax(50px, 1fr));
+      }
+
+      @media (max-width: 480px) {
+        grid-template-columns: repeat(3, minmax(50px, 1fr));
+      }
     }
   }
 }
 /* End GridMenu */
+
+/* Highlight component */
+.highlight {
+  background-color: yellow;
+  color: black;
+  padding: var(--spacing-xs) 0;
+  border-radius: 2px;
+}
 
 /* Start Icon */
 .icon {
@@ -992,6 +1014,136 @@ label .select {
 
 /* End Select */
 
+/* Start Search Select */
+.search-select {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  font-family: sans-serif;
+  font-size: 14px;
+  color: var(--text-color);
+  font-family: var(--font-family);
+
+  .select-input {
+    width: 100%;
+    display: flex;
+    padding: var(--spacing);
+    border: 1.5px solid var(--border-color-dark);
+    border-radius: var(--border-radius);
+    background-color: var(--background-color-content);
+    cursor: pointer;
+    user-select: none;
+    transition: border 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--font-size-sm);
+
+    &:hover {
+      border-color: var(--border-hover-color);
+    }
+
+    span {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    svg {
+      fill: currentColor;
+      float: right;
+    }
+  }
+}
+
+.select-option.focused {
+  background-color: #e0e0e0;
+}
+
+.select-option.active {
+  background-color: #e0e0e0;
+}
+
+.select-dropdown {
+  position: absolute;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  display: none;
+  border-radius: 0 0 6px 6px;
+}
+
+.select-dropdown.open {
+  display: block;
+  animation: fadeIn 0.15s ease-in;
+}
+
+.select-search {
+  width: 100%;
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  border: none;
+  outline: none;
+  font-size: var(--font-size-xs);
+  box-shadow: none;
+  border-radius: 0;
+
+  &:hover {
+    box-shadow: none;
+    outline: none;
+    border: none;
+  }
+
+  &:focus-visible {
+    box-shadow: none;
+    border: none;
+  }
+}
+
+.select-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: var(--background-color-content);
+  border-top: 1px solid #eee;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+.select-option {
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.select-option:hover {
+  background: var(--background-color-grey);
+}
+
+.select-option.selected {
+  background: var(--background-color-grey);
+  font-weight: 600;
+}
+
+.select-hidden-inputs {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* End Search Select */
+
 /* Start Slider */
 /*********** Baseline, reset styles ***********/
 .slider {
@@ -1164,6 +1316,97 @@ label .select {
 }
 /* End Statistic */
 
+/*
+ * TABLE
+ */
+div.table {
+  width: 100%;
+
+  div.table-scroll {
+    width: 100%;
+    overflow-x: auto; /* Enable horizontal scrolling on small screens */
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background-color: var(--background-color-content);
+
+        th {
+          /* for sorting elements */
+          label {
+            cursor: pointer;
+
+            .icon {
+              width: 22px;
+              height: 22px;
+              vertical-align: middle;
+              margin-left: var(--spacing-sm);
+              fill: var(--text-color-light);
+              transition: fill 0.2s ease-in-out;
+
+              &:hover {
+                fill: var(--text-color);
+              }
+            }
+
+            input {
+              display: none;
+            }
+          }
+        }
+      }
+
+      th,
+      td {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #ccc;
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+      }
+
+      tr:hover td {
+        background-color: var(--background-color-content) !important;
+      }
+    }
+  }
+}
+
+/* Kept outside of table component for now as may want to use separately */
+div.table-pagination {
+  display: flex;
+  justify-content: end;
+  padding: var(--spacing-md) 0;
+  gap: var(--spacing-md);
+
+  div.table-pagination-pages {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+
+    label {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--border-radius);
+
+      &:hover {
+        background-color: var(--primary-color);
+        cursor: pointer;
+      }
+
+      &.disabled {
+        background-color: var(--disabled-color);
+        cursor: not-allowed;
+      }
+
+      &.active {
+        background-color: var(--primary-color);
+        color: var(--text-color-contrast);
+      }
+    }
+  }
+}
+
 /* Start Textarea */
 .textarea-container {
   display: flex;
@@ -1194,6 +1437,53 @@ label .select {
   border-color: var(--primary-color);
 }
 /* End Textarea */
+
+/* Start Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  min-width: 250px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #fff;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-in-out, fadeOut 0.3s ease-in-out 3.7s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toast.toast-success {
+  background-color: #4caf50;
+}
+
+.toast.toast-error {
+  background-color: #f44336;
+}
+
+.toast.toast-info {
+  background-color: #2196f3;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+/* End Toast */
 
 /* Start Tooltip */
 /* Tooltip */

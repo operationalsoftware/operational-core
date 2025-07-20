@@ -9,7 +9,7 @@ type AndonSeverity string
 
 const (
 	AndonSeverityInfo                 AndonSeverity = "Info"
-	AndonSeveritySelfResolvable       AndonSeverity = "Self Resolvable"
+	AndonSeveritySelfResolvable       AndonSeverity = "Self-resolvable"
 	AndonSeverityRequiresIntervention AndonSeverity = "Requires Intervention"
 )
 

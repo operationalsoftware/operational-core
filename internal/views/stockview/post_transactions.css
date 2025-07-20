@@ -1,0 +1,78 @@
+main {
+  display: flex;
+  justify-content: center; /* centers on page */
+  align-items: start; /* doesn't stretch to full height */
+
+  .card {
+    width: 100%;
+    max-width: 500px;
+    padding: var(--spacing-lg);
+
+    /* Transaction title */
+    h3 {
+      margin-top: var(--spacing-lg);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .transaction-info {
+      color: var(--secondary-color);
+      font-size: var(--font-size-sm);
+
+      .icon {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+        margin-right: var(--spacing-xs);
+      }
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xl);
+
+      .form-row {
+        display: flex;
+        flex-direction: row;
+        gap: var(--spacing-lg);
+        flex-wrap: wrap;
+
+        label {
+          display: flex;
+          flex-direction: column;
+          gap: var(--spacing-sm);
+          flex-grow: 1;
+        }
+
+        &:first-child {
+          margin-top: var(--spacing-lg);
+        }
+      }
+    }
+
+    nav {
+      margin-bottom: var(--spacing-md);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-lg);
+
+      a.active {
+        color: var(--text-color);
+        text-decoration-line: underline;
+        text-underline-offset: var(--spacing-sm);
+      }
+    }
+
+    div.success-msg {
+      margin-top: var(--spacing-lg);
+      padding: var(--spacing-md);
+      background-color: var(--success-color);
+    }
+
+    div.error-msg {
+      margin-top: var(--spacing-lg);
+      padding: var(--spacing-md);
+      background-color: var(--error-color);
+    }
+  }
+}

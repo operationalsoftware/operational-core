@@ -50,10 +50,6 @@ func (s *SearchService) Search(
 		E: entityNames,
 	}
 
-	if err := s.SearchRepo.CreateRecentSearch(ctx, s.db, searchInput, userID); err != nil {
-		log.Printf("Failed to save recent search: %v", err)
-	}
-
 	recentSearches, err := s.SearchRepo.FetchRecentSearches(ctx, s.db, searchInput, userID)
 	if err != nil {
 		return results, err
@@ -62,6 +58,10 @@ func (s *SearchService) Search(
 
 	if searchTerm == "" {
 		return results, err
+	}
+
+	if err := s.SearchRepo.CreateRecentSearch(ctx, s.db, searchInput, userID); err != nil {
+		log.Printf("Failed to save recent search: %v", err)
 	}
 
 	// User Search

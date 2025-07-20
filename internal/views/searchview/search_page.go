@@ -69,7 +69,7 @@ func SearchPage(p SearchPageProps) g.Node {
 					),
 					h.Div(
 						h.Class("search-results"),
-						SearchResults(p.Results),
+						SearchResults(p.Results, p.SearchTerm),
 					),
 				}),
 			),
@@ -80,6 +80,13 @@ func SearchPage(p SearchPageProps) g.Node {
 		Title:   "Search",
 		Content: content,
 		Ctx:     p.Ctx,
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			{
+				IconIdentifier: "magnify",
+				Title:          "Search",
+			},
+		},
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/searchview/search_page.css"),
 		},
@@ -155,7 +162,7 @@ func RecentSearches(terms []model.RecentSearch) g.Node {
 	)
 }
 
-func SearchResults(results model.SearchResults) g.Node {
+func SearchResults(results model.SearchResults, searchTerm string) g.Node {
 	var resultSections []g.Node
 
 	if len(results.Users) > 0 {
@@ -163,7 +170,7 @@ func SearchResults(results model.SearchResults) g.Node {
 			h.H3(h.Class("result-type-heading"), g.Text("User Results")),
 			h.Ul(
 				h.Class("result-group"),
-				g.Group(UserResults(results.Users)),
+				g.Group(UserResults(results.Users, searchTerm)),
 			),
 		}
 		resultSections = append(resultSections, group...)
@@ -176,7 +183,7 @@ func SearchResults(results model.SearchResults) g.Node {
 	return g.Group(resultSections)
 }
 
-func UserResults(users []model.UserSearchResult) []g.Node {
+func UserResults(users []model.UserSearchResult, searchTerm string) []g.Node {
 	var nodes []g.Node
 
 	for _, user := range users {
@@ -190,14 +197,14 @@ func UserResults(users []model.UserSearchResult) []g.Node {
 
 				h.Li(
 					h.Class("search-result-item"),
-					h.Div(h.Strong(g.Text(fullName))),
+					h.Div(h.Strong(components.Highlight(fullName, searchTerm))),
 					h.Div(
 						h.Strong(g.Text("Username: ")),
-						g.Text(user.Username),
+						components.Highlight(user.Username, searchTerm),
 					),
 					h.Div(
 						h.Strong(g.Text("Email: ")),
-						g.Text(user.Email),
+						components.Highlight(user.Email, searchTerm),
 					),
 				),
 			),

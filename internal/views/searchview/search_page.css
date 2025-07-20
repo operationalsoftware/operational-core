@@ -17,6 +17,12 @@ main {
         margin-right: 1rem;
       }
     }
+
+    .filters {
+      label {
+        margin-right: var(--spacing-md);
+      }
+    }
   }
 
   .recent-searches {
@@ -53,8 +59,8 @@ main {
     .result-type-heading {
       color: var(--text-color-light);
       margin-top: 1.5rem;
-      font-size: 1rem;
-      font-weight: bold;
+      font-size: var(--font-size-sm);
+      font-weight: normal;
       border-bottom: 1px solid #ccc;
       padding-bottom: 0.3rem;
     }
@@ -67,22 +73,54 @@ main {
       a {
         color: unset;
       }
-    }
 
-    .search-result-item {
-      padding: 10px;
-      border: 1px solid #e2e2e2;
-      border-radius: 5px;
-      margin-bottom: var(--spacing-sm);
-      background-color: #fafafa;
+      .search-result-item {
+        padding: 10px;
+        border: 1px solid #e2e2e2;
+        border-radius: 5px;
+        margin-bottom: var(--spacing-sm);
 
-      div {
-        margin: var(--spacing-sm) 0;
+        div {
+          margin: var(--spacing-sm) 0;
+        }
+
+        &:hover {
+          opacity: 0.8;
+          border-color: var(--primary-color);
+        }
+
+        .title {
+          font-size: var(--font-size-xl);
+          color: var(--primary-color);
+          margin: var(--spacing-lg) 0;
+
+          &:hover {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+            text-decoration-color: var(--primary-color);
+          }
+
+          span {
+            .icon {
+              width: 25px;
+              height: 25px;
+              margin: 0 var(--spacing-md);
+              vertical-align: sub;
+              fill: var(--primary-color);
+            }
+          }
+        }
+
+        .search-result-grid {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          align-items: baseline;
+          /* align-items: center; */
+          column-gap: var(--spacing-xxl);
+          row-gap: var(--spacing-xs);
+        }
       }
-    }
-
-    .search-result-item:hover {
-      background-color: #f2f2f2;
     }
 
     .placeholder {
@@ -99,7 +137,4 @@ main {
 
 .search-result-item {
   transition: background 0.2s ease;
-}
-.search-result-item:hover {
-  background-color: #f9fafb;
 }

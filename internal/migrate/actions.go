@@ -129,7 +129,39 @@ CREATE TABLE recent_search (
 	if err != nil {
 		return err
 	}
-	// Recent search table end
+	// end
+
+	// Create Stock ledger tables
+	_, err = tx.Exec(context.Background(), `
+			CREATE TABLE stock_transaction (
+				stock_transaction_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+				transaction_type TEXT NOT NULL,
+				transaction_by INT NOT NULL REFERENCES app_user(user_id),
+				transaction_note TEXT NOT NULL,
+				timestamp TIMESTAMPTZ NOT NULL
+			);
+		`)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(context.Background(), `
+			CREATE TABLE stock_transaction_entry (
+				stock_transaction_entry_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+				account TEXT NOT NULL,
+				stock_code TEXT NOT NULL,
+				location TEXT NOT NULL,
+				bin TEXT NOT NULL,
+				lot_number TEXT NOT NULL,
+				quantity NUMERIC NOT NULL,
+				running_total NUMERIC NOT NULL,
+				stock_transaction_id INT NOT NULL REFERENCES stock_transaction(stock_transaction_id)
+			);
+		`)
+	if err != nil {
+		return err
+	}
+	// end Stock ledger
 
 	// Team table
 	_, err = tx.Exec(context.Background(), `

@@ -31,3 +31,29 @@ func PGInt4ToIntPtr(pgInt pgtype.Int4) *int {
 
 	return nil
 }
+
+// ----------------------------------------
+
+// Converts *string to pgtype.Text
+func StringPtrToPGText(s *string) pgtype.Text {
+	if s != nil {
+		return pgtype.Text{String: *s, Valid: true}
+	}
+	return pgtype.Text{Valid: false}
+}
+
+// Converts *time.Time to pgtype.Timestamptz
+func TimePtrToPGTimestamptz(t *time.Time) pgtype.Timestamptz {
+	if t != nil {
+		return pgtype.Timestamptz{Time: *t, Valid: true}
+	}
+	return pgtype.Timestamptz{Valid: false}
+}
+
+// Converts *int to pgtype.Int4
+func IntPtrToPGInt4(i *int) pgtype.Int4 {
+	if i != nil {
+		return pgtype.Int4{Int32: int32(*i), Valid: true}
+	}
+	return pgtype.Int4{Valid: false}
+}
