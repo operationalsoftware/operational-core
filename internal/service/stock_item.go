@@ -170,7 +170,6 @@ func (s *StockItemService) UpdateStockItem(
 		ChangeBy:    userID,
 	}
 
-	// Set fields only if they changed
 	if stockItem.Description != input.Description {
 		change.Description = &input.Description
 	}
@@ -196,92 +195,11 @@ func (s *StockItemService) UpdateStockItem(
 	return validate.ValidationErrors{}, nil
 }
 
-func (s *StockItemService) GetSKUConfiguration(
-	ctx context.Context,
-) (model.SKUConfigData, error) {
-
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return model.SKUConfigData{}, err
-	}
-	defer tx.Rollback(ctx) // Ensures rollback on error
-
-	skuItems, err := s.stockItemRepository.GetSKUConfiguration(ctx, tx)
-	if err != nil {
-		return model.SKUConfigData{}, err
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return model.SKUConfigData{}, err
-	}
-
-	return skuItems, nil
-}
-
-func (s *StockItemService) CreateSKUConfigItem(
-	ctx context.Context,
-	input *model.SKUConfigItem,
-) (
-	validate.ValidationErrors,
-	error,
-) {
-	validationErrors, err := s.validateSKUConfigItem(input)
-	if err != nil || len(validationErrors) > 0 {
-		return validationErrors, err
-	}
-
-	err = s.stockItemRepository.CreateSKUConfigItem(ctx, s.db, input)
-	if err != nil {
-		return validate.ValidationErrors{}, err
-	}
-
-	return validate.ValidationErrors{}, nil
-}
-
-func (s *StockItemService) DeleteSKUConfigItem(
-	ctx context.Context,
-	skuField string,
-	skuCode string,
-) error {
-
-	err := s.stockItemRepository.DeleteSKUConfigItem(ctx, s.db, skuField, skuCode)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *StockItemService) validateNewStockItem(
 	stockItem *model.PostStockItem,
 ) (validate.ValidationErrors, error) {
 
 	var ve validate.ValidationErrors = make(map[string][]string)
-
-	if stockItem.ProductType == "" {
-		ve.Add("ProductType", "is required")
-	}
-
-	if stockItem.YarnType == "" {
-		ve.Add("YarnType", "is required")
-	}
-
-	if stockItem.StyleNumber == "" {
-		ve.Add("StyleNumber", "is required")
-	}
-
-	if stockItem.Colour == "" {
-		ve.Add("Colour", "is required")
-	}
-
-	if stockItem.ToeClosing == "" {
-		ve.Add("ToeClosing", "is required")
-	}
-
-	if stockItem.Size == "" {
-		ve.Add("Size", "is required")
-	}
 
 	if stockItem.StockCode == "" {
 		ve.Add("StockCode", "is required")
@@ -300,53 +218,12 @@ func (s *StockItemService) validateUpdateStockItem(
 
 	var ve validate.ValidationErrors = make(map[string][]string)
 
-	if stockItem.ProductType == "" {
-		ve.Add("ProductType", "should not be empty")
-	}
-
-	if stockItem.YarnType == "" {
-		ve.Add("YarnType", "should not be empty")
-	}
-
-	if stockItem.StyleNumber == "" {
-		ve.Add("StyleNumber", "should not be empty")
-	}
-
-	if stockItem.Colour == "" {
-		ve.Add("Colour", "should not be empty")
-	}
-
-	if stockItem.ToeClosing == "" {
-		ve.Add("ToeClosing", "should not be empty")
-	}
-
-	if stockItem.Size == "" {
-		ve.Add("Size", "should not be empty")
+	if stockItem.StockCode == "" {
+		ve.Add("StockCode", "should not be empty")
 	}
 
 	if stockItem.Description == "" {
 		ve.Add("Description", "should not be empty")
-	}
-
-	return ve, nil
-}
-
-func (s *StockItemService) validateSKUConfigItem(
-	skuItem *model.SKUConfigItem,
-) (validate.ValidationErrors, error) {
-
-	var ve validate.ValidationErrors = make(map[string][]string)
-
-	if skuItem.SKUField == "" {
-		ve.Add("SKUField", "should not be empty")
-	}
-
-	if skuItem.Label == "" {
-		ve.Add("Label", "should not be empty")
-	}
-
-	if skuItem.Code == "" {
-		ve.Add("Code", "should not be empty")
 	}
 
 	return ve, nil

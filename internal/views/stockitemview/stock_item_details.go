@@ -5,7 +5,6 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/appsort"
-	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
 
@@ -25,28 +24,27 @@ type StockItemDetailsPageProps struct {
 	PageSize         int
 }
 
+var changelogFieldDefs = []components.ChangelogFieldDefinition{
+	{Name: "StockCode", Label: "Stock Code"},
+	{Name: "Description", Label: "Description"},
+}
+
 func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
 
 	stockItem := p.StockItem
 
-	var tableRows []g.Node
-	for _, u := range p.StockItemChanges {
-
-		tableRows = append(tableRows,
-			h.Li(
-				h.Strong(g.Text(fmt.Sprintf("Changed by %s at %s", u.ChangeByUsername, u.ChangeAt.Format("2006-01-02 15:04:05")))),
-				h.Ul(
-					g.If(u.StockCodeHistory != nil,
-						h.Li(
-							g.Text("Stock Code: "+nilsafe.Str(u.StockCodeHistory))),
-					),
-					g.If(u.Description != nil,
-						h.Li(
-							g.Text("Description: "+nilsafe.Str(u.Description))),
-					),
-				),
-			),
-		)
+	var changelogEntries []components.ChangelogEntry
+	for _, change := range p.StockItemChanges {
+		entry := components.ChangelogEntry{
+			ChangedAt:         change.ChangedAt,
+			ChangedByUsername: change.ChangeByUsername,
+			IsCreation:        change.IsCreation,
+			Changes: map[string]interface{}{
+				"StockCode":   change.StockCodeHistory,
+				"Description": change.Description,
+			},
+		}
+		changelogEntries = append(changelogEntries, entry)
 	}
 
 	stockCode := stockItem.StockCode
@@ -113,15 +111,9 @@ func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
 
 		h.Br(),
 		h.Br(),
-		h.H3(
-			h.Class("changes-heading"),
-			g.Text("Changelog"),
-		),
+		h.Hr(),
 
-		h.Div(
-			h.ID("stock-items-changes"),
-			g.Group(tableRows),
-		),
+		components.Changelog(changelogEntries, changelogFieldDefs),
 	})
 
 	return layout.Page(layout.PageProps{

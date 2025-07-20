@@ -64,14 +64,6 @@ func StockItemsPage(p *StockItemsPageProps) g.Node {
 	}
 
 	content := g.Group([]g.Node{
-		h.Nav(
-			h.Class("stock-nav"),
-			h.A(h.Href("/stock-items/sku-config"), g.Text("SKU configuration")),
-			// g.If(
-			// 	perms.SupplyChain.Admin,
-			// 	h.A(h.Href("/stock/post-transaction/stock-movement"), g.Text("Post transaction")),
-			// ),
-		),
 
 		h.Div(
 			h.Class("button-container"),

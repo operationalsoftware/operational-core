@@ -3,6 +3,8 @@ package model
 import (
 	"app/pkg/appsort"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type StockItemDB struct {
@@ -12,12 +14,6 @@ type StockItemDB struct {
 }
 
 type StockItem struct {
-	ProductType string
-	YarnType    string
-	StyleNumber string
-	Colour      string
-	Size        string
-	ToeClosing  string
 	StockCode   string
 	Description string
 	CreatedAt   time.Time
@@ -25,10 +21,11 @@ type StockItem struct {
 
 type StockItemChange struct {
 	StockCode        string
-	StockCodeHistory *string
-	Description      *string
+	StockCodeHistory pgtype.Text
+	Description      pgtype.Text
 	ChangeByUsername string
-	ChangeAt         time.Time
+	ChangedAt        time.Time
+	IsCreation       bool
 }
 
 type PostStockItemChange struct {
@@ -44,12 +41,6 @@ type LabelGenerator struct {
 }
 
 type PostStockItem struct {
-	ProductType string
-	YarnType    string
-	StyleNumber string
-	Colour      string
-	Size        string
-	ToeClosing  string
 	StockCode   string
 	Description string
 }
@@ -58,24 +49,4 @@ type GetStockItemsQuery struct {
 	Sort     appsort.Sort
 	Page     int
 	PageSize int
-}
-
-type SKUConfigItem struct {
-	SKUField string
-	Label    string
-	Code     string
-}
-
-type SKUConfig struct {
-	Label string
-	Code  string
-}
-
-type SKUConfigData struct {
-	ProductType []SKUConfig
-	YarnType    []SKUConfig
-	StyleNumber []SKUConfig
-	Colour      []SKUConfig
-	ToeClosing  []SKUConfig
-	Size        []SKUConfig
 }

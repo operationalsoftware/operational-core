@@ -4,13 +4,10 @@ import (
 	"app/internal/model"
 	"app/pkg/db"
 	"context"
-	"errors"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -46,65 +43,6 @@ VALUES ($1, $2)
 	}
 
 	return nil
-}
-
-func (r *StockItemRepository) CreateSKUConfigItem(
-	ctx context.Context,
-	exec db.PGExecutor,
-	skuConfigItem *model.SKUConfigItem,
-) error {
-
-	insertQuery := `
-INSERT INTO sku_config (
-	sku_field,
-	label,
-	code
-)
-VALUES ($1, $2, $3)
-	`
-	_, err := exec.Exec(
-		ctx,
-
-		insertQuery,
-		skuConfigItem.SKUField,
-		skuConfigItem.Label,
-		skuConfigItem.Code,
-	)
-
-	// if err != nil {
-	// 	return err
-	// }
-	if err != nil {
-		if pgErr, ok := err.(*pgconn.PgError); ok {
-			if strings.Contains(pgErr.ConstraintName, "unique_sku_field_label") {
-				return errors.New("duplicate label for this SKU field")
-
-			}
-			if strings.Contains(pgErr.ConstraintName, "unique_sku_field_code") {
-				return errors.New("duplicate code for this SKU field")
-
-			}
-		}
-		return err
-	}
-
-	return nil
-}
-
-func (r *StockItemRepository) DeleteSKUConfigItem(
-	ctx context.Context,
-	exec db.PGExecutor,
-	skuField string,
-	skuCode string,
-) error {
-
-	deleteQuery := `
-DELETE FROM sku_config
-WHERE sku_field = $1 AND code = $2
-`
-
-	_, err := exec.Exec(ctx, deleteQuery, skuField, skuCode)
-	return err
 }
 
 func (r *StockItemRepository) UpdateStockItem(
@@ -180,17 +118,6 @@ WHERE
 		return nil, err
 	}
 
-	parts := strings.Split(stockItem.StockCode, "-")
-	if len(parts) != 6 {
-		return nil, fmt.Errorf("invalid SKU format")
-	}
-	stockItem.ProductType = parts[0]
-	stockItem.YarnType = parts[1]
-	stockItem.StyleNumber = parts[2]
-	stockItem.Colour = parts[3]
-	stockItem.ToeClosing = parts[4]
-	stockItem.Size = parts[5]
-
 	return &stockItem, nil
 }
 
@@ -248,50 +175,6 @@ LIMIT $1 OFFSET $2
 	return stockItems, nil
 }
 
-func (r *StockItemRepository) GetSKUConfiguration(
-	ctx context.Context,
-	exec db.PGExecutor,
-) (model.SKUConfigData, error) {
-	query := `
-		SELECT sku_field, label, code
-		FROM sku_config;
-	`
-
-	rows, err := exec.Query(ctx, query)
-	if err != nil {
-		return model.SKUConfigData{}, err
-	}
-	defer rows.Close()
-
-	data := model.SKUConfigData{}
-
-	for rows.Next() {
-		var skuField, label, code string
-		if err := rows.Scan(&skuField, &label, &code); err != nil {
-			return model.SKUConfigData{}, err
-		}
-
-		item := model.SKUConfig{Label: label, Code: code}
-
-		switch skuField {
-		case "ProductType":
-			data.ProductType = append(data.ProductType, item)
-		case "YarnType":
-			data.YarnType = append(data.YarnType, item)
-		case "StyleNumber":
-			data.StyleNumber = append(data.StyleNumber, item)
-		case "Colour":
-			data.Colour = append(data.Colour, item)
-		case "ToeClosing":
-			data.ToeClosing = append(data.ToeClosing, item)
-		case "Size":
-			data.Size = append(data.Size, item)
-		}
-	}
-
-	return data, nil
-}
-
 func (r *StockItemRepository) GetStockItemsCount(
 	ctx context.Context,
 	exec db.PGExecutor,
@@ -320,20 +203,42 @@ func (r *StockItemRepository) GetStockItemChanges(
 ) ([]model.StockItemChange, error) {
 
 	query := `
+WITH RECURSIVE history_chain AS (
+    SELECT *
+    FROM stock_item_change
+    WHERE stock_code = $1
+
+    UNION ALL
+
+    SELECT sic.*
+    FROM stock_item_change sic
+    INNER JOIN history_chain hc ON hc.stock_code_history = sic.stock_code
+),
+OldestChange AS (
+    SELECT stock_code AS OldestChangeID
+    FROM history_chain
+    WHERE stock_code_history IS NULL
+    LIMIT 1
+)
 SELECT
     sic.stock_code,
     sic.stock_code_history,
     sic.description,
     u.username AS changed_by_username,
-    sic.change_at
+    sic.changed_at,
+    CASE
+        WHEN sic.stock_code = OC.OldestChangeID THEN true
+        ELSE false
+    END AS IsCreation
 FROM
     stock_item_change sic
-LEFT JOIN
-    app_user u ON sic.change_by = u.user_id
+LEFT JOIN app_user u ON sic.change_by = u.user_id
+LEFT JOIN OldestChange OC ON TRUE
 WHERE
     sic.stock_code = $1
 ORDER BY
-    sic.change_at DESC;
+    sic.changed_at DESC;
+
 `
 
 	rows, err := exec.Query(ctx, query, stockCode)
@@ -350,7 +255,8 @@ ORDER BY
 			&c.StockCodeHistory,
 			&c.Description,
 			&c.ChangeByUsername,
-			&c.ChangeAt,
+			&c.ChangedAt,
+			&c.IsCreation,
 		)
 		if err != nil {
 			return nil, err

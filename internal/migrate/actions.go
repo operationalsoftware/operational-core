@@ -49,7 +49,7 @@ CREATE TABLE stock_item_change (
 	stock_code_history TEXT, 
 	description TEXT,
 	change_by INT REFERENCES app_user(user_id),
-	change_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+	changed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 	`)
 	if err != nil {
