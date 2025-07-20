@@ -55,7 +55,6 @@ func EditStockItemPage(p *EditStockItemPageProps) g.Node {
 		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/userview/edit_user_page.css"),
-			components.InlineStyle("/internal/views/stockitemview/add_stock_item.css"),
 		},
 	})
 }
