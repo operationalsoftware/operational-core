@@ -34,20 +34,18 @@ type AndonIssue struct {
 }
 
 type NewAndonIssue struct {
-	IssueName          string
-	ParentID           *int
-	AssignedToTeam     int
-	ResolvableByRaiser bool
-	WillStopProcess    bool
+	IssueName      string
+	ParentID       *int
+	AssignedToTeam int
+	Severity       AndonSeverity
 }
 
 type AndonIssueUpdate struct {
-	IssueName          string
-	ParentID           *int
-	IsArchived         bool
-	AssignedToTeam     int
-	ResolvableByRaiser bool
-	WillStopProcess    bool
+	IssueName      string
+	ParentID       *int
+	IsArchived     bool
+	AssignedToTeam int
+	Severity       AndonSeverity
 }
 
 type ListAndonIssuesQuery struct {

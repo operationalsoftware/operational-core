@@ -57,19 +57,10 @@ func AndonIssuePage(p *AndonIssuePageProps) g.Node {
 					),
 
 					h.Span(
-						h.Strong(g.Text("Resolvable by Raiser?")),
+						h.Strong(g.Text("Severity")),
 					),
 					h.Span(
-						g.If(andonIssue.ResolvableByRaiser, g.Text("Yes")),
-						g.If(!andonIssue.ResolvableByRaiser, g.Text("No")),
-					),
-
-					h.Span(
-						h.Strong(g.Text("Will Stop Process?")),
-					),
-					h.Span(
-						g.If(andonIssue.WillStopProcess, g.Text("Yes")),
-						g.If(!andonIssue.WillStopProcess, g.Text("No")),
+						g.Text(string(andonIssue.Severity)),
 					),
 
 					h.Span(

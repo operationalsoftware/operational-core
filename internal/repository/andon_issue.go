@@ -28,8 +28,7 @@ INSERT INTO andon_issue (
 	issue_name,
 	parent_id,
 	assigned_to_team,
-	resolvable_by_raiser,
-	will_stop_process,
+	severity
 	created_by
 )
 VALUES (
@@ -47,8 +46,7 @@ VALUES (
 		andonIssue.IssueName,
 		andonIssue.ParentID,
 		andonIssue.AssignedToTeam,
-		andonIssue.ResolvableByRaiser,
-		andonIssue.WillStopProcess,
+		andonIssue.Severity,
 		userID,
 	)
 
@@ -131,8 +129,7 @@ SELECT
 	parent_id,
 	is_archived,
 	children_count,
-	resolvable_by_raiser,
-	will_stop_process,
+	severity,
 	assigned_to_team,
 	assigned_to_team_name,
 
@@ -171,8 +168,7 @@ WHERE
 		&andonIssue.ParentID,
 		&andonIssue.IsArchived,
 		&andonIssue.ChildrenCount,
-		&andonIssue.ResolvableByRaiser,
-		&andonIssue.WillStopProcess,
+		&andonIssue.Severity,
 		&andonIssue.AssignedToTeam,
 		&andonIssue.AssignedToTeamName,
 		&andonIssue.CreatedAt,
@@ -238,8 +234,7 @@ LIMIT $1 OFFSET $2
 			&andonIssue.ParentID,
 			&andonIssue.IsArchived,
 			&andonIssue.ChildrenCount,
-			&andonIssue.ResolvableByRaiser,
-			&andonIssue.WillStopProcess,
+			&andonIssue.Severity,
 			&andonIssue.AssignedToTeam,
 			&andonIssue.AssignedToTeamName,
 			&andonIssue.CreatedAt,
@@ -320,39 +315,43 @@ func (r *AndonIssueRepository) Update(
 		update.ParentID != existing.ParentID ||
 		update.IsArchived != existing.IsArchived ||
 		update.AssignedToTeam != existing.AssignedToTeam ||
-		update.ResolvableByRaiser != existing.ResolvableByRaiser ||
-		update.WillStopProcess != existing.WillStopProcess
+		update.Severity != existing.Severity
 
 	if !hasChange {
 		return nil
 	}
 
-	query := `
+	namedQuery := `
 UPDATE andon_issue
 SET
-	issue_name = $1,
-	parent_id = $2,
-    is_archived = $3,
-	assigned_to_team = $4,
-	resolvable_by_raiser = $5,
-	will_stop_process = $6,
-	updated_by = $7,
+	issue_name = :issue_name,
+	parent_id = :parent_id,
+	is_archived = :is_archived,
+	assigned_to_team = :assigned_to_team,
+	severity = :severity,
+	updated_by = :updated_by,
 	updated_at = NOW()
 WHERE
-	andon_issue_id = $8
+	andon_issue_id = :andon_issue_id
 `
+
+	query, params, err := db.BindNamed(namedQuery, map[string]any{
+		"issue_name":      update.IssueName,
+		"parent_id":       update.ParentID,
+		"is_archived":     update.IsArchived,
+		"assigned_to_tem": update.AssignedToTeam,
+		"severity":        update.Severity,
+		"updated_by":      userID,
+		"andon_issue_id":  andonIssueID,
+	})
+	if err != nil {
+		return err
+	}
+
 	_, err = exec.Exec(
 		ctx,
 		query,
-
-		update.IssueName,
-		update.ParentID,
-		update.IsArchived,
-		update.AssignedToTeam,
-		update.ResolvableByRaiser,
-		update.WillStopProcess,
-		userID,
-		andonIssueID,
+		params...,
 	)
 
 	return err
