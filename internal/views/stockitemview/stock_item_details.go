@@ -85,10 +85,7 @@ func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
 							h.Span(
 								g.Text(stockCode),
 							),
-							components.CopyButton(components.CopyButtonProps{
-								TextToCopy: stockCode,
-								ButtonID:   "stock-copy",
-							}),
+							components.CopyButton(stockCode),
 						),
 						h.Span(
 							h.Strong(g.Text("Description")),
@@ -99,10 +96,7 @@ func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
 							h.Span(
 								g.Text(stockDescription),
 							),
-							components.CopyButton(components.CopyButtonProps{
-								TextToCopy: stockDescription,
-								ButtonID:   "description-copy",
-							}),
+							components.CopyButton(stockDescription),
 						),
 					}),
 				),
