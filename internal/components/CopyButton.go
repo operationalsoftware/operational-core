@@ -2,27 +2,21 @@ package components
 
 import (
 	g "github.com/maragudk/gomponents"
-	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
 func CopyButton(textToCopy string) g.Node {
 
 	return h.Div(
-		h.Class("clipboard-container"),
+		h.Class("copy-button"),
 		h.DataAttr("text", textToCopy),
 		h.Button(
-			h.Class("clipboard-btn"),
-			Icon(&IconProps{
-				Identifier: "content-copy",
-				Classes: c.Classes{
-					"icon": true,
-				},
-			}),
+			h.Class("button"),
+			Icon(&IconProps{Identifier: "content-copy"}),
 		),
 
 		h.Span(
-			h.Class("clipboard-status hidden"),
+			h.Class("status hidden"),
 			g.Text("Copied!"),
 		),
 

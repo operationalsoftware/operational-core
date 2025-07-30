@@ -1,17 +1,17 @@
-document.addEventListener("DOMContentLoaded", function() {
-  const container = document.currentScript.closest(".clipboard-container");
-  const btn = container?.querySelector(".clipboard-btn");
-  const status = container?.querySelector(".clipboard-status");
+(function() {
+  const container = document.currentScript.closest(".copy-button");
+  const btn = container?.querySelector("button.button");
+  const statusSpan = container?.querySelector("span.status");
 
-  const textToCopy = btn?.dataset?.text || "";
+  const textToCopy = container?.dataset?.text || "";
 
-  if (btn && status) {
+  if (btn && statusSpan) {
     btn.addEventListener("click", function() {
       navigator.clipboard.writeText(textToCopy)
         .then(() => {
-          status.classList.remove("hidden");
+          statusSpan.classList.remove("hidden");
           setTimeout(() => {
-            status.classList.add("hidden");
+            statusSpan.classList.add("hidden");
           }, 2000);
         })
         .catch(err => {
@@ -19,4 +19,5 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
   }
-});
+})();
+
