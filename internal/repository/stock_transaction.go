@@ -28,15 +28,15 @@ func (r *StockTransactionRepository) GetStockLevels(
 WITH RankedStock AS (
 	SELECT
 		ste.stock_transaction_id,
+		st.stock_code,
 		ste.account,
-		ste.stock_code,
 		ste.location,
 		ste.bin,
 		ste.lot_number,
 		ste.running_total AS stock_level,
 		st.timestamp,
 		ROW_NUMBER() OVER (
-			PARTITION BY ste.account, ste.stock_code, ste.location, ste.bin, ste.lot_number
+			PARTITION BY ste.account, st.stock_code, ste.location, ste.bin, ste.lot_number
 			ORDER BY st.timestamp DESC, ste.stock_transaction_id DESC
 		) AS rn
 	FROM
@@ -46,7 +46,7 @@ WITH RankedStock AS (
 	WHERE
 		($1 = '' OR ste.account = $1)
 		AND
-		($2 = '' OR ste.stock_code = $2)
+		($2 = '' OR st.stock_code = $2)
 		AND
 		($3 = '' OR ste.location = $3)
 		AND
@@ -156,23 +156,23 @@ $14   → to_lot_number
 
 WITH inserted_tx AS (
     INSERT INTO stock_transaction (
-        transaction_type, transaction_note, transaction_by, timestamp
+        transaction_type, stock_code, transaction_note, transaction_by, timestamp
     )
-    VALUES ($1, $4, $5, COALESCE($6, NOW()))
+    VALUES ($1, $2, $4, $5, COALESCE($6, NOW()))
     RETURNING stock_transaction_id, timestamp
 ),
 
 inserted_from_entry AS (
     INSERT INTO stock_transaction_entry (
-        stock_transaction_id, account, stock_code, location, bin, lot_number, quantity, running_total
+        stock_transaction_id, account, location, bin, lot_number, quantity, running_total
     )
-    SELECT inserted_tx.stock_transaction_id, $7, $2, $8, $9, $10, -1 * $3,
+    SELECT inserted_tx.stock_transaction_id, $7, $8, $9, $10, -1 * $3,
         COALESCE((
             SELECT running_total
             FROM stock_transaction_entry e
             JOIN stock_transaction t ON t.stock_transaction_id = e.stock_transaction_id
             WHERE e.account = $7
-              AND e.stock_code = $2
+              AND t.stock_code = $2
               AND e.location = $8
               AND e.bin = $9
               AND e.lot_number = $10
@@ -186,15 +186,15 @@ inserted_from_entry AS (
 
 inserted_to_entry AS (
     INSERT INTO stock_transaction_entry (
-        stock_transaction_id, account, stock_code, location, bin, lot_number, quantity, running_total
+        stock_transaction_id, account, location, bin, lot_number, quantity, running_total
     )
-    SELECT inserted_tx.stock_transaction_id, $11, $2, $12, $13, $14, $3,
+    SELECT inserted_tx.stock_transaction_id, $11, $12, $13, $14, $3,
         COALESCE((
             SELECT running_total
             FROM stock_transaction_entry e
             JOIN stock_transaction t ON t.stock_transaction_id = e.stock_transaction_id
             WHERE e.account = $11
-              AND e.stock_code = $2
+              AND t.stock_code = $2
               AND e.location = $12
               AND e.bin = $13
               AND e.lot_number = $14
@@ -212,7 +212,7 @@ updated_future_from AS (
     FROM stock_transaction t, inserted_tx
     WHERE e.stock_transaction_id = t.stock_transaction_id
       AND e.account = $7
-      AND e.stock_code = $2
+      AND t.stock_code = $2
       AND e.location = $8
       AND e.bin = $9
       AND e.lot_number = $10
@@ -226,7 +226,7 @@ updated_future_to AS (
     FROM stock_transaction t, inserted_tx
     WHERE e.stock_transaction_id = t.stock_transaction_id
       AND e.account = $11
-      AND e.stock_code = $2
+      AND t.stock_code = $2
       AND e.location = $12
       AND e.bin = $13
       AND e.lot_number = $14
@@ -297,7 +297,7 @@ WITH matched_tx_ids AS (
 	WHERE
 		($1 = '' OR ste.account = $1)
 		AND
-		($2 = '' OR ste.stock_code = $2)
+		($2 = '' OR st.stock_code = $2)
 		AND
 		($3 = '' OR ste.location = $3)
 		AND
@@ -312,7 +312,7 @@ SELECT
 	ste.stock_transaction_entry_id,
 	st.transaction_type,
 	ste.account,
-	ste.stock_code,
+	st.stock_code,
 	ste.location,
 	ste.bin,
 	ste.quantity,

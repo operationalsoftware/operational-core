@@ -34,13 +34,16 @@ func main() {
 	}
 
 	// Create database connection (SQLite - to be removed)
-	err = db.ConnectDB()
-	if err != nil {
-		log.Fatalf("Error connecting to SQLite: %v\n", err)
-	}
-	defer db.UseDB().Close()
+	// err = db.ConnectDB()
+	// if err != nil {
+	// 	log.Fatalf("Error connecting to SQLite: %v\n", err)
+	// }
+	// defer db.UseDB().Close()
 
-	migrate.RunMigrations() // uses log.Fatal
+	err = migrate.Run()
+	if err != nil {
+		log.Fatalf("fatal migration error: %v", err)
+	}
 
 	pgEnv := db.LoadPostgresEnv()
 	targetConnStr := fmt.Sprintf(
