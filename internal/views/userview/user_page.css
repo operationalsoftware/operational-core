@@ -16,6 +16,17 @@
   display: inline-grid;
   grid-template-columns: repeat(2, auto);
   grid-gap: var(--spacing-lg);
+  align-items: center;
+
+  .form-value {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .button {
+      margin-left: 1rem;
+    }
+  }
 }
 
 .main .permission-group-title {

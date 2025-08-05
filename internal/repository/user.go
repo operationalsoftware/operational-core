@@ -75,12 +75,14 @@ func (r *UserRepository) CreateAPIUser(
 	user model.NewAPIUser,
 ) (string, error) {
 
-	password, err := generateRandomPassword(24)
-	if err != nil {
-		log.Panic(err)
-	}
-	if user.Password != "" {
-		password = user.Password
+	password := user.Password // allow caller to set the password
+
+	if password == "" {
+		randomPassword, err := generateRandomPassword(24)
+		if err != nil {
+				return "", fmt.Errorf("error generating random password: %v", err)
+		}
+		password = randomPassword
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)

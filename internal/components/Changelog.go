@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/shopspring/decimal"
@@ -51,6 +52,7 @@ func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogFieldDefinition) g
 }
 
 func renderChanges(changes map[string]interface{}, fieldDefs []ChangelogFieldDefinition) g.Node {
+
 	return h.Ul(
 		g.Group(g.Map(fieldDefs, func(fd ChangelogFieldDefinition) g.Node {
 			if value, exists := changes[fd.Name]; exists {
@@ -73,9 +75,9 @@ func formatValue(value interface{}) string {
 	v := reflect.ValueOf(value)
 
 	switch v.Type() {
-	case reflect.TypeOf(sql.NullString{}):
-		if v.Interface().(sql.NullString).Valid {
-			return v.Interface().(sql.NullString).String
+	case reflect.TypeOf(pgtype.Text{}):
+		if v.Interface().(pgtype.Text).Valid {
+			return v.Interface().(pgtype.Text).String
 		}
 	case reflect.TypeOf(sql.NullInt16{}):
 		if v.Interface().(sql.NullInt16).Valid {

@@ -37,3 +37,15 @@ a:visited {
 p {
   margin: 0;
 }
+
+div.success-msg {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background-color: var(--success-color);
+}
+
+div.error-msg {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background-color: var(--error-color);
+}

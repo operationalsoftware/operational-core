@@ -30,14 +30,24 @@ var AppMenu = []components.GridMenuGroup{
 	},
 	{
 		GroupName: "Stock",
-		Items: []components.GridMenuItem{{
-			Icon: "package-variant-closed",
-			Name: "Stock",
-			Link: "/stock",
-			Show: func(permissions model.UserPermissions) bool {
-				return true
+		Items: []components.GridMenuItem{
+			{
+				Icon: "package-variant-closed",
+				Name: "Stock",
+				Link: "/stock",
+				Show: func(permissions model.UserPermissions) bool {
+					return true
+				},
 			},
-		}},
+			{
+				Icon: "cube-outline",
+				Name: "Stock Items",
+				Link: "/stock-items",
+				Show: func(permissions model.UserPermissions) bool {
+					return true
+				},
+			},
+		},
 	},
 }
 

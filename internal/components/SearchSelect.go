@@ -17,11 +17,12 @@ type SearchSelectOption struct {
 // opts  – the initial option list (can be empty; JS can fill it later)
 
 type SearchSelectProps struct {
-	Name        string
-	Placeholder string
-	Mode        string // "single", "multi"
-	Options     []SearchSelectOption
-	Selected    string
+	Name          string
+	Placeholder   string
+	Mode          string // "single", "multi"
+	Options       []SearchSelectOption
+	Selected      string
+	ShowOnlyLabel bool
 }
 
 func SearchSelect(p *SearchSelectProps) g.Node {
@@ -32,12 +33,18 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 		if o.Value == p.Selected {
 			classes += " selected"
 		}
+
+		displayText := o.Value + " - " + o.Label
+		if p.ShowOnlyLabel {
+			displayText = o.Label
+		}
+
 		listOptions = append(listOptions,
 			h.Div(
 				h.Class(classes),
 				h.DataAttr("value", o.Value),
 				// g.Text(o.Label),
-				g.Text(o.Value+" - "+o.Label),
+				g.Text(displayText),
 			),
 		)
 	}

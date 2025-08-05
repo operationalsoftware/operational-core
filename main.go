@@ -34,13 +34,16 @@ func main() {
 	}
 
 	// Create database connection (SQLite - to be removed)
-	err = db.ConnectDB()
-	if err != nil {
-		log.Fatalf("Error connecting to SQLite: %v\n", err)
-	}
-	defer db.UseDB().Close()
+	// err = db.ConnectDB()
+	// if err != nil {
+	// 	log.Fatalf("Error connecting to SQLite: %v\n", err)
+	// }
+	// defer db.UseDB().Close()
 
-	migrate.RunMigrations() // uses log.Fatal
+	err = migrate.Run()
+	if err != nil {
+		log.Fatalf("fatal migration error: %v", err)
+	}
 
 	pgEnv := db.LoadPostgresEnv()
 	targetConnStr := fmt.Sprintf(
@@ -62,17 +65,19 @@ func main() {
 	andonIssueRepository := repository.NewAndonIssueRepository()
 	authRepository := repository.NewAuthRepository()
 	teamRepository := repository.NewTeamRepository()
-	userRepository := repository.NewUserRepository()
+	stockItemRepository := repository.NewStockItemRepository()
 	stockTrxRepository := repository.NewStockTransactionRepository()
+	userRepository := repository.NewUserRepository()
 
 	// Instantiate services
 	services := &router.Services{
 		AndonIssueService:       *service.NewAndonIssueService(pgPool, andonIssueRepository),
 		AuthService:             *service.NewAuthService(pgPool, authRepository),
 		SearchService:           *service.NewSearchService(pgPool, userRepository),
+		StockItemService:        *service.NewStockItemService(pgPool, stockItemRepository),
+		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),
 		TeamService:             *service.NewTeamService(pgPool, teamRepository),
 		UserService:             *service.NewUserService(pgPool, userRepository),
-		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),
 	}
 
 	// define server
