@@ -1,0 +1,593 @@
+package handler
+
+import (
+	"app/internal/model"
+	"app/internal/service"
+	"app/internal/views/andonview"
+	"app/pkg/appsort"
+	"app/pkg/appurl"
+	"app/pkg/reqcontext"
+	"app/pkg/validate"
+	"fmt"
+	"log"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+	"time"
+)
+
+type AndonHandler struct {
+	andonService      service.AndonService
+	andonIssueService service.AndonIssueService
+	teamService       service.TeamService
+}
+
+func NewAndonHandler(
+	andonService service.AndonService,
+	andonIssueService service.AndonIssueService,
+	teamService service.TeamService,
+) *AndonHandler {
+	return &AndonHandler{
+		andonService:      andonService,
+		andonIssueService: andonIssueService,
+		teamService:       teamService,
+	}
+}
+
+func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	var uv andonEventsHomePageUrlVals
+
+	err := appurl.Unmarshal(r.URL.Query(), &uv)
+	if err != nil {
+		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+		return
+	}
+
+	uv.normalise()
+
+	sort := appsort.Sort{}
+	err = sort.ParseQueryParam(model.AndonEvent{}, uv.Sort)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error parsing sort: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	outstandingAndons, outstandingAndonsCount, _, err := h.andonService.ListAndons(r.Context(),
+		model.ListAndonQuery{
+			Sort:     sort,
+			Page:     uv.Page,
+			PageSize: uv.PageSize,
+
+			Teams:            uv.AndonTeams,
+			Statuses:         []string{"Outstanding"},
+			OrderBy:          "raised_at",
+			OrderByDirection: "asc",
+		}, ctx.User.UserID)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error listing outstanding andons", http.StatusInternalServerError)
+		return
+	}
+
+	acknowledgedAndons, acknowledgedAndonsCount, _, err := h.andonService.ListAndons(
+		r.Context(),
+		model.ListAndonQuery{
+			Sort:     sort,
+			Page:     uv.Page,
+			PageSize: uv.PageSize,
+
+			Teams:            uv.AndonTeams,
+			Statuses:         []string{"Acknowledged"},
+			OrderBy:          "acknowledged_at",
+			OrderByDirection: "asc",
+		},
+		ctx.User.UserID,
+	)
+	if err != nil {
+		http.Error(w, "Error listing acknowledged andons", http.StatusInternalServerError)
+		return
+	}
+
+	teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
+		Page: 1, PageSize: 10000,
+	})
+	if err != nil {
+		http.Error(w, "Error fetching teams", http.StatusInternalServerError)
+		return
+	}
+
+	_ = andonview.HomePage(&andonview.HomePageProps{
+		Ctx:                     ctx,
+		OutstandingAndons:       outstandingAndons,
+		AcknowledgedAndons:      acknowledgedAndons,
+		NewAndonsCount:          outstandingAndonsCount,
+		AcknowledgedAndonsCount: acknowledgedAndonsCount,
+		Teams:                   teams,
+		SelectedTeams:           uv.AndonTeams,
+		Sort:                    sort,
+		Page:                    uv.Page,
+		PageSize:                uv.PageSize,
+	}).Render(w)
+}
+
+type andonEventsHomePageUrlVals struct {
+	Sort     string
+	Page     int
+	PageSize int
+
+	Status     string
+	AndonTeams []string
+}
+
+func (uv *andonEventsHomePageUrlVals) normalise() {
+	if uv.Page == 0 {
+		uv.Page = 1
+	}
+	if uv.PageSize == 0 {
+		uv.PageSize = 50
+	}
+}
+
+type andonAllEventsUrlVals struct {
+	Sort     string
+	Page     int
+	PageSize int
+
+	StartDate        *time.Time
+	EndDate          *time.Time
+	IssueIn          []string
+	TeamIn           []string
+	LocationIn       []string
+	StatusIn         []string
+	RaisedByIn       []string
+	AcknowledgedByIn []string
+	ResolvedByIn     []string
+}
+
+func (uv *andonAllEventsUrlVals) normalise() {
+	if uv.Page == 0 {
+		uv.Page = 1
+	}
+	if uv.PageSize == 0 {
+		uv.PageSize = 50
+	}
+}
+
+func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	var uv andonAllEventsUrlVals
+
+	err := appurl.Unmarshal(r.URL.Query(), &uv)
+	if err != nil {
+		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+		return
+	}
+
+	uv.normalise()
+
+	sort := appsort.Sort{}
+	err = sort.ParseQueryParam(model.AndonEvent{}, uv.Sort)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error parsing sort: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	andons, count, filters, err := h.andonService.ListAndons(
+		r.Context(),
+		model.ListAndonQuery{
+			Sort:     sort,
+			Page:     uv.Page,
+			PageSize: uv.PageSize,
+
+			StartDate:      uv.StartDate,
+			EndDate:        uv.EndDate,
+			Issues:         uv.IssueIn,
+			Teams:          uv.TeamIn,
+			Locations:      uv.LocationIn,
+			Statuses:       uv.StatusIn,
+			RaisedBy:       uv.RaisedByIn,
+			AcknowledgedBy: uv.AcknowledgedByIn,
+			ResolvedBy:     uv.ResolvedByIn,
+		},
+		ctx.User.UserID,
+	)
+	if err != nil {
+		http.Error(w, "Error listing andons", http.StatusInternalServerError)
+		return
+	}
+
+	_ = andonview.AllAndonsPage(&andonview.AllAndonsPageProps{
+		Ctx:              ctx,
+		Andons:           andons,
+		AndonsCount:      count,
+		AvailableFilters: filters,
+		Sort:             sort,
+		Page:             uv.Page,
+		PageSize:         uv.PageSize,
+		Filters: model.AndonFilters{
+			StartDate:      uv.StartDate,
+			EndDate:        uv.EndDate,
+			Issues:         uv.IssueIn,
+			Teams:          uv.TeamIn,
+			Locations:      uv.LocationIn,
+			Statuses:       uv.StatusIn,
+			RaisedBy:       uv.RaisedByIn,
+			AcknowledgedBy: uv.AcknowledgedByIn,
+			ResolvedBy:     uv.ResolvedByIn,
+		},
+	}).Render(w)
+}
+
+func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	type urlVals struct {
+		IssueOrGroupID int
+		Source         string
+		ReturnTo       string
+	}
+
+	var uv urlVals
+
+	err := appurl.Unmarshal(r.URL.Query(), &uv)
+	if err != nil {
+		http.Error(w, "Error decoding query params", http.StatusInternalServerError)
+		return
+	}
+
+	values := url.Values{}
+
+	if uv.Source != "" {
+		values.Set("Source", uv.Source)
+	}
+	if uv.ReturnTo != "" {
+		values.Set("ReturnTo", uv.ReturnTo)
+	}
+
+	if uv.IssueOrGroupID != 0 {
+		issueNodes, err := h.andonIssueService.GetIssueHierarchy(r.Context(), uv.IssueOrGroupID)
+		if err != nil {
+			http.Error(w, "Failed to get issue hierarchy", http.StatusInternalServerError)
+			return
+		}
+
+		cleanValues := r.URL.Query()
+
+		cleanValues.Del("IssueOrGroupID")
+
+		for i, node := range issueNodes {
+			paramKey := fmt.Sprintf("Node[%d]", i)
+			cleanValues.Set(paramKey, strconv.Itoa(node))
+		}
+
+		cleanURL := *r.URL
+		cleanURL.RawQuery = cleanValues.Encode()
+
+		http.Redirect(w, r, cleanURL.String(), http.StatusFound)
+		return
+	}
+
+	nodes := []int{}
+	for i := 0; ; i++ {
+		nodeStr := r.URL.Query().Get(fmt.Sprintf("Node[%d]", i))
+		if nodeStr == "" {
+			break
+		}
+		nodeID, err := strconv.Atoi(nodeStr)
+		if err != nil {
+			break
+		}
+		nodes = append(nodes, nodeID)
+	}
+
+	andonIssues, _, err := h.andonIssueService.ListIssuesAndGroups(
+		r.Context(),
+		model.ListAndonIssuesQuery{
+			Page: 1, PageSize: 10000,
+		})
+	if err != nil {
+		http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
+		return
+	}
+	andonIssueGroups, err := h.andonIssueService.ListGroups(r.Context())
+	if err != nil {
+		http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
+		return
+	}
+
+	teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
+		Page: 1, PageSize: 10000,
+	})
+	if err != nil {
+		http.Error(w, "Error fetching teams", http.StatusInternalServerError)
+		return
+	}
+
+	_ = andonview.AddPage(&andonview.AddPageProps{
+		Ctx:              ctx,
+		Values:           values,
+		AndonIssues:      andonIssues,
+		AndonIssueGroups: andonIssueGroups,
+		Teams:            teams,
+		SelectedPath:     nodes,
+	}).Render(w)
+}
+
+func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	type urlVals struct {
+		Source   string
+		ReturnTo string
+	}
+
+	var uv urlVals
+
+	err := appurl.Unmarshal(r.URL.Query(), &uv)
+	if err != nil {
+		http.Error(w, "Error decoding query params", http.StatusInternalServerError)
+		return
+	}
+
+	values := url.Values{}
+
+	if uv.Source != "" {
+		values.Set("Source", uv.Source)
+	}
+	if uv.ReturnTo != "" {
+		values.Set("ReturnTo", uv.ReturnTo)
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var fd addAndonEventFormData
+	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	fd.normalise()
+
+	validationErrors := fd.validate()
+
+	nodes := []int{}
+	for i := 0; ; i++ {
+		nodeStr := r.URL.Query().Get(fmt.Sprintf("Node[%d]", i))
+		if nodeStr == "" {
+			break
+		}
+		nodeID, err := strconv.Atoi(nodeStr)
+		if err != nil {
+			break
+		}
+		nodes = append(nodes, nodeID)
+	}
+
+	if len(validationErrors) > 0 {
+		andonIssues, _, err := h.andonIssueService.ListIssuesAndGroups(
+			r.Context(),
+			model.ListAndonIssuesQuery{
+				Page: 1, PageSize: 10000,
+			})
+		if err != nil {
+			http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
+			return
+		}
+
+		teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
+			Page: 1, PageSize: 10000,
+		})
+		if err != nil {
+			http.Error(w, "Error fetching teams", http.StatusInternalServerError)
+			return
+		}
+
+		_ = andonview.AddPage(&andonview.AddPageProps{
+			Ctx:              ctx,
+			Values:           r.Form,
+			ValidationErrors: validationErrors,
+			IsSubmission:     true,
+			AndonIssues:      andonIssues,
+			Teams:            teams,
+			SelectedPath:     nodes,
+		}).Render(w)
+		return
+	}
+
+	if err := h.andonService.CreateAndonEvent(
+		r.Context(),
+		model.NewAndonEvent{
+			IssueDescription: fd.IssueDescription,
+			IssueID:          fd.IssueID,
+			Location:         fd.Location,
+			Source:           uv.Source,
+		},
+		ctx.User.UserID,
+	); err != nil {
+		log.Println(err)
+		http.Error(w, "Error creating andon", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/andons", http.StatusSeeOther)
+}
+
+func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var fd addAndonCommentFormData
+	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	fd.normalise()
+
+	validationErrors := fd.validate()
+
+	if len(validationErrors) > 0 {
+		http.Redirect(w, r, fmt.Sprintf("/andons/%d", fd.AndonID), http.StatusSeeOther)
+		return
+	}
+
+	err := h.andonService.CreateAndonComment(
+		r.Context(),
+		&model.NewComment{
+			Comment:  fd.Comment,
+			Entity:   "andon",
+			EntityID: fd.AndonID,
+		},
+		ctx.User.UserID,
+	)
+	if err != nil {
+		http.Error(w, "Error creating andon", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/andons/%d", fd.AndonID), http.StatusSeeOther)
+}
+
+func (h *AndonHandler) AndonUpdate(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	andonEventID, _ := strconv.Atoi(r.PathValue("andonID"))
+	andonAction := r.PathValue("action")
+
+	err := h.andonService.UpdateAndonEvent(
+		r.Context(),
+		andonEventID,
+		andonAction,
+		ctx.User.UserID,
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error updating andon", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/andons", http.StatusSeeOther)
+}
+
+func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	andonID, _ := strconv.Atoi(r.PathValue("andonID"))
+
+	andonEvent, err := h.andonService.GetAndonEventByID(r.Context(), andonID, ctx.User.UserID)
+	if err != nil {
+		http.Error(w, "Failed to get andon event", http.StatusInternalServerError)
+		return
+	}
+
+	changes, comments, err := h.andonService.GetAndonByID(
+		r.Context(),
+		andonID,
+		ctx.User.UserID,
+	)
+	if err != nil {
+		http.Error(w, "Error fetching andon details", http.StatusInternalServerError)
+		return
+	}
+
+	_ = andonview.AndonDetailsPage(&andonview.AndonDetailsPageProps{
+		Ctx:           ctx,
+		Values:        r.Form,
+		IsSubmission:  true,
+		AndonID:       andonID,
+		AndonEvent:    *andonEvent,
+		AndonChanges:  changes,
+		AndonComments: comments,
+	}).Render(w)
+}
+
+type addAndonEventFormData struct {
+	IssueDescription string
+	IssueID          int
+	AssignedTeam     string
+	Location         string
+}
+
+func (fd *addAndonEventFormData) normalise() {
+	fd.IssueDescription = strings.TrimSpace(fd.IssueDescription)
+}
+
+func (fd *addAndonEventFormData) validate() validate.ValidationErrors {
+	var ve validate.ValidationErrors = make(map[string][]string)
+
+	if fd.IssueDescription == "" {
+		ve.Add("IssueDescription", "is required")
+	}
+
+	if fd.IssueID == 0 {
+		ve.Add("IssueID", "is required")
+	}
+
+	if fd.Location == "" {
+		ve.Add("Location", "is required")
+	}
+
+	return ve
+}
+
+type addAndonCommentFormData struct {
+	Comment string
+	AndonID int
+}
+
+func (fd *addAndonCommentFormData) normalise() {
+	fd.Comment = strings.TrimSpace(fd.Comment)
+}
+
+func (fd *addAndonCommentFormData) validate() validate.ValidationErrors {
+	var ve validate.ValidationErrors = make(map[string][]string)
+
+	if fd.Comment == "" {
+		ve.Add("Comment", "should not be empty")
+	}
+
+	if fd.AndonID == 0 {
+		ve.Add("AndonID", "is required")
+	}
+
+	return ve
+}

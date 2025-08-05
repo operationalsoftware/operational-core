@@ -15,27 +15,24 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-type AddPageProps struct {
+type AddGroupPageProps struct {
 	Ctx              reqcontext.ReqContext
 	Values           url.Values
 	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
-	AndonIssues      []model.AndonIssue
 	AndonIssueGroups []model.AndonIssueGroup
 	Teams            []model.Team
 }
 
-func AddPage(p *AddPageProps) g.Node {
+func AddGroupPage(p *AddGroupPageProps) g.Node {
 
 	content := g.Group([]g.Node{
 
-		addIssueForm(&addIssueFormProps{
+		addGroupForm(&addGroupFormProps{
 			values:           p.Values,
 			validationErrors: p.ValidationErrors,
 			isSubmission:     p.IsSubmission,
-			andonIssues:      p.AndonIssues,
 			andonIssueGroups: p.AndonIssueGroups,
-			teams:            p.Teams,
 		}),
 	})
 
@@ -49,27 +46,25 @@ func AddPage(p *AddPageProps) g.Node {
 				Title:          "Andon Issues",
 				URLPart:        "andon-issues",
 			},
-			{IconIdentifier: "plus", Title: "Add"},
+			{IconIdentifier: "plus", Title: "Add Group"},
 		},
 		Content: content,
 		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/andonissueview/add_page.css"),
+			components.InlineStyle("/internal/views/andonissueview/add_group_page.css"),
 		},
 	})
 }
 
-type addIssueFormProps struct {
+type addGroupFormProps struct {
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
-	andonIssues      []model.AndonIssue
 	andonIssueGroups []model.AndonIssueGroup
-	teams            []model.Team
 }
 
-func addIssueForm(p *addIssueFormProps) g.Node {
+func addGroupForm(p *addGroupFormProps) g.Node {
 
-	issueNameLabel := "Issue Name"
+	issueNameLabel := "Group Name"
 	issueNameKey := "IssueName"
 	issueNameValue := p.values.Get(issueNameKey)
 	issueNameError := ""
@@ -81,7 +76,7 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 		issueNameHelperType = components.InputHelperTypeError
 	}
 
-	parentIDLabel := "Issue Group"
+	parentIDLabel := "Child Group Of"
 	parentIDKey := "ParentID"
 	parentIDValue := p.values.Get(parentIDKey)
 	parentIDError := ""
@@ -97,7 +92,7 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 	parentSelectOptions := []g.Node{
 		h.Option(
 			h.Value(""),
-			g.Text("\u2013"),
+			g.Text("Select child group"),
 		),
 	}
 	for _, andonIssue := range p.andonIssueGroups {
@@ -108,63 +103,6 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 			h.Value(fmt.Sprintf("%d", andonIssue.AndonIssueID)),
 			g.If(isSelected, h.Selected()),
 			g.Text(strings.Join(andonIssue.NamePath, " > ")),
-		))
-	}
-
-	assignedToTeamLabel := "Assigned to Team"
-	assignedToTeamKey := "AssignedToTeam"
-	assignedToTeamValue := p.values.Get(assignedToTeamKey)
-	assignedToTeamError := ""
-	if p.isSubmission || assignedToTeamValue != "" {
-		assignedToTeamError = p.validationErrors.GetError(assignedToTeamKey, assignedToTeamLabel)
-	}
-	assignedToTeamHelperType := components.InputHelperTypeNone
-	if assignedToTeamError != "" {
-		assignedToTeamHelperType = components.InputHelperTypeError
-	}
-
-	severityLabel := "Severity"
-	severityKey := "Severity"
-	severityValue := p.values.Get(severityKey)
-	severityError := ""
-	if p.isSubmission || severityValue != "" {
-		severityError = p.validationErrors.GetError(severityKey, severityLabel)
-	}
-	severityHelperType := components.InputHelperTypeNone
-	if severityError != "" {
-		severityHelperType = components.InputHelperTypeError
-	}
-
-	teamSelectOptions := []g.Node{
-		h.Option(
-			h.Value(""),
-			g.Text("\u2013"),
-		),
-	}
-	for _, team := range p.teams {
-		intVal, _ := strconv.Atoi(assignedToTeamValue)
-		isSelected := team.TeamID == intVal
-
-		teamSelectOptions = append(teamSelectOptions, h.Option(
-			h.Value(fmt.Sprintf("%d", team.TeamID)),
-			g.If(isSelected, h.Selected()),
-			g.Text(team.TeamName),
-		))
-	}
-
-	severitySelectOptions := []g.Node{
-		h.Option(
-			h.Value(""),
-			g.Text("\u2013"),
-		),
-	}
-	for _, severity := range model.AndonSeverities {
-		isSelected := string(severity) == severityValue
-
-		severitySelectOptions = append(severitySelectOptions, h.Option(
-			h.Value(string(severity)),
-			g.If(isSelected, h.Selected()),
-			g.Text(string(severity)),
 		))
 	}
 
@@ -193,11 +131,16 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 
 		h.Div(
 			h.Label(
-				g.Text("Child Issue Of"),
+				g.Text(parentIDLabel),
 
 				h.Select(
 					h.Name(parentIDKey),
 					g.Group(parentSelectOptions),
+				),
+
+				h.P(
+					h.Class("note"),
+					g.Text("* Only two levels of groups are supported"),
 				),
 			),
 			g.If(parentIDError != "",
@@ -207,44 +150,11 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 				})),
 		),
 
-		h.Div(
-			h.Label(
-				g.Text(assignedToTeamLabel),
-
-				h.Select(
-					h.Name(assignedToTeamKey),
-					g.Group(teamSelectOptions),
-				),
-			),
-			g.If(assignedToTeamError != "",
-				components.InputHelper(&components.InputHelperProps{
-					Label: assignedToTeamError,
-					Type:  assignedToTeamHelperType,
-				})),
-		),
-
-		h.Div(
-			h.Label(
-				g.Text(severityLabel),
-
-				h.Select(
-					h.Name(severityKey),
-					g.Group(severitySelectOptions),
-				),
-			),
-			g.If(
-				severityError != "",
-				components.InputHelper(&components.InputHelperProps{
-					Label: severityError,
-					Type:  severityHelperType,
-				}),
-			),
-		),
-
 		components.Button(
 			&components.ButtonProps{},
+
 			h.Type("submit"),
-			g.Text("Submit"),
+			g.Text("Add Issue Group"),
 		),
 	)
 }

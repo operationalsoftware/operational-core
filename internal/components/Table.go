@@ -327,14 +327,19 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 	}
 
 	return h.Div(
+
 		p.Classes,
 		g.Group(children),
+
+		// Only show table-scroll if there are rows
 		g.If(
 			p.Pagination != nil,
 			TablePagination(&paginationProps),
 		),
+
 		h.Div(
 			h.Class("table-scroll"),
+
 			h.Table(
 				tableHead(&tableHeadProps{
 					columns:      p.Columns,
@@ -342,33 +347,45 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 					sortQueryKey: p.SortQueryKey,
 				}),
 
-				h.TBody(
-					renderRows(p.Rows),
+				g.If(len(p.Rows) > 0,
+
+					h.TBody(
+						renderRows(p.Rows),
+					),
 				),
-			),
-			// here we add a hidden radio inputs which serve the purpose of
-			// preserving sort, page and page size state in the URL
-			g.If(
-				p.Sort != nil,
-				h.Input(
-					h.Type("radio"),
-					h.Checked(),
-					h.Name(p.SortQueryKey),
-					h.Value(p.Sort.EncodeQueryParam()),
-					h.StyleAttr("display: none"),
+
+				// here we add a hidden radio inputs which serve the purpose of
+				// preserving sort, page and page size state in the URL
+				g.If(
+					p.Sort != nil,
+					h.Input(
+						h.Type("radio"),
+						h.Checked(),
+						h.Name(p.SortQueryKey),
+						h.Value(p.Sort.EncodeQueryParam()),
+						h.StyleAttr("display: none"),
+					),
 				),
-			),
-			g.If(
-				p.Pagination != nil,
-				h.Input(
-					h.Type("radio"),
-					h.Checked(),
-					h.Name(paginationProps.CurrentPageQueryKey),
-					h.Value(fmt.Sprintf("%d", paginationProps.CurrentPage)),
-					h.StyleAttr("display: none"),
+				g.If(
+					p.Pagination != nil,
+					h.Input(
+						h.Type("radio"),
+						h.Checked(),
+						h.Name(paginationProps.CurrentPageQueryKey),
+						h.Value(fmt.Sprintf("%d", paginationProps.CurrentPage)),
+						h.StyleAttr("display: none"),
+					),
 				),
 			),
 		),
+
+		g.If(len(p.Rows) == 0,
+			h.Div(
+				h.Class("no-records"),
+				g.Text("No records found."),
+			),
+		),
+
 		g.If(
 			p.Pagination != nil,
 			TablePagination(&paginationProps),

@@ -4,6 +4,7 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
+	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"fmt"
@@ -21,7 +22,8 @@ type EditPageProps struct {
 	Values           url.Values
 	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
-	AndonIssues      []model.AndonIssue
+	AndonIssues      []model.AndonIssueNode
+	AndonIssueGroups []model.AndonIssueGroup
 	Teams            []model.Team
 }
 
@@ -36,6 +38,7 @@ func EditPage(p *EditPageProps) g.Node {
 			validationErrors: p.ValidationErrors,
 			isSubmission:     p.IsSubmission,
 			andonIssues:      p.AndonIssues,
+			andonIssueGroups: p.AndonIssueGroups,
 			teams:            p.Teams,
 		}),
 	})
@@ -44,13 +47,23 @@ func EditPage(p *EditPageProps) g.Node {
 		Title: fmt.Sprintf("Edit: %s", andonIssue.IssueName),
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
-			andonIssuesBreadCrumb,
 			{
-				IconIdentifier: "account",
-				Title:          andonIssue.IssueName,
-				URLPart:        fmt.Sprintf("%d", andonIssue.AndonIssueID),
+				IconIdentifier: "alert-octagon-outline",
+				Title:          "Andons",
+				URLPart:        "andons",
 			},
-			{Title: "Edit"},
+			{
+				Title:   "Andon Issues",
+				URLPart: "andon-issues",
+			},
+			{
+				Title:   andonIssue.IssueName,
+				URLPart: fmt.Sprintf("%d", andonIssue.AndonIssueID),
+			},
+			{
+				IconIdentifier: "pencil",
+				Title:          "Edit",
+			},
 		},
 		Content: content,
 		Ctx:     p.Ctx,
@@ -65,7 +78,8 @@ type editFormProps struct {
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
-	andonIssues      []model.AndonIssue
+	andonIssues      []model.AndonIssueNode
+	andonIssueGroups []model.AndonIssueGroup
 	teams            []model.Team
 }
 
@@ -108,14 +122,25 @@ func editForm(p *editFormProps) g.Node {
 		parentIDHelperType = components.InputHelperTypeError
 	}
 
-	// map andon issues to options for parent select
+	assignedToTeamLabel := "Assigned to Team"
+	assignedToTeamKey := "AssignedToTeam"
+	assignedToTeamValue := p.values.Get(assignedToTeamKey)
+	assignedToTeamError := ""
+	if p.isSubmission || assignedToTeamValue != "" {
+		assignedToTeamError = p.validationErrors.GetError(assignedToTeamKey, assignedToTeamLabel)
+	}
+	assignedToTeamHelperType := components.InputHelperTypeNone
+	if assignedToTeamError != "" {
+		assignedToTeamHelperType = components.InputHelperTypeError
+	}
+
 	parentSelectOptions := []g.Node{
 		h.Option(
 			h.Value(""),
 			g.Text("\u2013"),
 		),
 	}
-	for _, andonIssue := range p.andonIssues {
+	for _, andonIssue := range p.andonIssueGroups {
 		if p.andonIssue.AndonIssueID == andonIssue.AndonIssueID {
 			continue
 		}
@@ -130,22 +155,15 @@ func editForm(p *editFormProps) g.Node {
 		))
 	}
 
-	assignedToTeamLabel := "Assigned to Team"
-	assignedToTeamKey := "AssignedToTeam"
-	assignedToTeamValue := p.values.Get(assignedToTeamKey)
-	assignedToTeamError := ""
-	if p.isSubmission || assignedToTeamValue != "" {
-		assignedToTeamError = p.validationErrors.GetError(assignedToTeamKey, assignedToTeamLabel)
+	teamSelectOptions := []g.Node{
+		h.Option(
+			h.Value(""),
+			g.Text("\u2013"),
+		),
 	}
-	assignedToTeamHelperType := components.InputHelperTypeNone
-	if assignedToTeamError != "" {
-		assignedToTeamHelperType = components.InputHelperTypeError
-	}
-
-	teamSelectOptions := []g.Node{}
 	for _, team := range p.teams {
-		intVal, _ := strconv.Atoi(assignedToTeamValue)
-		isSelected := team.TeamID == intVal
+		intVal := p.andonIssue.AssignedToTeam
+		isSelected := team.TeamID == nilsafe.Int(intVal)
 
 		teamSelectOptions = append(teamSelectOptions, h.Option(
 			h.Value(fmt.Sprintf("%d", team.TeamID)),
@@ -154,22 +172,16 @@ func editForm(p *editFormProps) g.Node {
 		))
 	}
 
-	resolvableByRaiserLabel := "Resolvable by Raiser?"
-	resolvableByRaiserKey := "ResolvableByRaiser"
-	resolvableByRaiserValue := false
-	if p.values.Get(resolvableByRaiserKey) == "true" {
-		resolvableByRaiserValue = true
-	} else if andonIssue.ResolvableByRaiser {
-		resolvableByRaiserValue = true
+	severityLabel := "Severity"
+	severityKey := "Severity"
+	severityValue := p.values.Get(severityKey)
+	severityError := ""
+	if p.isSubmission || severityValue != "" {
+		severityError = p.validationErrors.GetError(severityKey, severityLabel)
 	}
-
-	willStopProcessLabel := "Will Stop Process?"
-	willStopProcessKey := "WillStopProcess"
-	willStopProcessValue := true
-	if p.values.Get(resolvableByRaiserKey) == "false" {
-		willStopProcessValue = false
-	} else if !andonIssue.WillStopProcess {
-		willStopProcessValue = false
+	severityHelperType := components.InputHelperTypeNone
+	if severityError != "" {
+		severityHelperType = components.InputHelperTypeError
 	}
 
 	isArchivedLabel := "Is Archived?"
@@ -187,6 +199,17 @@ func editForm(p *editFormProps) g.Node {
 	isArchivedHelperType := components.InputHelperTypeNone
 	if isArchivedError != "" {
 		isArchivedHelperType = components.InputHelperTypeError
+	}
+
+	severitySelectOptions := []g.Node{}
+	for _, severity := range model.AndonSeverities {
+		isSelected := string(severity) == severityValue
+
+		severitySelectOptions = append(severitySelectOptions, h.Option(
+			h.Value(string(severity)),
+			g.If(isSelected, h.Selected()),
+			g.Text(string(severity)),
+		))
 	}
 
 	return components.Form(
@@ -248,27 +271,19 @@ func editForm(p *editFormProps) g.Node {
 
 		h.Div(
 			h.Label(
-				g.Text(resolvableByRaiserLabel),
+				g.Text(severityLabel),
 
-				h.Input(
-					h.Type("checkbox"),
-					h.Name(resolvableByRaiserKey),
-					g.If(resolvableByRaiserValue, h.Checked()),
-					h.Value("true"),
+				h.Select(
+					h.Name(severityKey),
+					g.Group(severitySelectOptions),
 				),
 			),
-		),
-
-		h.Div(
-			h.Label(
-				g.Text(willStopProcessLabel),
-
-				h.Input(
-					h.Type("checkbox"),
-					h.Name(willStopProcessKey),
-					g.If(willStopProcessValue, h.Checked()),
-					h.Value("true"),
-				),
+			g.If(
+				severityError != "",
+				components.InputHelper(&components.InputHelperProps{
+					Label: severityError,
+					Type:  severityHelperType,
+				}),
 			),
 		),
 

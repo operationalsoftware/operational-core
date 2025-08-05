@@ -28,7 +28,7 @@ INSERT INTO andon_issue (
 	issue_name,
 	parent_id,
 	assigned_to_team,
-	severity
+	severity,
 	created_by
 )
 VALUES (
@@ -36,8 +36,7 @@ VALUES (
 	$2,
 	$3,
 	$4,
-	$5,
-	$6
+	$5
 )
 `
 	_, err := exec.Exec(
@@ -53,6 +52,73 @@ VALUES (
 	return err
 }
 
+// Create Group
+func (r *AndonIssueRepository) CreateGroup(
+	ctx context.Context,
+	exec db.PGExecutor,
+	andonIssueGroup model.NewAndonIssueGroup,
+	userID int,
+) error {
+
+	if andonIssueGroup.ParentID != nil {
+		isTopLevel, err := r.isTopLevelGroup(ctx, exec, *andonIssueGroup.ParentID)
+		if err != nil {
+			return fmt.Errorf("failed to validate parent group: %w", err)
+		}
+		if !isTopLevel {
+			return fmt.Errorf("cannot create group deeper than 2 levels")
+		}
+	}
+
+	query := `
+INSERT INTO andon_issue (
+	issue_name,
+	parent_id,
+	is_group,
+	created_by
+)
+VALUES (
+	$1,
+	$2,
+	$3,
+	$4
+)
+`
+	_, err := exec.Exec(
+		ctx, query,
+
+		andonIssueGroup.IssueName,
+		andonIssueGroup.ParentID,
+		true,
+		userID,
+	)
+
+	return err
+}
+
+func (r *AndonIssueRepository) isTopLevelGroup(
+	ctx context.Context,
+	exec db.PGExecutor,
+	groupID int,
+) (bool, error) {
+
+	var parentID *int
+	query := `
+SELECT
+	parent_id
+FROM
+	andon_issue
+WHERE
+	andon_issue_id = $1 AND is_group = true
+`
+	err := exec.QueryRow(ctx, query, groupID).Scan(&parentID)
+	if err != nil {
+		return false, err
+	}
+	return parentID == nil, nil
+
+}
+
 var andonIssueCTE = `
 RECURSIVE andon_issue_tree AS (
     SELECT
@@ -61,6 +127,7 @@ RECURSIVE andon_issue_tree AS (
         ai.parent_id,
         ARRAY[ai.issue_name] AS name_path,
         1 AS depth,
+        ai.is_group,
         ai.is_archived,
         (
             SELECT COUNT(*)
@@ -78,6 +145,7 @@ RECURSIVE andon_issue_tree AS (
         child.parent_id,
         parent.name_path || child.issue_name,
         parent.depth + 1,
+        child.is_group,
         child.is_archived,
         (
             SELECT COUNT(*)
@@ -86,6 +154,7 @@ RECURSIVE andon_issue_tree AS (
         ) AS children_count
     FROM andon_issue child
     JOIN andon_issue_tree parent ON child.parent_id = parent.andon_issue_id
+	WHERE parent.is_group = TRUE
 ),
 
 final AS (
@@ -95,10 +164,10 @@ final AS (
         ait.parent_id,
         ait.name_path,
         ait.depth,
+        ait.is_group,
         ait.is_archived,
         ait.children_count,
-		ai.resolvable_by_raiser,
-		ai.will_stop_process,
+		ai.severity,
 		ai.assigned_to_team,
 		t.team_name AS assigned_to_team_name,
 		ai.created_at,
@@ -111,7 +180,7 @@ final AS (
 	FROM
 		andon_issue_tree ait
 		INNER JOIN andon_issue ai USING(andon_issue_id)
-		INNER JOIN team t ON
+		LEFT JOIN team t ON
 			t.team_id = ai.assigned_to_team
 		INNER JOIN app_user cu ON
 			cu.user_id = ai.created_by
@@ -127,6 +196,28 @@ SELECT
 	name_path,
 	depth,
 	parent_id,
+	is_archived,
+	children_count,
+	severity,
+	assigned_to_team,
+	assigned_to_team_name,
+
+	created_at,
+	created_by,
+	created_by_username,
+	updated_at,
+	updated_by,
+	updated_by_username
+`
+
+var andonIssueGroupSelect = `
+SELECT
+	andon_issue_id,
+	issue_name,
+	name_path,
+	depth,
+	parent_id,
+	is_group,
 	is_archived,
 	children_count,
 	severity,
@@ -197,7 +288,7 @@ func (r *AndonIssueRepository) List(
 	whereClause := r.generateWhereClause(q)
 	limit := q.PageSize
 	offset := (q.Page - 1) * q.PageSize
-	orderByClause, err := q.Sort.ToOrderByClause(model.AndonIssue{})
+	orderByClause, _ := q.Sort.ToOrderByClause(model.AndonIssue{})
 
 	if orderByClause == "" {
 		orderByClause = "ORDER BY name_path ASC"
@@ -253,6 +344,72 @@ LIMIT $1 OFFSET $2
 	return andonIssues, nil
 }
 
+func (r *AndonIssueRepository) ListIssuesAndGroups(
+	ctx context.Context,
+	exec db.PGExecutor,
+	q model.ListAndonIssuesQuery,
+) ([]model.AndonIssueNode, error) {
+
+	whereClause := r.generateWhereClause(q)
+	limit := q.PageSize
+	offset := (q.Page - 1) * q.PageSize
+	orderByClause, _ := q.Sort.ToOrderByClause(model.AndonIssueNode{})
+
+	if orderByClause == "" {
+		orderByClause = "ORDER BY created_at DESC"
+	}
+
+	query := `
+WITH ` + andonIssueCTE + `
+
+` + andonIssueGroupSelect + `
+
+FROM
+	final
+
+` + whereClause + `
+
+` + orderByClause + `
+
+LIMIT $1 OFFSET $2
+`
+	rows, err := exec.Query(ctx, query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var andonIssues []model.AndonIssueNode
+	for rows.Next() {
+		var andonIssue model.AndonIssueNode
+		if err := rows.Scan(
+			&andonIssue.AndonIssueID,
+			&andonIssue.IssueName,
+			&andonIssue.NamePath,
+			&andonIssue.Depth,
+			&andonIssue.ParentID,
+			&andonIssue.IsGroup,
+			&andonIssue.IsArchived,
+			&andonIssue.ChildrenCount,
+			&andonIssue.Severity,
+			&andonIssue.AssignedToTeam,
+			&andonIssue.AssignedToTeamName,
+			&andonIssue.CreatedAt,
+			&andonIssue.CreatedBy,
+			&andonIssue.CreatedByUsername,
+			&andonIssue.UpdatedAt,
+			&andonIssue.UpdatedBy,
+			&andonIssue.UpdatedByUsername,
+		); err != nil {
+			return nil, err
+		}
+
+		andonIssues = append(andonIssues, andonIssue)
+	}
+
+	return andonIssues, nil
+}
+
 func (r *AndonIssueRepository) Count(
 	ctx context.Context,
 	exec db.PGExecutor,
@@ -281,6 +438,90 @@ FROM
 	return count, nil
 }
 
+func (r *AndonIssueRepository) ListGroups(
+	ctx context.Context,
+	exec db.PGExecutor,
+) ([]model.AndonIssueGroup, error) {
+
+	query := `
+WITH ` + andonIssueCTE + `
+
+SELECT
+	andon_issue_id,
+	issue_name,
+	name_path,
+	parent_id
+FROM
+	final
+WHERE
+	is_group = true
+`
+	rows, err := exec.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var andonIssues []model.AndonIssueGroup
+	for rows.Next() {
+		var andonIssue model.AndonIssueGroup
+		if err := rows.Scan(
+			&andonIssue.AndonIssueID,
+			&andonIssue.IssueName,
+			&andonIssue.NamePath,
+			&andonIssue.ParentID,
+		); err != nil {
+			return nil, err
+		}
+
+		andonIssues = append(andonIssues, andonIssue)
+	}
+
+	return andonIssues, nil
+}
+
+func (r *AndonIssueRepository) ListTopLevelGroups(
+	ctx context.Context,
+	exec db.PGExecutor,
+) ([]model.AndonIssueGroup, error) {
+
+	query := `
+WITH ` + andonIssueCTE + `
+
+SELECT
+	andon_issue_id,
+	issue_name,
+	name_path,
+	parent_id
+FROM
+	final
+WHERE
+	is_group = true AND parent_id IS NULL
+`
+	rows, err := exec.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var andonIssues []model.AndonIssueGroup
+	for rows.Next() {
+		var andonIssue model.AndonIssueGroup
+		if err := rows.Scan(
+			&andonIssue.AndonIssueID,
+			&andonIssue.IssueName,
+			&andonIssue.NamePath,
+			&andonIssue.ParentID,
+		); err != nil {
+			return nil, err
+		}
+
+		andonIssues = append(andonIssues, andonIssue)
+	}
+
+	return andonIssues, nil
+}
+
 func (r *AndonIssueRepository) generateWhereClause(q model.ListAndonIssuesQuery) string {
 	if !q.ShowArchived {
 		return `
@@ -301,6 +542,7 @@ func (r *AndonIssueRepository) Update(
 	userID int,
 ) error {
 
+	var existingAssignedToTeam *int
 	// Ensure exists
 	existing, err := r.GetByID(ctx, exec, andonIssueID)
 	if err != nil {
@@ -309,13 +551,19 @@ func (r *AndonIssueRepository) Update(
 	if existing == nil {
 		return fmt.Errorf("andon issue with ID %d not found", andonIssueID)
 	}
+	existingAssignedToTeam = existing.AssignedToTeam
+
+	severityChanged := false
+	if existing.Severity == nil || update.Severity != *existing.Severity {
+		severityChanged = true
+	}
 
 	// Check if anything changed
 	hasChange := update.IssueName != existing.IssueName ||
 		update.ParentID != existing.ParentID ||
 		update.IsArchived != existing.IsArchived ||
-		update.AssignedToTeam != existing.AssignedToTeam ||
-		update.Severity != existing.Severity
+		update.AssignedToTeam != existingAssignedToTeam ||
+		severityChanged
 
 	if !hasChange {
 		return nil
@@ -336,13 +584,13 @@ WHERE
 `
 
 	query, params, err := db.BindNamed(namedQuery, map[string]any{
-		"issue_name":      update.IssueName,
-		"parent_id":       update.ParentID,
-		"is_archived":     update.IsArchived,
-		"assigned_to_tem": update.AssignedToTeam,
-		"severity":        update.Severity,
-		"updated_by":      userID,
-		"andon_issue_id":  andonIssueID,
+		"issue_name":       update.IssueName,
+		"parent_id":        update.ParentID,
+		"is_archived":      update.IsArchived,
+		"assigned_to_team": update.AssignedToTeam,
+		"severity":         update.Severity,
+		"updated_by":       userID,
+		"andon_issue_id":   andonIssueID,
 	})
 	if err != nil {
 		return err
@@ -394,4 +642,55 @@ func (r *AndonIssueRepository) HasActiveChildIssues(
 	}
 
 	return hasActive, nil
+}
+
+func (r *AndonIssueRepository) GetIssueHierarchy(
+	ctx context.Context,
+	exec db.PGExecutor,
+	issueID int,
+) ([]int, error) {
+
+	query := `
+WITH RECURSIVE issue_hierarchy AS (
+    SELECT
+        andon_issue_id,
+        issue_name,
+        parent_id
+    FROM andon_issue
+    WHERE andon_issue_id = $1  -- pass the issue ID here
+
+    UNION ALL
+
+    SELECT
+        parent.andon_issue_id,
+        parent.issue_name,
+        parent.parent_id
+    FROM andon_issue parent
+    JOIN issue_hierarchy child ON child.parent_id = parent.andon_issue_id
+)
+SELECT andon_issue_id
+FROM issue_hierarchy
+ORDER BY parent_id NULLS FIRST;
+`
+
+	rows, err := exec.Query(ctx, query, issueID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var names []int
+	for rows.Next() {
+		var name int
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		names = append(names, name)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return names, nil
 }

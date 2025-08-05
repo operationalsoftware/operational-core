@@ -1,0 +1,87 @@
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  column-gap: var(--spacing-md);
+}
+
+:root[data-theme="dark"] .button-container svg {
+  fill: currentColor;
+}
+
+#andon-issues-table-container {
+  margin-top: var(--spacing-lg);
+}
+
+.andon-actions {
+  display: inline-flex;
+  gap: var(--spacing-md);
+}
+
+.andon-nav {
+  a {
+    margin-right: var(--spacing-lg);
+  }
+}
+
+.table-title {
+  margin: 0;
+}
+
+.wip-heading {
+  margin-top: 2rem;
+}
+
+.table-head,
+.table-row {
+  white-space: nowrap;
+}
+
+.amber {
+  background-color: #e3c206;
+}
+
+.flashing-red {
+  background-color: #eb4343;
+}
+
+.flashing-grey {
+  background-color: #c4c4c4;
+}
+
+.flashing-green {
+  background-color: #32c857;
+}
+
+.blue {
+  background-color: #29a4e5;
+}
+
+.light-green {
+  background-color: #aad1af;
+}
+
+.andon-nav {
+  svg {
+    margin-right: var(--spacing-sm);
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+}
+
+.open-btn {
+  margin-left: var(--spacing-lg);
+
+  svg {
+    fill: var(--primary-color);
+  }
+}
+
+.team-select {
+  display: flex;
+  justify-content: right;
+
+  #team-form {
+    width: 25%;
+  }
+}

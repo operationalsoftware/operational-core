@@ -129,7 +129,7 @@ func (r *StockItemRepository) GetStockItems(
 
 	offset := (q.Page - 1) * q.PageSize
 	limit := q.PageSize
-	orderByClause := q.Sort.ToOrderByClause(map[string]string{})
+	orderByClause, _ := q.Sort.ToOrderByClause(map[string]string{})
 
 	if orderByClause == "" {
 		orderByClause = "ORDER BY created_at DESC"

@@ -12,21 +12,32 @@ import (
 var AppMenu = []components.GridMenuGroup{
 	{
 		GroupName: "Admin",
-		Items: []components.GridMenuItem{{
-			Icon: "account-multiple",
-			Name: "Users",
-			Link: "/users",
-			Show: func(permissions model.UserPermissions) bool {
-				return permissions.UserAdmin.Access
+		Items: []components.GridMenuItem{
+			{
+				Icon: "account-multiple",
+				Name: "Users",
+				Link: "/users",
+				Show: func(permissions model.UserPermissions) bool {
+					return permissions.UserAdmin.Access
+				},
 			},
-		}, {
-			Icon: "account-group",
-			Name: "Teams",
-			Link: "/teams",
-			Show: func(permissions model.UserPermissions) bool {
-				return permissions.UserAdmin.Access
+			{
+				Icon: "account-group",
+				Name: "Teams",
+				Link: "/teams",
+				Show: func(permissions model.UserPermissions) bool {
+					return permissions.UserAdmin.Access
+				},
 			},
-		}},
+			{
+				Icon: "alert-octagon-outline",
+				Name: "Andons",
+				Link: "/andons",
+				Show: func(permissions model.UserPermissions) bool {
+					return permissions.UserAdmin.Access
+				},
+			},
+		},
 	},
 	{
 		GroupName: "Stock",

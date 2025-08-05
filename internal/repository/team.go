@@ -185,3 +185,124 @@ WHERE
 	)
 	return err
 }
+
+func (r *TeamRepository) GetTeamUsers(
+	ctx context.Context,
+	exec db.PGExecutor,
+	teamID int,
+	q model.ListTeamUsersQuery,
+) ([]model.TeamUser, error) {
+
+	limit := q.PageSize
+	offset := (q.Page - 1) * q.PageSize
+	orderByClause, err := q.Sort.ToOrderByClause(model.TeamUser{})
+
+	if orderByClause == "" {
+		orderByClause = "ORDER BY ut.created_at DESC"
+	}
+
+	query := `
+SELECT
+	ut.team_id,
+	ut.user_id,
+	au.username,
+	ut.role
+FROM user_team ut
+INNER JOIN app_user au ON ut.user_id = au.user_id
+WHERE ut.team_id = $1
+` + orderByClause + `
+
+LIMIT $2 OFFSET $3
+`
+
+	rows, err := exec.Query(ctx, query, teamID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var teamUsers []model.TeamUser
+	for rows.Next() {
+		var u model.TeamUser
+		if err := rows.Scan(&u.TeamID, &u.UserID, &u.Username, &u.Role); err != nil {
+			return nil, err
+		}
+		teamUsers = append(teamUsers, u)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return teamUsers, nil
+}
+
+func (r *TeamRepository) GetTeamUsersCount(
+	ctx context.Context,
+	exec db.PGExecutor,
+	teamID int,
+) (int, error) {
+
+	query := `
+SELECT
+	COUNT(*)
+FROM user_team
+WHERE
+	team_id = $1
+`
+	var count int
+	err := exec.QueryRow(ctx, query, teamID).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (r *TeamRepository) AssignUser(
+	ctx context.Context,
+	exec db.PGExecutor,
+	update model.TeamUser,
+) error {
+
+	query := `
+INSERT INTO user_team (
+	team_id,
+	user_id,
+	role
+)
+VALUES (
+	$1,
+	$2,
+	$3
+)
+ON CONFLICT (user_id, team_id)
+DO UPDATE SET role = EXCLUDED.role
+WHERE user_team.role IS DISTINCT FROM EXCLUDED.role;
+`
+	_, err := exec.Exec(
+		ctx,
+		query,
+
+		update.TeamID,
+		update.UserID,
+		update.Role,
+	)
+	return err
+}
+
+func (r *TeamRepository) DeleteTeamUser(
+	ctx context.Context,
+	exec db.PGExecutor,
+	teamID int,
+	userID int,
+) error {
+	query := `
+DELETE FROM
+	user_team
+WHERE
+	team_id = $1 AND user_id = $2
+`
+	_, err := exec.Exec(ctx, query, teamID, userID)
+	return err
+}

@@ -43,11 +43,7 @@ func (h *StockItemHandler) StockItemsPage(w http.ResponseWriter, r *http.Request
 	}
 
 	sort := appsort.Sort{}
-	sort.ParseQueryParam(uv.Sort, []string{
-		"StockCode",
-		"Description",
-		"CreatedAt",
-	})
+	sort.ParseQueryParam(model.StockItem{}, uv.Sort)
 
 	if uv.Page == 0 {
 		uv.Page = 1

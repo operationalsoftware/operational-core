@@ -1,0 +1,18 @@
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  column-gap: var(--spacing-md);
+}
+
+.main {
+  display: flex;
+  justify-content: center;
+}
+
+.main form {
+  max-width: 400px;
+}
+
+:root[data-theme="dark"] .button-container svg {
+  fill: currentColor;
+}

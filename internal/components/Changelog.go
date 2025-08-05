@@ -26,11 +26,16 @@ type ChangelogFieldDefinition struct {
 
 func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogFieldDefinition) g.Node {
 	return h.Div(
+		h.Class("changelog"),
 		h.H3(g.Text("Changelog")),
 		h.Ul(
+			h.Class("main-list"),
+
 			g.Group(g.Map(entries, func(entry ChangelogEntry) g.Node {
 				return h.Li(
 					h.Div(
+						h.Class("heading"),
+
 						h.Strong(
 							g.If(
 								entry.IsCreation,
@@ -103,9 +108,9 @@ func formatValue(value interface{}) string {
 		if v.Interface().(decimal.NullDecimal).Valid {
 			return v.Interface().(decimal.NullDecimal).Decimal.String()
 		}
-	case reflect.TypeOf(sql.NullTime{}):
-		if v.Interface().(sql.NullTime).Valid {
-			return v.Interface().(sql.NullTime).Time.Format(time.RFC3339)
+	case reflect.TypeOf(pgtype.Timestamptz{}):
+		if v.Interface().(pgtype.Timestamptz).Valid {
+			return v.Interface().(pgtype.Timestamptz).Time.Format(time.RFC3339)
 		}
 	}
 

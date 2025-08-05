@@ -10,20 +10,7 @@ function initSearchSelect(selectEl) {
     ".select-option.selected"
   );
 
-  let selected =
-    mode === "multi"
-      ? Array.from(selectedOptionEls).map((el) => el.dataset.value)
-      : selectedOptionEls[0]?.dataset.value ?? null;
-
-  if (mode === "single" && selectedOptionEls[0]) {
-    inputSpan.textContent = selectedOptionEls[0].textContent;
-  } else if (mode === "multi") {
-    inputSpan.textContent = selectedOptionEls.length
-      ? Array.from(selectedOptionEls)
-          .map((el) => el.textContent)
-          .join(", ")
-      : inputSpan.textContent;
-  }
+  let selected;
 
   if (mode === "multi") {
     selected = Array.from(selectedOptionEls).map((el) => el.dataset.value);

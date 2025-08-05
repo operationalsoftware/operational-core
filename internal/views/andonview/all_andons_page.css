@@ -1,0 +1,51 @@
+.andon-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: var(--spacing-lg);
+  margin: var(--spacing-md) auto;
+
+  .search-item {
+    width: 24%;
+
+    &.date-section {
+      display: flex;
+      gap: var(--spacing-md);
+    }
+  }
+}
+
+.andon-actions {
+  display: inline-flex;
+  gap: var(--spacing-md);
+}
+
+.table-head,
+.table-row {
+  white-space: nowrap;
+}
+
+.amber {
+  background-color: #e3c206;
+}
+
+.flashing-red {
+  background-color: #eb4343;
+}
+
+.flashing-grey {
+  background-color: #c4c4c4;
+}
+
+.flashing-green {
+  background-color: #32c857;
+}
+
+.blue {
+  background-color: #29a4e5;
+}
+
+.light-green {
+  background-color: #aad1af;
+  /* background-color: #81c792; */
+}

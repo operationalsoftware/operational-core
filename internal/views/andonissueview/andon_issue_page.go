@@ -4,6 +4,7 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
+	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
 	"strings"
@@ -60,7 +61,7 @@ func AndonIssuePage(p *AndonIssuePageProps) g.Node {
 						h.Strong(g.Text("Severity")),
 					),
 					h.Span(
-						g.Text(string(andonIssue.Severity)),
+						g.Text(nilsafe.Str((*string)(andonIssue.Severity))),
 					),
 
 					h.Span(
@@ -79,7 +80,11 @@ func AndonIssuePage(p *AndonIssuePageProps) g.Node {
 		Title: "Andon Issue: " + andonIssue.IssueName,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
-			andonIssuesBreadCrumb,
+			{
+				IconIdentifier: "alert-octagon-outline",
+				Title:          "Andon Issues",
+				URLPart:        "andon-issues",
+			},
 			{
 				IconIdentifier: "alert-octagon-outline",
 				Title:          andonIssue.IssueName,

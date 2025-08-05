@@ -43,7 +43,6 @@ func Page(p PageProps) g.Node {
 			ctx:         p.Ctx,
 		}),
 		h.Script(h.Type("text/javascript"), h.Src("/static/js/components.js")),
-		h.Script(h.Type("text/javascript"), h.Src("/static/js/search-select.js")),
 	}
 
 	body = append(body, p.AppendBody...)

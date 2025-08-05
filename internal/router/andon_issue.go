@@ -18,6 +18,9 @@ func addAndonIssueRoutes(
 	mux.HandleFunc("GET /andon-issues/add", andonIssueHandler.AddPage)
 	mux.HandleFunc("POST /andon-issues/add", andonIssueHandler.Add)
 
+	mux.HandleFunc("GET /andon-issues/add-group", andonIssueHandler.AddGroupPage)
+	mux.HandleFunc("POST /andon-issues/add-group", andonIssueHandler.AddGroup)
+
 	mux.HandleFunc("GET /andon-issues/{id}", andonIssueHandler.AndonIssuePage)
 
 	mux.HandleFunc("GET /andon-issues/{id}/edit", andonIssueHandler.EditPage)

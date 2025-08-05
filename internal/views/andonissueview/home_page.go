@@ -5,6 +5,7 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/appsort"
+	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
 	"strings"
@@ -17,7 +18,7 @@ import (
 type HomePageProps struct {
 	Ctx             reqcontext.ReqContext
 	ShowArchived    bool
-	AndonIssues     []model.AndonIssue
+	AndonIssues     []model.AndonIssueNode
 	AndonIssueCount int
 	Sort            appsort.Sort
 	Page            int
@@ -35,12 +36,20 @@ func HomePage(p *HomePageProps) g.Node {
 			SortKey:       "AssignedToTeamName",
 		},
 		{
-			TitleContents: g.Text("Resolvable by Raiser?"),
-			SortKey:       "ResolvableByRaiser",
+			TitleContents: g.Text("Severity"),
+			SortKey:       "Severity",
 		},
 		{
-			TitleContents: g.Text("Will Stop Process?"),
-			SortKey:       "WillStopProcess",
+			TitleContents: g.Text("Created By"),
+			SortKey:       "CreatedByUsername",
+		},
+		{
+			TitleContents: g.Text("Created At"),
+			SortKey:       "CreatedAt",
+		},
+		{
+			TitleContents: g.Text("Last Updated"),
+			SortKey:       "UpdatedAt",
 		},
 	}
 
@@ -58,24 +67,41 @@ func HomePage(p *HomePageProps) g.Node {
 
 		cells := []components.TableCell{
 			{
-				Contents: h.A(
-					g.Text(namePathStr),
-					g.Attr("href",
-						fmt.Sprintf("/andon-issues/%d", ai.AndonIssueID))),
+				Contents: h.Div(
+					h.Class("flex"),
+
+					h.A(
+						h.Class("issue-title"),
+						g.Text(namePathStr),
+						g.Attr("href",
+							fmt.Sprintf("/andon-issues/%d", ai.AndonIssueID))),
+
+					g.If(
+						ai.IsGroup,
+						h.Div(
+							h.Class("badge primary"),
+
+							g.Text("Group"),
+						),
+					),
+				),
 			},
 			{
-				Contents: g.Text(ai.AssignedToTeamName),
+				Contents: g.Text(nilsafe.Str(ai.AssignedToTeamName)),
+			},
+			{
+				Contents: g.Text(nilsafe.Str((*string)(ai.Severity))),
+			},
+			{
+				Contents: g.Text(string(ai.CreatedByUsername)),
+			},
+			{
+				Contents: g.Text(ai.CreatedAt.Format("2006-01-02 15:04:05")),
 			},
 			{
 				Contents: g.Group([]g.Node{
-					g.If(ai.ResolvableByRaiser, g.Text("Yes")),
-					g.If(!ai.ResolvableByRaiser, g.Text("No")),
-				}),
-			},
-			{
-				Contents: g.Group([]g.Node{
-					g.If(ai.WillStopProcess, g.Text("Yes")),
-					g.If(!ai.WillStopProcess, g.Text("No")),
+					g.If(ai.UpdatedAt == nil, g.Text("\u2013")),
+					g.If(ai.UpdatedAt != nil, g.Text(nilsafe.Time(ai.UpdatedAt).Format("2006-01-02 15:04:05"))),
 				}),
 			},
 		}
@@ -109,6 +135,19 @@ func HomePage(p *HomePageProps) g.Node {
 					Identifier: "plus",
 				}),
 				g.Text("Andon Issue"),
+			),
+
+			components.Button(&components.ButtonProps{
+				ButtonType: "primary",
+				Link:       "/andon-issues/add-group",
+				Classes: c.Classes{
+					"add-andon-issue-btn": true,
+				},
+			},
+				components.Icon(&components.IconProps{
+					Identifier: "plus",
+				}),
+				g.Text("Andon Issue Group"),
 			),
 		),
 
@@ -150,16 +189,18 @@ func HomePage(p *HomePageProps) g.Node {
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
-			andonIssuesBreadCrumb,
+			{
+				IconIdentifier: "alert-octagon-outline",
+				Title:          "Andons",
+				URLPart:        "andons",
+			},
+			{
+				Title:   "Andon Issues",
+				URLPart: "andon-issues",
+			},
 		},
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/andonissueview/home_page.css"),
 		},
 	})
-}
-
-var andonIssuesBreadCrumb = layout.Breadcrumb{
-	IconIdentifier: "alert-octagon-outline",
-	Title:          "Andon Issues",
-	URLPart:        "andon-issues",
 }

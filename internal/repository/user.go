@@ -80,7 +80,7 @@ func (r *UserRepository) CreateAPIUser(
 	if password == "" {
 		randomPassword, err := generateRandomPassword(24)
 		if err != nil {
-				return "", fmt.Errorf("error generating random password: %v", err)
+			return "", fmt.Errorf("error generating random password: %v", err)
 		}
 		password = randomPassword
 	}
@@ -321,7 +321,7 @@ func (r *UserRepository) GetUsers(
 
 	limit := q.PageSize
 	offset := (q.Page - 1) * q.PageSize
-	orderByClause, err := q.Sort.ToOrderByClause(model.User{})
+	orderByClause, _ := q.Sort.ToOrderByClause(model.User{})
 
 	if orderByClause == "" {
 		orderByClause = "ORDER BY username ASC"

@@ -9,8 +9,9 @@ import (
 func addTeamRoutes(
 	mux *http.ServeMux,
 	teamService service.TeamService,
+	userService service.UserService,
 ) {
-	teamHandler := handler.NewTeamHandler(teamService)
+	teamHandler := handler.NewTeamHandler(teamService, userService)
 
 	mux.HandleFunc("GET /teams", teamHandler.TeamsHomePage)
 
@@ -21,4 +22,9 @@ func addTeamRoutes(
 
 	mux.HandleFunc("GET /teams/{id}/edit", teamHandler.EditTeamPage)
 	mux.HandleFunc("POST /teams/{id}/edit", teamHandler.EditTeam)
+
+	mux.HandleFunc("GET /teams/{id}/assign-user", teamHandler.AssignUserToTeamPage)
+	mux.HandleFunc("POST /teams/{id}/assign-user", teamHandler.AssignUserToTeam)
+
+	mux.HandleFunc("DELETE /teams/{id}/delete/{userID}", teamHandler.DeleteTeamUser)
 }

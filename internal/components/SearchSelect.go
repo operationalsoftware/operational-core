@@ -1,6 +1,8 @@
 package components
 
 import (
+	"strings"
+
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
@@ -9,12 +11,8 @@ import (
 type SearchSelectOption struct {
 	Label string
 	Value string
+	Nodes []g.Node
 }
-
-// Select renders the markup expected by initCustomSelect.
-// name  – the form field name (e.g. "machine_ids[]" or "machine_id")
-// mode  – "single" | "multi"
-// opts  – the initial option list (can be empty; JS can fill it later)
 
 type SearchSelectProps struct {
 	Name          string
@@ -25,13 +23,26 @@ type SearchSelectProps struct {
 	ShowOnlyLabel bool
 }
 
-func SearchSelect(p *SearchSelectProps) g.Node {
+func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
+
+	selectedValues := map[string]bool{}
+	if p.Mode == "multi" && p.Selected != "" {
+		for _, val := range strings.Split(p.Selected, ",") {
+			selectedValues[val] = true
+		}
+	}
 
 	var listOptions []g.Node
 	for _, o := range p.Options {
 		classes := "select-option"
-		if o.Value == p.Selected {
-			classes += " selected"
+		if p.Mode == "multi" {
+			if selectedValues[o.Value] {
+				classes += " selected"
+			}
+		} else {
+			if o.Value == p.Selected {
+				classes += " selected"
+			}
 		}
 
 		displayText := o.Value + " - " + o.Label
@@ -43,10 +54,11 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 			h.Div(
 				h.Class(classes),
 				h.DataAttr("value", o.Value),
-				// g.Text(o.Label),
+				g.Group(o.Nodes),
 				g.Text(displayText),
 			),
 		)
+
 	}
 
 	var inputText string
@@ -91,7 +103,8 @@ func SearchSelect(p *SearchSelectProps) g.Node {
 			),
 		),
 		h.Div(
-			h.Class("select-hidden-inputs"), // placeholder for dynamically injected hidden inputs
+			h.Class("select-hidden-inputs"),
 		),
+		g.Group(children),
 	)
 }

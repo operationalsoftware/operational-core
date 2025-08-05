@@ -28,8 +28,6 @@ func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) 
 		Ctx: ctx,
 	}).
 		Render(w)
-
-	return
 }
 
 func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +101,6 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-	return
 }
 
 type passwordLoginFormData struct {
@@ -119,8 +116,6 @@ func (h *AuthHandler) QRcodeLogInPage(w http.ResponseWriter, r *http.Request) {
 		Ctx: ctx,
 	}).
 		Render(w)
-
-	return
 }
 
 func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
@@ -185,7 +180,6 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-	return
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -203,5 +197,4 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-	return
 }

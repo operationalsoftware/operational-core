@@ -54,7 +54,7 @@ func (h *AndonIssueHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	andonIssues, count, err := h.andonIssueService.List(r.Context(), model.ListAndonIssuesQuery{
+	andonIssues, count, err := h.andonIssueService.ListIssuesAndGroups(r.Context(), model.ListAndonIssuesQuery{
 		ShowArchived: uv.ShowArchived,
 		Sort:         sort,
 		Page:         uv.Page,
@@ -78,6 +78,7 @@ func (h *AndonIssueHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 }
 
 type andonIssuesHomePageUrlVals struct {
+	IsGroup      bool
 	ShowArchived bool
 	Sort         string
 	Page         int
@@ -139,6 +140,12 @@ func (h *AndonIssueHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	andonIssueGroups, err := h.andonIssueService.ListGroups(r.Context())
+	if err != nil {
+		http.Error(w, "Error fetching andon issue groups", http.StatusInternalServerError)
+		return
+	}
+
 	teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
 		Page: 1, PageSize: 10000,
 	})
@@ -148,9 +155,10 @@ func (h *AndonIssueHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = andonissueview.AddPage(&andonissueview.AddPageProps{
-		Ctx:         ctx,
-		AndonIssues: andonIssues,
-		Teams:       teams,
+		Ctx:              ctx,
+		AndonIssues:      andonIssues,
+		AndonIssueGroups: andonIssueGroups,
+		Teams:            teams,
 	}).Render(w)
 }
 
@@ -187,6 +195,12 @@ func (h *AndonIssueHandler) Add(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		andonIssueGroups, err := h.andonIssueService.ListGroups(r.Context())
+		if err != nil {
+			http.Error(w, "Error fetching andon issue groups", http.StatusInternalServerError)
+			return
+		}
+
 		teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
 			Page: 1, PageSize: 10000,
 		})
@@ -201,6 +215,7 @@ func (h *AndonIssueHandler) Add(w http.ResponseWriter, r *http.Request) {
 			ValidationErrors: validationErrors,
 			IsSubmission:     true,
 			AndonIssues:      andonIssues,
+			AndonIssueGroups: andonIssueGroups,
 			Teams:            teams,
 		}).Render(w)
 		return
@@ -209,11 +224,10 @@ func (h *AndonIssueHandler) Add(w http.ResponseWriter, r *http.Request) {
 	if err := h.andonIssueService.Create(
 		r.Context(),
 		model.NewAndonIssue{
-			IssueName:          fd.IssueName,
-			ParentID:           fd.ParentID,
-			AssignedToTeam:     fd.AssignedToTeam,
-			ResolvableByRaiser: fd.ResolvableByRaiser,
-			WillStopProcess:    fd.WillStopProcess,
+			IssueName:      fd.IssueName,
+			ParentID:       fd.ParentID,
+			AssignedToTeam: fd.AssignedToTeam,
+			Severity:       fd.Severity,
 		},
 		ctx.User.UserID,
 	); err != nil {
@@ -225,12 +239,89 @@ func (h *AndonIssueHandler) Add(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/andon-issues", http.StatusSeeOther)
 }
 
+func (h *AndonIssueHandler) AddGroupPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	andonGroups, err := h.andonIssueService.ListTopLevelGroups(r.Context())
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error fetching andon issue groups", http.StatusInternalServerError)
+		return
+	}
+
+	_ = andonissueview.AddGroupPage(&andonissueview.AddGroupPageProps{
+		Ctx:              ctx,
+		AndonIssueGroups: andonGroups,
+	}).Render(w)
+}
+
+func (h *AndonIssueHandler) AddGroup(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var fd addAndonIssueGroupFormData
+	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	fd.normalise()
+
+	validationErrors := fd.validate()
+
+	if len(validationErrors) > 0 {
+		andonIssueGroups, err := h.andonIssueService.ListGroups(
+			r.Context(),
+		)
+		if err != nil {
+			http.Error(w, "Error fetching issue groups", http.StatusInternalServerError)
+			return
+		}
+
+		_ = andonissueview.AddGroupPage(&andonissueview.AddGroupPageProps{
+			Ctx:              ctx,
+			Values:           r.Form,
+			ValidationErrors: validationErrors,
+			IsSubmission:     true,
+			AndonIssueGroups: andonIssueGroups,
+		}).Render(w)
+		return
+	}
+
+	if err := h.andonIssueService.CreateGroup(
+		r.Context(),
+		model.NewAndonIssueGroup{
+			IssueName: fd.IssueName,
+			ParentID:  fd.ParentID,
+		},
+		ctx.User.UserID,
+	); err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error creating andon issue group", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/andon-issues", http.StatusSeeOther)
+}
+
 type addAndonIssueFormData struct {
-	IssueName          string
-	ParentID           *int
-	AssignedToTeam     int
-	ResolvableByRaiser bool
-	WillStopProcess    bool
+	IssueName      string
+	ParentID       *int
+	AssignedToTeam *int
+	Severity       model.AndonSeverity
 }
 
 func (fd *addAndonIssueFormData) normalise() {
@@ -238,6 +329,36 @@ func (fd *addAndonIssueFormData) normalise() {
 }
 
 func (fd *addAndonIssueFormData) validate() validate.ValidationErrors {
+	var ve validate.ValidationErrors = make(map[string][]string)
+
+	if fd.ParentID == nil {
+		ve.Add("ParentID", "is required")
+	}
+	if fd.AssignedToTeam == nil {
+		ve.Add("AssignedToTeam", "is required")
+	}
+	if fd.Severity == "" {
+		ve.Add("Severity", "is required")
+	}
+
+	validate.MinLength(&ve, "IssueName", fd.IssueName, 3)
+	validate.MaxLength(&ve, "IssueName", fd.IssueName, 50)
+
+	return ve
+}
+
+type addAndonIssueGroupFormData struct {
+	IssueName      string
+	ParentID       *int
+	AssignedToTeam *int
+	Severity       model.AndonSeverity
+}
+
+func (fd *addAndonIssueGroupFormData) normalise() {
+	fd.IssueName = strings.TrimSpace(fd.IssueName)
+}
+
+func (fd *addAndonIssueGroupFormData) validate() validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
 
 	validate.MinLength(&ve, "IssueName", fd.IssueName, 3)
@@ -269,13 +390,18 @@ func (h *AndonIssueHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	andonIssues, _, err := h.andonIssueService.List(
+	andonIssues, _, err := h.andonIssueService.ListIssuesAndGroups(
 		r.Context(),
 		model.ListAndonIssuesQuery{
 			Page: 1, PageSize: 10000,
 		})
 	if err != nil {
 		http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
+		return
+	}
+	andonIssueGroups, err := h.andonIssueService.ListGroups(r.Context())
+	if err != nil {
+		http.Error(w, "Error fetching andon issue groups", http.StatusInternalServerError)
 		return
 	}
 	teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
@@ -287,10 +413,11 @@ func (h *AndonIssueHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = andonissueview.EditPage(&andonissueview.EditPageProps{
-		Ctx:         ctx,
-		AndonIssue:  *andonIssue,
-		AndonIssues: andonIssues,
-		Teams:       teams,
+		Ctx:              ctx,
+		AndonIssue:       *andonIssue,
+		AndonIssues:      andonIssues,
+		AndonIssueGroups: andonIssueGroups,
+		Teams:            teams,
 	}).Render(w)
 }
 
@@ -327,12 +454,11 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 			r.Context(),
 			andonIssueID,
 			model.AndonIssueUpdate{
-				IssueName:          fd.IssueName,
-				ParentID:           fd.ParentID,
-				IsArchived:         fd.IsArchived,
-				AssignedToTeam:     fd.AssignedToTeam,
-				ResolvableByRaiser: fd.ResolvableByRaiser,
-				WillStopProcess:    fd.WillStopProcess,
+				IssueName:      fd.IssueName,
+				ParentID:       fd.ParentID,
+				IsArchived:     fd.IsArchived,
+				AssignedToTeam: fd.AssignedToTeam,
+				Severity:       fd.Severity,
 			},
 			ctx.User.UserID,
 		)
@@ -345,13 +471,18 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if validationErrors != nil {
-		andonIssues, _, err := h.andonIssueService.List(
+		andonIssues, _, err := h.andonIssueService.ListIssuesAndGroups(
 			r.Context(),
 			model.ListAndonIssuesQuery{
 				Page: 1, PageSize: 10000,
 			})
 		if err != nil {
 			http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
+			return
+		}
+		andonIssueGroups, err := h.andonIssueService.ListGroups(r.Context())
+		if err != nil {
+			http.Error(w, "Error fetching andon issue groups", http.StatusInternalServerError)
 			return
 		}
 		teams, _, err := h.teamService.List(r.Context(), model.ListTeamsQuery{
@@ -368,6 +499,7 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 			ValidationErrors: *validationErrors,
 			IsSubmission:     true,
 			AndonIssues:      andonIssues,
+			AndonIssueGroups: andonIssueGroups,
 			Teams:            teams,
 		}).Render(w)
 		return
@@ -377,12 +509,11 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 type editAndonIssueFormData struct {
-	IssueName          string
-	IsArchived         bool
-	ParentID           *int
-	AssignedToTeam     int
-	ResolvableByRaiser bool
-	WillStopProcess    bool
+	IssueName      string
+	IsArchived     bool
+	ParentID       *int
+	AssignedToTeam *int
+	Severity       model.AndonSeverity
 }
 
 func (fd *editAndonIssueFormData) normalise() {
