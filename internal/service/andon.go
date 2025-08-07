@@ -168,15 +168,15 @@ func (s *AndonService) ListAndons(
 	}
 
 	filters, err := s.andonRepository.GetAvailableFilters(ctx, tx, model.AndonFilters{
-		StartDate:      q.StartDate,
-		EndDate:        q.EndDate,
-		Issues:         q.Issues,
-		Teams:          q.Teams,
-		Locations:      q.Locations,
-		Statuses:       q.Statuses,
-		RaisedBy:       q.RaisedBy,
-		AcknowledgedBy: q.AcknowledgedBy,
-		ResolvedBy:     q.ResolvedBy,
+		StartDate:              q.StartDate,
+		EndDate:                q.EndDate,
+		Issues:                 q.Issues,
+		Teams:                  q.Teams,
+		Locations:              q.Locations,
+		Statuses:               q.Statuses,
+		RaisedByUsername:       q.RaisedByUsername,
+		AcknowledgedByUsername: q.AcknowledgedByUsername,
+		ResolvedByUsername:     q.ResolvedByUsername,
 	})
 	if err != nil {
 		return []model.AndonEvent{}, 0, model.AndonAvailableFilters{}, err

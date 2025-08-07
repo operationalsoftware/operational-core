@@ -29,13 +29,13 @@ type AllAndonsPageProps struct {
 }
 
 type AvailableFilters struct {
-	IssueIn          []components.SearchSelectOption
-	TeamIn           []components.SearchSelectOption
-	LocationIn       []components.SearchSelectOption
-	StatusIn         []components.SearchSelectOption
-	RaisedByIn       []components.SearchSelectOption
-	AcknowledgedByIn []components.SearchSelectOption
-	ResolvedByIn     []components.SearchSelectOption
+	IssueIn                  []components.SearchSelectOption
+	TeamIn                   []components.SearchSelectOption
+	LocationIn               []components.SearchSelectOption
+	StatusIn                 []components.SearchSelectOption
+	RaisedByUsernameIn       []components.SearchSelectOption
+	AcknowledgedByUsernameIn []components.SearchSelectOption
+	ResolvedByUsernameIn     []components.SearchSelectOption
 }
 
 func AllAndonsPage(p *AllAndonsPageProps) g.Node {
@@ -119,7 +119,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 				Contents: g.Text(namePathStr),
 			},
 			{
-				Contents: g.Text(ai.AssignedTeam),
+				Contents: g.Text(ai.AssignedTeamName),
 			},
 			{
 				Contents: g.Text(ai.Severity),
@@ -369,11 +369,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Raised By"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "RaisedByIn",
+						Name:        "RaisedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.RaisedByIn),
-						Selected:    strings.Join(p.Filters.RaisedBy, ","),
+						Options:     MapStringsToOptions(availableFilters.RaisedByUsernameIn),
+						Selected:    strings.Join(p.Filters.RaisedByUsername, ","),
 					}),
 				),
 				h.Div(
@@ -383,11 +383,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Acknowledged By"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "AcknowledgedByIn",
+						Name:        "AcknowledgedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.AcknowledgedByIn),
-						Selected:    strings.Join(p.Filters.AcknowledgedBy, ","),
+						Options:     MapStringsToOptions(availableFilters.AcknowledgedByUsernameIn),
+						Selected:    strings.Join(p.Filters.AcknowledgedByUsername, ","),
 					}),
 				),
 				h.Div(
@@ -397,11 +397,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Resolved By"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "ResolvedByIn",
+						Name:        "ResolvedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.ResolvedByIn),
-						Selected:    strings.Join(p.Filters.ResolvedBy, ","),
+						Options:     MapStringsToOptions(availableFilters.ResolvedByUsernameIn),
+						Selected:    strings.Join(p.Filters.ResolvedByUsername, ","),
 					}),
 				),
 			),

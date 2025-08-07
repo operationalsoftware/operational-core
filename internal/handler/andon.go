@@ -144,15 +144,15 @@ type andonAllEventsUrlVals struct {
 	Page     int
 	PageSize int
 
-	StartDate        *time.Time
-	EndDate          *time.Time
-	IssueIn          []string
-	TeamIn           []string
-	LocationIn       []string
-	StatusIn         []string
-	RaisedByIn       []string
-	AcknowledgedByIn []string
-	ResolvedByIn     []string
+	StartDate                *time.Time
+	EndDate                  *time.Time
+	IssueIn                  []string
+	TeamIn                   []string
+	LocationIn               []string
+	StatusIn                 []string
+	RaisedByUsernameIn       []string
+	AcknowledgedByUsernameIn []string
+	ResolvedByUsernameIn     []string
 }
 
 func (uv *andonAllEventsUrlVals) normalise() {
@@ -197,15 +197,15 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 			Page:     uv.Page,
 			PageSize: uv.PageSize,
 
-			StartDate:      uv.StartDate,
-			EndDate:        uv.EndDate,
-			Issues:         uv.IssueIn,
-			Teams:          uv.TeamIn,
-			Locations:      uv.LocationIn,
-			Statuses:       uv.StatusIn,
-			RaisedBy:       uv.RaisedByIn,
-			AcknowledgedBy: uv.AcknowledgedByIn,
-			ResolvedBy:     uv.ResolvedByIn,
+			StartDate:              uv.StartDate,
+			EndDate:                uv.EndDate,
+			Issues:                 uv.IssueIn,
+			Teams:                  uv.TeamIn,
+			Locations:              uv.LocationIn,
+			Statuses:               uv.StatusIn,
+			RaisedByUsername:       uv.RaisedByUsernameIn,
+			AcknowledgedByUsername: uv.AcknowledgedByUsernameIn,
+			ResolvedByUsername:     uv.ResolvedByUsernameIn,
 		},
 		ctx.User.UserID,
 	)
@@ -224,15 +224,15 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 		Page:             uv.Page,
 		PageSize:         uv.PageSize,
 		Filters: model.AndonFilters{
-			StartDate:      uv.StartDate,
-			EndDate:        uv.EndDate,
-			Issues:         uv.IssueIn,
-			Teams:          uv.TeamIn,
-			Locations:      uv.LocationIn,
-			Statuses:       uv.StatusIn,
-			RaisedBy:       uv.RaisedByIn,
-			AcknowledgedBy: uv.AcknowledgedByIn,
-			ResolvedBy:     uv.ResolvedByIn,
+			StartDate:              uv.StartDate,
+			EndDate:                uv.EndDate,
+			Issues:                 uv.IssueIn,
+			Teams:                  uv.TeamIn,
+			Locations:              uv.LocationIn,
+			Statuses:               uv.StatusIn,
+			RaisedByUsername:       uv.RaisedByUsernameIn,
+			AcknowledgedByUsername: uv.AcknowledgedByUsernameIn,
+			ResolvedByUsername:     uv.ResolvedByUsernameIn,
 		},
 	}).Render(w)
 }

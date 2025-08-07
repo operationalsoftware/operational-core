@@ -86,11 +86,11 @@ SELECT
 	assigned_team_name,
 	raised_by_username,
 	raised_at,
-	acknowledged_by,
+	acknowledged_by_username,
 	acknowledged_at,
-	resolved_by,
+	resolved_by_username,
 	resolved_at,
-	cancelled_by,
+	cancelled_by_username,
 	cancelled_at,
 	last_updated,
 	name_path,
@@ -130,8 +130,8 @@ WHERE
 		&andonEvent.Source,
 		&andonEvent.Location,
 		&andonEvent.Status,
-		&andonEvent.AssignedTeamID,
 		&andonEvent.AssignedTeam,
+		&andonEvent.AssignedTeamName,
 		&andonEvent.RaisedByUsername,
 		&andonEvent.RaisedAt,
 		&andonEvent.AcknowledgedByUsername,
@@ -189,9 +189,9 @@ SELECT
 	status,
 	raised_by_username,
 	raised_at,
-	acknowledged_by,
+	acknowledged_by_username,
 	acknowledged_at,
-	resolved_by,
+	resolved_by_username,
 	resolved_at,
 	last_updated,
 	assigned_team,
@@ -262,8 +262,8 @@ FROM andon_view
 			&event.ResolvedByUsername,
 			&event.ResolvedAt,
 			&event.LastUpdated,
-			&event.AssignedTeamID,
 			&event.AssignedTeam,
+			&event.AssignedTeamName,
 			&event.IssueName,
 			&event.NamePath,
 			&event.Severity,
@@ -311,13 +311,13 @@ func (r *AndonRepository) GetAvailableFilters(
 ) (model.AndonAvailableFilters, error) {
 
 	mapping := map[string]string{
-		"IssueIn":          "issue_name",
-		"TeamIn":           "assigned_team_name",
-		"LocationIn":       "location",
-		"StatusIn":         "status",
-		"RaisedByIn":       "raised_by_username",
-		"AcknowledgedByIn": "acknowledged_by",
-		"ResolvedByIn":     "resolved_by",
+		"IssueIn":                  "issue_name",
+		"TeamIn":                   "assigned_team_name",
+		"LocationIn":               "location",
+		"StatusIn":                 "status",
+		"RaisedByUsernameIn":       "raised_by_username",
+		"AcknowledgedByUsernameIn": "acknowledged_by_username",
+		"ResolvedByUsernameIn":     "resolved_by_username",
 	}
 
 	avail := model.AndonAvailableFilters{}
@@ -325,15 +325,15 @@ func (r *AndonRepository) GetAvailableFilters(
 	// helper to select into a *[]string
 	var collect = func(key string, dest *[]string) error {
 		queryFilters := model.ListAndonQuery{
-			StartDate:      baseFilters.StartDate,
-			EndDate:        baseFilters.EndDate,
-			Issues:         baseFilters.Issues,
-			Teams:          baseFilters.Teams,
-			Locations:      baseFilters.Locations,
-			Statuses:       baseFilters.Statuses,
-			RaisedBy:       baseFilters.RaisedBy,
-			AcknowledgedBy: baseFilters.AcknowledgedBy,
-			ResolvedBy:     baseFilters.ResolvedBy,
+			StartDate:              baseFilters.StartDate,
+			EndDate:                baseFilters.EndDate,
+			Issues:                 baseFilters.Issues,
+			Teams:                  baseFilters.Teams,
+			Locations:              baseFilters.Locations,
+			Statuses:               baseFilters.Statuses,
+			RaisedByUsername:       baseFilters.RaisedByUsername,
+			AcknowledgedByUsername: baseFilters.AcknowledgedByUsername,
+			ResolvedByUsername:     baseFilters.ResolvedByUsername,
 		}
 
 		switch key {
@@ -345,12 +345,12 @@ func (r *AndonRepository) GetAvailableFilters(
 			queryFilters.Locations = nil
 		case "StatusIn":
 			queryFilters.Statuses = nil
-		case "RaisedByIn":
-			queryFilters.RaisedBy = nil
-		case "AcknowledgedByIn":
-			queryFilters.AcknowledgedBy = nil
-		case "ResolvedByIn":
-			queryFilters.ResolvedBy = nil
+		case "RaisedByUsernameIn":
+			queryFilters.RaisedByUsername = nil
+		case "AcknowledgedByUsernameIn":
+			queryFilters.AcknowledgedByUsername = nil
+		case "ResolvedByUsernameIn":
+			queryFilters.ResolvedByUsername = nil
 		}
 
 		where, args := generateWhereClause(queryFilters)
@@ -400,13 +400,13 @@ ORDER BY val ASC
 	if err := collect("StatusIn", &avail.StatusIn); err != nil {
 		return avail, err
 	}
-	if err := collect("RaisedByIn", &avail.RaisedByIn); err != nil {
+	if err := collect("RaisedByUsernameIn", &avail.RaisedByUsernameIn); err != nil {
 		return avail, err
 	}
-	if err := collect("AcknowledgedByIn", &avail.AcknowledgedByIn); err != nil {
+	if err := collect("AcknowledgedByUsernameIn", &avail.AcknowledgedByUsernameIn); err != nil {
 		return avail, err
 	}
-	if err := collect("ResolvedByIn", &avail.ResolvedByIn); err != nil {
+	if err := collect("ResolvedByUsernameIn", &avail.ResolvedByUsernameIn); err != nil {
 		return avail, err
 	}
 
@@ -762,9 +762,9 @@ func generateWhereClause(filters model.ListAndonQuery) (string, []any) {
 	addInClause("assigned_team_name", filters.Teams)
 	addInClause("location", filters.Locations)
 	addInClause("status", filters.Statuses)
-	addInClause("raised_by", filters.RaisedBy)
-	addInClause("acknowledged_by", filters.AcknowledgedBy)
-	addInClause("resolved_by", filters.ResolvedBy)
+	addInClause("raised_by_username", filters.RaisedByUsername)
+	addInClause("acknowledged_by_username", filters.AcknowledgedByUsername)
+	addInClause("resolved_by_username", filters.ResolvedByUsername)
 
 	if len(whereClauses) == 0 {
 		return "", args

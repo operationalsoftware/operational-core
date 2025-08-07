@@ -177,7 +177,7 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 						),
 
 						h.Span(
-							g.Text(andonEvent.AssignedTeam),
+							g.Text(andonEvent.AssignedTeamName),
 						),
 					),
 					h.Li(

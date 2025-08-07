@@ -21,8 +21,8 @@ type AndonEvent struct {
 	RaisedBy               int        `sortable:"true"`
 	RaisedByUsername       string     `sortable:"true"`
 	RaisedAt               time.Time  `sortable:"true"`
-	AssignedTeam           string     `sortable:"true"`
-	AssignedTeamID         int        `sortable:"true"`
+	AssignedTeam           int        `sortable:"true"`
+	AssignedTeamName       string     `sortable:"true"`
 	AcknowledgedBy         *int       `sortable:"true"`
 	AcknowledgedByUsername *string    `sortable:"true"`
 	AcknowledgedAt         *time.Time `sortable:"true"`
@@ -57,15 +57,15 @@ type ListAndonQuery struct {
 	Page     int
 	PageSize int
 
-	StartDate      *time.Time
-	EndDate        *time.Time
-	Issues         []string
-	Teams          []string
-	Locations      []string
-	Statuses       []string
-	RaisedBy       []string
-	AcknowledgedBy []string
-	ResolvedBy     []string
+	StartDate              *time.Time
+	EndDate                *time.Time
+	Issues                 []string
+	Teams                  []string
+	Locations              []string
+	Statuses               []string
+	RaisedByUsername       []string
+	AcknowledgedByUsername []string
+	ResolvedByUsername     []string
 
 	OrderBy          string
 	OrderByDirection string
@@ -96,23 +96,23 @@ type AndonChange struct {
 }
 
 type AndonFilters struct {
-	StartDate      *time.Time
-	EndDate        *time.Time
-	Issues         []string
-	Teams          []string
-	Locations      []string
-	Statuses       []string
-	RaisedBy       []string
-	AcknowledgedBy []string
-	ResolvedBy     []string
+	StartDate              *time.Time
+	EndDate                *time.Time
+	Issues                 []string
+	Teams                  []string
+	Locations              []string
+	Statuses               []string
+	RaisedByUsername       []string
+	AcknowledgedByUsername []string
+	ResolvedByUsername     []string
 }
 
 type AndonAvailableFilters struct {
-	IssueIn          []string
-	TeamIn           []string
-	LocationIn       []string
-	StatusIn         []string
-	RaisedByIn       []string
-	AcknowledgedByIn []string
-	ResolvedByIn     []string
+	IssueIn                  []string
+	TeamIn                   []string
+	LocationIn               []string
+	StatusIn                 []string
+	RaisedByUsernameIn       []string
+	AcknowledgedByUsernameIn []string
+	ResolvedByUsernameIn     []string
 }

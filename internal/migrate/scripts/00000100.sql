@@ -296,9 +296,9 @@ SELECT
     aiv.assigned_team_name,
     aiv.name_path,
     u.username AS raised_by_username,
-    acku.username AS acknowledged_by,
-    ru.username AS resolved_by,
-    cu.username AS cancelled_by,
+    acku.username AS acknowledged_by_username,
+    ru.username AS resolved_by_username,
+    cu.username AS cancelled_by_username,
     aiv.severity
 FROM
     andon_event ae
