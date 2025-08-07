@@ -107,24 +107,6 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 		isCancelled := ai.Status == "Cancelled"
 		twoMinutesPassed := time.Since(ai.RaisedAt) > 2*time.Minute && !isResolved
 		fiveMinutesPassed := time.Since(ai.RaisedAt) > 5*time.Minute && !isResolved
-		// hasInfoSeverity := ai.Severity == "Info"
-
-		// isSelfResolvable := false
-		// if ai.Severity == "Self-resolvable" && ai.IsTeamMate && ai.Status == "Outstanding" {
-		// 	isSelfResolvable = true
-		// }
-		// isAckBtnEnabled := true
-		// if ai.Severity == "Requires Intervention" && !ai.IsTeamMate {
-		// 	isAckBtnEnabled = false
-		// }
-
-		// isResolveBtnEnabled := true
-		// if hasInfoSeverity {
-		// 	isResolveBtnEnabled = false
-		// }
-		// if ai.Severity == "Requires Intervention" && !ai.IsTeamMate {
-		// 	isResolveBtnEnabled = false
-		// }
 
 		cells := []components.TableCell{
 			{
@@ -331,12 +313,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Issues"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:          "IssueIn",
-						Placeholder:   "-",
-						Mode:          "multi",
-						Options:       MapStringsToOptions(availableFilters.IssueIn),
-						ShowOnlyLabel: true,
-						Selected:      strings.Join(p.Filters.Issues, ","),
+						Name:        "IssueIn",
+						Placeholder: "-",
+						Mode:        "multi",
+						Options:     MapStringsToOptions(availableFilters.IssueIn),
+						Selected:    strings.Join(p.Filters.Issues, ","),
 					}),
 				),
 				h.Div(
@@ -346,12 +327,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Teams"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:          "TeamIn",
-						Placeholder:   "-",
-						Mode:          "multi",
-						Options:       MapStringsToOptions(availableFilters.TeamIn),
-						ShowOnlyLabel: true,
-						Selected:      strings.Join(p.Filters.Teams, ","),
+						Name:        "TeamIn",
+						Placeholder: "-",
+						Mode:        "multi",
+						Options:     MapStringsToOptions(availableFilters.TeamIn),
+						Selected:    strings.Join(p.Filters.Teams, ","),
 					}),
 				),
 				h.Div(
@@ -361,12 +341,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Locations"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:          "LocationIn",
-						Placeholder:   "-",
-						Mode:          "multi",
-						Options:       MapStringsToOptions(availableFilters.LocationIn),
-						ShowOnlyLabel: true,
-						Selected:      strings.Join(p.Filters.Locations, ","),
+						Name:        "LocationIn",
+						Placeholder: "-",
+						Mode:        "multi",
+						Options:     MapStringsToOptions(availableFilters.LocationIn),
+						Selected:    strings.Join(p.Filters.Locations, ","),
 					}),
 				),
 				h.Div(
@@ -376,12 +355,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Statuses"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:          "StatusIn",
-						Placeholder:   "-",
-						Mode:          "multi",
-						Options:       MapStringsToOptions(availableFilters.StatusIn),
-						ShowOnlyLabel: true,
-						Selected:      strings.Join(p.Filters.Statuses, ","),
+						Name:        "StatusIn",
+						Placeholder: "-",
+						Mode:        "multi",
+						Options:     MapStringsToOptions(availableFilters.StatusIn),
+						Selected:    strings.Join(p.Filters.Statuses, ","),
 					}),
 				),
 				h.Div(
@@ -391,12 +369,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Raised By"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:          "RaisedByIn",
-						Placeholder:   "-",
-						Mode:          "multi",
-						Options:       MapStringsToOptions(availableFilters.RaisedByIn),
-						ShowOnlyLabel: true,
-						Selected:      strings.Join(p.Filters.RaisedBy, ","),
+						Name:        "RaisedByIn",
+						Placeholder: "-",
+						Mode:        "multi",
+						Options:     MapStringsToOptions(availableFilters.RaisedByIn),
+						Selected:    strings.Join(p.Filters.RaisedBy, ","),
 					}),
 				),
 				h.Div(
@@ -406,12 +383,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Acknowledged By"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:          "AcknowledgedByIn",
-						Placeholder:   "-",
-						Mode:          "multi",
-						Options:       MapStringsToOptions(availableFilters.AcknowledgedByIn),
-						ShowOnlyLabel: true,
-						Selected:      strings.Join(p.Filters.AcknowledgedBy, ","),
+						Name:        "AcknowledgedByIn",
+						Placeholder: "-",
+						Mode:        "multi",
+						Options:     MapStringsToOptions(availableFilters.AcknowledgedByIn),
+						Selected:    strings.Join(p.Filters.AcknowledgedBy, ","),
 					}),
 				),
 				h.Div(
@@ -421,12 +397,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						g.Text("Resolved By"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:          "ResolvedByIn",
-						Placeholder:   "-",
-						Mode:          "multi",
-						Options:       MapStringsToOptions(availableFilters.ResolvedByIn),
-						ShowOnlyLabel: true,
-						Selected:      strings.Join(p.Filters.ResolvedBy, ","),
+						Name:        "ResolvedByIn",
+						Placeholder: "-",
+						Mode:        "multi",
+						Options:     MapStringsToOptions(availableFilters.ResolvedByIn),
+						Selected:    strings.Join(p.Filters.ResolvedBy, ","),
 					}),
 				),
 			),
@@ -485,7 +460,7 @@ func MapStringsToOptions(vals []string) []components.SearchSelectOption {
 	out := make([]components.SearchSelectOption, len(vals))
 	for i, v := range vals {
 		out[i] = components.SearchSelectOption{
-			Label: v,
+			Text:  v,
 			Value: v,
 		}
 	}

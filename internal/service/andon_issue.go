@@ -85,11 +85,25 @@ func (s *AndonIssueService) CreateGroup(
 func (s *AndonIssueService) GetByID(
 	ctx context.Context,
 	andonIssueID int,
-) (*model.AndonIssue, error) {
+) (*model.AndonIssueNode, error) {
 	return s.andonIssueRepository.GetByID(ctx, s.db, andonIssueID)
 }
 
-func (s *AndonIssueService) List(
+func (s *AndonIssueService) GetIssueByID(
+	ctx context.Context,
+	andonIssueID int,
+) (*model.AndonIssue, error) {
+	return s.andonIssueRepository.GetIssueByID(ctx, s.db, andonIssueID)
+}
+
+func (s *AndonIssueService) GetGroupByID(
+	ctx context.Context,
+	andonIssueGroupID int,
+) (*model.AndonIssueGroup, error) {
+	return s.andonIssueRepository.GetGroupByID(ctx, s.db, andonIssueGroupID)
+}
+
+func (s *AndonIssueService) ListIssues(
 	ctx context.Context,
 	q model.ListAndonIssuesQuery,
 ) ([]model.AndonIssue, int, error) {
@@ -100,7 +114,7 @@ func (s *AndonIssueService) List(
 	}
 	defer tx.Rollback(ctx)
 
-	andonIssues, err := s.andonIssueRepository.List(ctx, tx, q)
+	andonIssues, err := s.andonIssueRepository.ListIssues(ctx, tx, q)
 	if err != nil {
 		return []model.AndonIssue{}, 0, err
 	}
@@ -165,7 +179,7 @@ func (s *AndonIssueService) ListTopLevelGroups(
 }
 
 // Update
-func (s *AndonIssueService) Update(
+func (s *AndonIssueService) UpdateIssue(
 	ctx context.Context,
 	andonIssueID int,
 	update model.AndonIssueUpdate,
@@ -199,6 +213,42 @@ func (s *AndonIssueService) Update(
 	}
 
 	if err := s.andonIssueRepository.Update(
+		ctx,
+		tx,
+		andonIssueID,
+		update,
+		userID,
+	); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+// Update group
+func (s *AndonIssueService) UpdateIssueGroup(
+	ctx context.Context,
+	andonIssueID int,
+	update model.AndonIssueGroupUpdate,
+	userID int,
+) (*validate.ValidationErrors, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	existing, _ := s.andonIssueRepository.GetByID(ctx, tx, andonIssueID)
+
+	if existing == nil {
+		return nil, fmt.Errorf("andon issue with ID %d doesn't exist", andonIssueID)
+	}
+
+	if err := s.andonIssueRepository.UpdateGroup(
 		ctx,
 		tx,
 		andonIssueID,

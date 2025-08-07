@@ -16,30 +16,49 @@ import (
 
 type AndonIssuePageProps struct {
 	Ctx        reqcontext.ReqContext
-	AndonIssue model.AndonIssue
+	AndonIssue model.AndonIssueNode
 }
 
 func AndonIssuePage(p *AndonIssuePageProps) g.Node {
 
 	andonIssue := p.AndonIssue
 
+	namePathStr := strings.Join(p.AndonIssue.NamePath, " > ")
+
 	content := g.Group([]g.Node{
 		h.Div(
 			h.Class("button-container"),
-			components.Button(&components.ButtonProps{
-				ButtonType: "primary",
-				Classes: c.Classes{
-					"edit-button": true,
+			g.If(
+				!andonIssue.IsGroup,
+				components.Button(&components.ButtonProps{
+					ButtonType: "primary",
+					Classes: c.Classes{
+						"edit-button": true,
+					},
+					Link: fmt.Sprintf("/andon-issues/%d/edit", andonIssue.AndonIssueID),
 				},
-				Link: fmt.Sprintf("/andon-issues/%d/edit", andonIssue.AndonIssueID),
-			},
-				components.Icon(&components.IconProps{
-					Identifier: "pencil",
-				}),
+					components.Icon(&components.IconProps{
+						Identifier: "pencil",
+					}),
+				),
+			),
+			g.If(
+				andonIssue.IsGroup,
+				components.Button(&components.ButtonProps{
+					ButtonType: "primary",
+					Classes: c.Classes{
+						"edit-button": true,
+					},
+					Link: fmt.Sprintf("/andon-issues/group/%d/edit", andonIssue.AndonIssueID),
+				},
+					components.Icon(&components.IconProps{
+						Identifier: "pencil",
+					}),
+				),
 			),
 		),
 		h.Div(
-			h.H3(g.Text("Andon Issue Details")),
+			h.H3(g.Text(namePathStr)),
 			h.Div(
 				h.Class("properties-grid"),
 				g.Group([]g.Node{
@@ -86,8 +105,7 @@ func AndonIssuePage(p *AndonIssuePageProps) g.Node {
 				URLPart:        "andon-issues",
 			},
 			{
-				IconIdentifier: "alert-octagon-outline",
-				Title:          andonIssue.IssueName,
+				Title: andonIssue.IssueName,
 			},
 		},
 		Content: content,

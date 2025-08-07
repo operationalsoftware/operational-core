@@ -4,7 +4,6 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
-	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"fmt"
@@ -22,7 +21,6 @@ type EditPageProps struct {
 	Values           url.Values
 	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
-	AndonIssues      []model.AndonIssueNode
 	AndonIssueGroups []model.AndonIssueGroup
 	Teams            []model.Team
 }
@@ -37,7 +35,6 @@ func EditPage(p *EditPageProps) g.Node {
 			values:           p.Values,
 			validationErrors: p.ValidationErrors,
 			isSubmission:     p.IsSubmission,
-			andonIssues:      p.AndonIssues,
 			andonIssueGroups: p.AndonIssueGroups,
 			teams:            p.Teams,
 		}),
@@ -47,11 +44,6 @@ func EditPage(p *EditPageProps) g.Node {
 		Title: fmt.Sprintf("Edit: %s", andonIssue.IssueName),
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
-			{
-				IconIdentifier: "alert-octagon-outline",
-				Title:          "Andons",
-				URLPart:        "andons",
-			},
 			{
 				Title:   "Andon Issues",
 				URLPart: "andon-issues",
@@ -78,7 +70,6 @@ type editFormProps struct {
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
-	andonIssues      []model.AndonIssueNode
 	andonIssueGroups []model.AndonIssueGroup
 	teams            []model.Team
 }
@@ -110,8 +101,8 @@ func editForm(p *editFormProps) g.Node {
 	parentIDValue := ""
 	if p.values.Get(parentIDKey) != "" {
 		parentIDValue = p.values.Get(parentIDKey)
-	} else if andonIssue.ParentID != nil {
-		parentIDValue = fmt.Sprintf("%d", *andonIssue.ParentID)
+	} else if andonIssue.ParentID != 0 {
+		parentIDValue = fmt.Sprintf("%d", andonIssue.ParentID)
 	}
 	parentIDError := ""
 	if p.isSubmission || parentIDValue != "" {
@@ -162,8 +153,8 @@ func editForm(p *editFormProps) g.Node {
 		),
 	}
 	for _, team := range p.teams {
-		intVal := p.andonIssue.AssignedToTeam
-		isSelected := team.TeamID == nilsafe.Int(intVal)
+		intVal := p.andonIssue.AssignedTeam
+		isSelected := team.TeamID == intVal
 
 		teamSelectOptions = append(teamSelectOptions, h.Option(
 			h.Value(fmt.Sprintf("%d", team.TeamID)),
@@ -309,7 +300,7 @@ func editForm(p *editFormProps) g.Node {
 		components.Button(
 			&components.ButtonProps{},
 			h.Type("submit"),
-			g.Text("Submit"),
+			g.Text("Save"),
 		),
 	)
 }

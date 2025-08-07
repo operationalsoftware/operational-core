@@ -80,27 +80,6 @@ func QRcodeLoginPage(p QRcodeLoginPageProps) g.Node {
 
 		components.InlineStyle("/internal/views/authview/qrcode_login_page.css"),
 		components.InlineScript("/internal/views/authview/qrcode_login_page.js"),
-
-		// g.If(
-		// 	decoded.Username != "" && decoded.Password != "",
-		// 	h.Script(g.Raw(`
-		// 		document.addEventListener('DOMContentLoaded', function () {
-		// 			document.getElementById('qrcode-login-form').submit();
-		// 		});
-		// 	`)),
-		// ),
-
-		// g.If(
-		// 	decoded.Username == "" && decoded.Password == "",
-		// 	h.Script(g.Raw(`
-		// 		document.addEventListener('DOMContentLoaded', function () {
-		// 			const url = new URL(window.location);
-		// 			url.searchParams.delete('EncryptedCredentials');
-		// 			window.history.replaceState({}, document.title, url);
-		// 			document.querySelector(".qrcode-form-input").value = ""
-		// 		});
-		// 	`)),
-		// ),
 	})
 
 	return layout.Page(layout.PageProps{

@@ -111,11 +111,6 @@ func HomePage(p *HomePageProps) g.Node {
 		twoMinutesPassed := time.Since(ai.RaisedAt) > 2*time.Minute
 		fiveMinutesPassed := time.Since(ai.RaisedAt) > 5*time.Minute
 
-		// isSelfResolvable := false
-		// if ai.Severity == "Self-resolvable" && ai.IsTeamMate {
-		// 	isSelfResolvable = true
-		// }
-
 		cells := []components.TableCell{
 			{
 				Contents: g.Text(ai.Location),
@@ -328,12 +323,11 @@ func HomePage(p *HomePageProps) g.Node {
 					g.Attr("id", "search-select-wrapper"),
 
 					components.SearchSelect(&components.SearchSelectProps{
-						Name:          "AndonTeams",
-						Placeholder:   "Select a team",
-						Mode:          "multi",
-						Options:       MapTeamsToOptions(p.Teams),
-						Selected:      strings.Join(p.SelectedTeams, ","),
-						ShowOnlyLabel: true,
+						Name:        "AndonTeams",
+						Placeholder: "Select a team",
+						Mode:        "multi",
+						Options:     MapTeamsToOptions(p.Teams),
+						Selected:    strings.Join(p.SelectedTeams, ","),
 						// OnChange:
 					},
 						g.Attr("onchange", "handleTeamSelectChange(event)"),
@@ -341,23 +335,6 @@ func HomePage(p *HomePageProps) g.Node {
 				),
 			),
 		),
-
-		// h.Div(
-		// 	h.Class("button-container"),
-
-		// 	components.Button(&components.ButtonProps{
-		// 		ButtonType: "primary",
-		// 		Link:       "/andons/add?Location=Assembly Line 25&Source=Works Order Receipt",
-		// 		Classes: c.Classes{
-		// 			"add-andon-issue-btn": true,
-		// 		},
-		// 	},
-		// 		components.Icon(&components.IconProps{
-		// 			Identifier: "plus",
-		// 		}),
-		// 		g.Text("Andon Event"),
-		// 	),
-		// ),
 
 		h.FormEl(
 			h.ID("andon-wip-table-form"),
@@ -436,7 +413,7 @@ func MapTeamsToOptions(teams []model.Team) []components.SearchSelectOption {
 	out := make([]components.SearchSelectOption, len(teams))
 	for i, v := range teams {
 		out[i] = components.SearchSelectOption{
-			Label: v.TeamName,
+			Text:  v.TeamName,
 			Value: v.TeamName,
 			// Value: strconv.Itoa(v.TeamID),
 		}

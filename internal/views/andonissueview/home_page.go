@@ -73,8 +73,8 @@ func HomePage(p *HomePageProps) g.Node {
 					h.A(
 						h.Class("issue-title"),
 						g.Text(namePathStr),
-						g.Attr("href",
-							fmt.Sprintf("/andon-issues/%d", ai.AndonIssueID))),
+						g.Attr("href", fmt.Sprintf("/andon-issues/%d", ai.AndonIssueID)),
+					),
 
 					g.If(
 						ai.IsGroup,
@@ -87,7 +87,7 @@ func HomePage(p *HomePageProps) g.Node {
 				),
 			},
 			{
-				Contents: g.Text(nilsafe.Str(ai.AssignedToTeamName)),
+				Contents: g.Text(nilsafe.Str(ai.AssignedTeamName)),
 			},
 			{
 				Contents: g.Text(nilsafe.Str((*string)(ai.Severity))),

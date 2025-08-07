@@ -16,40 +16,6 @@ func NewAndonRepository() *AndonRepository {
 	return &AndonRepository{}
 }
 
-const andonCTE = `
-ANDON_CTE AS (
-	SELECT
-		ae.andon_event_id,
-		ae.issue_description,
-		ae.issue_id,
-		ae.source,
-		ae.location,
-		ae.status,
-		ae.raised_at,
-		ae.raised_by,
-		ae.acknowledged_at,
-		ae.resolved_at,
-		ae.cancelled_at,
-		ae.last_updated,
-		au.issue_name,
-		t.team_id AS assigned_team_id,
-		t.team_name,
-		u.username AS raised_by_username,
-		acku.username AS acknowledged_by,
-		ru.username AS resolved_by,
-		cu.username AS cancelled_by,
-		au.name_path,
-		au.severity
-	FROM andon_event ae
-	INNER JOIN app_user u ON ae.raised_by = u.user_id
-	LEFT JOIN app_user acku ON ae.acknowledged_by = acku.user_id
-	LEFT JOIN app_user ru ON ae.resolved_by = ru.user_id
-	LEFT JOIN app_user cu ON ae.cancelled_by = cu.user_id
-	INNER JOIN final au ON ae.issue_id = au.andon_issue_id
-	LEFT JOIN team t ON au.assigned_to_team = t.team_id
-)
-`
-
 func (r *AndonRepository) CreateAndonEvent(
 	ctx context.Context,
 	exec db.PGExecutor,
@@ -110,15 +76,14 @@ WHERE
 	}
 
 	query := `
-WITH ` + andonIssueCTE + `, ` + andonCTE + `
 SELECT
 	issue_description,
 	issue_id,
 	source,
 	location,
 	status,
-	assigned_team_id,
-	team_name AS assigned_team,
+	assigned_team,
+	assigned_team_name,
 	raised_by_username,
 	raised_at,
 	acknowledged_by,
@@ -131,22 +96,27 @@ SELECT
 	name_path,
 	severity,
 	(
-	severity = 'Info'
-	OR (
-		severity = 'Requires Intervention'
-		AND assigned_team_id IN (
-			SELECT team_id FROM user_team WHERE user_id = $2
+		severity = 'Info'
+		OR
+		(
+			severity = 'Requires Intervention'
+			AND 
+			assigned_team IN (SELECT team_id FROM user_team WHERE user_id = $2)
 		)
-	)
 	) AS can_user_acknowledge,
 	(
-		(severity = 'Self-resolvable' OR severity = 'Requires Intervention')
-		AND assigned_team_id IN (
+		(
+			severity = 'Self-resolvable'
+			OR
+			severity = 'Requires Intervention'
+		)
+		AND 
+		assigned_team IN (
 			SELECT team_id FROM user_team WHERE user_id = $2
 		)
 	) AS can_user_resolve
 FROM
-	ANDON_CTE
+	andon_view
 WHERE
 	andon_event_id = $1
 `
@@ -210,7 +180,6 @@ WHERE
 	offsetPlaceholder := fmt.Sprintf("$%d", len(args)+3)
 
 	query := `
-WITH ` + andonIssueCTE + `, ` + andonCTE + `
 SELECT
 	andon_event_id,
 	issue_description,
@@ -225,8 +194,8 @@ SELECT
 	resolved_by,
 	resolved_at,
 	last_updated,
-	assigned_team_id,
-	team_name AS assigned_team,
+	assigned_team,
+	assigned_team_name,
 	issue_name,
 	name_path,
 	severity,
@@ -234,18 +203,18 @@ SELECT
 	severity = 'Info'
 	OR (
 		severity = 'Requires Intervention'
-		AND assigned_team_id IN (
+		AND assigned_team IN (
 			SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholder + `
 		)
 	)
 	) AS can_user_acknowledge,
 	(
 		(severity = 'Self-resolvable' OR severity = 'Requires Intervention')
-		AND assigned_team_id IN (
+		AND assigned_team IN (
 			SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholder + `
 		)
 	) AS can_user_resolve
-FROM ANDON_CTE
+FROM andon_view
 `
 
 	limit := q.PageSize
@@ -265,13 +234,9 @@ FROM ANDON_CTE
 		orderByClause = fmt.Sprintf("ORDER BY %s %s", defaultOrderBy, defaultOrderByDirection)
 	}
 
-	// limitPlaceholder := fmt.Sprintf("$%d", len(args)+1)
-	// offsetPlaceholder := fmt.Sprintf("$%d", len(args)+2)
-
 	finalQuery := query + "\n" + whereClause + "\n" + orderByClause + "\n" +
 		fmt.Sprintf("LIMIT %s OFFSET %s", limitPlaceholder, offsetPlaceholder)
 
-	// rows, err := exec.Query(ctx, finalQuery, append(args, limit, offset)...)
 	rows, err := exec.Query(ctx, finalQuery, append(args, currentUserID, limit, offset)...)
 	if err != nil {
 		return nil, err
@@ -324,8 +289,7 @@ func (r *AndonRepository) Count(
 ) (int, error) {
 
 	query := `
-WITH ` + andonIssueCTE + `, ` + andonCTE + `
-SELECT COUNT(*) FROM ANDON_CTE
+SELECT COUNT(*) FROM andon_view
 `
 
 	whereClause, args := generateWhereClause(q)
@@ -348,10 +312,10 @@ func (r *AndonRepository) GetAvailableFilters(
 
 	mapping := map[string]string{
 		"IssueIn":          "issue_name",
-		"TeamIn":           "team_name",
+		"TeamIn":           "assigned_team_name",
 		"LocationIn":       "location",
 		"StatusIn":         "status",
-		"RaisedByIn":       "raised_by",
+		"RaisedByIn":       "raised_by_username",
 		"AcknowledgedByIn": "acknowledged_by",
 		"ResolvedByIn":     "resolved_by",
 	}
@@ -401,9 +365,8 @@ func (r *AndonRepository) GetAvailableFilters(
 		}
 
 		query := `
-WITH ` + andonIssueCTE + `, ` + andonCTE + `
 SELECT DISTINCT ` + col + ` AS val
-FROM ANDON_CTE
+FROM andon_view
 ` + where + `
 ORDER BY val ASC
 `
@@ -796,7 +759,7 @@ func generateWhereClause(filters model.ListAndonQuery) (string, []any) {
 	}
 
 	addInClause("issue_name", filters.Issues)
-	addInClause("team_name", filters.Teams)
+	addInClause("assigned_team_name", filters.Teams)
 	addInClause("location", filters.Locations)
 	addInClause("status", filters.Statuses)
 	addInClause("raised_by", filters.RaisedBy)

@@ -42,24 +42,6 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 
 	andonEvent := p.AndonEvent
 	namePathStr := strings.Join(andonEvent.NamePath, " > ")
-	// hasInfoSeverity := andonEvent.Severity == "Info"
-
-	// isSelfResolvable := false
-	// if andonEvent.Severity == "Self-resolvable" && andonEvent.IsTeamMate && andonEvent.Status == "Outstanding" {
-	// 	isSelfResolvable = true
-	// }
-	// isAckBtnEnabled := true
-	// if andonEvent.Severity == "Requires Intervention" && !andonEvent.IsTeamMate {
-	// 	isAckBtnEnabled = false
-	// }
-
-	// isResolveBtnEnabled := true
-	// if hasInfoSeverity {
-	// 	isResolveBtnEnabled = false
-	// }
-	// if andonEvent.Severity == "Requires Intervention" && !andonEvent.IsTeamMate {
-	// 	isResolveBtnEnabled = false
-	// }
 
 	var changelogEntries []components.ChangelogEntry
 	for _, change := range p.AndonChanges {

@@ -107,12 +107,11 @@ func assignUserForm(p *assignUserFormProps) g.Node {
 				g.Text(usernameLabel),
 			),
 			components.SearchSelect(&components.SearchSelectProps{
-				Name:          usernameKey,
-				Placeholder:   "Select username",
-				Mode:          "single",
-				Options:       MapUsersToOptions(p.users),
-				ShowOnlyLabel: true,
-				Selected:      usernameValue,
+				Name:        usernameKey,
+				Placeholder: "Select username",
+				Mode:        "single",
+				Options:     MapUsersToOptions(p.users),
+				Selected:    usernameValue,
 			}),
 			g.If(
 				usernameError != "",
@@ -153,7 +152,7 @@ func MapUsersToOptions(users []model.User) []components.SearchSelectOption {
 	out := make([]components.SearchSelectOption, len(users))
 	for i, v := range users {
 		out[i] = components.SearchSelectOption{
-			Label: v.Username,
+			Text:  v.Username,
 			Value: strconv.Itoa(v.UserID),
 		}
 	}

@@ -380,12 +380,12 @@ func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	testData := model.VerifyPasswordLoginInput{
-		Username: "hasnatsajid",
-		Password: "Hasnat123$",
+	credentials := model.VerifyPasswordLoginInput{
+		Username: user.Username,
+		Password: passwordReset.Password,
 	}
 
-	encoded, err := encryptcredentials.Encrypt(testData)
+	encoded, err := encryptcredentials.Encrypt(credentials)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

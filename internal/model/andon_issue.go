@@ -20,16 +20,16 @@ var AndonSeverities = []AndonSeverity{
 }
 
 type AndonIssue struct {
-	AndonIssueID       int
-	IssueName          string   `sortable:"true"`
-	NamePath           []string `sortable:"true"`
-	IsArchived         bool     `sortable:"true"`
-	ChildrenCount      int      `sortable:"true"`
-	Depth              int
-	ParentID           *int
-	AssignedToTeam     *int
-	AssignedToTeamName string         `sortable:"true"`
-	Severity           *AndonSeverity `sortable:"true"`
+	AndonIssueID     int
+	IssueName        string   `sortable:"true"`
+	NamePath         []string `sortable:"true"`
+	IsArchived       bool     `sortable:"true"`
+	ChildrenCount    int      `sortable:"true"`
+	Depth            int
+	ParentID         int
+	AssignedTeam     int
+	AssignedTeamName string        `sortable:"true"`
+	Severity         AndonSeverity `sortable:"true"`
 
 	CreatedAt         time.Time `sortable:"true"`
 	CreatedBy         int
@@ -40,18 +40,23 @@ type AndonIssue struct {
 }
 
 type NewAndonIssue struct {
-	IssueName      string
-	ParentID       *int
-	AssignedToTeam *int
-	Severity       AndonSeverity
+	IssueName    string
+	ParentID     *int
+	AssignedTeam *int
+	Severity     AndonSeverity
 }
 
 type AndonIssueUpdate struct {
-	IssueName      string
-	ParentID       *int
-	IsArchived     bool
-	AssignedToTeam *int
-	Severity       AndonSeverity
+	IssueName    string
+	ParentID     int
+	IsArchived   bool
+	AssignedTeam int
+	Severity     AndonSeverity
+}
+
+type AndonIssueGroupUpdate struct {
+	IssueName string
+	ParentID  *int
 }
 
 type ListAndonIssuesQuery struct {
@@ -62,16 +67,17 @@ type ListAndonIssuesQuery struct {
 }
 
 type AndonIssueNode struct {
-	AndonIssueID       int
-	IssueName          string   `sortable:"true"`
-	NamePath           []string `sortable:"true"`
-	IsArchived         bool     `sortable:"true"`
-	ChildrenCount      int      `sortable:"true"`
-	Depth              int
-	ParentID           *int
-	AssignedToTeam     *int
-	AssignedToTeamName *string        `sortable:"true"`
-	Severity           *AndonSeverity `sortable:"true"`
+	AndonIssueID     int
+	IssueName        string   `sortable:"true"`
+	NamePath         []string `sortable:"true"`
+	IsArchived       bool     `sortable:"true"`
+	ChildrenCount    int      `sortable:"true"`
+	Depth            int
+	ParentID         *int
+	AssignedTeam     *int
+	AssignedTeamName *string        `sortable:"true"`
+	Severity         *AndonSeverity `sortable:"true"`
+	DownDepth        int
 
 	IsGroup bool
 
@@ -88,6 +94,8 @@ type AndonIssueGroup struct {
 	IssueName    string
 	ParentID     *int
 	NamePath     []string
+	Depth        int
+	DownDepth    int
 }
 
 type NewAndonIssueGroup struct {

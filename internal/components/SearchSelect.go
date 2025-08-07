@@ -7,20 +7,18 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-// SearchSelectOption represents <li data-value="...">Label</li>
 type SearchSelectOption struct {
-	Label string
+	Text  string
 	Value string
 	Nodes []g.Node
 }
 
 type SearchSelectProps struct {
-	Name          string
-	Placeholder   string
-	Mode          string // "single", "multi"
-	Options       []SearchSelectOption
-	Selected      string
-	ShowOnlyLabel bool
+	Name        string
+	Placeholder string
+	Mode        string // "single", "multi"
+	Options     []SearchSelectOption
+	Selected    string
 }
 
 func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
@@ -45,17 +43,12 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 			}
 		}
 
-		displayText := o.Value + " - " + o.Label
-		if p.ShowOnlyLabel {
-			displayText = o.Label
-		}
-
 		listOptions = append(listOptions,
 			h.Div(
 				h.Class(classes),
 				h.DataAttr("value", o.Value),
 				g.Group(o.Nodes),
-				g.Text(displayText),
+				g.Text(o.Text),
 			),
 		)
 
@@ -65,7 +58,7 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 	if p.Selected != "" {
 		for _, o := range p.Options {
 			if o.Value == p.Selected {
-				inputText = o.Label
+				inputText = o.Text
 				break
 			}
 		}
@@ -106,5 +99,7 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 			h.Class("select-hidden-inputs"),
 		),
 		g.Group(children),
+
+		InlineScript("/internal/components/SearchSelect.js"),
 	)
 }

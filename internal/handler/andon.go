@@ -46,6 +46,7 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error decoding url values", http.StatusBadRequest)
 		return
 	}
@@ -55,6 +56,7 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	sort := appsort.Sort{}
 	err = sort.ParseQueryParam(model.AndonEvent{}, uv.Sort)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, fmt.Sprintf("Error parsing sort: %v", err), http.StatusBadRequest)
 		return
 	}
@@ -71,7 +73,7 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 			OrderByDirection: "asc",
 		}, ctx.User.UserID)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		http.Error(w, "Error listing outstanding andons", http.StatusInternalServerError)
 		return
 	}
@@ -91,6 +93,7 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		ctx.User.UserID,
 	)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error listing acknowledged andons", http.StatusInternalServerError)
 		return
 	}
@@ -99,6 +102,7 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		Page: 1, PageSize: 10000,
 	})
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error fetching teams", http.StatusInternalServerError)
 		return
 	}
@@ -171,6 +175,7 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error decoding url values", http.StatusBadRequest)
 		return
 	}
@@ -180,6 +185,7 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 	sort := appsort.Sort{}
 	err = sort.ParseQueryParam(model.AndonEvent{}, uv.Sort)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, fmt.Sprintf("Error parsing sort: %v", err), http.StatusBadRequest)
 		return
 	}
@@ -204,6 +210,7 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 		ctx.User.UserID,
 	)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error listing andons", http.StatusInternalServerError)
 		return
 	}
@@ -247,6 +254,7 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error decoding query params", http.StatusInternalServerError)
 		return
 	}
@@ -263,6 +271,7 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 	if uv.IssueOrGroupID != 0 {
 		issueNodes, err := h.andonIssueService.GetIssueHierarchy(r.Context(), uv.IssueOrGroupID)
 		if err != nil {
+			log.Println(err)
 			http.Error(w, "Failed to get issue hierarchy", http.StatusInternalServerError)
 			return
 		}
@@ -302,11 +311,7 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 			Page: 1, PageSize: 10000,
 		})
 	if err != nil {
-		http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
-		return
-	}
-	andonIssueGroups, err := h.andonIssueService.ListGroups(r.Context())
-	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
 		return
 	}
@@ -315,17 +320,17 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 		Page: 1, PageSize: 10000,
 	})
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error fetching teams", http.StatusInternalServerError)
 		return
 	}
 
 	_ = andonview.AddPage(&andonview.AddPageProps{
-		Ctx:              ctx,
-		Values:           values,
-		AndonIssues:      andonIssues,
-		AndonIssueGroups: andonIssueGroups,
-		Teams:            teams,
-		SelectedPath:     nodes,
+		Ctx:          ctx,
+		Values:       values,
+		AndonIssues:  andonIssues,
+		Teams:        teams,
+		SelectedPath: nodes,
 	}).Render(w)
 }
 
@@ -345,6 +350,7 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error decoding query params", http.StatusInternalServerError)
 		return
 	}
@@ -393,6 +399,7 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 				Page: 1, PageSize: 10000,
 			})
 		if err != nil {
+			log.Println(err)
 			http.Error(w, "Error fetching andon issues", http.StatusInternalServerError)
 			return
 		}
@@ -401,6 +408,7 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 			Page: 1, PageSize: 10000,
 		})
 		if err != nil {
+			log.Println(err)
 			http.Error(w, "Error fetching teams", http.StatusInternalServerError)
 			return
 		}
@@ -427,7 +435,6 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 		},
 		ctx.User.UserID,
 	); err != nil {
-		log.Println(err)
 		http.Error(w, "Error creating andon", http.StatusInternalServerError)
 		return
 	}
@@ -472,6 +479,7 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		ctx.User.UserID,
 	)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error creating andon", http.StatusInternalServerError)
 		return
 	}
@@ -515,6 +523,7 @@ func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) 
 
 	andonEvent, err := h.andonService.GetAndonEventByID(r.Context(), andonID, ctx.User.UserID)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Failed to get andon event", http.StatusInternalServerError)
 		return
 	}
@@ -525,6 +534,7 @@ func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) 
 		ctx.User.UserID,
 	)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Error fetching andon details", http.StatusInternalServerError)
 		return
 	}

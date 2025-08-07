@@ -22,7 +22,6 @@ type AddPageProps struct {
 	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
 	AndonIssues      []model.AndonIssueNode
-	AndonIssueGroups []model.AndonIssueGroup
 	Teams            []model.Team
 	SelectedPath     []int
 }
@@ -132,14 +131,12 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 		intVal, _ := strconv.Atoi(issueIDValue)
 		isSelected := andonIssue.AndonIssueID == intVal
 
-		if !andonIssue.IsGroup {
-			parentSelectOptions = append(parentSelectOptions, h.Option(
-				h.Value(fmt.Sprintf("%d", andonIssue.AndonIssueID)),
-				g.Attr("data-team", nilsafe.Str(andonIssue.AssignedToTeamName)),
-				g.If(isSelected, h.Selected()),
-				g.Text(strings.Join(andonIssue.NamePath, " > ")),
-			))
-		}
+		parentSelectOptions = append(parentSelectOptions, h.Option(
+			h.Value(fmt.Sprintf("%d", andonIssue.AndonIssueID)),
+			g.Attr("data-team", nilsafe.Str(andonIssue.AssignedTeamName)),
+			g.If(isSelected, h.Selected()),
+			g.Text(strings.Join(andonIssue.NamePath, " > ")),
+		))
 	}
 
 	assignedTeamLabel := "Assigned Team"
@@ -195,9 +192,9 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 		))
 	}
 
-	var assignedToTeam string
+	var assignedTeam string
 	if p.selectedIssueNode != nil {
-		assignedToTeam = nilsafe.Str(p.selectedIssueNode.AssignedToTeamName)
+		assignedTeam = nilsafe.Str(p.selectedIssueNode.AssignedTeamName)
 	}
 
 	return components.Form(
@@ -290,11 +287,11 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 					h.Name(assignedTeamKey),
 					h.Placeholder("Select assigned team"),
 					g.If(
-						assignedToTeam != "",
-						h.Option(h.Value(assignedToTeam), g.Text(assignedToTeam)),
+						assignedTeam != "",
+						h.Option(h.Value(assignedTeam), g.Text(assignedTeam)),
 					),
 					g.If(
-						assignedToTeam == "",
+						assignedTeam == "",
 						h.Option(h.Value(""), g.Text("Select assigned team")),
 					),
 					h.Selected(),

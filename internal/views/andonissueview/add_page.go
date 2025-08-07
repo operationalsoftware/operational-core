@@ -20,7 +20,6 @@ type AddPageProps struct {
 	Values           url.Values
 	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
-	AndonIssues      []model.AndonIssue
 	AndonIssueGroups []model.AndonIssueGroup
 	Teams            []model.Team
 }
@@ -33,7 +32,6 @@ func AddPage(p *AddPageProps) g.Node {
 			values:           p.Values,
 			validationErrors: p.ValidationErrors,
 			isSubmission:     p.IsSubmission,
-			andonIssues:      p.AndonIssues,
 			andonIssueGroups: p.AndonIssueGroups,
 			teams:            p.Teams,
 		}),
@@ -62,7 +60,6 @@ type addIssueFormProps struct {
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
-	andonIssues      []model.AndonIssue
 	andonIssueGroups []model.AndonIssueGroup
 	teams            []model.Team
 }

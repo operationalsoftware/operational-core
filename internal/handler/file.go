@@ -5,6 +5,7 @@ import (
 	"app/internal/views/pdfview"
 	"app/pkg/reqcontext"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -34,13 +35,15 @@ func (h *PDFHandler) FileHandler(w http.ResponseWriter, r *http.Request) {
 
 	var inputParams map[string]interface{}
 	if err := json.Unmarshal([]byte(rawJSON), &inputParams); err != nil {
-		http.Error(w, "Invalid JSON format: "+err.Error(), http.StatusBadRequest)
+		log.Println(err)
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return
 	}
 
 	pdfBuf, err := h.pdfService.GeneratePDF(r.Context(), templateName, inputParams)
 	if err != nil {
-		http.Error(w, "PDF generation failed: "+err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, "PDF generation failed", http.StatusInternalServerError)
 		return
 	}
 
