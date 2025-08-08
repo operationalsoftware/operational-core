@@ -147,6 +147,7 @@ type andonAllEventsUrlVals struct {
 	StartDate                *time.Time
 	EndDate                  *time.Time
 	IssueIn                  []string
+	SeverityIn               []string
 	TeamIn                   []string
 	LocationIn               []string
 	StatusIn                 []string
@@ -200,6 +201,7 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 			StartDate:              uv.StartDate,
 			EndDate:                uv.EndDate,
 			Issues:                 uv.IssueIn,
+			Serverities:            uv.SeverityIn,
 			Teams:                  uv.TeamIn,
 			Locations:              uv.LocationIn,
 			Statuses:               uv.StatusIn,
@@ -227,6 +229,7 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 			StartDate:              uv.StartDate,
 			EndDate:                uv.EndDate,
 			Issues:                 uv.IssueIn,
+			Severities:             uv.SeverityIn,
 			Teams:                  uv.TeamIn,
 			Locations:              uv.LocationIn,
 			Statuses:               uv.StatusIn,

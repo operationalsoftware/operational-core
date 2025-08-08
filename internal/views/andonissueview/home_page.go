@@ -33,7 +33,7 @@ func HomePage(p *HomePageProps) g.Node {
 		},
 		{
 			TitleContents: g.Text("Assigned to Team"),
-			SortKey:       "AssignedToTeamName",
+			SortKey:       "AssignedTeamName",
 		},
 		{
 			TitleContents: g.Text("Severity"),

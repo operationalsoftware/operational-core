@@ -60,6 +60,7 @@ type ListAndonQuery struct {
 	StartDate              *time.Time
 	EndDate                *time.Time
 	Issues                 []string
+	Serverities            []string
 	Teams                  []string
 	Locations              []string
 	Statuses               []string
@@ -99,6 +100,7 @@ type AndonFilters struct {
 	StartDate              *time.Time
 	EndDate                *time.Time
 	Issues                 []string
+	Severities             []string
 	Teams                  []string
 	Locations              []string
 	Statuses               []string
@@ -109,6 +111,7 @@ type AndonFilters struct {
 
 type AndonAvailableFilters struct {
 	IssueIn                  []string
+	SeverityIn               []string
 	TeamIn                   []string
 	LocationIn               []string
 	StatusIn                 []string

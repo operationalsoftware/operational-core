@@ -101,7 +101,7 @@ func editForm(p *editFormProps) g.Node {
 	parentIDValue := ""
 	if p.values.Get(parentIDKey) != "" {
 		parentIDValue = p.values.Get(parentIDKey)
-	} else if andonIssue.ParentID != 0 {
+	} else if andonIssue.ParentID != nil {
 		parentIDValue = fmt.Sprintf("%d", andonIssue.ParentID)
 	}
 	parentIDError := ""
@@ -113,16 +113,16 @@ func editForm(p *editFormProps) g.Node {
 		parentIDHelperType = components.InputHelperTypeError
 	}
 
-	assignedToTeamLabel := "Assigned to Team"
-	assignedToTeamKey := "AssignedToTeam"
-	assignedToTeamValue := p.values.Get(assignedToTeamKey)
-	assignedToTeamError := ""
-	if p.isSubmission || assignedToTeamValue != "" {
-		assignedToTeamError = p.validationErrors.GetError(assignedToTeamKey, assignedToTeamLabel)
+	assignedTeamLabel := "Assigned to Team"
+	assignedTeamKey := "AssignedTeam"
+	assignedTeamValue := p.values.Get(assignedTeamKey)
+	assignedTeamError := ""
+	if p.isSubmission || assignedTeamValue != "" {
+		assignedTeamError = p.validationErrors.GetError(assignedTeamKey, assignedTeamLabel)
 	}
-	assignedToTeamHelperType := components.InputHelperTypeNone
-	if assignedToTeamError != "" {
-		assignedToTeamHelperType = components.InputHelperTypeError
+	assignedTeamHelperType := components.InputHelperTypeNone
+	if assignedTeamError != "" {
+		assignedTeamHelperType = components.InputHelperTypeError
 	}
 
 	parentSelectOptions := []g.Node{
@@ -192,9 +192,13 @@ func editForm(p *editFormProps) g.Node {
 		isArchivedHelperType = components.InputHelperTypeError
 	}
 
-	severitySelectOptions := []g.Node{}
+	severitySelectOptions := []g.Node{
+		h.Option(
+			h.Value(""),
+			g.Text("\u2013"),
+		)}
 	for _, severity := range model.AndonSeverities {
-		isSelected := string(severity) == severityValue
+		isSelected := string(severity) == string(andonIssue.Severity)
 
 		severitySelectOptions = append(severitySelectOptions, h.Option(
 			h.Value(string(severity)),
@@ -246,17 +250,17 @@ func editForm(p *editFormProps) g.Node {
 
 		h.Div(
 			h.Label(
-				g.Text(assignedToTeamLabel),
+				g.Text(assignedTeamLabel),
 
 				h.Select(
-					h.Name(assignedToTeamKey),
+					h.Name(assignedTeamKey),
 					g.Group(teamSelectOptions),
 				),
 			),
-			g.If(assignedToTeamError != "",
+			g.If(assignedTeamError != "",
 				components.InputHelper(&components.InputHelperProps{
-					Label: assignedToTeamError,
-					Type:  assignedToTeamHelperType,
+					Label: assignedTeamError,
+					Type:  assignedTeamHelperType,
 				})),
 		),
 

@@ -30,6 +30,7 @@ type AllAndonsPageProps struct {
 
 type AvailableFilters struct {
 	IssueIn                  []components.SearchSelectOption
+	SeverityIn               []components.SearchSelectOption
 	TeamIn                   []components.SearchSelectOption
 	LocationIn               []components.SearchSelectOption
 	StatusIn                 []components.SearchSelectOption
@@ -324,7 +325,21 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 					h.Class("search-item"),
 
 					h.Label(
-						g.Text("Teams"),
+						g.Text("Severity"),
+					),
+					components.SearchSelect(&components.SearchSelectProps{
+						Name:        "SeverityIn",
+						Placeholder: "-",
+						Mode:        "multi",
+						Options:     MapStringsToOptions(availableFilters.SeverityIn),
+						Selected:    strings.Join(p.Filters.Severities, ","),
+					}),
+				),
+				h.Div(
+					h.Class("search-item"),
+
+					h.Label(
+						g.Text("Assigned Teams"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
 						Name:        "TeamIn",

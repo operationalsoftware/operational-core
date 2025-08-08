@@ -108,16 +108,16 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 		))
 	}
 
-	assignedToTeamLabel := "Assigned to Team"
-	assignedToTeamKey := "AssignedToTeam"
-	assignedToTeamValue := p.values.Get(assignedToTeamKey)
-	assignedToTeamError := ""
-	if p.isSubmission || assignedToTeamValue != "" {
-		assignedToTeamError = p.validationErrors.GetError(assignedToTeamKey, assignedToTeamLabel)
+	assignedTeamLabel := "Assigned to Team"
+	assignedTeamKey := "AssignedTeam"
+	assignedTeamValue := p.values.Get(assignedTeamKey)
+	assignedTeamError := ""
+	if p.isSubmission || assignedTeamValue != "" {
+		assignedTeamError = p.validationErrors.GetError(assignedTeamKey, assignedTeamLabel)
 	}
-	assignedToTeamHelperType := components.InputHelperTypeNone
-	if assignedToTeamError != "" {
-		assignedToTeamHelperType = components.InputHelperTypeError
+	assignedTeamHelperType := components.InputHelperTypeNone
+	if assignedTeamError != "" {
+		assignedTeamHelperType = components.InputHelperTypeError
 	}
 
 	severityLabel := "Severity"
@@ -139,7 +139,7 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 		),
 	}
 	for _, team := range p.teams {
-		intVal, _ := strconv.Atoi(assignedToTeamValue)
+		intVal, _ := strconv.Atoi(assignedTeamValue)
 		isSelected := team.TeamID == intVal
 
 		teamSelectOptions = append(teamSelectOptions, h.Option(
@@ -206,17 +206,17 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 
 		h.Div(
 			h.Label(
-				g.Text(assignedToTeamLabel),
+				g.Text(assignedTeamLabel),
 
 				h.Select(
-					h.Name(assignedToTeamKey),
+					h.Name(assignedTeamKey),
 					g.Group(teamSelectOptions),
 				),
 			),
-			g.If(assignedToTeamError != "",
+			g.If(assignedTeamError != "",
 				components.InputHelper(&components.InputHelperProps{
-					Label: assignedToTeamError,
-					Type:  assignedToTeamHelperType,
+					Label: assignedTeamError,
+					Type:  assignedTeamHelperType,
 				})),
 		),
 

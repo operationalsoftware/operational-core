@@ -306,7 +306,7 @@ func (h *AndonIssueHandler) AddGroup(w http.ResponseWriter, r *http.Request) {
 type addAndonIssueFormData struct {
 	IssueName    string
 	ParentID     *int
-	AssignedTeam *int
+	AssignedTeam int
 	Severity     model.AndonSeverity
 }
 
@@ -317,10 +317,10 @@ func (fd *addAndonIssueFormData) normalise() {
 func (fd *addAndonIssueFormData) validate() validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
 
-	if fd.ParentID == nil {
-		ve.Add("ParentID", "is required")
-	}
-	if fd.AssignedTeam == nil {
+	// if fd.ParentID == nil {
+	// 	ve.Add("ParentID", "is required")
+	// }
+	if fd.AssignedTeam == 0 {
 		ve.Add("AssignedTeam", "is required")
 	}
 	if fd.Severity == "" {
@@ -430,28 +430,13 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 
 	validationErrors := fd.validate()
 
-	if validationErrors == nil {
-		validationErrors, err = h.andonIssueService.UpdateIssue(
-			r.Context(),
-			andonIssueID,
-			model.AndonIssueUpdate{
-				IssueName:    fd.IssueName,
-				ParentID:     fd.ParentID,
-				IsArchived:   fd.IsArchived,
-				AssignedTeam: fd.AssignedTeam,
-				Severity:     fd.Severity,
-			},
-			ctx.User.UserID,
-		)
-
+	if validationErrors != nil {
+		andonIssue, err := h.andonIssueService.GetIssueByID(r.Context(), andonIssueID)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Error updating andon issue", http.StatusInternalServerError)
+			http.Error(w, "Error getting andon issue", http.StatusInternalServerError)
 			return
 		}
-	}
-
-	if validationErrors != nil {
 		andonIssueGroups, err := h.andonIssueService.ListGroups(r.Context())
 		if err != nil {
 			log.Println(err)
@@ -472,9 +457,29 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 			Values:           r.Form,
 			ValidationErrors: *validationErrors,
 			IsSubmission:     true,
+			AndonIssue:       *andonIssue,
 			AndonIssueGroups: andonIssueGroups,
 			Teams:            teams,
 		}).Render(w)
+		return
+	}
+
+	_, err = h.andonIssueService.UpdateIssue(
+		r.Context(),
+		andonIssueID,
+		model.AndonIssueUpdate{
+			IssueName:    fd.IssueName,
+			ParentID:     fd.ParentID,
+			IsArchived:   fd.IsArchived,
+			AssignedTeam: fd.AssignedTeam,
+			Severity:     fd.Severity,
+		},
+		ctx.User.UserID,
+	)
+
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error updating andon issue", http.StatusInternalServerError)
 		return
 	}
 
@@ -484,7 +489,7 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 type editAndonIssueFormData struct {
 	IssueName    string
 	IsArchived   bool
-	ParentID     int
+	ParentID     *int
 	AssignedTeam int
 	Severity     model.AndonSeverity
 }
@@ -495,6 +500,13 @@ func (fd *editAndonIssueFormData) normalise() {
 
 func (fd *editAndonIssueFormData) validate() *validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
+
+	if fd.AssignedTeam == 0 {
+		ve.Add("AssignedTeam", "is required")
+	}
+	if fd.Severity == "" {
+		ve.Add("Severity", "is required")
+	}
 
 	validate.MinLength(&ve, "IssueName", fd.IssueName, 3)
 	validate.MaxLength(&ve, "IssueName", fd.IssueName, 50)

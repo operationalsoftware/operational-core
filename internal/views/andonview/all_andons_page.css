@@ -1,7 +1,7 @@
 .andon-filters {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-around;
+  justify-content: space-between;
   gap: var(--spacing-lg);
   margin: var(--spacing-md) auto;
 
@@ -11,6 +11,11 @@
     &.date-section {
       display: flex;
       gap: var(--spacing-md);
+      justify-content: space-between;
+
+      & > div {
+        width: 50%;
+      }
     }
   }
 }

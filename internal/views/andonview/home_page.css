@@ -83,5 +83,10 @@
 
   #team-form {
     width: 25%;
+
+    & > div {
+      display: flex;
+      justify-content: flex-end;
+    }
   }
 }

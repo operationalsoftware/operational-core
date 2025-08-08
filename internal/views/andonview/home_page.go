@@ -286,17 +286,18 @@ func HomePage(p *HomePageProps) g.Node {
 		h.Nav(
 			h.Class("andon-nav"),
 
-			h.A(
-				h.Href("/andons/add"),
-
+			components.Button(&components.ButtonProps{
+				Size: "small",
+				Classes: c.Classes{
+					"primary": true,
+				},
+				Link: "/andons/add",
+			},
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
-					Classes: c.Classes{
-						"icon": true,
-					},
-				},
-				),
-				g.Text("New Andon")),
+				}),
+				g.Text("New Andon"),
+			),
 			h.A(h.Href("/andons/all"), g.Text("All Andons")),
 			h.A(
 				h.Href("/andon-issues"),

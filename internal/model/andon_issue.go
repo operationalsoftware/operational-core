@@ -26,7 +26,7 @@ type AndonIssue struct {
 	IsArchived       bool     `sortable:"true"`
 	ChildrenCount    int      `sortable:"true"`
 	Depth            int
-	ParentID         int
+	ParentID         *int
 	AssignedTeam     int
 	AssignedTeamName string        `sortable:"true"`
 	Severity         AndonSeverity `sortable:"true"`
@@ -42,13 +42,13 @@ type AndonIssue struct {
 type NewAndonIssue struct {
 	IssueName    string
 	ParentID     *int
-	AssignedTeam *int
+	AssignedTeam int
 	Severity     AndonSeverity
 }
 
 type AndonIssueUpdate struct {
 	IssueName    string
-	ParentID     int
+	ParentID     *int
 	IsArchived   bool
 	AssignedTeam int
 	Severity     AndonSeverity

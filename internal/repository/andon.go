@@ -312,6 +312,7 @@ func (r *AndonRepository) GetAvailableFilters(
 
 	mapping := map[string]string{
 		"IssueIn":                  "issue_name",
+		"SeverityIn":               "severity",
 		"TeamIn":                   "assigned_team_name",
 		"LocationIn":               "location",
 		"StatusIn":                 "status",
@@ -328,6 +329,7 @@ func (r *AndonRepository) GetAvailableFilters(
 			StartDate:              baseFilters.StartDate,
 			EndDate:                baseFilters.EndDate,
 			Issues:                 baseFilters.Issues,
+			Serverities:            baseFilters.Severities,
 			Teams:                  baseFilters.Teams,
 			Locations:              baseFilters.Locations,
 			Statuses:               baseFilters.Statuses,
@@ -339,6 +341,8 @@ func (r *AndonRepository) GetAvailableFilters(
 		switch key {
 		case "IssueIn":
 			queryFilters.Issues = nil
+		case "SeverityIn":
+			queryFilters.Serverities = nil
 		case "TeamIn":
 			queryFilters.Teams = nil
 		case "LocationIn":
@@ -389,6 +393,9 @@ ORDER BY val ASC
 	}
 
 	if err := collect("IssueIn", &avail.IssueIn); err != nil {
+		return avail, err
+	}
+	if err := collect("SeverityIn", &avail.SeverityIn); err != nil {
 		return avail, err
 	}
 	if err := collect("TeamIn", &avail.TeamIn); err != nil {
@@ -759,6 +766,7 @@ func generateWhereClause(filters model.ListAndonQuery) (string, []any) {
 	}
 
 	addInClause("issue_name", filters.Issues)
+	addInClause("severity", filters.Serverities)
 	addInClause("assigned_team_name", filters.Teams)
 	addInClause("location", filters.Locations)
 	addInClause("status", filters.Statuses)
