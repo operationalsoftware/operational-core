@@ -66,7 +66,7 @@ func TeamPage(p *TeamPageProps) g.Node {
 							g.Attr("data-id", strconv.Itoa(ai.UserID)),
 							g.Attr("data-username", ai.Username),
 							g.Attr("data-team-id", strconv.Itoa(ai.TeamID)),
-							g.Attr("title", "Cancel"),
+							g.Attr("title", "Remove"),
 
 							components.Icon(&components.IconProps{
 								Identifier: "close",
