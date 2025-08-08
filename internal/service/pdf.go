@@ -2,44 +2,35 @@ package service
 
 import (
 	"app/internal/pdftemplate"
-	"app/internal/repository"
 	"app/pkg/pdf"
 	"context"
-	"errors"
-
-	"github.com/jackc/pgx/v5/pgxpool"
+	"fmt"
 )
 
-type PDFService struct {
-	db            *pgxpool.Pool
-	pdfRepository *repository.PDFRepository
+type PDFService struct {}
+
+func NewPDFService() *PDFService {
+	return &PDFService{}
 }
 
-func NewPDFService(
-	db *pgxpool.Pool,
-	pdfRepository *repository.PDFRepository,
-) *PDFService {
-	return &PDFService{
-		db:            db,
-		pdfRepository: pdfRepository,
-	}
-}
-
-func (s *PDFService) GeneratePDF(
+func (s *PDFService) GenerateFromJSON(
 	ctx context.Context,
-	template string,
-	inputParams map[string]interface{},
+	templateName string,
+	jsonInput []byte,
 ) ([]byte, error) {
-	tmpl, ok := pdftemplate.TemplateRegistry[template]
+	template, ok := pdftemplate.Registry[templateName]
 	if !ok {
-		return nil, errors.New("unknown template: " + template)
+		return nil, fmt.Errorf("unknown template: %s", templateName)
 	}
 
-	pdfOptions := pdf.PdfOptions{Title: "My Report"}
-
-	pdfBuffer, err := pdf.GeneratePDF(tmpl(nil).HTML, &pdfOptions)
+	pdfDefinition, err := template.Generator.GenerateFromJSON(jsonInput)
 	if err != nil {
-		return nil, errors.New("failed to generate pdf")
+		return []byte{}, fmt.Errorf("error generating PDF definition from template: %v", err)
+	}
+
+	pdfBuffer, err := pdf.GeneratePDF(ctx, pdfDefinition)
+	if err != nil {
+		return []byte{}, fmt.Errorf("error generating PDF from definition: %v", err)
 	}
 
 	return pdfBuffer, nil

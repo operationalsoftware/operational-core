@@ -1,43 +1,27 @@
-.pdf-form {
+form {
   max-width: 600px;
-  margin: 2rem auto;
-  padding: 1.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+
+  .example-input {
+    font-size: var(--font-size-xs);
+
+    pre {
+      margin: 0;
+      padding: var(--spacing-md);
+      background-color: var(--color-info);
+      font-family: monospace;
+      font-size: var(--font-size-sm);
+      background-color: var(--background-color-content);
+    }
+  }
+
+  textarea {
+    height: 160px;
+    font-family: monospace;
+  }
 }
 
-.pdf-form h1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-.pdf-form label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.pdf-form select,
-.pdf-form textarea {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-family: inherit;
-}
-
-.pdf-form textarea {
-  height: 160px;
-  font-family: monospace;
-}
-
-.pdf-form button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-}
