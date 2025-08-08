@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"app/internal/pdftemplate"
 	"app/internal/service"
 	"app/internal/views/pdfview"
 	"app/pkg/reqcontext"
-	"encoding/json"
 	"log"
 	"net/http"
 )
@@ -20,29 +20,40 @@ func NewPDFHandler(pdfService service.PDFService) *PDFHandler {
 func (h *PDFHandler) PDFGeneratorPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	pdfview.PDFGeneratorPage(pdfview.PDFPageProps{
+	props := pdfview.PDFPageProps{
 		Ctx:       ctx,
-		Templates: []string{"invoice", "receipt"},
-	}).Render(w)
+		Templates: pdftemplate.SortedTemplates(),
+	}
+
+	templateName := r.URL.Query().Get("TemplateName")
+
+	if templateName != "" {
+		t, found := pdftemplate.Registry[templateName]
+		if found {
+			props.SelectedTemplate = &t
+		}
+	}
+
+	pdfview.PDFGeneratorPage(props).Render(w)
 
 	return
 }
 
 func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {
 
-	templateName := r.FormValue("template")
-	rawJSON := r.FormValue("params")
-
-	var inputParams map[string]interface{}
-	if err := json.Unmarshal([]byte(rawJSON), &inputParams); err != nil {
-		log.Println(err)
-		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+	err := r.ParseForm()
+	if err != nil {
+		log.Println("An error occurred parsing form:", err)
+		http.Error(w, "PDF generation failed", http.StatusInternalServerError)
 		return
 	}
 
-	pdfBuf, err := h.pdfService.GeneratePDF(r.Context(), templateName, inputParams)
+	templateName := r.FormValue("TemplateName")
+	inputData := r.FormValue("InputData")
+
+	pdfBuf, err := h.pdfService.GenerateFromJSON(r.Context(), templateName, []byte(inputData))
 	if err != nil {
-		log.Println(err)
+		log.Println("An error occurred generating PDF:", err)
 		http.Error(w, "PDF generation failed", http.StatusInternalServerError)
 		return
 	}

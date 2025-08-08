@@ -2,22 +2,20 @@ package pdf
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"net/url"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
-type PdfOptions struct {
-	Title string // Optional PDF metadata title
+type PDFDefinition struct {
+	HTML  string
+	Title string
 }
 
 var (
@@ -48,22 +46,22 @@ func ShutdownChromium() {
 	}
 }
 
-// GeneratePDF generates a PDF from HTML with options, using a shared Chrome context
-func GeneratePDF(html string, options *PdfOptions) ([]byte, error) {
+func GeneratePDF(reqCtx context.Context, pdfDef PDFDefinition) ([]byte, error) {
 	if browserCtx == nil {
 		return nil, fmt.Errorf("chrome not initialized, call InitChrome() first")
 	}
 
-	taskCtx, cancel := chromedp.NewContext(browserCtx)
+	// Derive a new context with timeout
+	ctx, cancel := context.WithTimeout(reqCtx, 30*time.Second)
 	defer cancel()
 
-	// Timeout for individual task
-	taskCtx, cancel = context.WithTimeout(taskCtx, 30*time.Second)
-	defer cancel()
+	// Create a new tab context derived from the timed request context
+	tabCtx, cancelTab := chromedp.NewContext(ctx)
+	defer cancelTab()
 
 	var pdfBuf []byte
 	tasks := chromedp.Tasks{
-		chromedp.Navigate("data:text/html," + htmlEscape(html)),
+		chromedp.Navigate("data:text/html," + htmlEscape(pdfDef.HTML)),
 		chromedp.WaitReady("body", chromedp.ByQuery),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			return waitUntilHTMLRendered(ctx, 10*time.Second)
@@ -78,15 +76,13 @@ func GeneratePDF(html string, options *PdfOptions) ([]byte, error) {
 		}),
 	}
 
-	if err := chromedp.Run(taskCtx, tasks); err != nil {
-		return nil, err
+	if err := chromedp.Run(tabCtx, tasks); err != nil {
+		return nil, fmt.Errorf("error running chromedp tasks: %w", err)
 	}
 
-	if options != nil && options.Title != "" {
-		pdfBufWithTitle, err := setPDFTitleSafe(pdfBuf, options.Title)
-		if err == nil {
-			return pdfBufWithTitle, nil
-		}
+	pdfBuf, err := setPDFTitle(pdfBuf, pdfDef.Title)
+	if err != nil {
+		return nil, fmt.Errorf("error setting PDF title: %w", err)
 	}
 
 	return pdfBuf, nil
@@ -97,39 +93,6 @@ func htmlEscape(html string) string {
 	return url.PathEscape(html)
 }
 
-// setPDFTitleSafe sets metadata title using unique temp files
-func setPDFTitleSafe(buf []byte, title string) ([]byte, error) {
-	tempDir := os.TempDir()
-	randomID := randomHex(8)
-	inputPath := filepath.Join(tempDir, fmt.Sprintf("input_%s.pdf", randomID))
-	outputPath := filepath.Join(tempDir, fmt.Sprintf("output_%s.pdf", randomID))
-
-	if err := os.WriteFile(inputPath, buf, 0644); err != nil {
-		return nil, err
-	}
-
-	cmd := exec.Command("exiftool", "-Title="+title, "-o", outputPath, inputPath)
-	if err := cmd.Run(); err != nil {
-		return nil, err
-	}
-
-	result, err := os.ReadFile(outputPath)
-	if err != nil {
-		return nil, err
-	}
-
-	_ = os.Remove(inputPath)
-	_ = os.Remove(outputPath)
-
-	return result, nil
-}
-
-func randomHex(n int) string {
-	b := make([]byte, n)
-	_, _ = rand.Read(b)
-	return hex.EncodeToString(b)
-}
-
 func waitUntilHTMLRendered(ctx context.Context, timeout time.Duration) error {
 	const checkDuration = 50 * time.Millisecond
 	const minStableIterations = 4
@@ -138,7 +101,7 @@ func waitUntilHTMLRendered(ctx context.Context, timeout time.Duration) error {
 	stableCount := 0
 	maxChecks := int(timeout / checkDuration)
 
-	for i := 0; i < maxChecks; i++ {
+	for range maxChecks {
 		var htmlSize int
 		err := chromedp.Run(ctx, chromedp.Evaluate(`document.documentElement.outerHTML.length`, &htmlSize))
 		if err != nil {
@@ -160,4 +123,37 @@ func waitUntilHTMLRendered(ctx context.Context, timeout time.Duration) error {
 	}
 
 	return fmt.Errorf("HTML did not stabilize within %v", timeout)
+}
+
+func setPDFTitle(pdfData []byte, title string) ([]byte, error) {
+	inputFile, err := os.CreateTemp("", "input-*.pdf")
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(inputFile.Name())
+
+	if _, err := inputFile.Write(pdfData); err != nil {
+		return nil, err
+	}
+	if err := inputFile.Close(); err != nil {
+		return nil, err
+	}
+
+	outputFile, err := os.CreateTemp("", "output-*.pdf")
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(outputFile.Name())
+	outputFile.Close()
+
+	// Set metadata using AddProperties
+	props := map[string]string{
+		"Title": title,
+	}
+
+	if err := api.AddPropertiesFile(inputFile.Name(), outputFile.Name(), props, nil); err != nil {
+		return nil, err
+	}
+
+	return os.ReadFile(outputFile.Name())
 }

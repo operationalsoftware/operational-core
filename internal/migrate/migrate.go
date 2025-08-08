@@ -239,7 +239,6 @@ INSERT INTO
 }
 
 func ensureSystemUserExists(ctx context.Context, conn *pgx.Conn) error {
-	fmt.Print("Creating system user... ")
 
 	userRepository := repository.NewUserRepository()
 
@@ -251,6 +250,8 @@ func ensureSystemUserExists(ctx context.Context, conn *pgx.Conn) error {
 		// already exists
 		return nil
 	}
+
+	fmt.Print("Creating system user... ")
 
 	systemPassword := os.Getenv("SYSTEM_USER_PASSWORD")
 	if systemPassword == "" {

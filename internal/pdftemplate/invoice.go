@@ -1,11 +1,49 @@
 package pdftemplate
 
-func invoice(_params interface{}) PDFTemplate {
+import (
+	"app/pkg/pdf"
+	"fmt"
 
-	pdfTemplate := PDFTemplate{
-		Title: "Invoice",
-		HTML:  "<html><body><h1>Hello Invoice</h1></body></html>",
+	g "github.com/maragudk/gomponents"
+	h "github.com/maragudk/gomponents/html"
+	"github.com/shopspring/decimal"
+)
+
+type InvoiceData struct {
+	CustomerName string
+	Amount       decimal.Decimal
+}
+
+type InvoiceTemplate struct{}
+
+func (InvoiceTemplate) Generate(input InvoiceData) (pdf.PDFDefinition, error) {
+
+	html, err := gomponentToString(h.Div(
+		h.H1(g.Textf("Invoice for %s", input.CustomerName)),
+		h.P(g.Textf("Amount: %s", input.Amount.String())),
+	))
+	if err != nil {
+		return pdf.PDFDefinition{}, fmt.Errorf("error generating invoice html: %v", err)
 	}
 
-	return pdfTemplate
+	title := "Invoice"
+
+	return pdf.PDFDefinition{Title: title, HTML: html}, nil
+}
+
+func (InvoiceTemplate) GenerateFromJSON(data []byte) (pdf.PDFDefinition, error) {
+	return GenerateTypedFromJSON(InvoiceTemplate{}.Generate, data)
+}
+
+var invoiceExampleJSON = `
+{
+  "CustomerName": "Jane Doe",
+  "Amount": 123.45
+}`
+
+var InvoiceTemplateDefinition = RegisteredTemplate{
+	Name:        "Invoice",
+	Description: "Simple invoice with customer name and amount",
+	Generator:   InvoiceTemplate{},
+	ExampleJSON: invoiceExampleJSON,
 }

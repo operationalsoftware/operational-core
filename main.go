@@ -76,6 +76,7 @@ func main() {
 		AndonService:            *service.NewAndonService(pgPool, andonRepository, commentRepository),
 		AndonIssueService:       *service.NewAndonIssueService(pgPool, andonIssueRepository),
 		AuthService:             *service.NewAuthService(pgPool, authRepository),
+		PDFService:              *service.NewPDFService(),
 		SearchService:           *service.NewSearchService(pgPool, userRepository),
 		StockItemService:        *service.NewStockItemService(pgPool, stockItemRepository),
 		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),
