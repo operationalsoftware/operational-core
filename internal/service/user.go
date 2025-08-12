@@ -177,6 +177,23 @@ func (s *UserService) GetUserByID(
 	return user, nil
 }
 
+func (s *UserService) GetUserTeams(
+	ctx context.Context,
+	userID int,
+	q model.ListUserTeamsQuery,
+) (
+	[]model.UserTeam,
+	error,
+) {
+
+	userTeams, err := s.userRepository.GetUserTeams(ctx, s.db, userID, q)
+	if err != nil {
+		return []model.UserTeam{}, err
+	}
+
+	return userTeams, nil
+}
+
 func (s *UserService) GetUserByUsername(
 	ctx context.Context,
 	username string,

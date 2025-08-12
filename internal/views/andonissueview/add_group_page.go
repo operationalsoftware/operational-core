@@ -95,14 +95,20 @@ func addGroupForm(p *addGroupFormProps) g.Node {
 			g.Text("Select child group"),
 		),
 	}
-	for _, andonIssue := range p.andonIssueGroups {
+	for _, aig := range p.andonIssueGroups {
 		intVal, _ := strconv.Atoi(parentIDValue)
-		isSelected := andonIssue.AndonIssueID == intVal
+		isSelected := aig.AndonIssueID == intVal
+
+		isDisabled := false
+		if aig.Depth > 1 {
+			isDisabled = true
+		}
 
 		parentSelectOptions = append(parentSelectOptions, h.Option(
-			h.Value(fmt.Sprintf("%d", andonIssue.AndonIssueID)),
+			h.Value(fmt.Sprintf("%d", aig.AndonIssueID)),
 			g.If(isSelected, h.Selected()),
-			g.Text(strings.Join(andonIssue.NamePath, " > ")),
+			g.If(isDisabled, h.Disabled()),
+			g.Text(strings.Join(aig.NamePath, " > ")),
 		))
 	}
 

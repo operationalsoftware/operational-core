@@ -19,7 +19,7 @@
 
 .main .card {
   width: 100%;
-  max-width: 400px;
+  max-width: var(--narrow-form-width);
   margin: 0 auto;
   padding: var(--spacing-xl);
   border-radius: var(--border-radius);

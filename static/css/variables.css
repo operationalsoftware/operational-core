@@ -81,6 +81,9 @@
   --bg-normal: rgba(255, 255, 255, 0.15);
   --bg-hover: rgba(255, 255, 255, 0.25);
 
+  /* Form */
+  --narrow-form-width: 400px;
+
   /* Home page menu background */
   --home-menu-bg: rgba(224, 224, 224, 0.8);
 }

@@ -4,6 +4,7 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
+	"app/pkg/appsort"
 	"app/pkg/cookie"
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
@@ -16,8 +17,12 @@ import (
 )
 
 type UserPageProps struct {
-	Ctx  reqcontext.ReqContext
-	User model.User
+	Ctx       reqcontext.ReqContext
+	User      model.User
+	UserTeams []model.UserTeam
+	Sort      appsort.Sort
+	Page      int
+	PageSize  int
 }
 
 func UserPage(p *UserPageProps) g.Node {
@@ -27,6 +32,34 @@ func UserPage(p *UserPageProps) g.Node {
 	sessionDuration := nilsafe.Int(user.SessionDurationMinutes)
 	if sessionDuration == 0 {
 		sessionDuration = int(cookie.DefaultSessionDurationMinutes.Minutes())
+	}
+
+	var columns = components.TableColumns{
+		{
+			TitleContents: g.Text("Team Name"),
+			SortKey:       "TeamName",
+		},
+		{
+			TitleContents: g.Text("Role"),
+			SortKey:       "Role",
+		},
+	}
+
+	var tableRows components.TableRows
+	for _, ai := range p.UserTeams {
+
+		cells := []components.TableCell{
+			{
+				Contents: g.Text(ai.TeamName),
+			},
+			{
+				Contents: g.Text(ai.Role),
+			},
+		}
+
+		tableRows = append(tableRows, components.TableRow{
+			Cells: cells,
+		})
 	}
 
 	userContent := g.Group([]g.Node{
@@ -109,6 +142,25 @@ func UserPage(p *UserPageProps) g.Node {
 						h.Li(g.Text(getPermissionDescription("UserAdmin", "Access"))),
 					),
 				),
+			),
+		),
+
+		h.Div(
+			h.H3(g.Text("Teams")),
+
+			components.Table(&components.TableProps{
+				Columns: columns,
+				Sort:    p.Sort,
+				Rows:    tableRows,
+				Pagination: &components.TablePaginationProps{
+					TotalRecords:        100,
+					PageSize:            p.PageSize,
+					CurrentPage:         p.Page,
+					CurrentPageQueryKey: "Page",
+					PageSizeQueryKey:    "PageSize",
+				},
+			},
+				h.ID("user-teams-table"),
 			),
 		),
 	})

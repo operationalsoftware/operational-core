@@ -115,7 +115,7 @@ func StockItemsPage(p *StockItemsPageProps) g.Node {
 			},
 		},
 		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/userview/users_home_page.css"),
+			components.InlineStyle("/internal/views/stockitemview/stock_items_page.css"),
 		},
 	})
 }

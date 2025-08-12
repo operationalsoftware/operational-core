@@ -2,7 +2,7 @@ module app
 
 go 1.23.0
 
-toolchain go1.23.2
+// toolchain go1.23.2
 
 require (
 	github.com/chromedp/cdproto v0.0.0-20250403032234-65de8f5d025b

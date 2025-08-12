@@ -1121,7 +1121,7 @@ label .select {
 .search-select {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: var(--narrow-form-width);
   font-family: sans-serif;
   font-size: 14px;
   color: var(--text-color);

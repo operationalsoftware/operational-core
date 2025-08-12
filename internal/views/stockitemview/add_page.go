@@ -3,30 +3,26 @@ package stockitemview
 import (
 	"app/internal/components"
 	"app/internal/layout"
-	"app/internal/model"
-	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
-	"fmt"
 	"net/url"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
 
-type EditStockItemPageProps struct {
+type AddStockItemPageProps struct {
 	Ctx              reqcontext.ReqContext
-	StockItem        model.StockItem
 	Values           url.Values
 	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
 }
 
-func EditStockItemPage(p *EditStockItemPageProps) g.Node {
+func AddStockItemPage(p *AddStockItemPageProps) g.Node {
 
 	content := g.Group([]g.Node{
-		editUserForm(&editUserFormProps{
-			stockItem:        p.StockItem,
+
+		addStockItemForm(&addStockItemFormProps{
 			values:           p.Values,
 			validationErrors: p.ValidationErrors,
 			isSubmission:     p.IsSubmission,
@@ -34,7 +30,8 @@ func EditStockItemPage(p *EditStockItemPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Title: fmt.Sprintf("Edit Stock Item: %s", p.StockItem.StockCode),
+		Ctx:   p.Ctx,
+		Title: "Add New Stock Item",
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
 			{
@@ -43,40 +40,28 @@ func EditStockItemPage(p *EditStockItemPageProps) g.Node {
 				URLPart:        "stock-items",
 			},
 			{
-				Title:   p.StockItem.StockCode,
-				URLPart: p.StockItem.StockCode,
-			},
-			{
-				IconIdentifier: "pencil",
-				Title:          "Edit",
+				IconIdentifier: "plus",
+				Title:          "Add",
 			},
 		},
 		Content: content,
-		Ctx:     p.Ctx,
 		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/userview/edit_user_page.css"),
+			components.InlineStyle("/internal/views/stockitemview/add_page.css"),
 		},
 	})
 }
 
-type editUserFormProps struct {
-	stockItem        model.StockItem
+type addStockItemFormProps struct {
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
 }
 
-// same as addUserForm, but no password fields
-func editUserForm(p *editUserFormProps) g.Node {
+func addStockItemForm(p *addStockItemFormProps) g.Node {
 
 	stockCodeLabel := "Stock Code (SKU)"
 	stockCodeKey := "StockCode"
-	var stockCodeValue string
-	if p.values.Get(stockCodeKey) != "" {
-		stockCodeValue = p.values.Get(stockCodeKey)
-	} else {
-		stockCodeValue = nilsafe.Str(&p.stockItem.StockCode)
-	}
+	stockCodeValue := p.values.Get(stockCodeKey)
 	stockCodeError := ""
 	if p.isSubmission || stockCodeValue != "" {
 		stockCodeError = p.validationErrors.GetError(stockCodeKey, stockCodeLabel)
@@ -88,12 +73,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 
 	descriptionLabel := "Description"
 	descriptionKey := "Description"
-	var descriptionValue string
-	if p.values.Get(descriptionKey) != "" {
-		descriptionValue = p.values.Get(descriptionKey)
-	} else {
-		descriptionValue = nilsafe.Str(&p.stockItem.Description)
-	}
+	descriptionValue := p.values.Get(descriptionKey)
 	descriptionError := ""
 	if p.isSubmission || descriptionValue != "" {
 		descriptionError = p.validationErrors.GetError(descriptionKey, descriptionLabel)
@@ -139,8 +119,7 @@ func editUserForm(p *editUserFormProps) g.Node {
 		components.Button(
 			&components.ButtonProps{},
 			h.Type("submit"),
-			g.Text("Save"),
+			g.Text("Add Stock Item"),
 		),
 	)
-
 }

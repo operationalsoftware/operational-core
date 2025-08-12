@@ -5,5 +5,5 @@
 
 .main form {
   width: 100%;
-  max-width: 400px;
+  max-width: var(--narrow-form-width);
 }

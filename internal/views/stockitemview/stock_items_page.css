@@ -4,15 +4,10 @@
   column-gap: var(--spacing-md);
 }
 
-.main {
-  display: flex;
-  justify-content: center;
-}
-
-.main form {
-  max-width: var(--narrow-form-width);
-}
-
 :root[data-theme="dark"] .button-container svg {
   fill: currentColor;
+}
+
+#users-table-container {
+  margin-top: var(--spacing-lg);
 }

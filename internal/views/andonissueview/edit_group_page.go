@@ -129,8 +129,6 @@ func editGroupForm(p *editGroupFormProps) g.Node {
 			continue
 		}
 
-		fmt.Println(spareDepth, aig.Depth)
-
 		isDisabled := false
 		if aig.Depth > spareDepth {
 			isDisabled = true

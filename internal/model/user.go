@@ -103,3 +103,16 @@ var GetUsersSortableKeys = []string{
 	"Created",
 	"LastLogin",
 }
+
+type UserTeam struct {
+	TeamID   int
+	UserID   int
+	TeamName string `sortable:"true"`
+	Role     string `sortable:"true"`
+}
+
+type ListUserTeamsQuery struct {
+	Sort     appsort.Sort
+	Page     int
+	PageSize int
+}

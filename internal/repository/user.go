@@ -261,6 +261,57 @@ WHERE
 	return &user, nil
 }
 
+func (r *UserRepository) GetUserTeams(
+	ctx context.Context,
+	exec db.PGExecutor,
+	userID int,
+	q model.ListUserTeamsQuery,
+) ([]model.UserTeam, error) {
+
+	limit := q.PageSize
+	offset := (q.Page - 1) * q.PageSize
+	orderByClause, err := q.Sort.ToOrderByClause(model.UserTeam{})
+
+	if orderByClause == "" {
+		orderByClause = "ORDER BY ut.created_at DESC"
+	}
+
+	query := `
+SELECT
+	ut.team_id,
+	ut.user_id,
+	t.team_name,
+	ut.role
+FROM user_team ut
+INNER JOIN team t ON ut.team_id = t.team_id
+WHERE ut.user_id = $1
+` + orderByClause + `
+
+LIMIT $2 OFFSET $3
+`
+
+	rows, err := exec.Query(ctx, query, userID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userteams []model.UserTeam
+	for rows.Next() {
+		var u model.UserTeam
+		if err := rows.Scan(&u.TeamID, &u.UserID, &u.TeamName, &u.Role); err != nil {
+			return nil, err
+		}
+		userteams = append(userteams, u)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userteams, nil
+}
+
 func (r *UserRepository) GetUserByUsername(
 	ctx context.Context,
 	exec db.PGExecutor,

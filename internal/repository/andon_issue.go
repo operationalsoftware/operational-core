@@ -60,16 +60,6 @@ func (r *AndonIssueRepository) CreateGroup(
 	userID int,
 ) error {
 
-	if andonIssueGroup.ParentID != nil {
-		isTopLevel, err := r.isTopLevelGroup(ctx, exec, *andonIssueGroup.ParentID)
-		if err != nil {
-			return fmt.Errorf("failed to validate parent group: %w", err)
-		}
-		if !isTopLevel {
-			return fmt.Errorf("cannot create group deeper than 2 levels")
-		}
-	}
-
 	query := `
 INSERT INTO andon_issue (
 	issue_name,
@@ -525,6 +515,7 @@ SELECT
 	issue_name,
 	name_path,
 	parent_id,
+	depth,
 	down_depth
 FROM
 	andon_issue_group_view
@@ -545,6 +536,7 @@ WHERE
 			&andonIssue.IssueName,
 			&andonIssue.NamePath,
 			&andonIssue.ParentID,
+			&andonIssue.Depth,
 			&andonIssue.DownDepth,
 		); err != nil {
 			return nil, err
