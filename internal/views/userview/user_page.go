@@ -45,14 +45,14 @@ func UserPage(p *UserPageProps) g.Node {
 	}
 
 	var tableRows components.TableRows
-	for _, ai := range p.User.Teams {
+	for _, ut := range p.User.Teams {
 
 		cells := []components.TableCell{
 			{
-				Contents: g.Text(ai.TeamName),
+				Contents: g.Text(ut.TeamName),
 			},
 			{
-				Contents: g.Text(ai.Role),
+				Contents: g.Text(ut.Role),
 			},
 		}
 
