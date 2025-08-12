@@ -122,7 +122,7 @@ func addGroupForm(p *addGroupFormProps) g.Node {
 
 				h.Input(
 					h.Name(issueNameKey),
-					h.Placeholder("Enter issue name"),
+					h.Placeholder("Enter issue group name"),
 					g.If(issueNameValue != "", h.Value(issueNameValue)),
 					h.AutoComplete("off"),
 				),

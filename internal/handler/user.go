@@ -125,23 +125,12 @@ func (h *UserHandler) UserPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userTeams, _ := h.userService.GetUserTeams(
-		r.Context(),
-		ctx.User.UserID,
-		model.ListUserTeamsQuery{
-			Sort:     sort,
-			Page:     uv.Page,
-			PageSize: uv.PageSize,
-		},
-	)
-
 	_ = userview.UserPage(&userview.UserPageProps{
-		Ctx:       ctx,
-		User:      *user,
-		UserTeams: userTeams,
-		Sort:      sort,
-		Page:      uv.Page,
-		PageSize:  uv.PageSize,
+		Ctx:      ctx,
+		User:     *user,
+		Sort:     sort,
+		Page:     uv.Page,
+		PageSize: uv.PageSize,
 	}).Render(w)
 }
 

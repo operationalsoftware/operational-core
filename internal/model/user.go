@@ -24,15 +24,16 @@ type UserDB struct {
 
 type User struct {
 	UserID                 int
-	Username               string
+	Username               string `sortable:"true"`
 	IsAPIUser              bool
-	Email                  *string
-	FirstName              *string
-	LastName               *string
-	Created                time.Time
-	LastLogin              *time.Time
+	Email                  *string    `sortable:"true"`
+	FirstName              *string    `sortable:"true"`
+	LastName               *string    `sortable:"true"`
+	Created                time.Time  `sortable:"true"`
+	LastLogin              *time.Time `sortable:"true"`
 	Permissions            UserPermissions
 	SessionDurationMinutes *int
+	Teams                  []UserTeam `json:"teams"`
 }
 
 func (u UserDB) ToDomain() User {
@@ -105,10 +106,10 @@ var GetUsersSortableKeys = []string{
 }
 
 type UserTeam struct {
-	TeamID   int
-	UserID   int
-	TeamName string `sortable:"true"`
-	Role     string `sortable:"true"`
+	TeamID   int    `json:"team_id"`
+	UserID   int    `json:"user_id"`
+	TeamName string `sortable:"true" json:"team_name"`
+	Role     string `sortable:"true" json:"role"`
 }
 
 type ListUserTeamsQuery struct {

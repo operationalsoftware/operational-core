@@ -17,12 +17,11 @@ import (
 )
 
 type UserPageProps struct {
-	Ctx       reqcontext.ReqContext
-	User      model.User
-	UserTeams []model.UserTeam
-	Sort      appsort.Sort
-	Page      int
-	PageSize  int
+	Ctx      reqcontext.ReqContext
+	User     model.User
+	Sort     appsort.Sort
+	Page     int
+	PageSize int
 }
 
 func UserPage(p *UserPageProps) g.Node {
@@ -46,7 +45,7 @@ func UserPage(p *UserPageProps) g.Node {
 	}
 
 	var tableRows components.TableRows
-	for _, ai := range p.UserTeams {
+	for _, ai := range p.User.Teams {
 
 		cells := []components.TableCell{
 			{

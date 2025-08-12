@@ -306,4 +306,30 @@ FROM
     LEFT JOIN app_user acku ON ae.acknowledged_by = acku.user_id
     LEFT JOIN app_user ru ON ae.resolved_by = ru.user_id
     LEFT JOIN app_user cu ON ae.cancelled_by = cu.user_id
-    INNER JOIN andon_issue_view aiv ON ae.issue_id = aiv.andon_issue_id
+    INNER JOIN andon_issue_view aiv ON ae.issue_id = aiv.andon_issue_id;
+
+
+CREATE VIEW user_view AS
+SELECT
+    u.user_id,
+    u.is_api_user,
+    u.username,
+    u.email,
+    u.first_name,
+    u.last_name,
+    u.created,
+    u.last_login,
+    u.session_duration_minutes,
+    u.permissions,
+    COALESCE(json_agg(
+        json_build_object(
+            'team_id', t.team_id,
+            'team_name', t.team_name,
+            'role', ut.role
+        )
+    ) FILTER (WHERE t.team_id IS NOT NULL), '[]') AS teams
+FROM
+    app_user u
+LEFT JOIN user_team ut ON u.user_id = ut.user_id
+LEFT JOIN team t ON ut.team_id = t.team_id
+GROUP BY u.user_id;

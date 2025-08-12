@@ -226,15 +226,17 @@ SELECT
     created,
     last_login,
 	session_duration_minutes,
-    permissions
+    permissions,
+	teams
 FROM
-    app_user
+    user_view
 WHERE
     user_id = $1
 	`
 
 	user := model.User{}
 	var permissions json.RawMessage
+	var teamsJSON []byte
 	err := exec.QueryRow(ctx, query, userID).Scan(
 		&user.UserID,
 		&user.IsAPIUser,
@@ -246,6 +248,7 @@ WHERE
 		&user.LastLogin,
 		&user.SessionDurationMinutes,
 		&permissions,
+		&teamsJSON,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -258,58 +261,11 @@ WHERE
 		user.Permissions = model.UserPermissions{}
 	}
 
+	if err := json.Unmarshal(teamsJSON, &user.Teams); err != nil {
+		return nil, err
+	}
+
 	return &user, nil
-}
-
-func (r *UserRepository) GetUserTeams(
-	ctx context.Context,
-	exec db.PGExecutor,
-	userID int,
-	q model.ListUserTeamsQuery,
-) ([]model.UserTeam, error) {
-
-	limit := q.PageSize
-	offset := (q.Page - 1) * q.PageSize
-	orderByClause, err := q.Sort.ToOrderByClause(model.UserTeam{})
-
-	if orderByClause == "" {
-		orderByClause = "ORDER BY ut.created_at DESC"
-	}
-
-	query := `
-SELECT
-	ut.team_id,
-	ut.user_id,
-	t.team_name,
-	ut.role
-FROM user_team ut
-INNER JOIN team t ON ut.team_id = t.team_id
-WHERE ut.user_id = $1
-` + orderByClause + `
-
-LIMIT $2 OFFSET $3
-`
-
-	rows, err := exec.Query(ctx, query, userID, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var userteams []model.UserTeam
-	for rows.Next() {
-		var u model.UserTeam
-		if err := rows.Scan(&u.TeamID, &u.UserID, &u.TeamName, &u.Role); err != nil {
-			return nil, err
-		}
-		userteams = append(userteams, u)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return userteams, nil
 }
 
 func (r *UserRepository) GetUserByUsername(
@@ -329,15 +285,17 @@ SELECT
     created,
     last_login,
 	session_duration_minutes,
-    permissions
+    permissions,
+	teams
 FROM
-    app_user
+    user_view
 WHERE
     username = $1
 	`
 
 	user := model.User{}
 	var permissions json.RawMessage
+	var teamsJSON []byte
 	err := exec.QueryRow(ctx, query, username).Scan(
 		&user.UserID,
 		&user.IsAPIUser,
@@ -349,6 +307,7 @@ WHERE
 		&user.LastLogin,
 		&user.SessionDurationMinutes,
 		&permissions,
+		&teamsJSON,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -357,6 +316,14 @@ WHERE
 	}
 
 	err = json.Unmarshal(permissions, &user.Permissions)
+	if err != nil {
+		user.Permissions = model.UserPermissions{}
+	}
+
+	err = json.Unmarshal(teamsJSON, &user.Teams)
+	if err != nil {
+		log.Println(err)
+	}
 	if err != nil {
 		user.Permissions = model.UserPermissions{}
 	}
@@ -389,9 +356,10 @@ SELECT
     created,
     last_login,
 	session_duration_minutes,
-    permissions
+    permissions,
+	teams
 FROM
-    app_user
+    user_view
 
 ` + orderByClause + `
 
@@ -407,14 +375,9 @@ LIMIT $1 OFFSET $2
 
 	users := []model.User{}
 	for rows.Next() {
-		// Email                  pgtype.Text
-		// FirstName              pgtype.Text
-		// LastName               pgtype.Text
-		// LastLogin              pgtype.Timestamptz
-		// SessionDurationMinutes *int
-
 		var user model.User
 		var permissions json.RawMessage
+		var teamsJSON []byte
 
 		err := rows.Scan(
 			&user.UserID,
@@ -427,8 +390,13 @@ LIMIT $1 OFFSET $2
 			&user.LastLogin,
 			&user.SessionDurationMinutes,
 			&permissions,
+			&teamsJSON,
 		)
 		if err != nil {
+			return nil, err
+		}
+
+		if err := json.Unmarshal(teamsJSON, &user.Teams); err != nil {
 			return nil, err
 		}
 
@@ -452,7 +420,7 @@ func (r *UserRepository) GetUserCount(
 SELECT
 	COUNT(*)
 FROM
-	app_user
+	user_view
 	`
 
 	var count int
@@ -542,7 +510,7 @@ func (r *UserRepository) SearchUsers(
 				END * 1
 			) AS relevance
 		FROM
-			app_user
+			user_view
 		WHERE
 			email ILIKE '%' || $1 || '%'
 		OR	username ILIKE '%' || $1 || '%'
