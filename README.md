@@ -43,12 +43,12 @@ As we figure out this problem space, we are commited to creating a set of standa
 
 ## Development
 
-### Install CompileDaemon
+### Install `CompileDaemon`
 ```bash
 go install github.com/githubnemo/CompileDaemon@latest
 ```
 
-### Install go-assets-builder
+### Install `go-assets-builder`
 ```bash
 go install github.com/jessevdk/go-assets-builder@latest
 ```
