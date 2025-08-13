@@ -1,6 +1,41 @@
-# Operational Core
+# OperationalCore
 
-## Installation
+An open source platform for small and mid-sized manufacturers to win at digital transformation and Lean.
+
+OperationalCore is a full stack web-application which prioritises robust, manufacturing-specific building blocks over an opinionated finished product. These building blocks are presented to the developer as data-repositories and services which can be used to create custom user experiences fast.
+
+OperationalCore is designed to be forked and customised at the code-level rather than through extension/plugin develpment. This provides a unified user experience, a unified developer experience, and better maintainability.
+
+---
+
+## Motivation
+
+Until now, without the budget to develop 100% bespoke software, small and mid-size manufacturers have been constrained to off-the-shelf software and multi-tenant SaaS solutions. These force businesses to mould their processes to the software.
+
+Customisation of OperationalCore enables innovation of processes and software in accordance with Lean Manufacturing and Continuous Improvement.
+
+Only one significant player in the market offers an open source software solution for manufacturers - Odoo. However, Odoo is opinionated thus forcing process compliance. Customisation happens via app/plugin development, outside of the core codebase, meaning system behaviour becomes harder to reason about and extend as customisation increases.
+
+OperationalCore aims to provide a different user, developer, and process-governance experience.
+
+---
+
+## Using
+
+OperationalCore is undergoing rapid development due to the opportunity and demand in this space. If you wish to use this platform at this stage in its development, we suggest connecting with us at Operational Software on [hello@operationalsoftware.co](mailto:hello@operationalsoftware.co).
+
+---
+
+## Standards
+
+As we figure out this problem space, we are commited to creating a set of standards which govern how we will develop and evolve the platform, and how we suggest developers fork and customise this platform. These standards are in use at Operational Software and will continue to be extended and improved. They are also intended to be understood by AI agents which are used to support development. See:
+
+* [Commit Standard](./readme/COMMIT_STANDARD.md)
+* More coming soon...
+
+---
+
+## Development
 
 ### Install CompileDaemon
 ```bash
@@ -13,11 +48,12 @@ go install github.com/jessevdk/go-assets-builder@latest
 ```
 
 ### Generate SSL certificates
+
+Required for SSL/HTTPS in development (required for the [Web NFC API](https://w3c.github.io/web-nfc/) etc.)
+
 ```bash
 ./gen-dev-certs.sh
 ```
-
----
 
 ### Run Development Server
 
@@ -37,17 +73,3 @@ To start the development server, follow the steps below:
 
 ---
 
-## Migration Guidelines
-
-- The `initialise` function for migration runs for each new client.
-- The `migrate` function for migration contains new migrations that have not reached production yet, for local migrations one can comment the ones that have already been applied so that any error could be avoided.
-
----
-
-## GIT Merge Guidelines
-
-- Develop in `dev` branch and then merge into other branches once updates are finalized in the following order:
-    `dev` -> `staging` -> `production`
-- For merging `Operational Core` updates to `Operational Platforms` perform the following steps in `dev` branch of operational platforms and then merge to other branches in same order as in the above step:
-    - git fetch upstream
-    - git merge upstream/production

@@ -40,6 +40,6 @@ INTEGER GENERATED ALWAYS AS IDENTITY
 ---
 
 ### Structuring Go Models
-    * The data models used outside the repository should be using primitive GO data types while the ones used in repository should be using `pgtypes` for NOT NULL fields.
+    * The data models used outside the repository should be using primitive Go data types while the ones used in repository should be using `pgtypes` for NOT NULL fields.
     * The model that will return response data should have primitive Go data types in models and *pointer types will be used for fields where null needs to be returned otherwise falsy value for that data type will be returned.
     * The ToDomain() method of the DB model should be used to map pgtype data to the primitive data which will be then be sent in the response.
