@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/skip2/go-qrcode"
@@ -85,15 +86,20 @@ func (h *StockItemHandler) StockItemDetailsPage(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	stockCode := r.PathValue("stockCode")
+	stockItemID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Invalid stock item ID", http.StatusBadRequest)
+		return
+	}
 
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockCode)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error fetching Stock item", http.StatusInternalServerError)
 		return
 	}
 
-	stockItemChanges, err := h.stockItemService.GetStockItemChanges(r.Context(), stockCode)
+	stockItemChanges, err := h.stockItemService.GetStockItemChanges(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error fetching Stock item changes", http.StatusInternalServerError)
 		return
@@ -104,7 +110,7 @@ func (h *StockItemHandler) StockItemDetailsPage(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	png, err := qrcode.Encode(stockCode, qrcode.Medium, 256)
+	png, err := qrcode.Encode(stockItem.StockCode, qrcode.Medium, 256)
 	if err != nil {
 		http.Error(w, "QR generation failed", http.StatusInternalServerError)
 		return
@@ -203,8 +209,14 @@ func (h *StockItemHandler) EditStockItemPage(w http.ResponseWriter, r *http.Requ
 	}
 
 	stockCode := r.PathValue("stockCode")
+	stockItemID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Invalid stock item ID", http.StatusBadRequest)
+		return
+	}
 
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockCode)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error getting Stock item", http.StatusInternalServerError)
 		return

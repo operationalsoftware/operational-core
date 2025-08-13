@@ -40,7 +40,7 @@ func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
 			ChangedByUsername: change.ChangeByUsername,
 			IsCreation:        change.IsCreation,
 			Changes: map[string]interface{}{
-				"StockCode":   change.StockCodeHistory,
+				"StockCode":   change.StockCode,
 				"Description": change.Description,
 			},
 		}

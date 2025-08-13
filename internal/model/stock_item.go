@@ -7,21 +7,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type StockItemDB struct {
-	StockCode   string `db:"stock_code"`
-	Description string `db:"description"`
-	CreatedAt   time.Time
-}
-
 type StockItem struct {
+	StockItemID int
 	StockCode   string
 	Description string
 	CreatedAt   time.Time
 }
 
 type StockItemChange struct {
-	StockCode        string
-	StockCodeHistory pgtype.Text
+	StockItemID      int
+	StockCode        pgtype.Text
 	Description      pgtype.Text
 	ChangeByUsername string
 	ChangedAt        time.Time
@@ -29,10 +24,9 @@ type StockItemChange struct {
 }
 
 type PostStockItemChange struct {
-	StockCode        string
-	StockCodeHistory *string
-	Description      *string
-	ChangeBy         int
+	StockCode   *string
+	Description *string
+	ChangeBy    int
 }
 
 type LabelGenerator struct {

@@ -57,10 +57,10 @@ func (s *StockItemService) GetStockItems(
 
 func (s *StockItemService) GetStockItem(
 	ctx context.Context,
-	stockCode string,
+	stockItemID int,
 ) (*model.StockItem, error) {
 
-	stockItem, err := s.stockItemRepository.GetStockItem(ctx, s.db, stockCode)
+	stockItem, err := s.stockItemRepository.GetStockItem(ctx, s.db, stockItemID)
 	if err != nil {
 		return &model.StockItem{}, err
 	}
@@ -70,10 +70,10 @@ func (s *StockItemService) GetStockItem(
 
 func (s *StockItemService) GetStockItemChanges(
 	ctx context.Context,
-	stockCode string,
+	stockItemID int,
 ) ([]model.StockItemChange, error) {
 
-	stockItem, err := s.stockItemRepository.GetStockItemChanges(ctx, s.db, stockCode)
+	stockItem, err := s.stockItemRepository.GetStockItemChanges(ctx, s.db, stockItemID)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s *StockItemService) CreateStockItem(
 		return validationErrors, err
 	}
 
-	stockItem, _ := s.stockItemRepository.GetStockItem(ctx, tx, input.StockCode)
+	stockItem, _ := s.stockItemRepository.GetStockItemByStockCode(ctx, tx, input.StockCode)
 	if stockItem != nil {
 		validationErrors.Add("StockCode", "already exists")
 		return validationErrors, err
@@ -112,10 +112,9 @@ func (s *StockItemService) CreateStockItem(
 	}
 
 	err = s.stockItemRepository.AddStockItemChange(ctx, tx, model.PostStockItemChange{
-		StockCode:        input.StockCode,
-		StockCodeHistory: nil,
-		Description:      &input.Description,
-		ChangeBy:         userID,
+		StockCode:   &input.StockCode,
+		Description: &input.Description,
+		ChangeBy:    userID,
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -165,7 +164,7 @@ func (s *StockItemService) UpdateStockItem(
 	}
 
 	change := model.PostStockItemChange{
-		StockCode:   input.StockCode,
+		StockCode:   nil,
 		Description: nil,
 		ChangeBy:    userID,
 	}
@@ -175,11 +174,11 @@ func (s *StockItemService) UpdateStockItem(
 	}
 
 	if stockItem.StockCode != input.StockCode {
-		change.StockCodeHistory = &stockCode
+		change.StockCode = &stockCode
 	}
 
 	// Only insert if at least one field changed
-	if change.Description != nil || change.StockCodeHistory != nil {
+	if change.Description != nil || change.StockCode != nil {
 		err = s.stockItemRepository.AddStockItemChange(ctx, tx, change)
 		if err != nil {
 			fmt.Println(err)

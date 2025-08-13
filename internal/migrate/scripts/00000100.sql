@@ -55,30 +55,53 @@ CREATE INDEX idx_comment_entity ON comment(entity, entity_id);
 
 
 CREATE TABLE stock_item (
-	stock_code TEXT PRIMARY KEY,
+	stock_item_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	stock_code TEXT NOT NULL,
 	description TEXT NOT NULL,
 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+-- CREATE TABLE stock_item (
+-- 	stock_code TEXT PRIMARY KEY,
+-- 	description TEXT NOT NULL,
+-- 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+-- );
 
 
 CREATE TABLE stock_item_change (
 	stock_item_change_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	stock_code TEXT NOT NULL REFERENCES stock_item(stock_code) ON UPDATE CASCADE,
-	stock_code_history TEXT,
+	stock_item_id INT NOT NULL REFERENCES stock_item(stock_item_id),
+	stock_code TEXT,
 	description TEXT,
 	change_by INT REFERENCES app_user(user_id),
 	changed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+-- CREATE TABLE stock_item_change (
+-- 	stock_item_change_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+-- 	stock_code TEXT NOT NULL REFERENCES stock_item(stock_code) ON UPDATE CASCADE,
+-- 	stock_code_history TEXT,
+-- 	description TEXT,
+-- 	change_by INT REFERENCES app_user(user_id),
+-- 	changed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+-- );
 
 
 CREATE TABLE stock_transaction (
 	stock_transaction_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	transaction_type TEXT NOT NULL,
-	stock_code TEXT NOT NULL REFERENCES stock_item(stock_code),
+	-- stock_code TEXT NOT NULL REFERENCES stock_item(stock_code),
+	stock_item_id INT NOT NULL REFERENCES stock_item(stock_item_id),
 	transaction_by INT NOT NULL REFERENCES app_user(user_id),
 	transaction_note TEXT NOT NULL,
 	timestamp TIMESTAMPTZ NOT NULL
 );
+-- CREATE TABLE stock_transaction (
+-- 	stock_transaction_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+-- 	transaction_type TEXT NOT NULL,
+-- 	stock_code TEXT NOT NULL REFERENCES stock_item(stock_code),
+-- 	transaction_by INT NOT NULL REFERENCES app_user(user_id),
+-- 	transaction_note TEXT NOT NULL,
+-- 	timestamp TIMESTAMPTZ NOT NULL
+-- );
 
 
 CREATE TABLE stock_transaction_entry (

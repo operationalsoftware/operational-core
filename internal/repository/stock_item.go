@@ -48,12 +48,12 @@ VALUES ($1, $2)
 func (r *StockItemRepository) UpdateStockItem(
 	ctx context.Context,
 	exec db.PGExecutor,
-	stockCode string,
+	stockItemID int,
 	input *model.PostStockItem,
 ) error {
 
 	// get the user to check if it exists
-	stockItem, err := r.GetStockItem(ctx, exec, stockCode)
+	stockItem, err := r.GetStockItem(ctx, exec, stockItemID)
 	if err != nil {
 		return err
 	}
@@ -70,14 +70,14 @@ SET
 	description = $3
 
 WHERE
-	stock_code = $1
+	stock_item_id = $1
 	`
 
 	_, err = exec.Exec(
 		ctx,
 		query,
 
-		stockCode,
+		stockItemID,
 		input.StockCode,
 		input.Description,
 	)
@@ -92,10 +92,45 @@ WHERE
 func (r *StockItemRepository) GetStockItem(
 	ctx context.Context,
 	exec db.PGExecutor,
+	stockItemID int,
+) (*model.StockItem, error) {
+	query := `
+SELECT
+    stock_item_id,
+    stock_code,
+    description,
+    created_at
+FROM
+    stock_item
+WHERE
+    stock_item_id = $1
+	`
+
+	stockItem := model.StockItem{}
+	err := exec.QueryRow(ctx, query, stockItemID).Scan(
+		&stockItem.StockItemID,
+		&stockItem.StockCode,
+		&stockItem.Description,
+		&stockItem.CreatedAt,
+	)
+
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return &stockItem, nil
+}
+
+func (r *StockItemRepository) GetStockItemByStockCode(
+	ctx context.Context,
+	exec db.PGExecutor,
 	stockCode string,
 ) (*model.StockItem, error) {
 	query := `
 SELECT
+    stock_item_id,
     stock_code,
     description,
     created_at
@@ -107,6 +142,7 @@ WHERE
 
 	stockItem := model.StockItem{}
 	err := exec.QueryRow(ctx, query, stockCode).Scan(
+		&stockItem.StockItemID,
 		&stockItem.StockCode,
 		&stockItem.Description,
 		&stockItem.CreatedAt,
@@ -199,49 +235,32 @@ FROM
 func (r *StockItemRepository) GetStockItemChanges(
 	ctx context.Context,
 	exec db.PGExecutor,
-	stockCode string,
+	stockItemID int,
 ) ([]model.StockItemChange, error) {
 
 	query := `
-WITH RECURSIVE history_chain AS (
-    SELECT *
-    FROM stock_item_change
-    WHERE stock_code = $1
-
-    UNION ALL
-
-    SELECT sic.*
-    FROM stock_item_change sic
-    INNER JOIN history_chain hc ON hc.stock_code_history = sic.stock_code
-),
-OldestChange AS (
-    SELECT stock_code AS OldestChangeID
-    FROM history_chain
-    WHERE stock_code_history IS NULL
-    LIMIT 1
-)
 SELECT
-    sic.stock_code,
-    sic.stock_code_history,
+    sic.stock_item_id,
+    si.stock_code,
     sic.description,
     u.username AS changed_by_username,
     sic.changed_at,
     CASE
-        WHEN sic.stock_code = OC.OldestChangeID THEN true
+        WHEN sic.changed_at = MIN(sic.changed_at) OVER (PARTITION BY sic.stock_item_id)
+        THEN true
         ELSE false
     END AS IsCreation
 FROM
     stock_item_change sic
 LEFT JOIN app_user u ON sic.change_by = u.user_id
-LEFT JOIN OldestChange OC ON TRUE
+LEFT JOIN stock_item si ON si.stock_item_id = sic.stock_item_id
 WHERE
-    sic.stock_code = $1
+    sic.stock_item_id = $1
 ORDER BY
     sic.changed_at DESC;
-
 `
 
-	rows, err := exec.Query(ctx, query, stockCode)
+	rows, err := exec.Query(ctx, query, stockItemID)
 	if err != nil {
 		return nil, err
 	}
@@ -251,8 +270,8 @@ ORDER BY
 	for rows.Next() {
 		var c model.StockItemChange
 		err := rows.Scan(
+			&c.StockItemID,
 			&c.StockCode,
-			&c.StockCodeHistory,
 			&c.Description,
 			&c.ChangeByUsername,
 			&c.ChangedAt,
@@ -277,7 +296,6 @@ func (r *StockItemRepository) AddStockItemChange(
 	insertQuery := `
 INSERT INTO stock_item_change (
 	stock_code,
-	stock_code_history,
 	description,
 	change_by
 )
@@ -288,7 +306,6 @@ VALUES ($1, $2, $3, $4)
 
 		insertQuery,
 		stockItemChange.StockCode,
-		stockItemChange.StockCodeHistory,
 		stockItemChange.Description,
 		stockItemChange.ChangeBy,
 	)
