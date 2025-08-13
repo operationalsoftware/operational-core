@@ -10,7 +10,7 @@ OperationalCore is a full stack web-application which prioritises robust, manufa
 
 OperationalCore is designed to be forked and customised at the code-level rather than through extension/plugin develpment. This results in a unified user experience, a unified developer experience, and better maintainability.
 
-\* Also suitable for other goods-centric businesses such as e-commerce and wholesale distribution since the operationalal challenges faced by these companies are similar.
+\* _Also suitable for other goods-centric businesses such as e-commerce and wholesale distribution since the operational challenges faced by these companies are mostly a subset of manufacturing._
 
 ---
 
