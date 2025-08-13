@@ -1,16 +1,22 @@
 # OperationalCore
 
-An open source platform for small and mid-sized manufacturers to win at digital transformation and Lean.
+An open source platform for small and mid-sized manufacturers* to win at:
 
-OperationalCore is a full stack web-application which prioritises robust, manufacturing-specific building blocks over an opinionated finished product. These building blocks are presented to the developer as data-repositories and services which can be used to create custom user experiences fast.
+* 📈 Continuous improvement
+* 💻 Digital transformation
+* 🎯 Lean
 
-OperationalCore is designed to be forked and customised at the code-level rather than through extension/plugin develpment. This provides a unified user experience, a unified developer experience, and better maintainability.
+OperationalCore is a full stack web-application which prioritises robust, manufacturing-specific building blocks over an opinionated finished product. These building blocks are presented to the developer as data-repositories and services which can be used to create custom user experiences, fast.
+
+OperationalCore is designed to be forked and customised at the code-level rather than through extension/plugin develpment. This results in a unified user experience, a unified developer experience, and better maintainability.
+
+\* Also suitable for other goods-centric businesses such as e-commerce and wholesale distribution since the operationalal challenges faced by these companies are similar.
 
 ---
 
 ## Motivation
 
-Until now, without the budget to develop 100% bespoke software, small and mid-size manufacturers have been constrained to off-the-shelf software and multi-tenant SaaS solutions. These force businesses to mould their processes to the software.
+Until now, without the budget to develop 100% bespoke software, small and mid-size manufacturers have been constrained to off-the-shelf software and multi-tenant SaaS solutions. These systems force businesses to mould their processes to the software.
 
 Customisation of OperationalCore enables innovation of processes and software in accordance with Lean Manufacturing and Continuous Improvement.
 
