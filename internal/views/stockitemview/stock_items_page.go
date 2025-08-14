@@ -48,7 +48,7 @@ func StockItemsPage(p *StockItemsPageProps) g.Node {
 					Contents: h.A(
 						g.Text(u.StockCode),
 						g.Attr("href",
-							fmt.Sprintf("/stock-items/%s", u.StockCode))),
+							fmt.Sprintf("/stock-items/%d", u.StockItemID))),
 				},
 				{
 					Contents: g.Group([]g.Node{

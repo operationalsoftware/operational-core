@@ -2,8 +2,10 @@ package stockview
 
 import (
 	"app/internal/components"
+	"app/internal/model"
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
+	"fmt"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
@@ -16,7 +18,7 @@ type PostStockMovementPageProps struct {
 	ErrorText   string
 	ReturnTo    *string
 
-	StockCode       string
+	StockItemID     int
 	LotNumber       string
 	Qty             decimal.Decimal
 	FromLocation    string
@@ -24,9 +26,16 @@ type PostStockMovementPageProps struct {
 	ToLocation      string
 	ToBin           string
 	TransactionNote string
+
+	StockItems []model.StockItem
 }
 
 func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
+
+	selectedStockItem := ""
+	if p.StockItemID != 0 {
+		selectedStockItem = fmt.Sprintf("%d", p.StockItemID)
+	}
 
 	content := h.FormEl(
 		h.Method("POST"),
@@ -36,13 +45,14 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 
 			h.Label(
 				g.Text("Stock Code"),
-				h.Input(
-					h.Type("text"),
-					h.Name("StockCode"),
-					h.Value(p.StockCode),
-					h.Placeholder("Enter stock code"),
-					h.AutoComplete("off"),
-				),
+
+				components.SearchSelect(&components.SearchSelectProps{
+					Name:        "StockItemID",
+					Placeholder: "Select Stock Code",
+					Mode:        "single",
+					Options:     MapStockItemsToOptions(p.StockItems),
+					Selected:    selectedStockItem,
+				}),
 			),
 		),
 
@@ -170,4 +180,15 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 		successText:     p.SuccessText,
 		errorText:       p.ErrorText,
 	})
+}
+
+func MapStockItemsToOptions(vals []model.StockItem) []components.SearchSelectOption {
+	out := make([]components.SearchSelectOption, len(vals))
+	for i, v := range vals {
+		out[i] = components.SearchSelectOption{
+			Text:  v.StockCode,
+			Value: fmt.Sprintf("%d", v.StockItemID),
+		}
+	}
+	return out
 }

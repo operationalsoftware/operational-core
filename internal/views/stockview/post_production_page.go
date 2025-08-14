@@ -2,7 +2,9 @@ package stockview
 
 import (
 	"app/internal/components"
+	"app/internal/model"
 	"app/pkg/reqcontext"
+	"fmt"
 
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
@@ -14,7 +16,7 @@ type PostGenericPageProps struct {
 	SuccessText string
 	ErrorText   string
 
-	StockCode       string
+	StockItemID     int
 	Location        string
 	Bin             string
 	LotNumber       string
@@ -26,6 +28,8 @@ type PostGenericPageProps struct {
 	// Placeholders
 	StockCodePlaceholder string
 	QtyPlaceholder       string
+
+	StockItems []model.StockItem
 }
 
 func PostProductionPage(p *PostGenericPageProps) g.Node {
@@ -71,19 +75,25 @@ func PostProductionPage(p *PostGenericPageProps) g.Node {
 
 func formPartialStockCodeLocBinLot(p *PostGenericPageProps) g.Node {
 
+	selectedStockItem := ""
+	if p.StockItemID != 0 {
+		selectedStockItem = fmt.Sprintf("%d", p.StockItemID)
+	}
+
 	return g.Group([]g.Node{
 		h.Div(
 			h.Class("form-row"),
 
 			h.Label(
 				g.Text("Stock Code"),
-				h.Input(
-					h.Type("text"),
-					h.Name("StockCode"),
-					h.Value(p.StockCode),
-					h.Placeholder(p.StockCodePlaceholder),
-					h.AutoComplete("off"),
-				),
+
+				components.SearchSelect(&components.SearchSelectProps{
+					Name:        "StockItemID",
+					Placeholder: "Select Stock Code",
+					Mode:        "single",
+					Options:     MapStockItemsToOptions(p.StockItems),
+					Selected:    selectedStockItem,
+				}),
 			),
 		),
 

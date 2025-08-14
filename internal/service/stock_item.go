@@ -106,12 +106,13 @@ func (s *StockItemService) CreateStockItem(
 		return validationErrors, err
 	}
 
-	err = s.stockItemRepository.CreateStockItem(ctx, tx, input)
+	newStockItemID, err := s.stockItemRepository.CreateStockItem(ctx, tx, input)
 	if err != nil {
 		return validate.ValidationErrors{}, err
 	}
 
 	err = s.stockItemRepository.AddStockItemChange(ctx, tx, model.PostStockItemChange{
+		StockItemID: newStockItemID,
 		StockCode:   &input.StockCode,
 		Description: &input.Description,
 		ChangeBy:    userID,
@@ -130,7 +131,7 @@ func (s *StockItemService) CreateStockItem(
 
 func (s *StockItemService) UpdateStockItem(
 	ctx context.Context,
-	stockCode string,
+	stockItemID int,
 	input *model.PostStockItem,
 	userID int,
 ) (
@@ -148,17 +149,17 @@ func (s *StockItemService) UpdateStockItem(
 		return validationErrors, err
 	}
 
-	stockItem, _ := s.stockItemRepository.GetStockItem(ctx, tx, stockCode)
+	stockItem, _ := s.stockItemRepository.GetStockItem(ctx, tx, stockItemID)
 
-	if input.StockCode != stockCode {
-		existing, _ := s.stockItemRepository.GetStockItem(ctx, tx, input.StockCode)
+	if input.StockCode != stockItem.StockCode {
+		existing, _ := s.stockItemRepository.GetStockItemByStockCode(ctx, tx, input.StockCode)
 		if existing != nil {
 			validationErrors.Add("StockCode", "stock code already exists")
 			return validationErrors, nil
 		}
 	}
 
-	err = s.stockItemRepository.UpdateStockItem(ctx, tx, stockCode, input)
+	err = s.stockItemRepository.UpdateStockItem(ctx, tx, stockItemID, input)
 	if err != nil {
 		return validate.ValidationErrors{}, err
 	}
@@ -169,16 +170,17 @@ func (s *StockItemService) UpdateStockItem(
 		ChangeBy:    userID,
 	}
 
+	if stockItem.StockCode != input.StockCode {
+		change.StockCode = &input.StockCode
+	}
+
 	if stockItem.Description != input.Description {
 		change.Description = &input.Description
 	}
 
-	if stockItem.StockCode != input.StockCode {
-		change.StockCode = &stockCode
-	}
-
 	// Only insert if at least one field changed
 	if change.Description != nil || change.StockCode != nil {
+		change.StockItemID = stockItemID
 		err = s.stockItemRepository.AddStockItemChange(ctx, tx, change)
 		if err != nil {
 			fmt.Println(err)

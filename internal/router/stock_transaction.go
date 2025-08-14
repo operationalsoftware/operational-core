@@ -8,9 +8,10 @@ import (
 
 func addStockTransactionRoutes(
 	mux *http.ServeMux,
+	stockItemService service.StockItemService,
 	stockTransactionService service.StockTransactionService,
 ) {
-	stockTransactionHandler := handler.NewStockTransactionHandler(stockTransactionService)
+	stockTransactionHandler := handler.NewStockTransactionHandler(stockTransactionService, stockItemService)
 
 	// Stock Home page
 	mux.HandleFunc("GET /stock", stockTransactionHandler.StockLevelsPage)

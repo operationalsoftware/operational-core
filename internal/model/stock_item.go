@@ -24,6 +24,7 @@ type StockItemChange struct {
 }
 
 type PostStockItemChange struct {
+	StockItemID int
 	StockCode   *string
 	Description *string
 	ChangeBy    int

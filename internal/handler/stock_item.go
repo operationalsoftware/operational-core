@@ -208,7 +208,6 @@ func (h *StockItemHandler) EditStockItemPage(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	stockCode := r.PathValue("stockCode")
 	stockItemID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		log.Println(err)
@@ -248,9 +247,14 @@ func (h *StockItemHandler) EditStockItem(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	stockCode := r.PathValue("stockCode")
+	stockItemID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Invalid stock item ID", http.StatusBadRequest)
+		return
+	}
 
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockCode)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error getting Stock item", http.StatusInternalServerError)
 		return
@@ -279,7 +283,7 @@ func (h *StockItemHandler) EditStockItem(w http.ResponseWriter, r *http.Request)
 
 	formData.normalise()
 
-	validationErrors, err := h.stockItemService.UpdateStockItem(r.Context(), stockCode, &model.PostStockItem{
+	validationErrors, err := h.stockItemService.UpdateStockItem(r.Context(), stockItemID, &model.PostStockItem{
 		StockCode:   formData.StockCode,
 		Description: formData.Description,
 	}, ctx.User.UserID)
@@ -301,7 +305,7 @@ func (h *StockItemHandler) EditStockItem(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	http.Redirect(w, r, "/stock-items/"+formData.StockCode, http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/stock-items/%d", stockItemID), http.StatusSeeOther)
 }
 
 type postStockItemFormData struct {

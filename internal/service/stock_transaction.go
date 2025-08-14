@@ -38,7 +38,7 @@ func (s *StockTransactionService) PostManualStockMovement(
 
 	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
 		TransactionType: "Stock Movement",
-		StockCode:       input.StockCode,
+		StockItemID:     input.StockItemID,
 		Qty:             input.Qty,
 		FromLocation:    input.FromLocation,
 		FromBin:         input.FromBin,
@@ -73,7 +73,7 @@ func (s *StockTransactionService) PostManualProduction(
 
 	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
 		TransactionType: "Production",
-		StockCode:       input.StockCode,
+		StockItemID:     input.StockItemID,
 		Qty:             input.Qty,
 		FromLocation:    input.Location,
 		FromBin:         input.Bin,
@@ -108,7 +108,7 @@ func (s *StockTransactionService) PostManualProductionReversal(
 
 	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
 		TransactionType: "Production Reversal",
-		StockCode:       input.StockCode,
+		StockItemID:     input.StockItemID,
 		Qty:             input.Qty,
 		FromLocation:    input.Location,
 		FromBin:         input.Bin,
@@ -143,7 +143,7 @@ func (s *StockTransactionService) PostManualConsumption(
 
 	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
 		TransactionType: "Consumption",
-		StockCode:       input.StockCode,
+		StockItemID:     input.StockItemID,
 		Qty:             input.Qty,
 		FromLocation:    input.Location,
 		FromBin:         input.Bin,
@@ -178,7 +178,7 @@ func (s *StockTransactionService) PostManualConsumptionReversal(
 
 	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
 		TransactionType: "Consumption Reversal",
-		StockCode:       input.StockCode,
+		StockItemID:     input.StockItemID,
 		Qty:             input.Qty,
 		FromLocation:    input.Location,
 		FromBin:         input.Bin,
@@ -221,7 +221,7 @@ func (s *StockTransactionService) PostManualStockAdjustment(
 
 	err = s.stockTransactionRepository.PostStockTransactions(ctx, tx, &model.PostStockTransactionsInput{{
 		TransactionType: transactionType,
-		StockCode:       input.StockCode,
+		StockItemID:     input.StockItemID,
 		Qty:             input.Qty,
 		FromLocation:    input.Location,
 		FromBin:         input.Bin,

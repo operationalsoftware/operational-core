@@ -17,11 +17,17 @@ import (
 )
 
 type StockTransactionHandler struct {
+	stockItemService        service.StockItemService
 	stockTransactionService service.StockTransactionService
 }
 
-func NewStockTransactionHandler(stockTransactionService service.StockTransactionService) *StockTransactionHandler {
-	return &StockTransactionHandler{stockTransactionService: stockTransactionService}
+func NewStockTransactionHandler(
+	stockTransactionService service.StockTransactionService,
+	stockItemService service.StockItemService,
+) *StockTransactionHandler {
+	return &StockTransactionHandler{
+		stockTransactionService: stockTransactionService,
+		stockItemService:        stockItemService}
 }
 
 type stockInputURLVals struct {
@@ -174,7 +180,7 @@ func (h *StockTransactionHandler) PostStockMovementPage(w http.ResponseWriter, r
 	}
 
 	type postMovementUrlValues struct {
-		StockCode    string
+		StockItemID  int
 		LotNumber    string
 		Qty          decimal.Decimal
 		FromLocation string
@@ -192,10 +198,19 @@ func (h *StockTransactionHandler) PostStockMovementPage(w http.ResponseWriter, r
 		return
 	}
 
+	stockItems, _, err := h.stockItemService.GetStockItems(r.Context(), &model.GetStockItemsQuery{
+		Page: 1, PageSize: 10000,
+	}, ctx.User.UserID)
+	if err != nil {
+		log.Println("Failed to get stock items")
+		http.Error(w, "Error fetching stock items", http.StatusInternalServerError)
+		return
+	}
+
 	_ = stockview.PostStockMovementPage(
 		&stockview.PostStockMovementPageProps{
 			Ctx:          ctx,
-			StockCode:    uv.StockCode,
+			StockItemID:  uv.StockItemID,
 			LotNumber:    uv.LotNumber,
 			Qty:          uv.Qty,
 			FromLocation: uv.FromLocation,
@@ -203,6 +218,8 @@ func (h *StockTransactionHandler) PostStockMovementPage(w http.ResponseWriter, r
 			ToLocation:   uv.ToLocation,
 			ToBin:        uv.ToBin,
 			ReturnTo:     uv.ReturnTo,
+
+			StockItems: stockItems,
 		},
 	).Render(w)
 
@@ -219,9 +236,19 @@ func (h *StockTransactionHandler) PostProductionPage(w http.ResponseWriter, r *h
 		return
 	}
 
+	stockItems, _, err := h.stockItemService.GetStockItems(r.Context(), &model.GetStockItemsQuery{
+		Page: 1, PageSize: 10000,
+	}, ctx.User.UserID)
+	if err != nil {
+		log.Println("Failed to get stock items")
+		http.Error(w, "Error fetching stock items", http.StatusInternalServerError)
+		return
+	}
+
 	_ = stockview.PostProductionPage(
 		&stockview.PostGenericPageProps{
-			Ctx: ctx,
+			Ctx:        ctx,
+			StockItems: stockItems,
 		},
 	).Render(w)
 
@@ -238,9 +265,19 @@ func (h *StockTransactionHandler) PostProductionReversalPage(w http.ResponseWrit
 		return
 	}
 
+	stockItems, _, err := h.stockItemService.GetStockItems(r.Context(), &model.GetStockItemsQuery{
+		Page: 1, PageSize: 10000,
+	}, ctx.User.UserID)
+	if err != nil {
+		log.Println("Failed to get stock items")
+		http.Error(w, "Error fetching stock items", http.StatusInternalServerError)
+		return
+	}
+
 	_ = stockview.PostProductionReversalPage(
 		&stockview.PostGenericPageProps{
-			Ctx: ctx,
+			Ctx:        ctx,
+			StockItems: stockItems,
 		},
 	).Render(w)
 
@@ -257,9 +294,19 @@ func (h *StockTransactionHandler) PostConsumptionPage(w http.ResponseWriter, r *
 		return
 	}
 
+	stockItems, _, err := h.stockItemService.GetStockItems(r.Context(), &model.GetStockItemsQuery{
+		Page: 1, PageSize: 10000,
+	}, ctx.User.UserID)
+	if err != nil {
+		log.Println("Failed to get stock items")
+		http.Error(w, "Error fetching stock items", http.StatusInternalServerError)
+		return
+	}
+
 	_ = stockview.PostConsumptionPage(
 		&stockview.PostGenericPageProps{
-			Ctx: ctx,
+			Ctx:        ctx,
+			StockItems: stockItems,
 		},
 	).Render(w)
 
@@ -276,9 +323,19 @@ func (h *StockTransactionHandler) PostConsumptionReversalPage(w http.ResponseWri
 		return
 	}
 
+	stockItems, _, err := h.stockItemService.GetStockItems(r.Context(), &model.GetStockItemsQuery{
+		Page: 1, PageSize: 10000,
+	}, ctx.User.UserID)
+	if err != nil {
+		log.Println("Failed to get stock items")
+		http.Error(w, "Error fetching stock items", http.StatusInternalServerError)
+		return
+	}
+
 	_ = stockview.PostConsumptionReversalPage(
 		&stockview.PostGenericPageProps{
-			Ctx: ctx,
+			Ctx:        ctx,
+			StockItems: stockItems,
 		},
 	).Render(w)
 
@@ -295,10 +352,20 @@ func (h *StockTransactionHandler) PostStockAdjustmentPage(w http.ResponseWriter,
 		return
 	}
 
+	stockItems, _, err := h.stockItemService.GetStockItems(r.Context(), &model.GetStockItemsQuery{
+		Page: 1, PageSize: 10000,
+	}, ctx.User.UserID)
+	if err != nil {
+		log.Println("Failed to get stock items")
+		http.Error(w, "Error fetching stock items", http.StatusInternalServerError)
+		return
+	}
+
 	_ = stockview.PostStockAdjustPage(
 		&stockview.PostGenericPageProps{
 			Ctx:               ctx,
 			IsStockAdjustment: true,
+			StockItems:        stockItems,
 		},
 	).Render(w)
 
@@ -333,11 +400,20 @@ func (h *StockTransactionHandler) PostStockMovement(w http.ResponseWriter, r *ht
 
 	fd.normalise()
 
+	stockItems, _, err := h.stockItemService.GetStockItems(r.Context(), &model.GetStockItemsQuery{
+		Page: 1, PageSize: 10000,
+	}, ctx.User.UserID)
+	if err != nil {
+		log.Println("Failed to get stock items")
+		http.Error(w, "Error fetching stock items", http.StatusInternalServerError)
+		return
+	}
+
 	renderWithError := func(errorText string) {
 		_ = stockview.PostStockMovementPage(
 			&stockview.PostStockMovementPageProps{
 				Ctx:          ctx,
-				StockCode:    fd.StockCode,
+				StockItemID:  fd.StockItemID,
 				LotNumber:    fd.LotNumber,
 				Qty:          fd.Qty,
 				FromLocation: fd.FromLocation,
@@ -346,6 +422,8 @@ func (h *StockTransactionHandler) PostStockMovement(w http.ResponseWriter, r *ht
 				ToBin:        fd.ToBin,
 				ReturnTo:     fd.ReturnTo,
 				ErrorText:    errorText,
+
+				StockItems: stockItems,
 			},
 		).Render(w)
 	}
@@ -359,7 +437,7 @@ func (h *StockTransactionHandler) PostStockMovement(w http.ResponseWriter, r *ht
 	err = h.stockTransactionService.PostManualStockMovement(
 		r.Context(),
 		&model.PostManualStockMovementInput{
-			StockCode:       fd.StockCode,
+			StockItemID:     fd.StockItemID,
 			Qty:             fd.Qty,
 			FromLocation:    fd.FromLocation,
 			FromBin:         fd.FromBin,
@@ -418,13 +496,13 @@ func (h *StockTransactionHandler) PostProduction(w http.ResponseWriter, r *http.
 	renderWithError := func(errorText string) {
 		_ = stockview.PostProductionPage(
 			&stockview.PostGenericPageProps{
-				Ctx:       ctx,
-				StockCode: fd.StockCode,
-				Location:  fd.Location,
-				Bin:       fd.Bin,
-				LotNumber: fd.LotNumber,
-				Qty:       fd.Qty,
-				ErrorText: errorText,
+				Ctx:         ctx,
+				StockItemID: fd.StockItemID,
+				Location:    fd.Location,
+				Bin:         fd.Bin,
+				LotNumber:   fd.LotNumber,
+				Qty:         fd.Qty,
+				ErrorText:   errorText,
 			},
 		).Render(w)
 	}
@@ -438,7 +516,7 @@ func (h *StockTransactionHandler) PostProduction(w http.ResponseWriter, r *http.
 	err = h.stockTransactionService.PostManualProduction(
 		r.Context(),
 		&model.PostManualGenericStockTransactionInput{
-			StockCode:       fd.StockCode,
+			StockItemID:     fd.StockItemID,
 			Qty:             fd.Qty,
 			Location:        fd.Location,
 			Bin:             fd.Bin,
@@ -492,13 +570,13 @@ func (h *StockTransactionHandler) PostProductionReversal(w http.ResponseWriter, 
 	renderWithError := func(errorText string) {
 		_ = stockview.PostProductionReversalPage(
 			&stockview.PostGenericPageProps{
-				Ctx:       ctx,
-				StockCode: fd.StockCode,
-				Location:  fd.Location,
-				Bin:       fd.Bin,
-				LotNumber: fd.LotNumber,
-				Qty:       fd.Qty,
-				ErrorText: errorText,
+				Ctx:         ctx,
+				StockItemID: fd.StockItemID,
+				Location:    fd.Location,
+				Bin:         fd.Bin,
+				LotNumber:   fd.LotNumber,
+				Qty:         fd.Qty,
+				ErrorText:   errorText,
 			},
 		).Render(w)
 	}
@@ -512,7 +590,7 @@ func (h *StockTransactionHandler) PostProductionReversal(w http.ResponseWriter, 
 	err = h.stockTransactionService.PostManualProductionReversal(
 		r.Context(),
 		&model.PostManualGenericStockTransactionInput{
-			StockCode:       fd.StockCode,
+			StockItemID:     fd.StockItemID,
 			Qty:             fd.Qty,
 			Location:        fd.Location,
 			Bin:             fd.Bin,
@@ -565,13 +643,13 @@ func (h *StockTransactionHandler) PostConsumption(w http.ResponseWriter, r *http
 	renderWithError := func(errorText string) {
 		_ = stockview.PostConsumptionPage(
 			&stockview.PostGenericPageProps{
-				Ctx:       ctx,
-				StockCode: fd.StockCode,
-				Location:  fd.Location,
-				Bin:       fd.Bin,
-				LotNumber: fd.LotNumber,
-				Qty:       fd.Qty,
-				ErrorText: errorText,
+				Ctx:         ctx,
+				StockItemID: fd.StockItemID,
+				Location:    fd.Location,
+				Bin:         fd.Bin,
+				LotNumber:   fd.LotNumber,
+				Qty:         fd.Qty,
+				ErrorText:   errorText,
 			},
 		).Render(w)
 	}
@@ -585,7 +663,7 @@ func (h *StockTransactionHandler) PostConsumption(w http.ResponseWriter, r *http
 	err = h.stockTransactionService.PostManualConsumption(
 		r.Context(),
 		&model.PostManualGenericStockTransactionInput{
-			StockCode:       fd.StockCode,
+			StockItemID:     fd.StockItemID,
 			Qty:             fd.Qty,
 			Location:        fd.Location,
 			Bin:             fd.Bin,
@@ -638,13 +716,13 @@ func (h *StockTransactionHandler) PostConsumptionReversal(w http.ResponseWriter,
 	renderWithError := func(errorText string) {
 		_ = stockview.PostConsumptionReversalPage(
 			&stockview.PostGenericPageProps{
-				Ctx:       ctx,
-				StockCode: fd.StockCode,
-				Location:  fd.Location,
-				Bin:       fd.Bin,
-				LotNumber: fd.LotNumber,
-				Qty:       fd.Qty,
-				ErrorText: errorText,
+				Ctx:         ctx,
+				StockItemID: fd.StockItemID,
+				Location:    fd.Location,
+				Bin:         fd.Bin,
+				LotNumber:   fd.LotNumber,
+				Qty:         fd.Qty,
+				ErrorText:   errorText,
 			},
 		).Render(w)
 	}
@@ -658,7 +736,7 @@ func (h *StockTransactionHandler) PostConsumptionReversal(w http.ResponseWriter,
 	err = h.stockTransactionService.PostManualConsumptionReversal(
 		r.Context(),
 		&model.PostManualGenericStockTransactionInput{
-			StockCode:       fd.StockCode,
+			StockItemID:     fd.StockItemID,
 			Qty:             fd.Qty,
 			Location:        fd.Location,
 			Bin:             fd.Bin,
@@ -712,13 +790,13 @@ func (h *StockTransactionHandler) PostStockAdjustment(w http.ResponseWriter, r *
 	renderWithError := func(errorText string) {
 		_ = stockview.PostStockAdjustPage(
 			&stockview.PostGenericPageProps{
-				Ctx:       ctx,
-				StockCode: fd.StockCode,
-				Location:  fd.Location,
-				Bin:       fd.Bin,
-				LotNumber: fd.LotNumber,
-				Qty:       fd.Qty,
-				ErrorText: errorText,
+				Ctx:         ctx,
+				StockItemID: fd.StockItemID,
+				Location:    fd.Location,
+				Bin:         fd.Bin,
+				LotNumber:   fd.LotNumber,
+				Qty:         fd.Qty,
+				ErrorText:   errorText,
 			},
 		).Render(w)
 	}
@@ -732,7 +810,7 @@ func (h *StockTransactionHandler) PostStockAdjustment(w http.ResponseWriter, r *
 	err = h.stockTransactionService.PostManualStockAdjustment(
 		r.Context(),
 		&model.PostManualGenericStockTransactionInput{
-			StockCode:       fd.StockCode,
+			StockItemID:     fd.StockItemID,
 			Qty:             fd.Qty,
 			Location:        fd.Location,
 			Bin:             fd.Bin,
@@ -756,7 +834,7 @@ func (h *StockTransactionHandler) PostStockAdjustment(w http.ResponseWriter, r *
 }
 
 type postGenericTransactionFormData struct {
-	StockCode         string
+	StockItemID       int
 	Location          string
 	Bin               string
 	LotNumber         string
@@ -766,7 +844,7 @@ type postGenericTransactionFormData struct {
 }
 
 type postStockMovementFormData struct {
-	StockCode       string
+	StockItemID     int
 	Account         string
 	LotNumber       string
 	Qty             decimal.Decimal
@@ -781,7 +859,6 @@ type postStockMovementFormData struct {
 func (fd *postStockMovementFormData) normalise() {
 
 	// trim and uppercase
-	fd.StockCode = strings.ToUpper(strings.TrimSpace(fd.StockCode))
 	fd.FromLocation = strings.ToUpper(strings.TrimSpace(fd.FromLocation))
 	fd.FromBin = strings.ToUpper(strings.TrimSpace(fd.FromBin))
 	fd.ToLocation = strings.ToUpper(strings.TrimSpace(fd.ToLocation))
@@ -799,7 +876,7 @@ func (fd *postStockMovementFormData) validate() string {
 		return "Qty must be greater than 0"
 	}
 
-	if fd.StockCode == "" {
+	if fd.StockItemID == 0 {
 		return "Stock code cannot be empty"
 	}
 	if fd.FromLocation == "" {
@@ -815,7 +892,6 @@ func (fd *postStockMovementFormData) validate() string {
 func (fd *postGenericTransactionFormData) normalise() {
 
 	// trim and uppercase
-	fd.StockCode = strings.ToUpper(strings.TrimSpace(fd.StockCode))
 	fd.Location = strings.ToUpper(strings.TrimSpace(fd.Location))
 	fd.Bin = strings.ToUpper(strings.TrimSpace(fd.Bin))
 	fd.LotNumber = strings.ToUpper(strings.TrimSpace(fd.LotNumber))
@@ -831,7 +907,7 @@ func (fd *postGenericTransactionFormData) validate() string {
 		return "Qty must be greater than 0"
 	}
 
-	if fd.StockCode == "" {
+	if fd.StockItemID == 0 {
 		return "Stock code cannot be empty"
 	}
 	if fd.Location == "" {

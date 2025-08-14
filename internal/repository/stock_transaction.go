@@ -28,7 +28,7 @@ func (r *StockTransactionRepository) GetStockLevels(
 WITH RankedStock AS (
 	SELECT
 		ste.stock_transaction_id,
-		st.stock_code,
+		si.stock_code,
 		ste.account,
 		ste.location,
 		ste.bin,
@@ -36,17 +36,19 @@ WITH RankedStock AS (
 		ste.running_total AS stock_level,
 		st.timestamp,
 		ROW_NUMBER() OVER (
-			PARTITION BY ste.account, st.stock_code, ste.location, ste.bin, ste.lot_number
+			PARTITION BY ste.account, si.stock_code, ste.location, ste.bin, ste.lot_number
 			ORDER BY st.timestamp DESC, ste.stock_transaction_id DESC
 		) AS rn
 	FROM
 		stock_transaction_entry ste
 		JOIN
 			stock_transaction st ON ste.stock_transaction_id = st.stock_transaction_id
+		JOIN stock_item si
+			ON st.stock_item_id = si.stock_item_id
 	WHERE
 		($1 = '' OR ste.account = $1)
 		AND
-		($2 = '' OR st.stock_code = $2)
+		($2 = '' OR si.stock_code = $2)
 		AND
 		($3 = '' OR ste.location = $3)
 		AND
@@ -73,7 +75,7 @@ WHERE
 	stock_level <> 0
 ORDER BY
 	stock_transaction_id DESC
-LIMIT $7 OFFSET $8
+LIMIT $7 OFFSET $8;
     `
 
 	limit := 1000
@@ -139,7 +141,7 @@ func (r *StockTransactionRepository) PostStockTransactions(
 /*
 Parameter mapping:
 $1    → transaction_type
-$2    → stock_code
+$2    → stock_item_id
 $3    → quantity
 $4    → transaction_note
 $5    → transaction_by
@@ -156,7 +158,7 @@ $14   → to_lot_number
 
 WITH inserted_tx AS (
     INSERT INTO stock_transaction (
-        transaction_type, stock_code, transaction_note, transaction_by, timestamp
+        transaction_type, stock_item_id, transaction_note, transaction_by, timestamp
     )
     VALUES ($1, $2, $4, $5, COALESCE($6, NOW()))
     RETURNING stock_transaction_id, timestamp
@@ -172,7 +174,7 @@ inserted_from_entry AS (
             FROM stock_transaction_entry e
             JOIN stock_transaction t ON t.stock_transaction_id = e.stock_transaction_id
             WHERE e.account = $7
-              AND t.stock_code = $2
+              AND t.stock_item_id = $2
               AND e.location = $8
               AND e.bin = $9
               AND e.lot_number = $10
@@ -194,7 +196,7 @@ inserted_to_entry AS (
             FROM stock_transaction_entry e
             JOIN stock_transaction t ON t.stock_transaction_id = e.stock_transaction_id
             WHERE e.account = $11
-              AND t.stock_code = $2
+              AND t.stock_item_id = $2
               AND e.location = $12
               AND e.bin = $13
               AND e.lot_number = $14
@@ -212,7 +214,7 @@ updated_future_from AS (
     FROM stock_transaction t, inserted_tx
     WHERE e.stock_transaction_id = t.stock_transaction_id
       AND e.account = $7
-      AND t.stock_code = $2
+      AND t.stock_item_id = $2
       AND e.location = $8
       AND e.bin = $9
       AND e.lot_number = $10
@@ -226,7 +228,7 @@ updated_future_to AS (
     FROM stock_transaction t, inserted_tx
     WHERE e.stock_transaction_id = t.stock_transaction_id
       AND e.account = $11
-      AND t.stock_code = $2
+      AND t.stock_item_id = $2
       AND e.location = $12
       AND e.bin = $13
       AND e.lot_number = $14
@@ -255,14 +257,15 @@ SELECT
 		}
 
 		if t.Qty.Equal(decimal.Zero) {
-			fmt.Printf("Skipping qty 0 transaction of %s\n", t.StockCode)
+			fmt.Printf("Skipping qty 0 transaction of %d\n", t.StockItemID)
+			// fmt.Printf("Skipping qty 0 transaction of %s\n", t.StockCode)
 			continue
 		}
 
 		var insertedFromCount, insertedToCount, updatedFromCount, updatedToCount int
 		err := exec.QueryRow(ctx, query,
 			t.TransactionType,
-			t.StockCode,
+			t.StockItemID,
 			t.Qty,
 			t.TransactionNote,
 			userID,
@@ -294,10 +297,11 @@ WITH matched_tx_ids AS (
 	SELECT DISTINCT ste.stock_transaction_id
 	FROM stock_transaction_entry ste
 	JOIN stock_transaction st ON st.stock_transaction_id = ste.stock_transaction_id
+	JOIN stock_item si ON st.stock_item_id = si.stock_item_id
 	WHERE
 		($1 = '' OR ste.account = $1)
 		AND
-		($2 = '' OR st.stock_code = $2)
+		($2 = '' OR si.stock_code = $2)
 		AND
 		($3 = '' OR ste.location = $3)
 		AND
@@ -312,7 +316,7 @@ SELECT
 	ste.stock_transaction_entry_id,
 	st.transaction_type,
 	ste.account,
-	st.stock_code,
+	si.stock_code,
 	ste.location,
 	ste.bin,
 	ste.quantity,
@@ -324,6 +328,7 @@ SELECT
 	ste.stock_transaction_id
 FROM stock_transaction_entry ste
 JOIN stock_transaction st ON st.stock_transaction_id = ste.stock_transaction_id
+JOIN stock_item si ON st.stock_item_id = si.stock_item_id
 LEFT JOIN app_user u ON u.user_id = st.transaction_by
 JOIN matched_tx_ids m ON m.stock_transaction_id = ste.stock_transaction_id
 ORDER BY st.timestamp DESC, ste.stock_transaction_entry_id DESC

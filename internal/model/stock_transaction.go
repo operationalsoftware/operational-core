@@ -98,7 +98,7 @@ type GetTransactionsInput struct {
 type NewStockTransaction struct {
 	TransactionType StockTransactionType
 	Timestamp       *time.Time
-	StockCode       string
+	StockItemID     int
 	Qty             decimal.Decimal
 	FromLocation    string
 	FromBin         string
@@ -112,7 +112,7 @@ type NewStockTransaction struct {
 type PostStockTransactionsInput []NewStockTransaction
 
 type PostManualGenericStockTransactionInput struct {
-	StockCode       string
+	StockItemID     int
 	Qty             decimal.Decimal
 	Location        string
 	Bin             string
@@ -121,7 +121,7 @@ type PostManualGenericStockTransactionInput struct {
 }
 
 type PostManualStockMovementInput struct {
-	StockCode       string
+	StockItemID     int
 	Qty             decimal.Decimal
 	FromLocation    string
 	FromBin         string

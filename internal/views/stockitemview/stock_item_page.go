@@ -59,7 +59,7 @@ func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
 				Classes: c.Classes{
 					"edit-button": true,
 				},
-				Link: fmt.Sprintf("/stock-items/%s/edit", p.StockItem.StockCode),
+				Link: fmt.Sprintf("/stock-items/%d/edit", p.StockItem.StockItemID),
 			},
 				components.Icon(&components.IconProps{
 					Identifier: "pencil",

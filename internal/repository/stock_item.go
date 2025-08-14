@@ -21,28 +21,29 @@ func (r *StockItemRepository) CreateStockItem(
 	ctx context.Context,
 	exec db.PGExecutor,
 	stockItem *model.PostStockItem,
-) error {
+) (int, error) {
 
-	insertUserStmt := `
+	insertStmt := `
 INSERT INTO stock_item (
 	stock_code,
 	description
 )
 VALUES ($1, $2)
+RETURNING stock_item_id
 	`
-	_, err := exec.Exec(
+	var newStockItemID int
+	err := exec.QueryRow(
 		ctx,
-
-		insertUserStmt,
+		insertStmt,
 		stockItem.StockCode,
 		stockItem.Description,
-	)
+	).Scan(&newStockItemID)
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return newStockItemID, nil
 }
 
 func (r *StockItemRepository) UpdateStockItem(
@@ -173,6 +174,7 @@ func (r *StockItemRepository) GetStockItems(
 
 	query := fmt.Sprintf(`
 SELECT
+    stock_item_id,
     stock_code,
     description,
     created_at
@@ -197,6 +199,7 @@ LIMIT $1 OFFSET $2
 	for rows.Next() {
 		var stockItem model.StockItem
 		err := rows.Scan(
+			&stockItem.StockItemID,
 			&stockItem.StockCode,
 			&stockItem.Description,
 			&stockItem.CreatedAt,
@@ -220,7 +223,7 @@ func (r *StockItemRepository) GetStockItemsCount(
 SELECT
 	COUNT(*)
 FROM
-	app_user
+	stock_item
 	`
 
 	var count int
@@ -295,6 +298,7 @@ func (r *StockItemRepository) AddStockItemChange(
 
 	insertQuery := `
 INSERT INTO stock_item_change (
+	stock_item_id,
 	stock_code,
 	description,
 	change_by
@@ -305,6 +309,7 @@ VALUES ($1, $2, $3, $4)
 		ctx,
 
 		insertQuery,
+		stockItemChange.StockItemID,
 		stockItemChange.StockCode,
 		stockItemChange.Description,
 		stockItemChange.ChangeBy,
