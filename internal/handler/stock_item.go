@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/maragudk/gomponents"
+	"github.com/maragudk/gomponents/html"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -322,29 +324,31 @@ func (fd *postStockItemFormData) normalise() {
 }
 
 func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request) {
-	searchText := r.URL.Query().Get("SearchText")
-	selectedRaw := r.URL.Query().Get("SelectedValues")
 
-	var selectedIDs []int
-	if selectedRaw != "" {
-		for _, v := range strings.Split(selectedRaw, ",") {
-			if id, err := strconv.Atoi(strings.TrimSpace(v)); err == nil {
-				selectedIDs = append(selectedIDs, id)
-			}
-		}
+	type urlVals struct {
+		SearchText   string
+		StockItemIDs []int
+	}
+	var uv urlVals
+
+	err := appurl.Unmarshal(r.URL.Query(), &uv)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error decoding query params", http.StatusInternalServerError)
+		return
 	}
 
-	if len(selectedIDs) == 0 {
-		selectedIDs = []int{}
-	}
-
-	stockItems, err := h.stockItemService.GetStockCodes(r.Context(), searchText, selectedIDs)
+	stockItems, err := h.stockItemService.GetStockCodes(r.Context(), uv.SearchText, uv.StockItemIDs)
 	if err != nil {
 		log.Println(err)
 	}
 
 	for _, opt := range stockItems {
-		fmt.Fprintf(w, `<div class="select-option" data-value="%d">%s</div>`, opt.StockItemID, opt.StockCode)
+		_ = html.Div(
+			html.Class("select-option"),
+			html.DataAttr("value", fmt.Sprintf("%d", opt.StockItemID)),
+			gomponents.Text(opt.StockCode),
+		).Render(w)
 	}
 
 }

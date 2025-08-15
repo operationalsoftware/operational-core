@@ -60,7 +60,8 @@
     // --- Dynamic fetch logic ---
     const endpoint = selectEl.dataset.optionsEndpoint;
     if (endpoint) {
-      const queryParam = selectEl.dataset.queryParam || "SearchText";
+      const searchQueryParam =
+        selectEl.dataset.searchQueryParam || "SearchText";
       const form = selectEl.closest("form");
       const selectedValues = Array.from(
         selectEl.querySelectorAll(".select-hidden-inputs input")
@@ -76,16 +77,11 @@
       // - single: one key/value
       if (mode === "multi") {
         nonEmpty.forEach((v) => formData.append(fieldName, v));
-      } else {
-        if (nonEmpty[0]) formData.append(fieldName, nonEmpty[0]);
+      } else if (nonEmpty[0]) {
+        formData.append(fieldName, nonEmpty[0]);
       }
 
-      // only include SelectedValues when we actually have selections
-      if (nonEmpty.length) {
-        formData.append("SelectedValues", nonEmpty.join(","));
-      }
-
-      formData.append(queryParam, term);
+      formData.append(searchQueryParam, term);
 
       const url = endpoint + "?" + new URLSearchParams(formData);
 
@@ -105,7 +101,7 @@
       return; // skip local filtering if we fetched from server
     }
 
-    // --- Original local filtering fallback ---
+    // --- Local filtering fallback ---
     const lowerTerm = term.toLowerCase();
     optionsList.querySelectorAll(".select-option").forEach((opt) => {
       opt.style.display = opt.textContent.toLowerCase().includes(lowerTerm)

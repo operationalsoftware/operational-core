@@ -14,13 +14,13 @@ type SearchSelectOption struct {
 }
 
 type SearchSelectProps struct {
-	Name            string
-	Placeholder     string
-	Mode            string // "single", "multi"
-	Options         []SearchSelectOption
-	Selected        string
-	OptionsEndpoint string // optional: URL to fetch options
-	QueryParamName  string // optional: query parameter name, default "SearchText"
+	Name                 string
+	Placeholder          string
+	Mode                 string // "single", "multi"
+	Options              []SearchSelectOption
+	Selected             string
+	OptionsAPI           string // optional: URL to fetch options
+	SearchQueryParamName string // optional: query parameter name, default "SearchText"
 }
 
 func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
@@ -74,12 +74,12 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 		g.Attr("data-name", p.Name),
 	}
 
-	if p.OptionsEndpoint != "" {
-		attrs = append(attrs, g.Attr("data-options-endpoint", p.OptionsEndpoint))
+	if p.OptionsAPI != "" {
+		attrs = append(attrs, g.Attr("data-options-endpoint", p.OptionsAPI))
 	}
 
-	if p.QueryParamName != "" {
-		attrs = append(attrs, g.Attr("data-query-param", p.QueryParamName))
+	if p.SearchQueryParamName != "" {
+		attrs = append(attrs, h.DataAttr("search-query-param", p.SearchQueryParamName))
 	}
 
 	return h.Div(
