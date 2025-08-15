@@ -229,3 +229,24 @@ func (s *StockItemService) validateUpdateStockItem(
 
 	return ve, nil
 }
+
+func (s *StockItemService) GetStockCodes(ctx context.Context, searchText string, selectedValues []int) ([]model.StockItem, error) {
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return []model.StockItem{}, err
+	}
+	defer tx.Rollback(ctx)
+
+	stockItems, err := s.stockItemRepository.GetStockCodes(ctx, tx, searchText, selectedValues)
+	if err != nil {
+		return []model.StockItem{}, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return []model.StockItem{}, err
+	}
+
+	return stockItems, nil
+}

@@ -22,4 +22,5 @@ func addStockItemRoutes(
 	mux.HandleFunc("GET /stock-items/{id}/edit", stockItemHandler.EditStockItemPage)
 	mux.HandleFunc("POST /stock-items/{id}/edit", stockItemHandler.EditStockItem)
 
+	mux.HandleFunc("GET /get-stock-codes", stockItemHandler.GetStockCodes)
 }

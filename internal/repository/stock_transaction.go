@@ -258,7 +258,6 @@ SELECT
 
 		if t.Qty.Equal(decimal.Zero) {
 			fmt.Printf("Skipping qty 0 transaction of %d\n", t.StockItemID)
-			// fmt.Printf("Skipping qty 0 transaction of %s\n", t.StockCode)
 			continue
 		}
 

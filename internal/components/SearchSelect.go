@@ -14,11 +14,13 @@ type SearchSelectOption struct {
 }
 
 type SearchSelectProps struct {
-	Name        string
-	Placeholder string
-	Mode        string // "single", "multi"
-	Options     []SearchSelectOption
-	Selected    string
+	Name            string
+	Placeholder     string
+	Mode            string // "single", "multi"
+	Options         []SearchSelectOption
+	Selected        string
+	OptionsEndpoint string // optional: URL to fetch options
+	QueryParamName  string // optional: query parameter name, default "SearchText"
 }
 
 func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
@@ -66,10 +68,23 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 		inputText = p.Placeholder
 	}
 
-	return h.Div(
+	attrs := []g.Node{
 		h.Class("search-select"),
 		g.Attr("data-mode", p.Mode),
 		g.Attr("data-name", p.Name),
+	}
+
+	if p.OptionsEndpoint != "" {
+		attrs = append(attrs, g.Attr("data-options-endpoint", p.OptionsEndpoint))
+	}
+
+	if p.QueryParamName != "" {
+		attrs = append(attrs, g.Attr("data-query-param", p.QueryParamName))
+	}
+
+	return h.Div(
+		g.Group(attrs),
+
 		h.Div(
 			h.Class("select-input"),
 			g.Attr("tabindex", "0"),

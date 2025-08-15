@@ -320,3 +320,31 @@ func (fd *postStockItemFormData) normalise() {
 	// trim
 	fd.Description = strings.TrimSpace(fd.Description)
 }
+
+func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request) {
+	searchText := r.URL.Query().Get("SearchText")
+	selectedRaw := r.URL.Query().Get("SelectedValues")
+
+	var selectedIDs []int
+	if selectedRaw != "" {
+		for _, v := range strings.Split(selectedRaw, ",") {
+			if id, err := strconv.Atoi(strings.TrimSpace(v)); err == nil {
+				selectedIDs = append(selectedIDs, id)
+			}
+		}
+	}
+
+	if len(selectedIDs) == 0 {
+		selectedIDs = []int{}
+	}
+
+	stockItems, err := h.stockItemService.GetStockCodes(r.Context(), searchText, selectedIDs)
+	if err != nil {
+		log.Println(err)
+	}
+
+	for _, opt := range stockItems {
+		fmt.Fprintf(w, `<div class="select-option" data-value="%d">%s</div>`, opt.StockItemID, opt.StockCode)
+	}
+
+}

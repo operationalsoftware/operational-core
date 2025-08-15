@@ -48,8 +48,8 @@
     }
   });
 
-  search.addEventListener("input", () => {
-    const term = search.value.toLowerCase();
+  search.addEventListener("input", async () => {
+    const term = search.value.trim();
 
     selectEl.dispatchEvent(
       new CustomEvent("load-options", {
@@ -57,8 +57,58 @@
       })
     );
 
+    // --- Dynamic fetch logic ---
+    const endpoint = selectEl.dataset.optionsEndpoint;
+    if (endpoint) {
+      const queryParam = selectEl.dataset.queryParam || "SearchText";
+      const form = selectEl.closest("form");
+      const selectedValues = Array.from(
+        selectEl.querySelectorAll(".select-hidden-inputs input")
+      ).map((i) => i.value);
+
+      const formData = new FormData(form || undefined);
+      // send selected under the field's real name, and (optionally) as CSV for convenience
+      const fieldName = selectEl.dataset.name;
+      const nonEmpty = selectedValues.filter((v) => v != null && v !== "");
+
+      // for compatibility with typical form parsers:
+      // - multi: repeat the same key multiple times
+      // - single: one key/value
+      if (mode === "multi") {
+        nonEmpty.forEach((v) => formData.append(fieldName, v));
+      } else {
+        if (nonEmpty[0]) formData.append(fieldName, nonEmpty[0]);
+      }
+
+      // only include SelectedValues when we actually have selections
+      if (nonEmpty.length) {
+        formData.append("SelectedValues", nonEmpty.join(","));
+      }
+
+      formData.append(queryParam, term);
+
+      const url = endpoint + "?" + new URLSearchParams(formData);
+
+      // Abort previous request if still running
+      if (search._currentRequest) search._currentRequest.abort();
+      search._currentRequest = new AbortController();
+      const signal = search._currentRequest.signal;
+
+      try {
+        const html = await fetch(url, { signal }).then((r) => r.text());
+        optionsList.innerHTML = html;
+      } catch (e) {
+        if (e.name !== "AbortError") {
+          console.error("SearchSelect fetch error:", e);
+        }
+      }
+      return; // skip local filtering if we fetched from server
+    }
+
+    // --- Original local filtering fallback ---
+    const lowerTerm = term.toLowerCase();
     optionsList.querySelectorAll(".select-option").forEach((opt) => {
-      opt.style.display = opt.textContent.toLowerCase().includes(term)
+      opt.style.display = opt.textContent.toLowerCase().includes(lowerTerm)
         ? ""
         : "none";
     });
