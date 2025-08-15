@@ -1,4 +1,4 @@
-# Git Commit Message Cheat Sheet
+# Git Commit Standard
 
 **Format:**
 ```
@@ -31,7 +31,7 @@
 - **Scope**: Optional, e.g. `auth`, `ui`, `api`
 - **Summary**: <=50 chars, imperative mood, no full stop
 - **Body**: Explain *why*, wrap at 72 chars
-- **Footer**: Link issues (`Closes #123`)
+- **Footer**: Link issues e.g. `Closes #123`
 
 ---
 
