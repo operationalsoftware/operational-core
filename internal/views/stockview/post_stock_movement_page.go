@@ -47,11 +47,13 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 				g.Text("Stock Code"),
 
 				components.SearchSelect(&components.SearchSelectProps{
-					Name:        "StockItemID",
-					Placeholder: "Select Stock Code",
-					Mode:        "single",
-					Options:     MapStockItemsToOptions(p.StockItems),
-					Selected:    selectedStockItem,
+					Name:            "StockItemID",
+					Placeholder:     "Select Stock Code",
+					Mode:            "single",
+					Options:         MapStockItemsToOptions(p.StockItems),
+					Selected:        selectedStockItem,
+					OptionsEndpoint: "/get-stock-codes",
+					QueryParamName:  "SearchText",
 				}),
 			),
 		),

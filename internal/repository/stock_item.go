@@ -371,3 +371,43 @@ func (r *StockItemRepository) SearchStockItems(
 
 	return results, nil
 }
+
+func (r *StockItemRepository) GetStockCodes(
+	ctx context.Context,
+	db db.PGExecutor,
+	searchText string,
+	selectedIDs []int,
+) ([]model.StockItem, error) {
+
+	rows, err := db.Query(ctx, `
+SELECT
+	stock_item_id,
+	stock_code,
+	description
+FROM
+	stock_item
+WHERE
+	(stock_code ILIKE '%' || $1 || '%' OR $1 = '')
+	OR stock_item_id = ANY($2::int[])
+ORDER BY
+	(stock_item_id = ANY($2::int[])) DESC,
+	stock_code ASC
+LIMIT 50
+	`, searchText, selectedIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []model.StockItem
+	for rows.Next() {
+		var ur model.StockItem
+		if err := rows.Scan(&ur.StockItemID, &ur.StockCode, &ur.Description); err != nil {
+			return nil, err
+		}
+
+		results = append(results, ur)
+	}
+
+	return results, nil
+}
