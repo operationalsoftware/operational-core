@@ -52,7 +52,7 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 					Mode:                 "single",
 					Options:              MapStockItemsToOptions(p.StockItems),
 					Selected:             selectedStockItem,
-					OptionsAPI:           "/get-stock-codes",
+					OptionsEndpoint:      "/get-stock-codes",
 					SearchQueryParamName: "SearchText",
 				}),
 			),
@@ -184,10 +184,10 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 	})
 }
 
-func MapStockItemsToOptions(vals []model.StockItem) []components.SearchSelectOption {
-	out := make([]components.SearchSelectOption, len(vals))
+func MapStockItemsToOptions(vals []model.StockItem) []components.SearchSelectOptionData {
+	out := make([]components.SearchSelectOptionData, len(vals))
 	for i, v := range vals {
-		out[i] = components.SearchSelectOption{
+		out[i] = components.SearchSelectOptionData{
 			Text:  v.StockCode,
 			Value: fmt.Sprintf("%d", v.StockItemID),
 		}

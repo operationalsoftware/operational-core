@@ -148,10 +148,10 @@ func assignUserForm(p *assignUserFormProps) g.Node {
 	)
 }
 
-func MapUsersToOptions(users []model.User) []components.SearchSelectOption {
-	out := make([]components.SearchSelectOption, len(users))
+func MapUsersToOptions(users []model.User) []components.SearchSelectOptionData {
+	out := make([]components.SearchSelectOptionData, len(users))
 	for i, v := range users {
-		out[i] = components.SearchSelectOption{
+		out[i] = components.SearchSelectOptionData{
 			Text:  v.Username,
 			Value: strconv.Itoa(v.UserID),
 		}

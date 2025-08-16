@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"app/internal/components"
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/stockitemview"
@@ -15,8 +16,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/maragudk/gomponents"
-	"github.com/maragudk/gomponents/html"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -326,8 +325,8 @@ func (fd *postStockItemFormData) normalise() {
 func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request) {
 
 	type urlVals struct {
-		SearchText   string
-		StockItemIDs []int
+		SearchText  string
+		StockItemID []int
 	}
 	var uv urlVals
 
@@ -338,17 +337,18 @@ func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	stockItems, err := h.stockItemService.GetStockCodes(r.Context(), uv.SearchText, uv.StockItemIDs)
+	stockItems, err := h.stockItemService.GetStockCodes(r.Context(), uv.SearchText, uv.StockItemID)
 	if err != nil {
 		log.Println(err)
 	}
 
 	for _, opt := range stockItems {
-		_ = html.Div(
-			html.Class("select-option"),
-			html.DataAttr("value", fmt.Sprintf("%d", opt.StockItemID)),
-			gomponents.Text(opt.StockCode),
-		).Render(w)
+		classes := "select-option"
+		_ = components.SearchSelectOption(&components.SearchSelectOptionProps{
+			Classes: classes,
+			Value:   fmt.Sprintf("%d", opt.StockItemID),
+			Text:    opt.StockCode,
+		}).Render(w)
 	}
 
 }

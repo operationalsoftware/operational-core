@@ -29,14 +29,14 @@ type AllAndonsPageProps struct {
 }
 
 type AvailableFilters struct {
-	IssueIn                  []components.SearchSelectOption
-	SeverityIn               []components.SearchSelectOption
-	TeamIn                   []components.SearchSelectOption
-	LocationIn               []components.SearchSelectOption
-	StatusIn                 []components.SearchSelectOption
-	RaisedByUsernameIn       []components.SearchSelectOption
-	AcknowledgedByUsernameIn []components.SearchSelectOption
-	ResolvedByUsernameIn     []components.SearchSelectOption
+	IssueIn                  []components.SearchSelectOptionData
+	SeverityIn               []components.SearchSelectOptionData
+	TeamIn                   []components.SearchSelectOptionData
+	LocationIn               []components.SearchSelectOptionData
+	StatusIn                 []components.SearchSelectOptionData
+	RaisedByUsernameIn       []components.SearchSelectOptionData
+	AcknowledgedByUsernameIn []components.SearchSelectOptionData
+	ResolvedByUsernameIn     []components.SearchSelectOptionData
 }
 
 func AllAndonsPage(p *AllAndonsPageProps) g.Node {
@@ -471,10 +471,10 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 	})
 }
 
-func MapStringsToOptions(vals []string) []components.SearchSelectOption {
-	out := make([]components.SearchSelectOption, len(vals))
+func MapStringsToOptions(vals []string) []components.SearchSelectOptionData {
+	out := make([]components.SearchSelectOptionData, len(vals))
 	for i, v := range vals {
-		out[i] = components.SearchSelectOption{
+		out[i] = components.SearchSelectOptionData{
 			Text:  v,
 			Value: v,
 		}

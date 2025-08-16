@@ -410,10 +410,10 @@ var andonIssuesBreadCrumb = layout.Breadcrumb{
 	URLPart:        "andons",
 }
 
-func MapTeamsToOptions(teams []model.Team) []components.SearchSelectOption {
-	out := make([]components.SearchSelectOption, len(teams))
+func MapTeamsToOptions(teams []model.Team) []components.SearchSelectOptionData {
+	out := make([]components.SearchSelectOptionData, len(teams))
 	for i, v := range teams {
-		out[i] = components.SearchSelectOption{
+		out[i] = components.SearchSelectOptionData{
 			Text:  v.TeamName,
 			Value: v.TeamName,
 			// Value: strconv.Itoa(v.TeamID),

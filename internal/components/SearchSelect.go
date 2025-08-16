@@ -7,19 +7,13 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
-type SearchSelectOption struct {
-	Text  string
-	Value string
-	Nodes []g.Node
-}
-
 type SearchSelectProps struct {
 	Name                 string
 	Placeholder          string
 	Mode                 string // "single", "multi"
-	Options              []SearchSelectOption
+	Options              []SearchSelectOptionData
 	Selected             string
-	OptionsAPI           string // optional: URL to fetch options
+	OptionsEndpoint      string // optional: URL to fetch options
 	SearchQueryParamName string // optional: query parameter name, default "SearchText"
 }
 
@@ -32,29 +26,12 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 		}
 	}
 
-	var listOptions []g.Node
-	for _, o := range p.Options {
-		classes := "select-option"
-		if p.Mode == "multi" {
-			if selectedValues[o.Value] {
-				classes += " selected"
-			}
-		} else {
-			if o.Value == p.Selected {
-				classes += " selected"
-			}
-		}
-
-		listOptions = append(listOptions,
-			h.Div(
-				h.Class(classes),
-				h.DataAttr("value", o.Value),
-				g.Group(o.Nodes),
-				g.Text(o.Text),
-			),
-		)
-
-	}
+	listOptions := SearchSelectOptions(&SearchSelectOptionsProps{
+		Mode:           p.Mode,
+		Selected:       p.Selected,
+		SelectedValues: selectedValues,
+		Options:        p.Options,
+	})
 
 	var inputText string
 	if p.Selected != "" {
@@ -74,8 +51,8 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 		g.Attr("data-name", p.Name),
 	}
 
-	if p.OptionsAPI != "" {
-		attrs = append(attrs, g.Attr("data-options-endpoint", p.OptionsAPI))
+	if p.OptionsEndpoint != "" {
+		attrs = append(attrs, g.Attr("data-options-endpoint", p.OptionsEndpoint))
 	}
 
 	if p.SearchQueryParamName != "" {

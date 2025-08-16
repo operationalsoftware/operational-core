@@ -72,6 +72,9 @@
       const fieldName = selectEl.dataset.name;
       const nonEmpty = selectedValues.filter((v) => v != null && v !== "");
 
+      // Remove existing instances of the field from formData
+      formData.delete(fieldName);
+
       // for compatibility with typical form parsers:
       // - multi: repeat the same key multiple times
       // - single: one key/value

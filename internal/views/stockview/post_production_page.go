@@ -93,7 +93,7 @@ func formPartialStockCodeLocBinLot(p *PostGenericPageProps) g.Node {
 					Mode:                 "single",
 					Options:              MapStockItemsToOptions(p.StockItems),
 					Selected:             selectedStockItem,
-					OptionsAPI:           "/get-stock-codes",
+					OptionsEndpoint:      "/get-stock-codes",
 					SearchQueryParamName: "SearchText",
 				}),
 			),
