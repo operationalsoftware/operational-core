@@ -90,6 +90,7 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 					}),
 				},
 			},
+			HREF: fmt.Sprintf("/users/%d", u.UserID),
 		})
 	}
 

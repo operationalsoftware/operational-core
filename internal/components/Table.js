@@ -1,20 +1,3 @@
-(function() {
-  // Toast start
-  const toast = document.querySelector(".toast");
-  if (toast) {
-    toast.style.opacity = "1";
-    toast.style.pointerEvents = "auto";
-    setTimeout(() => {
-      toast.style.opacity = "0";
-    }, 4000);
-  }
-  // Toast end
-})();
-
-/*
- * START TABLE
- * */
-
 // Function to remove duplicate page size fields and submit the form
 function submitTableForm(form) {
   // Find all select elements with name PageSize
@@ -46,6 +29,19 @@ function updatePageSizeAndSubmit(selectElement) {
   submitTableForm(form);
 }
 
-/*
- * END TABLE
- * */
+function rowClickNavigate(event) {
+  const interactiveTags = ["BUTTON", "A", "INPUT", "SELECT", "TEXTAREA"];
+
+  if (interactiveTags.includes(event.target.tagName)) return;
+
+  const selection = window.getSelection();
+  if (selection && selection.toString().length > 0) return;
+
+  const row = event.target.closest("tr");
+
+  const url = row.getAttribute("data-href");
+
+  if (!url) return;
+
+  window.location.href = url;
+}

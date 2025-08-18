@@ -22,6 +22,7 @@ type TableRow struct {
 	Classes    c.Classes
 	Attributes []g.Node
 	SubRows    []TableRow
+	HREF       string
 }
 
 type TableRows []TableRow
@@ -37,12 +38,14 @@ type TableColumns []TableColumn
 
 func getSortIconIdentifier(sort appsort.Sort, key string) string {
 	sortDirection := sort.GetDirection(key)
-	if sortDirection == "" {
+	switch sortDirection {
+	case "":
 		return "arrow-up-down"
-	} else if sortDirection == appsort.DirectionAsc {
+	case appsort.DirectionAsc:
 		return "arrow-up"
+	default:
+		return "arrow-down"
 	}
-	return "arrow-down"
 }
 
 func generateSortString(currentSort appsort.Sort, key string) string {
@@ -155,10 +158,20 @@ func renderRows(rows TableRows) g.Node {
 		}
 
 		row.Classes["table-row"] = true
+		if row.HREF != "" {
+			row.Classes["cursor-pointer"] = true
+			row.Attributes = append(
+				row.Attributes,
+
+				h.DataAttr("href", row.HREF),
+				g.Attr("onclick", "rowClickNavigate(event)"),
+			)
+		}
 
 		return h.Tr(
 			row.Classes,
 			g.Group(row.Attributes),
+
 			g.Group(g.Map(row.Cells, func(cell TableCell) g.Node {
 				if cell.Classes == nil {
 					cell.Classes = c.Classes{}
@@ -390,5 +403,7 @@ func Table(p *TableProps, children ...g.Node) g.Node {
 			p.Pagination != nil,
 			TablePagination(&paginationProps),
 		),
+
+		InlineScript("/internal/components/Table.js"),
 	)
 }
