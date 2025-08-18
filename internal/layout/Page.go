@@ -42,7 +42,6 @@ func Page(p PageProps) g.Node {
 			mainPadding: p.LayoutMainPadding,
 			ctx:         p.Ctx,
 		}),
-		h.Script(h.Type("text/javascript"), h.Src("/static/js/components.js")),
 	}
 
 	body = append(body, p.AppendBody...)

@@ -25,5 +25,7 @@ func Toast(p *ToastProps) g.Node {
 		h.Class(class),
 
 		p.Contents,
+
+		InlineScript("/internal/components/Toast.js"),
 	)
 }
