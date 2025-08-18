@@ -60,19 +60,16 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 	}
 
 	return h.Div(
-		h.Div(
-			h.Class("search-select"),
-			g.Attr("data-mode", p.Mode),
-			g.Attr("data-name", p.Name),
-
-			g.If(
-				p.SearchQueryParamName != "",
-				g.Attr("data-options-endpoint", p.OptionsEndpoint),
-			),
-			g.If(
-				p.SearchQueryParamName != "",
-				h.DataAttr("search-query-param", p.SearchQueryParamName),
-			),
+		h.Class("search-select"),
+		g.Attr("data-mode", p.Mode),
+		g.Attr("data-name", p.Name),
+		g.If(
+			p.SearchQueryParamName != "",
+			g.Attr("data-options-endpoint", p.OptionsEndpoint),
+		),
+		g.If(
+			p.SearchQueryParamName != "",
+			h.DataAttr("search-query-param", p.SearchQueryParamName),
 		),
 
 		h.Div(

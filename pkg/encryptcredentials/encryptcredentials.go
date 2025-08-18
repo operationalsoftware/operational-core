@@ -13,11 +13,6 @@ import (
 	"strings"
 )
 
-// type LoginData struct {
-// 	Username string `json:"username"`
-// 	Password string `json:"password"`
-// }
-
 func Encrypt(loginData model.VerifyPasswordLoginInput) (string, error) {
 	encryptionKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 	if encryptionKey == "" {

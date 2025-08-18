@@ -28,8 +28,6 @@ function searchAndUpdateQuery() {
     newUrl.searchParams.delete("E");
   }
 
-  // window.history.replaceState({}, "", newUrl);
-
   // Debounce the API call
   clearTimeout(timeoutId);
   timeoutId = setTimeout(() => {}, 300);

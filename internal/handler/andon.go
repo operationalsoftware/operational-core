@@ -362,15 +362,6 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	values := url.Values{}
-
-	if uv.Source != "" {
-		values.Set("Source", uv.Source)
-	}
-	if uv.ReturnTo != "" {
-		values.Set("ReturnTo", uv.ReturnTo)
-	}
-
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return

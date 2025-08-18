@@ -317,9 +317,6 @@ func (fd *addAndonIssueFormData) normalise() {
 func (fd *addAndonIssueFormData) validate() validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
 
-	// if fd.ParentID == nil {
-	// 	ve.Add("ParentID", "is required")
-	// }
 	if fd.AssignedTeam == 0 {
 		ve.Add("AssignedTeam", "is required")
 	}
