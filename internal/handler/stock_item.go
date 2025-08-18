@@ -349,8 +349,6 @@ func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request)
 			Text:  opt.StockCode,
 		})
 	}
-	_ = components.SearchSelectOptions(&components.SearchSelectOptionsProps{
-		Options: searchSelectOptions,
-	}).Render(w)
+	_ = components.SearchSelectOptions(searchSelectOptions).Render(w)
 
 }

@@ -319,7 +319,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "IssueIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.IssueIn),
+						Options:     MapStringsToOptions(availableFilters.IssueIn, p.Filters.Issues),
 						Selected:    strings.Join(p.Filters.Issues, ","),
 					}),
 				),
@@ -333,7 +333,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "SeverityIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.SeverityIn),
+						Options:     MapStringsToOptions(availableFilters.SeverityIn, p.Filters.Severities),
 						Selected:    strings.Join(p.Filters.Severities, ","),
 					}),
 				),
@@ -347,7 +347,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "TeamIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.TeamIn),
+						Options:     MapStringsToOptions(availableFilters.TeamIn, p.Filters.Teams),
 						Selected:    strings.Join(p.Filters.Teams, ","),
 					}),
 				),
@@ -361,7 +361,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "LocationIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.LocationIn),
+						Options:     MapStringsToOptions(availableFilters.LocationIn, p.Filters.Locations),
 						Selected:    strings.Join(p.Filters.Locations, ","),
 					}),
 				),
@@ -375,7 +375,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "StatusIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.StatusIn),
+						Options:     MapStringsToOptions(availableFilters.StatusIn, p.Filters.Statuses),
 						Selected:    strings.Join(p.Filters.Statuses, ","),
 					}),
 				),
@@ -389,7 +389,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "RaisedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.RaisedByUsernameIn),
+						Options:     MapStringsToOptions(availableFilters.RaisedByUsernameIn, p.Filters.RaisedByUsername),
 						Selected:    strings.Join(p.Filters.RaisedByUsername, ","),
 					}),
 				),
@@ -403,7 +403,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "AcknowledgedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.AcknowledgedByUsernameIn),
+						Options:     MapStringsToOptions(availableFilters.AcknowledgedByUsernameIn, p.Filters.AcknowledgedByUsername),
 						Selected:    strings.Join(p.Filters.AcknowledgedByUsername, ","),
 					}),
 				),
@@ -417,7 +417,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "ResolvedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     MapStringsToOptions(availableFilters.ResolvedByUsernameIn),
+						Options:     MapStringsToOptions(availableFilters.ResolvedByUsernameIn, p.Filters.ResolvedByUsername),
 						Selected:    strings.Join(p.Filters.ResolvedByUsername, ","),
 					}),
 				),
@@ -502,12 +502,21 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 	})
 }
 
-func MapStringsToOptions(vals []string) []components.SearchSelectOption {
+func MapStringsToOptions(vals []string, selectedValues []string) []components.SearchSelectOption {
 	out := make([]components.SearchSelectOption, len(vals))
 	for i, v := range vals {
+		isSelected := false
+		for _, selectedTeam := range selectedValues {
+			if v == selectedTeam {
+				isSelected = true
+				break
+			}
+		}
+
 		out[i] = components.SearchSelectOption{
-			Text:  v,
-			Value: v,
+			Text:     v,
+			Value:    v,
+			Selected: isSelected,
 		}
 	}
 	return out

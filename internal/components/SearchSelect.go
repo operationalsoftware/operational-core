@@ -25,15 +25,12 @@ type SearchSelectProps struct {
 }
 
 type SearchSelectOptionsProps struct {
-	Mode           string
-	Selected       string
-	SelectedValues map[string]bool
-	Options        []SearchSelectOption
+	Options []SearchSelectOption
 }
 
-func SearchSelectOptions(p *SearchSelectOptionsProps) g.Node {
+func SearchSelectOptions(options []SearchSelectOption) g.Node {
 	var listOptions []g.Node
-	for _, o := range p.Options {
+	for _, o := range options {
 		classes := "select-option"
 		if o.Selected {
 			classes += " selected"
@@ -61,12 +58,7 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 		}
 	}
 
-	listOptions := SearchSelectOptions(&SearchSelectOptionsProps{
-		Mode:           p.Mode,
-		Selected:       p.Selected,
-		SelectedValues: selectedValues,
-		Options:        p.Options,
-	})
+	listOptions := SearchSelectOptions(p.Options)
 
 	var inputText string
 	if p.Selected != "" {
