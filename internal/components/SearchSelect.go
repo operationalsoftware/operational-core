@@ -35,14 +35,8 @@ func SearchSelectOptions(p *SearchSelectOptionsProps) g.Node {
 	var listOptions []g.Node
 	for _, o := range p.Options {
 		classes := "select-option"
-		if p.Mode == "multi" {
-			if p.SelectedValues[o.Value] {
-				classes += " selected"
-			}
-		} else {
-			if o.Value == p.Selected {
-				classes += " selected"
-			}
+		if o.Selected {
+			classes += " selected"
 		}
 
 		selectOption := h.Div(

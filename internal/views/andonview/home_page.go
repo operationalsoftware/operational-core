@@ -329,9 +329,7 @@ func HomePage(p *HomePageProps) g.Node {
 						Name:        "AndonTeams",
 						Placeholder: "Select a team",
 						Mode:        "multi",
-						Options:     MapTeamsToOptions(p.Teams),
-						Selected:    strings.Join(p.SelectedTeams, ","),
-						// OnChange:
+						Options:     MapTeamsToOptions(p.Teams, p.SelectedTeams),
 					},
 						g.Attr("onchange", "handleTeamSelectChange(event)"),
 					),
@@ -441,13 +439,21 @@ var andonIssuesBreadCrumb = layout.Breadcrumb{
 	URLPart:        "andons",
 }
 
-func MapTeamsToOptions(teams []model.Team) []components.SearchSelectOption {
+func MapTeamsToOptions(teams []model.Team, selectedValues []string) []components.SearchSelectOption {
 	out := make([]components.SearchSelectOption, len(teams))
 	for i, v := range teams {
+		isSelected := false
+		for _, selectedTeam := range selectedValues {
+			if v.TeamName == selectedTeam {
+				isSelected = true
+				break
+			}
+		}
+
 		out[i] = components.SearchSelectOption{
-			Text:  v.TeamName,
-			Value: v.TeamName,
-			// Value: strconv.Itoa(v.TeamID),
+			Text:     v.TeamName,
+			Value:    v.TeamName,
+			Selected: isSelected,
 		}
 	}
 	return out

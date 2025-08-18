@@ -91,7 +91,7 @@ func formPartialStockCodeLocBinLot(p *PostGenericPageProps) g.Node {
 					Name:                 "StockItemID",
 					Placeholder:          "Select Stock Code",
 					Mode:                 "single",
-					Options:              MapStockItemsToOptions(p.StockItems),
+					Options:              MapStockItemsToOptions(p.StockItems, selectedStockItem),
 					Selected:             selectedStockItem,
 					OptionsEndpoint:      "/get-stock-codes",
 					SearchQueryParamName: "SearchText",
