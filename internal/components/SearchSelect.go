@@ -1,8 +1,6 @@
 package components
 
 import (
-	"strings"
-
 	g "github.com/maragudk/gomponents"
 	h "github.com/maragudk/gomponents/html"
 )
@@ -22,10 +20,6 @@ type SearchSelectProps struct {
 	Selected             string
 	OptionsEndpoint      string // optional: URL to fetch options
 	SearchQueryParamName string // optional: query parameter name, default "SearchText"
-}
-
-type SearchSelectOptionsProps struct {
-	Options []SearchSelectOption
 }
 
 func SearchSelectOptions(options []SearchSelectOption) g.Node {
@@ -51,13 +45,6 @@ func SearchSelectOptions(options []SearchSelectOption) g.Node {
 
 func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 
-	selectedValues := map[string]bool{}
-	if p.Mode == "multi" && p.Selected != "" {
-		for _, val := range strings.Split(p.Selected, ",") {
-			selectedValues[val] = true
-		}
-	}
-
 	listOptions := SearchSelectOptions(p.Options)
 
 	var inputText string
@@ -72,22 +59,21 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 		inputText = p.Placeholder
 	}
 
-	attrs := []g.Node{
-		h.Class("search-select"),
-		g.Attr("data-mode", p.Mode),
-		g.Attr("data-name", p.Name),
-	}
-
-	if p.OptionsEndpoint != "" {
-		attrs = append(attrs, g.Attr("data-options-endpoint", p.OptionsEndpoint))
-	}
-
-	if p.SearchQueryParamName != "" {
-		attrs = append(attrs, h.DataAttr("search-query-param", p.SearchQueryParamName))
-	}
-
 	return h.Div(
-		g.Group(attrs),
+		h.Div(
+			h.Class("search-select"),
+			g.Attr("data-mode", p.Mode),
+			g.Attr("data-name", p.Name),
+
+			g.If(
+				p.SearchQueryParamName != "",
+				g.Attr("data-options-endpoint", p.OptionsEndpoint),
+			),
+			g.If(
+				p.SearchQueryParamName != "",
+				h.DataAttr("search-query-param", p.SearchQueryParamName),
+			),
+		),
 
 		h.Div(
 			h.Class("select-input"),
