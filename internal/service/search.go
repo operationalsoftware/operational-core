@@ -6,6 +6,7 @@ import (
 	"context"
 	"log"
 	"sort"
+	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -64,20 +65,51 @@ func (s *SearchService) Search(
 		log.Printf("Failed to save recent search: %v", err)
 	}
 
+	// Goroutine variables
+	var (
+		wg      sync.WaitGroup
+		mu      sync.Mutex
+		errChan = make(chan error, 5)
+	)
+
 	// User Search
 	if len(searchEntities) == 0 || searchEntitiesFilter["user"] {
-		users, err := s.UserRepo.SearchUsers(ctx, s.db, searchTerm)
-		if err != nil {
-			return results, err
-		}
+		wg.Add(1)
 
-		results.Users = users
+		go func() {
+			defer wg.Done()
 
-		if len(results.Users) > 0 {
-			sort.Slice(results.Users, func(i, j int) bool {
-				return results.Users[i].Relevance > results.Users[j].Relevance
-			})
+			users, err := s.UserRepo.SearchUsers(ctx, s.db, searchTerm)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			mu.Lock()
+			results.Users = users
+			mu.Unlock()
+
+			if len(results.Users) > 0 {
+				sort.Slice(results.Users, func(i, j int) bool {
+					return results.Users[i].Relevance > results.Users[j].Relevance
+				})
+			}
+		}()
+	}
+
+	// Wait for all to complete
+	wg.Wait()
+	close(errChan)
+
+	// Collect errors, return the first one if any
+	var firstErr error
+	for err := range errChan {
+		if firstErr == nil {
+			firstErr = err
 		}
+	}
+	if firstErr != nil {
+		return results, firstErr
 	}
 
 	return results, nil
