@@ -250,6 +250,7 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 	type urlVals struct {
 		IssueOrGroupID int
 		Source         string
+		Location       string
 		ReturnTo       string
 	}
 
@@ -266,6 +267,9 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 
 	if uv.Source != "" {
 		values.Set("Source", uv.Source)
+	}
+	if uv.Location != "" {
+		values.Set("Location", uv.Location)
 	}
 	if uv.ReturnTo != "" {
 		values.Set("ReturnTo", uv.ReturnTo)
@@ -577,6 +581,10 @@ func (fd *addAndonEventFormData) validate() validate.ValidationErrors {
 
 	if fd.Location == "" {
 		ve.Add("Location", "is required")
+	}
+
+	if fd.AssignedTeam == "" {
+		ve.Add("AssignedTeam", "for the issue is not present")
 	}
 
 	return ve

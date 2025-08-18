@@ -7,14 +7,55 @@ import (
 	h "github.com/maragudk/gomponents/html"
 )
 
+type SearchSelectOption struct {
+	Text     string
+	Value    string
+	Selected bool
+	Nodes    []g.Node
+}
+
 type SearchSelectProps struct {
 	Name                 string
 	Placeholder          string
 	Mode                 string // "single", "multi"
-	Options              []SearchSelectOptionData
+	Options              []SearchSelectOption
 	Selected             string
 	OptionsEndpoint      string // optional: URL to fetch options
 	SearchQueryParamName string // optional: query parameter name, default "SearchText"
+}
+
+type SearchSelectOptionsProps struct {
+	Mode           string
+	Selected       string
+	SelectedValues map[string]bool
+	Options        []SearchSelectOption
+}
+
+func SearchSelectOptions(p *SearchSelectOptionsProps) g.Node {
+	var listOptions []g.Node
+	for _, o := range p.Options {
+		classes := "select-option"
+		if p.Mode == "multi" {
+			if p.SelectedValues[o.Value] {
+				classes += " selected"
+			}
+		} else {
+			if o.Value == p.Selected {
+				classes += " selected"
+			}
+		}
+
+		selectOption := h.Div(
+			h.Class(classes),
+			h.DataAttr("value", o.Value),
+			g.Group(o.Nodes),
+			g.Text(o.Text),
+		)
+
+		listOptions = append(listOptions, selectOption)
+
+	}
+	return h.Div(listOptions...)
 }
 
 func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
@@ -84,7 +125,7 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 			),
 			h.Ul(
 				h.Class("select-options"),
-				g.Group(listOptions),
+				listOptions,
 			),
 		),
 		h.Div(

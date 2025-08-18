@@ -45,9 +45,11 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 
 	var changelogEntries []components.ChangelogEntry
 	for _, change := range p.AndonChanges {
+		fmt.Println(change.IsCreation)
 		entry := components.ChangelogEntry{
 			ChangedAt:         change.ChangeAt,
 			ChangedByUsername: change.ChangeByUsername,
+			IsCreation:        change.IsCreation,
 			Changes: map[string]interface{}{
 				"IssueDescription":       change.IssueDescription,
 				"IssueID":                change.IssueID,
@@ -268,19 +270,21 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 					),
 				),
 
-				components.Button(&components.ButtonProps{
-					Size: "small",
-				},
-					g.Attr("onclick", "updateAndon(event)"),
-					g.Attr("data-id", strconv.Itoa(p.AndonID)),
-					g.Attr("data-action", "cancel"),
-					g.Attr("title", "Cancel"),
+				g.If(andonEvent.CanUserCancel,
+					components.Button(&components.ButtonProps{
+						Size: "small",
+					},
+						g.Attr("onclick", "updateAndon(event)"),
+						g.Attr("data-id", strconv.Itoa(p.AndonID)),
+						g.Attr("data-action", "cancel"),
+						g.Attr("title", "Cancel"),
 
-					components.Icon(&components.IconProps{
-						Identifier: "cancel",
-					}),
+						components.Icon(&components.IconProps{
+							Identifier: "cancel",
+						}),
 
-					g.Text("Cancel"),
+						g.Text("Cancel"),
+					),
 				),
 			),
 		),
@@ -356,10 +360,10 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 		},
 		Content: content,
 		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/andonview/andon_details_page.css"),
+			components.InlineStyle("/internal/views/andonview/andon_page.css"),
 		},
 		AppendBody: []g.Node{
-			components.InlineScript("/internal/views/andonview/andon_details_page.js"),
+			components.InlineScript("/internal/views/andonview/andon_page.js"),
 		},
 	})
 }

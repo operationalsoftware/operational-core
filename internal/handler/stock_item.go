@@ -342,13 +342,15 @@ func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request)
 		log.Println(err)
 	}
 
+	var searchSelectOptions []components.SearchSelectOption
 	for _, opt := range stockItems {
-		classes := "select-option"
-		_ = components.SearchSelectOption(&components.SearchSelectOptionProps{
-			Classes: classes,
-			Value:   fmt.Sprintf("%d", opt.StockItemID),
-			Text:    opt.StockCode,
-		}).Render(w)
+		searchSelectOptions = append(searchSelectOptions, components.SearchSelectOption{
+			Value: fmt.Sprintf("%d", opt.StockItemID),
+			Text:  opt.StockCode,
+		})
 	}
+	_ = components.SearchSelectOptions(&components.SearchSelectOptionsProps{
+		Options: searchSelectOptions,
+	}).Render(w)
 
 }

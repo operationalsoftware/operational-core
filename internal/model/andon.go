@@ -15,6 +15,7 @@ type AndonEvent struct {
 	NamePath               []string
 	CanUserAcknowledge     bool
 	CanUserResolve         bool
+	CanUserCancel          bool
 	Severity               string     `sortable:"true"`
 	Source                 string     `sortable:"true"`
 	Location               string     `sortable:"true"`
@@ -92,6 +93,7 @@ type AndonChange struct {
 	ChangeBy               int
 	ChangeByUsername       string
 	ChangeAt               time.Time
+	IsCreation             bool
 	Status                 string
 	LastUpdated            pgtype.Timestamptz
 }

@@ -177,17 +177,19 @@ func HomePage(p *HomePageProps) g.Node {
 							),
 						),
 
-						components.Button(&components.ButtonProps{
-							Size: "small",
-						},
-							g.Attr("onclick", "updateAndon(event)"),
-							g.Attr("data-id", strconv.Itoa(ai.AndonEventID)),
-							g.Attr("data-action", "cancel"),
-							g.Attr("title", "Cancel"),
+						g.If(ai.CanUserCancel,
+							components.Button(&components.ButtonProps{
+								Size: "small",
+							},
+								g.Attr("onclick", "updateAndon(event)"),
+								g.Attr("data-id", strconv.Itoa(ai.AndonEventID)),
+								g.Attr("data-action", "cancel"),
+								g.Attr("title", "Cancel"),
 
-							components.Icon(&components.IconProps{
-								Identifier: "cancel",
-							}),
+								components.Icon(&components.IconProps{
+									Identifier: "cancel",
+								}),
+							),
 						),
 					),
 				}),
@@ -381,6 +383,35 @@ func HomePage(p *HomePageProps) g.Node {
 				h.ID("andon-wip-table"),
 			),
 		),
+
+		h.Div(
+			h.Class("status-legend"),
+
+			h.Div(
+				h.Span(
+					h.Class("status-dot two-minutes-passed"),
+				),
+				g.Text("Outstanding (> 2 minutes)"),
+			),
+			h.Div(
+				h.Span(
+					h.Class("status-dot five-minutes-passed"),
+				),
+				g.Text("Outstanding (> 5 minutes)"),
+			),
+			h.Div(
+				h.Span(
+					h.Class("status-dot status-acknowledged"),
+				),
+				g.Text("Acknowledged"),
+			),
+			h.Div(
+				h.Span(
+					h.Class("status-dot status-cancelled"),
+				),
+				g.Text("Cancelled"),
+			),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
@@ -410,10 +441,10 @@ var andonIssuesBreadCrumb = layout.Breadcrumb{
 	URLPart:        "andons",
 }
 
-func MapTeamsToOptions(teams []model.Team) []components.SearchSelectOptionData {
-	out := make([]components.SearchSelectOptionData, len(teams))
+func MapTeamsToOptions(teams []model.Team) []components.SearchSelectOption {
+	out := make([]components.SearchSelectOption, len(teams))
 	for i, v := range teams {
-		out[i] = components.SearchSelectOptionData{
+		out[i] = components.SearchSelectOption{
 			Text:  v.TeamName,
 			Value: v.TeamName,
 			// Value: strconv.Itoa(v.TeamID),

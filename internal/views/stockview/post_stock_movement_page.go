@@ -184,10 +184,10 @@ func PostStockMovementPage(p *PostStockMovementPageProps) g.Node {
 	})
 }
 
-func MapStockItemsToOptions(vals []model.StockItem) []components.SearchSelectOptionData {
-	out := make([]components.SearchSelectOptionData, len(vals))
+func MapStockItemsToOptions(vals []model.StockItem) []components.SearchSelectOption {
+	out := make([]components.SearchSelectOption, len(vals))
 	for i, v := range vals {
-		out[i] = components.SearchSelectOptionData{
+		out[i] = components.SearchSelectOption{
 			Text:  v.StockCode,
 			Value: fmt.Sprintf("%d", v.StockItemID),
 		}

@@ -151,17 +151,8 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 		assignedTeamHelperType = components.InputHelperTypeError
 	}
 
-	sourceLabel := "Source"
 	sourceKey := "Source"
 	sourceValue := p.values.Get(sourceKey)
-	sourceError := ""
-	if p.isSubmission || sourceValue != "" {
-		sourceError = p.validationErrors.GetError(sourceKey, sourceLabel)
-	}
-	sourceHelperType := components.InputHelperTypeNone
-	if sourceError != "" {
-		sourceHelperType = components.InputHelperTypeError
-	}
 
 	locationLabel := "Location"
 	locationKey := "Location"
@@ -211,10 +202,23 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 					h.Value(strconv.Itoa(p.selectedIssue)),
 				),
 			),
+			g.If(
+				assignedTeam != "",
+				h.Option(
+					h.Class("assigned-team-label"),
+					h.Value(assignedTeam),
+					g.Text(fmt.Sprintf("* Assigned to: %s", assignedTeam)),
+				),
+			),
 			g.If(issueIDError != "",
 				components.InputHelper(&components.InputHelperProps{
 					Label: issueIDError,
 					Type:  issueIDHelperType,
+				})),
+			g.If(assignedTeamError != "",
+				components.InputHelper(&components.InputHelperProps{
+					Label: assignedTeamError,
+					Type:  assignedTeamHelperType,
 				})),
 		),
 
@@ -240,27 +244,6 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 
 		h.Div(
 			h.Label(
-				g.Text(sourceLabel),
-
-				h.Input(
-					h.Name(sourceKey),
-					h.Placeholder("-"),
-					h.Value(sourceValue),
-					h.AutoComplete("off"),
-					h.ReadOnly(),
-				),
-			),
-			g.If(
-				sourceError != "",
-				components.InputHelper(&components.InputHelperProps{
-					Label: sourceError,
-					Type:  sourceHelperType,
-				}),
-			),
-		),
-
-		h.Div(
-			h.Label(
 				g.Text(locationLabel),
 
 				h.Input(
@@ -279,34 +262,16 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 			),
 		),
 
-		h.Div(
-			h.Label(
-				g.Text(assignedTeamLabel),
+		h.Input(
+			h.Name(assignedTeamKey),
+			h.Value(assignedTeam),
+			h.Type("hidden"),
+		),
 
-				h.Select(
-					h.Name(assignedTeamKey),
-					h.Placeholder("Select assigned team"),
-					g.If(
-						assignedTeam != "",
-						h.Option(h.Value(assignedTeam), g.Text(assignedTeam)),
-					),
-					g.If(
-						assignedTeam == "",
-						h.Option(h.Value(""), g.Text("Select assigned team")),
-					),
-					h.Selected(),
-					g.Group(func() []g.Node {
-						var opts []g.Node
-						return opts
-					}()),
-					h.Disabled(),
-				),
-			),
-			g.If(assignedTeamError != "",
-				components.InputHelper(&components.InputHelperProps{
-					Label: assignedTeamError,
-					Type:  assignedTeamHelperType,
-				})),
+		h.Input(
+			h.Name(sourceKey),
+			h.Value(sourceValue),
+			h.Type("hidden"),
 		),
 
 		components.Button(

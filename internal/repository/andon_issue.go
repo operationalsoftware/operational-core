@@ -385,7 +385,7 @@ func (r *AndonIssueRepository) ListIssuesAndGroups(
 	orderByClause, _ := q.Sort.ToOrderByClause(model.AndonIssueNode{})
 
 	if orderByClause == "" {
-		orderByClause = "ORDER BY created_at DESC"
+		orderByClause = "ORDER BY name_path ASC"
 	}
 
 	query := andonIssueGroupSelect + `

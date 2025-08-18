@@ -18,3 +18,8 @@
     margin-bottom: var(--spacing-md);
   }
 }
+
+.assigned-team-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-color-light);
+}

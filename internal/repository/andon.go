@@ -23,6 +23,19 @@ func (r *AndonRepository) CreateAndonEvent(
 	userID int,
 ) error {
 
+	insertQuery := `
+INSERT INTO
+  andon_change (
+    change_by,
+    andon_event_id,
+    raised_by,
+    status
+)
+VALUES (
+    $1, $2, $1, 'Outstanding'
+)
+`
+
 	query := `
 INSERT INTO andon_event (
 	issue_description,
@@ -40,8 +53,11 @@ VALUES (
 	$5,
 	$6
 )
+RETURNING andon_event_id
 `
-	_, err := exec.Exec(
+
+	var newAndonID int
+	err := exec.QueryRow(
 		ctx, query,
 
 		andonEvent.IssueDescription,
@@ -50,9 +66,17 @@ VALUES (
 		andonEvent.Location,
 		"Outstanding",
 		userID,
-	)
+	).Scan(&newAndonID)
+	if err != nil {
+		return err
+	}
 
-	return err
+	_, err = exec.Exec(ctx, insertQuery, userID, newAndonID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *AndonRepository) GetAndonEventByID(
@@ -114,7 +138,23 @@ SELECT
 		assigned_team IN (
 			SELECT team_id FROM user_team WHERE user_id = $2
 		)
-	) AS can_user_resolve
+	) AS can_user_resolve,
+	(
+		status <> 'Resolved'
+		AND (
+			(
+				severity IN ('Info', 'Self-resolvable')
+				AND (
+					raised_by = $2
+					OR assigned_team IN (SELECT team_id FROM user_team WHERE user_id = $2)
+				)
+			)
+			OR (
+				severity = 'Requires Intervention'
+				AND assigned_team IN (SELECT team_id FROM user_team WHERE user_id = $2)
+			)
+		)
+	) AS can_user_cancel
 FROM
 	andon_view
 WHERE
@@ -145,6 +185,7 @@ WHERE
 		&andonEvent.Severity,
 		&andonEvent.CanUserAcknowledge,
 		&andonEvent.CanUserResolve,
+		&andonEvent.CanUserCancel,
 	)
 	if err != nil {
 		return nil, err
@@ -213,7 +254,23 @@ SELECT
 		AND assigned_team IN (
 			SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholder + `
 		)
-	) AS can_user_resolve
+	) AS can_user_resolve,
+	(
+		status <> 'Resolved'
+		AND (
+			(
+				severity IN ('Info', 'Self-resolvable')
+				AND (
+					raised_by = ` + currentUserIDPlaceholder + `
+					OR assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholder + `)
+				)
+			)
+			OR (
+				severity = 'Requires Intervention'
+				AND assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholder + `)
+			)
+		)
+	) AS can_user_cancel
 FROM andon_view
 `
 
@@ -269,6 +326,7 @@ FROM andon_view
 			&event.Severity,
 			&event.CanUserAcknowledge,
 			&event.CanUserResolve,
+			&event.CanUserCancel,
 		); err != nil {
 			return nil, err
 		}
@@ -442,7 +500,12 @@ SELECT
 	cu.username AS cancelled_by_username,
 	ac.cancelled_at,
 	change_user.username AS change_by_username,
-	ac.change_at
+	ac.change_at,
+    CASE
+        WHEN ac.change_at = MIN(ac.change_at) OVER (PARTITION BY ac.andon_event_id)
+        THEN true
+        ELSE false
+    END AS IsCreation
 FROM
 	andon_change AS ac
 LEFT JOIN
@@ -487,6 +550,7 @@ ORDER BY ac.change_at DESC
 			&event.CancelledAt,
 			&event.ChangeByUsername,
 			&event.ChangeAt,
+			&event.IsCreation,
 		); err != nil {
 			return nil, err
 		}

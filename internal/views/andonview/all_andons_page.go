@@ -29,14 +29,14 @@ type AllAndonsPageProps struct {
 }
 
 type AvailableFilters struct {
-	IssueIn                  []components.SearchSelectOptionData
-	SeverityIn               []components.SearchSelectOptionData
-	TeamIn                   []components.SearchSelectOptionData
-	LocationIn               []components.SearchSelectOptionData
-	StatusIn                 []components.SearchSelectOptionData
-	RaisedByUsernameIn       []components.SearchSelectOptionData
-	AcknowledgedByUsernameIn []components.SearchSelectOptionData
-	ResolvedByUsernameIn     []components.SearchSelectOptionData
+	IssueIn                  []components.SearchSelectOption
+	SeverityIn               []components.SearchSelectOption
+	TeamIn                   []components.SearchSelectOption
+	LocationIn               []components.SearchSelectOption
+	StatusIn                 []components.SearchSelectOption
+	RaisedByUsernameIn       []components.SearchSelectOption
+	AcknowledgedByUsernameIn []components.SearchSelectOption
+	ResolvedByUsernameIn     []components.SearchSelectOption
 }
 
 func AllAndonsPage(p *AllAndonsPageProps) g.Node {
@@ -227,17 +227,19 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 							),
 						),
 
-						components.Button(&components.ButtonProps{
-							Size: "small",
-						},
-							g.Attr("onclick", "updateAndon(event)"),
-							g.Attr("data-id", strconv.Itoa(ai.AndonEventID)),
-							g.Attr("data-action", "cancel"),
-							g.Attr("title", "Cancel"),
+						g.If(ai.CanUserCancel,
+							components.Button(&components.ButtonProps{
+								Size: "small",
+							},
+								g.Attr("onclick", "updateAndon(event)"),
+								g.Attr("data-id", strconv.Itoa(ai.AndonEventID)),
+								g.Attr("data-action", "cancel"),
+								g.Attr("title", "Cancel"),
 
-							components.Icon(&components.IconProps{
-								Identifier: "cancel",
-							}),
+								components.Icon(&components.IconProps{
+									Identifier: "cancel",
+								}),
+							),
 						),
 					),
 				}),
@@ -445,6 +447,35 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 				h.ID("andon-table"),
 			),
 		),
+
+		h.Div(
+			h.Class("status-legend"),
+
+			h.Div(
+				h.Span(
+					h.Class("status-dot two-minutes-passed"),
+				),
+				g.Text("Outstanding (> 2 minutes)"),
+			),
+			h.Div(
+				h.Span(
+					h.Class("status-dot five-minutes-passed"),
+				),
+				g.Text("Outstanding (> 5 minutes)"),
+			),
+			h.Div(
+				h.Span(
+					h.Class("status-dot status-acknowledged"),
+				),
+				g.Text("Acknowledged"),
+			),
+			h.Div(
+				h.Span(
+					h.Class("status-dot status-cancelled"),
+				),
+				g.Text("Cancelled"),
+			),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
@@ -471,10 +502,10 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 	})
 }
 
-func MapStringsToOptions(vals []string) []components.SearchSelectOptionData {
-	out := make([]components.SearchSelectOptionData, len(vals))
+func MapStringsToOptions(vals []string) []components.SearchSelectOption {
+	out := make([]components.SearchSelectOption, len(vals))
 	for i, v := range vals {
-		out[i] = components.SearchSelectOptionData{
+		out[i] = components.SearchSelectOption{
 			Text:  v,
 			Value: v,
 		}

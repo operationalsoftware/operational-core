@@ -54,3 +54,43 @@
   background-color: #aad1af;
   /* background-color: #81c792; */
 }
+
+/* Status colors */
+.status-dot {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.two-minutes-passed {
+  background-color: #e3c206; /* yellow */
+}
+
+.five-minutes-passed {
+  background-color: #eb4343; /* yellow */
+}
+
+.status-cancelled {
+  background-color: #c4c4c4; /* red */
+}
+
+.status-acknowledged {
+  background-color: #aad1af; /* blue */
+}
+
+/* Legend styling */
+.status-legend {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #333;
+
+  & > div {
+    display: flex;
+    align-items: center;
+  }
+}

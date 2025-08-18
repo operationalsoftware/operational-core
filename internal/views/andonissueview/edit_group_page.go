@@ -25,7 +25,7 @@ type EditGroupPageProps struct {
 	ErrorText        string
 }
 
-const MaxIssueDepth = 3
+const MaxIssueDepth = 4
 
 func EditGroupPage(p *EditGroupPageProps) g.Node {
 
