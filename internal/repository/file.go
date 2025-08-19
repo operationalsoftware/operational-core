@@ -1,14 +1,15 @@
 package repository
 
 import (
+	"app/internal/model"
+	"app/pkg/db"
 	"context"
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/hex"
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/ncw/swift/v2"
 )
 
 type FileRepository struct{}
@@ -17,32 +18,130 @@ func NewFileRepository() *FileRepository {
 	return &FileRepository{}
 }
 
-func (r *FileRepository) GeneratePutTempURL(filePath string, expiresInSeconds int64, tempURLKey string) string {
-	method := "PUT"
-	expires := time.Now().Unix() + expiresInSeconds
+func (r *FileRepository) getSignedUploadURL(conn *swift.Connection, container, objectName, secretKey string, expiresIn time.Duration) (string, error) {
+	if secretKey == "" {
+		return "", fmt.Errorf("TempURL key is not set for container %s", container)
+	}
 
-	stringToSign := fmt.Sprintf("%s\n%d\n%s", method, expires, filePath)
-	mac := hmac.New(sha1.New, []byte(tempURLKey))
-	mac.Write([]byte(stringToSign))
-	sig := hex.EncodeToString(mac.Sum(nil))
+	expires := time.Now().Add(expiresIn)
 
-	tempURL := fmt.Sprintf("https://orbit.brightbox.com%s?temp_url_sig=%s&temp_url_expires=%d", filePath, sig, expires)
-	return tempURL
+	// method "PUT" for upload
+	uploadURL := conn.ObjectTempUrl(container, objectName, secretKey, "PUT", expires)
+	return uploadURL, nil
 }
 
-func (r *FileRepository) GetFileURL(ctx context.Context, fileUUID uuid.UUID, expiresInSeconds int64) (string, error) {
-	// expires := time.Now().Unix() + expiresInSeconds
+func (r *FileRepository) getSignedDownloadURL(
+	conn *swift.Connection,
+	container, objectName, secretKey string,
+	expiresIn time.Duration,
+) (string, error) {
+	if secretKey == "" {
+		return "", fmt.Errorf("TempURL key is not set for container %s", container)
+	}
 
-	// fileURL must be the path, e.g., "/v1/AUTH_account/container/file.pdf"
-	// stringToSign := fmt.Sprintf("%s\n%d\n%s", method, expires, fileURL)
+	expires := time.Now().Add(expiresIn)
 
-	// mac := hmac.New(sha1.New, []byte(secretKey))
-	// mac.Write([]byte(stringToSign))
-	// signature := hex.EncodeToString(mac.Sum(nil))
+	// method "GET" for download
+	downloadURL := conn.ObjectTempUrl(container, objectName, secretKey, "GET", expires)
+	return downloadURL, nil
+}
 
-	// tempURL := fmt.Sprintf("https://orbit.brightbox.com%s?temp_url_sig=%s&temp_url_expires=%d", fileURL, signature, expires)
-	// return tempURL, nil
+func (r *FileRepository) CreateFile(
+	ctx context.Context,
+	exec db.PGExecutor,
+	conn *swift.Connection,
+	f *model.File,
+	container, secretKey string,
+) (*model.File, string, error) {
+	// 1. Generate unique object name
+	objectName := fmt.Sprintf("%s-%s", uuid.New().String(), f.OriginalFilename)
 
-	return "", nil
+	// 2. Insert metadata into DB
+	var fileID string
+	err := exec.QueryRow(ctx, `
+INSERT INTO file (
+	object_name,
+	original_filename,
+	content_type,
+	size_bytes,
+	entity,
+	user_id
+)
+VALUES (
+	$1,
+	$2,
+	$3,
+	$4,
+	$5,
+	$6
+)
+RETURNING file_id`,
+		objectName, f.OriginalFilename, f.ContentType, f.SizeBytes, f.Entity, f.UserID,
+	).Scan(&fileID)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to insert file metadata: %w", err)
+	}
 
+	file := &model.File{
+		FileID:           fileID,
+		ObjectName:       objectName,
+		OriginalFilename: f.OriginalFilename,
+		ContentType:      f.ContentType,
+		SizeBytes:        f.SizeBytes,
+		Entity:           f.Entity,
+		UserID:           f.UserID,
+		CreatedAt:        time.Now(),
+	}
+
+	// 3. Generate signed upload URL
+	uploadURL, err := r.getSignedUploadURL(conn, container, objectName, secretKey, 15*time.Minute)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to generate signed upload URL: %w", err)
+	}
+
+	return file, uploadURL, nil
+}
+
+func (r *FileRepository) DeleteFile(
+	ctx context.Context,
+	exec db.PGExecutor,
+	conn *swift.Connection,
+	fileID, container, secretKey string,
+) error {
+	// 1. Fetch file metadata from DB
+	var objectName string
+	query := `
+SELECT
+	object_name
+FROM
+	file
+WHERE
+	file_id = $1`
+	err := exec.QueryRow(ctx, query, fileID).Scan(&objectName)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("file not found")
+		}
+		return err
+	}
+
+	// 2. Delete object from Orbit
+	err = conn.ObjectDelete(ctx, container, objectName)
+	if err != nil {
+		return fmt.Errorf("failed to delete object from Orbit: %w", err)
+	}
+
+	// 3. Delete file record from DB
+	delQuery := `
+DELETE FROM
+	file
+WHERE
+	file_id = $1
+`
+	_, err = exec.Exec(ctx, delQuery, fileID)
+	if err != nil {
+		return fmt.Errorf("failed to delete file record: %w", err)
+	}
+
+	return nil
 }

@@ -250,8 +250,6 @@ SELECT
     severity,
     assigned_team,
     assigned_team_name,
-    -- COALESCE(assigned_team, 0) AS assigned_team,
-    -- COALESCE(assigned_team_name, '') AS assigned_team_name,
     created_at,
     created_by,
     created_by_username,
@@ -333,3 +331,19 @@ FROM
 LEFT JOIN user_team ut ON u.user_id = ut.user_id
 LEFT JOIN team t ON ut.team_id = t.team_id
 GROUP BY u.user_id;
+
+
+CREATE TABLE file (
+    file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    object_name TEXT NOT NULL UNIQUE,   -- key/path in Swift
+    original_filename TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    size_bytes BIGINT NOT NULL,
+    entity TEXT NOT NULL,               -- e.g. "andon"
+    user_id INT NOT NULL REFERENCES app_user(user_id),
+
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_files_user ON files(user_id);
+CREATE INDEX idx_files_entity ON files(entity);

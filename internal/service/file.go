@@ -5,20 +5,24 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/ncw/swift/v2"
 )
 
 type FileService struct {
-	db            *pgxpool.Pool
-	pdfRepository *repository.PDFRepository
+	db             *pgxpool.Pool
+	swiftConn      *swift.Connection
+	fileRepository *repository.FileRepository
 }
 
 func NewFileService(
 	db *pgxpool.Pool,
-	pdfRepository *repository.PDFRepository,
+	swiftConn *swift.Connection,
+	fileRepository *repository.FileRepository,
 ) *FileService {
 	return &FileService{
-		db:            db,
-		pdfRepository: pdfRepository,
+		db:             db,
+		swiftConn:      swiftConn,
+		fileRepository: fileRepository,
 	}
 }
 

@@ -14,6 +14,7 @@ import (
 	"app/pkg/cookie"
 	"app/pkg/db"
 	"app/pkg/env"
+	"app/pkg/filestore"
 	"app/pkg/localip"
 	"app/pkg/pdf"
 
@@ -61,10 +62,17 @@ func main() {
 		log.Fatalf("Error initialising cookie instance: %v\n", err)
 	}
 
+	// Initialise some things for start up
+	swiftConn, err := filestore.InitSwift()
+	if err != nil {
+		log.Fatalf("Error initialising swift sdk: %v\n", err)
+	}
+
 	// Instantiate repositories
 	andonRepository := repository.NewAndonRepository()
 	andonIssueRepository := repository.NewAndonIssueRepository()
 	authRepository := repository.NewAuthRepository()
+	fileRepository := repository.NewFileRepository()
 	commentRepository := repository.NewCommentRepository()
 	stockTrxRepository := repository.NewStockTransactionRepository()
 	teamRepository := repository.NewTeamRepository()
@@ -76,6 +84,7 @@ func main() {
 		AndonService:            *service.NewAndonService(pgPool, andonRepository, commentRepository),
 		AndonIssueService:       *service.NewAndonIssueService(pgPool, andonIssueRepository),
 		AuthService:             *service.NewAuthService(pgPool, authRepository),
+		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		PDFService:              *service.NewPDFService(),
 		SearchService:           *service.NewSearchService(pgPool, userRepository),
 		StockItemService:        *service.NewStockItemService(pgPool, stockItemRepository),

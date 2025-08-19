@@ -1,11 +1,16 @@
 package model
 
-import "github.com/google/uuid"
+import (
+	"time"
+)
 
 type File struct {
-	FileUUID   uuid.UUID
-	FileName   string
-	MimeType   string
-	FileExt    string
-	BucketName string
+	FileID           string
+	ObjectName       string
+	OriginalFilename string
+	ContentType      string
+	SizeBytes        int64
+	Entity           string
+	UserID           int
+	CreatedAt        time.Time
 }

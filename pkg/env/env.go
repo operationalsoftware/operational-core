@@ -74,6 +74,26 @@ func Verify() error {
 		fail = true
 	}
 
+	if os.Getenv("SWIFT_API_USER") == "" {
+		fmt.Println("SWIFT_API_USER environment variable not set")
+		fail = true
+	}
+
+	if os.Getenv("SWIFT_TENANT_ID") == "" {
+		fmt.Println("SWIFT_TENANT_ID environment variable not set")
+		fail = true
+	}
+
+	if os.Getenv("SWIFT_API_KEY") == "" {
+		fmt.Println("SWIFT_API_KEY environment variable not set")
+		fail = true
+	}
+
+	if os.Getenv("SWIFT_AUTH_URL") == "" {
+		fmt.Println("SWIFT_AUTH_URL environment variable not set")
+		fail = true
+	}
+
 	if fail {
 		return fmt.Errorf("Missing required environment variables")
 	}

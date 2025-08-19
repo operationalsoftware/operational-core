@@ -12,7 +12,6 @@ require (
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/joho/godotenv v1.5.1
-	maragu.dev/gomponents v1.1.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/pdfcpu/pdfcpu v0.11.0
 	github.com/shopspring/decimal v1.3.1
@@ -20,6 +19,7 @@ require (
 	github.com/snabb/isoweek v1.0.3
 	golang.org/x/crypto v0.38.0
 	golang.org/x/text v0.25.0
+	maragu.dev/gomponents v1.1.0
 )
 
 require (
@@ -36,6 +36,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/ncw/swift/v2 v2.0.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect

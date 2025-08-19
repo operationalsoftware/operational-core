@@ -105,3 +105,18 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 		InlineScript("/internal/components/SearchSelect.js"),
 	)
 }
+
+func MapStringsToOptions(vals []string, selectedValues []string) []SearchSelectOption {
+	out := make([]SearchSelectOption, len(vals))
+	for i, v := range vals {
+		isSelected := false
+		for _, selectedTeam := range selectedValues {
+			if v == selectedTeam {
+				isSelected = true
+				break
+			}
+		}
+		out[i] = SearchSelectOption{Text: v, Value: v, Selected: isSelected}
+	}
+	return out
+}
