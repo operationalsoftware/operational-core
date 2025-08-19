@@ -3,8 +3,8 @@ package layout
 import (
 	"app/internal/components"
 
-	g "github.com/maragudk/gomponents"
-	h "github.com/maragudk/gomponents/html"
+	g "maragu.dev/gomponents"
+	h "maragu.dev/gomponents/html"
 )
 
 type Breadcrumb struct {

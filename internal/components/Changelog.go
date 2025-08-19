@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	g "github.com/maragudk/gomponents"
-	h "github.com/maragudk/gomponents/html"
 	"github.com/shopspring/decimal"
+	g "maragu.dev/gomponents"
+	h "maragu.dev/gomponents/html"
 )
 
 type ChangelogEntry struct {

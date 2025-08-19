@@ -7,9 +7,9 @@ import (
 	"app/pkg/reqcontext"
 	"fmt"
 
-	g "github.com/maragudk/gomponents"
-	h "github.com/maragudk/gomponents/html"
 	"github.com/shopspring/decimal"
+	g "maragu.dev/gomponents"
+	h "maragu.dev/gomponents/html"
 )
 
 type PostStockMovementPageProps struct {

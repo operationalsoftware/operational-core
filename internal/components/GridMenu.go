@@ -3,8 +3,8 @@ package components
 import (
 	"app/internal/model"
 
-	g "github.com/maragudk/gomponents"
-	h "github.com/maragudk/gomponents/html"
+	g "maragu.dev/gomponents"
+	h "maragu.dev/gomponents/html"
 )
 
 type GridMenuItem struct {

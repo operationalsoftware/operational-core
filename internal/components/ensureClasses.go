@@ -1,8 +1,8 @@
 package components
 
 import (
-	g "github.com/maragudk/gomponents"
-	c "github.com/maragudk/gomponents/components"
+	g "maragu.dev/gomponents"
+	c "maragu.dev/gomponents/components"
 )
 
 // Helper function to find or add classes

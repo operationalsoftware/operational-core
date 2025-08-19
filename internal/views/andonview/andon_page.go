@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	g "github.com/maragudk/gomponents"
-	c "github.com/maragudk/gomponents/components"
-	h "github.com/maragudk/gomponents/html"
+	g "maragu.dev/gomponents"
+	c "maragu.dev/gomponents/components"
+	h "maragu.dev/gomponents/html"
 )
 
 type AndonDetailsPageProps struct {
@@ -45,7 +45,6 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 
 	var changelogEntries []components.ChangelogEntry
 	for _, change := range p.AndonChanges {
-		fmt.Println(change.IsCreation)
 		entry := components.ChangelogEntry{
 			ChangedAt:         change.ChangeAt,
 			ChangedByUsername: change.ChangeByUsername,

@@ -12,7 +12,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/joho/godotenv v1.5.1
-	github.com/maragudk/gomponents v0.20.2
+	maragu.dev/gomponents v1.1.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/pdfcpu/pdfcpu v0.11.0
 	github.com/shopspring/decimal v1.3.1

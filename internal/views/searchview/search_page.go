@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"strings"
 
-	g "github.com/maragudk/gomponents"
-	h "github.com/maragudk/gomponents/html"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	g "maragu.dev/gomponents"
+	h "maragu.dev/gomponents/html"
 )
 
 type SearchPageProps struct {

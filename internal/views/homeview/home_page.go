@@ -5,7 +5,7 @@ import (
 	"app/internal/layout"
 	"app/pkg/reqcontext"
 
-	g "github.com/maragudk/gomponents"
+	g "maragu.dev/gomponents"
 )
 
 type HomePageProps struct {

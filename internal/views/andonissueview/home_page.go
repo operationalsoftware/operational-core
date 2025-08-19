@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"strings"
 
-	g "github.com/maragudk/gomponents"
-	c "github.com/maragudk/gomponents/components"
-	h "github.com/maragudk/gomponents/html"
+	g "maragu.dev/gomponents"
+	c "maragu.dev/gomponents/components"
+	h "maragu.dev/gomponents/html"
 )
 
 type HomePageProps struct {

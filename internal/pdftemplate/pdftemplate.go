@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"sort"
 
-	g "github.com/maragudk/gomponents"
+	g "maragu.dev/gomponents"
 )
 
 // utility to convert a gomponent to a string
