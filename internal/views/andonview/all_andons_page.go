@@ -260,142 +260,6 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 		})
 	}
 
-	issueOptions := make([]components.SearchSelectOption, len(availableFilters.IssueIn))
-	for i, v := range availableFilters.IssueIn {
-		isSelected := false
-		for _, selectedTeam := range p.Filters.Issues {
-			if v == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
-
-		issueOptions[i] = components.SearchSelectOption{
-			Text:     v,
-			Value:    v,
-			Selected: isSelected,
-		}
-	}
-
-	severityOptions := make([]components.SearchSelectOption, len(availableFilters.SeverityIn))
-	for i, v := range availableFilters.SeverityIn {
-		isSelected := false
-		for _, selectedTeam := range p.Filters.Severities {
-			if v == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
-
-		severityOptions[i] = components.SearchSelectOption{
-			Text:     v,
-			Value:    v,
-			Selected: isSelected,
-		}
-	}
-
-	teamOptions := make([]components.SearchSelectOption, len(availableFilters.TeamIn))
-	for i, v := range availableFilters.TeamIn {
-		isSelected := false
-		for _, selectedTeam := range p.Filters.Teams {
-			if v == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
-
-		teamOptions[i] = components.SearchSelectOption{
-			Text:     v,
-			Value:    v,
-			Selected: isSelected,
-		}
-	}
-
-	locationOptions := make([]components.SearchSelectOption, len(availableFilters.LocationIn))
-	for i, v := range availableFilters.LocationIn {
-		isSelected := false
-		for _, selectedTeam := range p.Filters.Locations {
-			if v == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
-
-		locationOptions[i] = components.SearchSelectOption{
-			Text:     v,
-			Value:    v,
-			Selected: isSelected,
-		}
-	}
-
-	statusOptions := make([]components.SearchSelectOption, len(availableFilters.StatusIn))
-	for i, v := range availableFilters.StatusIn {
-		isSelected := false
-		for _, selectedTeam := range p.Filters.Statuses {
-			if v == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
-
-		statusOptions[i] = components.SearchSelectOption{
-			Text:     v,
-			Value:    v,
-			Selected: isSelected,
-		}
-	}
-
-	raisedByUsernameOptions := make([]components.SearchSelectOption, len(availableFilters.RaisedByUsernameIn))
-	for i, v := range availableFilters.RaisedByUsernameIn {
-		isSelected := false
-		for _, selectedTeam := range p.Filters.RaisedByUsername {
-			if v == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
-
-		raisedByUsernameOptions[i] = components.SearchSelectOption{
-			Text:     v,
-			Value:    v,
-			Selected: isSelected,
-		}
-	}
-
-	acknowledgedByUsernameOptions := make([]components.SearchSelectOption, len(availableFilters.AcknowledgedByUsernameIn))
-	for i, v := range availableFilters.AcknowledgedByUsernameIn {
-		isSelected := false
-		for _, selectedTeam := range p.Filters.AcknowledgedByUsername {
-			if v == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
-
-		acknowledgedByUsernameOptions[i] = components.SearchSelectOption{
-			Text:     v,
-			Value:    v,
-			Selected: isSelected,
-		}
-	}
-
-	resolvedByUsernameOptions := make([]components.SearchSelectOption, len(availableFilters.ResolvedByUsernameIn))
-	for i, v := range availableFilters.ResolvedByUsernameIn {
-		isSelected := false
-		for _, selectedTeam := range p.Filters.ResolvedByUsername {
-			if v == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
-
-		resolvedByUsernameOptions[i] = components.SearchSelectOption{
-			Text:     v,
-			Value:    v,
-			Selected: isSelected,
-		}
-	}
-
 	content := g.Group([]g.Node{
 
 		h.H3(g.Text("All Andons")),
@@ -455,7 +319,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "IssueIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     issueOptions,
+						Options:     MapStringsToOptions(availableFilters.IssueIn, p.Filters.Issues),
 						Selected:    strings.Join(p.Filters.Issues, ","),
 					}),
 				),
@@ -469,8 +333,9 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "SeverityIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     severityOptions,
-						Selected:    strings.Join(p.Filters.Severities, ","),
+						Options: MapStringsToOptions(availableFilters.
+							SeverityIn, p.Filters.Severities),
+						Selected: strings.Join(p.Filters.Severities, ","),
 					}),
 				),
 				h.Div(
@@ -483,7 +348,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "TeamIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     teamOptions,
+						Options:     MapStringsToOptions(availableFilters.TeamIn, p.Filters.Teams),
 						Selected:    strings.Join(p.Filters.Teams, ","),
 					}),
 				),
@@ -497,7 +362,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "LocationIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     locationOptions,
+						Options:     MapStringsToOptions(availableFilters.LocationIn, p.Filters.Locations),
 						Selected:    strings.Join(p.Filters.Locations, ","),
 					}),
 				),
@@ -511,7 +376,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "StatusIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     statusOptions,
+						Options:     MapStringsToOptions(availableFilters.StatusIn, p.Filters.Statuses),
 						Selected:    strings.Join(p.Filters.Statuses, ","),
 					}),
 				),
@@ -525,7 +390,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "RaisedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     raisedByUsernameOptions,
+						Options:     MapStringsToOptions(availableFilters.RaisedByUsernameIn, p.Filters.RaisedByUsername),
 						Selected:    strings.Join(p.Filters.RaisedByUsername, ","),
 					}),
 				),
@@ -539,7 +404,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "AcknowledgedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     acknowledgedByUsernameOptions,
+						Options:     MapStringsToOptions(availableFilters.AcknowledgedByUsernameIn, p.Filters.AcknowledgedByUsername),
 						Selected:    strings.Join(p.Filters.AcknowledgedByUsername, ","),
 					}),
 				),
@@ -553,7 +418,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "ResolvedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     resolvedByUsernameOptions,
+						Options:     MapStringsToOptions(availableFilters.ResolvedByUsernameIn, p.Filters.ResolvedByUsername),
 						Selected:    strings.Join(p.Filters.ResolvedByUsername, ","),
 					}),
 				),
@@ -636,4 +501,19 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 			components.InlineScript("/internal/views/andonview/all_andons_page.js"),
 		},
 	})
+}
+
+func MapStringsToOptions(vals []string, selectedValues []string) []components.SearchSelectOption {
+	out := make([]components.SearchSelectOption, len(vals))
+	for i, v := range vals {
+		isSelected := false
+		for _, selectedTeam := range selectedValues {
+			if v == selectedTeam {
+				isSelected = true
+				break
+			}
+		}
+		out[i] = components.SearchSelectOption{Text: v, Value: v, Selected: isSelected}
+	}
+	return out
 }
