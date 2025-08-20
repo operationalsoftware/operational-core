@@ -2,6 +2,7 @@ package filestore
 
 import (
 	"context"
+	"log"
 	"os"
 
 	"github.com/ncw/swift/v2"
@@ -17,6 +18,17 @@ func InitSwift() (*swift.Connection, error) {
 	}
 
 	if err := c.Authenticate(ctx); err != nil {
+		return nil, err
+	}
+
+	tempURLKey := os.Getenv("SWIFT_TEMP_URL_KEY")
+
+	headers := swift.Headers{
+		"X-Container-Meta-Temp-URL-Key": tempURLKey,
+	}
+	err := c.AccountUpdate(ctx, headers)
+	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 

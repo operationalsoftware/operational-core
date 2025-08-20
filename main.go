@@ -81,9 +81,10 @@ func main() {
 
 	// Instantiate services
 	services := &router.Services{
-		AndonService:            *service.NewAndonService(pgPool, andonRepository, commentRepository),
-		AndonIssueService:       *service.NewAndonIssueService(pgPool, andonIssueRepository),
-		AuthService:             *service.NewAuthService(pgPool, authRepository),
+		AndonService:      *service.NewAndonService(pgPool, swiftConn, andonRepository, commentRepository, fileRepository),
+		AndonIssueService: *service.NewAndonIssueService(pgPool, andonIssueRepository),
+		AuthService:       *service.NewAuthService(pgPool, authRepository),
+		// File service is a placeholder
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		PDFService:              *service.NewPDFService(),
 		SearchService:           *service.NewSearchService(pgPool, userRepository),

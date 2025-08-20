@@ -2,7 +2,6 @@ package service
 
 import (
 	"app/internal/repository"
-	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ncw/swift/v2"
@@ -24,13 +23,4 @@ func NewFileService(
 		swiftConn:      swiftConn,
 		fileRepository: fileRepository,
 	}
-}
-
-func (s *FileService) GenerateFile(
-	ctx context.Context,
-	template string,
-	inputParams map[string]interface{},
-) error {
-
-	return nil
 }

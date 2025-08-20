@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,20 +31,66 @@ func (r *FileRepository) getSignedUploadURL(conn *swift.Connection, container, o
 	return uploadURL, nil
 }
 
-func (r *FileRepository) getSignedDownloadURL(
+func (r *FileRepository) GetSignedDownloadURL(
+	ctx context.Context,
 	conn *swift.Connection,
-	container, objectName, secretKey string,
+	exec db.PGExecutor,
+	fileID string,
 	expiresIn time.Duration,
 ) (string, error) {
-	if secretKey == "" {
-		return "", fmt.Errorf("TempURL key is not set for container %s", container)
+	container := os.Getenv("ORBIT_CONTAINER")
+	secretKey := os.Getenv("SWIFT_TEMP_URL_KEY")
+
+	file, err := r.GetFileByID(ctx, exec, fileID)
+	if err != nil {
+		return "", err
 	}
 
 	expires := time.Now().Add(expiresIn)
 
 	// method "GET" for download
-	downloadURL := conn.ObjectTempUrl(container, objectName, secretKey, "GET", expires)
+	downloadURL := conn.ObjectTempUrl(container, file.ObjectName, secretKey, "GET", expires)
 	return downloadURL, nil
+}
+
+func (r *FileRepository) GetFileByID(
+	ctx context.Context,
+	exec db.PGExecutor,
+	fileID string,
+) (*model.File, error) {
+
+	query := `
+SELECT
+	file_id,
+	object_name,
+	original_filename,
+	content_type,
+	size_bytes,
+	entity,
+	user_id
+FROM
+	file
+WHERE
+	file_id = $1
+`
+
+	var file model.File
+	err := exec.QueryRow(
+		ctx, query, fileID,
+	).Scan(
+		&file.FileID,
+		&file.ObjectName,
+		&file.OriginalFilename,
+		&file.ContentType,
+		&file.SizeBytes,
+		&file.Entity,
+		&file.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &file, err
 }
 
 func (r *FileRepository) CreateFile(
@@ -51,8 +98,9 @@ func (r *FileRepository) CreateFile(
 	exec db.PGExecutor,
 	conn *swift.Connection,
 	f *model.File,
-	container, secretKey string,
 ) (*model.File, string, error) {
+	container := os.Getenv("ORBIT_CONTAINER")
+	secretKey := os.Getenv("SWIFT_TEMP_URL_KEY")
 	// 1. Generate unique object name
 	objectName := fmt.Sprintf("%s-%s", uuid.New().String(), f.OriginalFilename)
 

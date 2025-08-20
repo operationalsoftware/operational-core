@@ -6,23 +6,30 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/ncw/swift/v2"
 )
 
 type AndonService struct {
 	db                *pgxpool.Pool
+	swiftConn         *swift.Connection
 	andonRepository   *repository.AndonRepository
 	commentRepository *repository.CommentRepository
+	fileRepository    *repository.FileRepository
 }
 
 func NewAndonService(
 	db *pgxpool.Pool,
+	swiftConn *swift.Connection,
 	andonRepo *repository.AndonRepository,
 	commentRepository *repository.CommentRepository,
+	fileRepository *repository.FileRepository,
 ) *AndonService {
 	return &AndonService{
 		db:                db,
+		swiftConn:         swiftConn,
 		andonRepository:   andonRepo,
 		commentRepository: commentRepository,
+		fileRepository:    fileRepository,
 	}
 }
 
