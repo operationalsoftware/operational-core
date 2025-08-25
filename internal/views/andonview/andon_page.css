@@ -57,23 +57,41 @@
     border-radius: var(--border-radius);
 
     .comment {
-      display: flex;
-      justify-content: space-between;
-      padding: var(--spacing-md) var(--spacing-lg);
       border-bottom: 1px solid var(--border-color);
+      padding: var(--spacing-md) var(--spacing-lg);
 
-      &:last-child {
-        border-bottom: none;
+      .comment-details {
+        display: flex;
+        justify-content: space-between;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        strong {
+          font-size: var(--font-size-sm);
+        }
+
+        .username {
+          color: var(--text-color-light);
+          font-size: var(--font-size-sm);
+          text-align: right;
+        }
       }
 
-      strong {
-        font-size: var(--font-size-sm);
-      }
+      .attachment {
+        svg {
+          fill: var(--primary-color);
+          margin-right: var(--spacing-sm);
+        }
 
-      .username {
-        color: var(--text-color-light);
-        font-size: var(--font-size-sm);
-        text-align: right;
+        img {
+          width: 100%;
+        }
+
+        .attachment-link {
+          font-size: var(--font-size-xs);
+        }
       }
     }
   }

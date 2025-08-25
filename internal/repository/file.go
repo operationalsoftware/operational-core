@@ -13,21 +13,23 @@ import (
 	"github.com/ncw/swift/v2"
 )
 
-type FileRepository struct{}
-
-func NewFileRepository() *FileRepository {
-	return &FileRepository{}
+type FileRepository struct {
+	container string
+	secretKey string
 }
 
-func (r *FileRepository) getSignedUploadURL(conn *swift.Connection, container, objectName, secretKey string, expiresIn time.Duration) (string, error) {
-	if secretKey == "" {
-		return "", fmt.Errorf("TempURL key is not set for container %s", container)
+func NewFileRepository() *FileRepository {
+	return &FileRepository{
+		container: os.Getenv("ORBIT_CONTAINER"),
+		secretKey: os.Getenv("AES_256_ENCRYPTION_KEY"),
 	}
+}
 
+func (r *FileRepository) getSignedUploadURL(conn *swift.Connection, objectName string, expiresIn time.Duration) (string, error) {
 	expires := time.Now().Add(expiresIn)
 
 	// method "PUT" for upload
-	uploadURL := conn.ObjectTempUrl(container, objectName, secretKey, "PUT", expires)
+	uploadURL := conn.ObjectTempUrl(r.container, objectName, r.secretKey, "PUT", expires)
 	return uploadURL, nil
 }
 
@@ -38,8 +40,6 @@ func (r *FileRepository) GetSignedDownloadURL(
 	fileID string,
 	expiresIn time.Duration,
 ) (string, error) {
-	container := os.Getenv("ORBIT_CONTAINER")
-	secretKey := os.Getenv("SWIFT_TEMP_URL_KEY")
 
 	file, err := r.GetFileByID(ctx, exec, fileID)
 	if err != nil {
@@ -49,7 +49,7 @@ func (r *FileRepository) GetSignedDownloadURL(
 	expires := time.Now().Add(expiresIn)
 
 	// method "GET" for download
-	downloadURL := conn.ObjectTempUrl(container, file.ObjectName, secretKey, "GET", expires)
+	downloadURL := conn.ObjectTempUrl(r.container, file.StorageKey, r.secretKey, "GET", expires)
 	return downloadURL, nil
 }
 
@@ -62,8 +62,8 @@ func (r *FileRepository) GetFileByID(
 	query := `
 SELECT
 	file_id,
-	object_name,
-	original_filename,
+	storage_key,
+	filename,
 	content_type,
 	size_bytes,
 	entity,
@@ -79,8 +79,8 @@ WHERE
 		ctx, query, fileID,
 	).Scan(
 		&file.FileID,
-		&file.ObjectName,
-		&file.OriginalFilename,
+		&file.StorageKey,
+		&file.Filename,
 		&file.ContentType,
 		&file.SizeBytes,
 		&file.Entity,
@@ -98,21 +98,20 @@ func (r *FileRepository) CreateFile(
 	exec db.PGExecutor,
 	conn *swift.Connection,
 	f *model.File,
+	userID int,
 ) (*model.File, string, error) {
-	container := os.Getenv("ORBIT_CONTAINER")
-	secretKey := os.Getenv("SWIFT_TEMP_URL_KEY")
-	// 1. Generate unique object name
-	objectName := fmt.Sprintf("%s-%s", uuid.New().String(), f.OriginalFilename)
+	objectName := uuid.New()
 
-	// 2. Insert metadata into DB
-	var fileID string
+	var fileID uuid.UUID
 	err := exec.QueryRow(ctx, `
 INSERT INTO file (
-	object_name,
-	original_filename,
+	file_id,
+	storage_key,
+	filename,
 	content_type,
 	size_bytes,
 	entity,
+	entity_id,
 	user_id
 )
 VALUES (
@@ -121,33 +120,65 @@ VALUES (
 	$3,
 	$4,
 	$5,
-	$6
+	$6,
+	$7,
+	$8
 )
 RETURNING file_id`,
-		objectName, f.OriginalFilename, f.ContentType, f.SizeBytes, f.Entity, f.UserID,
+		objectName, objectName.String(), f.Filename, f.ContentType, f.SizeBytes, f.Entity, f.EntityID, userID,
 	).Scan(&fileID)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to insert file metadata: %w", err)
 	}
 
 	file := &model.File{
-		FileID:           fileID,
-		ObjectName:       objectName,
-		OriginalFilename: f.OriginalFilename,
-		ContentType:      f.ContentType,
-		SizeBytes:        f.SizeBytes,
-		Entity:           f.Entity,
-		UserID:           f.UserID,
-		CreatedAt:        time.Now(),
+		FileID:      fileID.String(),
+		StorageKey:  objectName.String(),
+		Filename:    f.Filename,
+		ContentType: f.ContentType,
+		SizeBytes:   f.SizeBytes,
+		Entity:      f.Entity,
+		UserID:      f.UserID,
+		CreatedAt:   time.Now(),
 	}
 
 	// 3. Generate signed upload URL
-	uploadURL, err := r.getSignedUploadURL(conn, container, objectName, secretKey, 15*time.Minute)
+	uploadURL, err := r.getSignedUploadURL(conn, objectName.String(), 15*time.Minute)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to generate signed upload URL: %w", err)
 	}
 
 	return file, uploadURL, nil
+}
+
+func (r *FileRepository) CompleteFileUpload(
+	ctx context.Context,
+	exec db.PGExecutor,
+	fileID string,
+) error {
+	// Ensure team exists
+	existing, err := r.GetFileByID(ctx, exec, fileID)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return fmt.Errorf("team with ID %d not found", fileID)
+	}
+
+	query := `
+UPDATE file
+SET
+	status = $2
+WHERE
+	file_id = $1
+`
+	_, err = exec.Exec(
+		ctx,
+		query,
+		fileID,
+		"success",
+	)
+	return err
 }
 
 func (r *FileRepository) DeleteFile(
@@ -160,7 +191,7 @@ func (r *FileRepository) DeleteFile(
 	var objectName string
 	query := `
 SELECT
-	object_name
+	storage_key
 FROM
 	file
 WHERE
@@ -192,4 +223,56 @@ WHERE
 	}
 
 	return nil
+}
+
+func (r *CommentRepository) GetFilesByEntity(
+	ctx context.Context,
+	exec db.PGExecutor,
+	entity string,
+	entityID int,
+) ([]model.File, error) {
+
+	query := `
+SELECT
+	file_id,
+	filename,
+	storage_key,
+	content_type,
+	size_bytes,
+	status,
+	user_id
+FROM file
+WHERE
+	entity = $1 AND entity_id = $2
+ORDER BY created_at ASC
+`
+
+	rows, err := exec.Query(ctx, query, entity, entityID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var files []model.File
+	for rows.Next() {
+		var file model.File
+		if err := rows.Scan(
+			&file.FileID,
+			&file.Filename,
+			&file.StorageKey,
+			&file.ContentType,
+			&file.SizeBytes,
+			&file.Status,
+			&file.UserID,
+		); err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }

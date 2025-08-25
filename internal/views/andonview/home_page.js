@@ -9,7 +9,7 @@ function updateAndon(e) {
   );
 
   if (confirmUpdate) {
-    fetch(`/andons/update/${andonId}/${andonAction}`, {
+    fetch(`/andons/${andonId}/${andonAction}/update`, {
       method: "POST",
     }).then((res) => {
       if (res.ok) {

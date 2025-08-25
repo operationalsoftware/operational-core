@@ -73,7 +73,7 @@ func main() {
 	andonIssueRepository := repository.NewAndonIssueRepository()
 	authRepository := repository.NewAuthRepository()
 	fileRepository := repository.NewFileRepository()
-	commentRepository := repository.NewCommentRepository()
+	commentRepository := repository.NewCommentRepository(fileRepository)
 	stockTrxRepository := repository.NewStockTransactionRepository()
 	teamRepository := repository.NewTeamRepository()
 	stockItemRepository := repository.NewStockItemRepository()
@@ -81,9 +81,10 @@ func main() {
 
 	// Instantiate services
 	services := &router.Services{
-		AndonService:      *service.NewAndonService(pgPool, swiftConn, andonRepository, commentRepository, fileRepository),
+		AndonService:      *service.NewAndonService(pgPool, swiftConn, andonRepository, commentRepository),
 		AndonIssueService: *service.NewAndonIssueService(pgPool, andonIssueRepository),
 		AuthService:       *service.NewAuthService(pgPool, authRepository),
+		CommentService:    *service.NewCommentService(pgPool, commentRepository),
 		// File service is a placeholder
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		PDFService:              *service.NewPDFService(),

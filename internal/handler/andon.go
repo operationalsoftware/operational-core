@@ -8,6 +8,7 @@ import (
 	"app/pkg/appurl"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,18 +21,24 @@ import (
 type AndonHandler struct {
 	andonService      service.AndonService
 	andonIssueService service.AndonIssueService
+	commentService    service.CommentService
 	teamService       service.TeamService
+	fileService       service.FileService
 }
 
 func NewAndonHandler(
 	andonService service.AndonService,
 	andonIssueService service.AndonIssueService,
+	commentService service.CommentService,
 	teamService service.TeamService,
+	fileService service.FileService,
 ) *AndonHandler {
 	return &AndonHandler{
 		andonService:      andonService,
 		andonIssueService: andonIssueService,
+		commentService:    commentService,
 		teamService:       teamService,
+		fileService:       fileService,
 	}
 }
 
@@ -447,32 +454,34 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	entityIDStr := r.PathValue("entityId")
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
 	}
 
 	var fd addAndonCommentFormData
-	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
-		http.Error(w, "Error decoding form", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
+		log.Println(err)
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
 	}
 
 	fd.normalise()
 
-	validationErrors := fd.validate()
-
-	if len(validationErrors) > 0 {
-		http.Redirect(w, r, fmt.Sprintf("/andons/%d", fd.AndonID), http.StatusSeeOther)
+	entityID, err := strconv.Atoi(entityIDStr)
+	if err != nil {
+		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
 		return
 	}
 
-	err := h.andonService.CreateAndonComment(
+	commentId, err := h.commentService.CreateComment(
 		r.Context(),
 		&model.NewComment{
 			Comment:  fd.Comment,
 			Entity:   "andon",
-			EntityID: fd.AndonID,
+			EntityID: entityID,
 		},
 		ctx.User.UserID,
 	)
@@ -482,7 +491,62 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/andons/%d", fd.AndonID), http.StatusSeeOther)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"commentId": commentId,
+	})
+}
+
+func (h *AndonHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	entity := r.PathValue("entity")
+	entityIDStr := r.PathValue("entityId")
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	entityID, err := strconv.Atoi(entityIDStr)
+	if err != nil {
+		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
+		return
+	}
+
+	var fd addFileFormData
+	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	file, signedURL, err := h.fileService.CreateFile(
+		r.Context(),
+		&model.File{
+			Filename:    fd.Filename,
+			ContentType: fd.ContentType,
+			SizeBytes:   fd.SizeBytes,
+			Entity:      entity,
+			EntityID:    entityID,
+		},
+		ctx.User.UserID,
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error adding file", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"fileId":    file.FileID,
+		"signedUrl": signedURL,
+	})
+
 }
 
 func (h *AndonHandler) AndonUpdate(w http.ResponseWriter, r *http.Request) {
@@ -576,29 +640,6 @@ func (fd *addAndonEventFormData) validate() validate.ValidationErrors {
 
 	if fd.AssignedTeam == "" {
 		ve.Add("AssignedTeam", "for the issue is not present")
-	}
-
-	return ve
-}
-
-type addAndonCommentFormData struct {
-	Comment string
-	AndonID int
-}
-
-func (fd *addAndonCommentFormData) normalise() {
-	fd.Comment = strings.TrimSpace(fd.Comment)
-}
-
-func (fd *addAndonCommentFormData) validate() validate.ValidationErrors {
-	var ve validate.ValidationErrors = make(map[string][]string)
-
-	if fd.Comment == "" {
-		ve.Add("Comment", "should not be empty")
-	}
-
-	if fd.AndonID == 0 {
-		ve.Add("AndonID", "is required")
 	}
 
 	return ve

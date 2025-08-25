@@ -336,14 +336,40 @@ GROUP BY u.user_id;
 CREATE TABLE file (
     file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    object_name TEXT NOT NULL UNIQUE,   -- key/path in Swift
-    original_filename TEXT NOT NULL,
+    storage_key TEXT NOT NULL UNIQUE,
+    filename TEXT NOT NULL,
     content_type TEXT NOT NULL,
     size_bytes BIGINT NOT NULL,
-    entity TEXT NOT NULL,               -- e.g. "andon"
+    status TEXT NOT NULL DEFAULT 'pending',
+    entity TEXT NOT NULL,
+    entity_id INT NOT NULL,
     user_id INT NOT NULL REFERENCES app_user(user_id),
 
     created_at TIMESTAMPTZ DEFAULT now()
 );
-CREATE INDEX idx_files_user ON files(user_id);
-CREATE INDEX idx_files_entity ON files(entity);
+CREATE INDEX idx_files_user ON file(user_id);
+CREATE INDEX idx_files_entity ON file(entity, entity_id);
+
+
+CREATE VIEW comment_view AS
+SELECT
+	c.comment_id,
+	c.entity,
+	c.entity_id,
+	c.comment,
+	u.username as commented_by_username,
+	c.commented_at,
+	COALESCE(json_agg(json_build_object(
+		'file_id', f.file_id,
+		'filename', f.filename,
+		'storage_key', f.storage_key,
+		'content_type', f.content_type,
+		'size_bytes', f.size_bytes,
+        'status', f.status,
+		'user_id', f.user_id
+	)) FILTER (WHERE f.file_id IS NOT NULL), '[]') AS attachments
+FROM comment c
+LEFT JOIN app_user u ON c.commented_by = u.user_id
+LEFT JOIN file f ON f.entity = 'comment' AND f.entity_id = c.comment_id
+GROUP BY c.comment_id, c.entity_id, c.comment, u.username, c.commented_at
+ORDER BY c.commented_at ASC;

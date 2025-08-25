@@ -21,10 +21,11 @@ func InitSwift() (*swift.Connection, error) {
 		return nil, err
 	}
 
-	tempURLKey := os.Getenv("SWIFT_TEMP_URL_KEY")
+	tempURLKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 
 	headers := swift.Headers{
-		"X-Container-Meta-Temp-URL-Key": tempURLKey,
+		"X-Container-Meta-Temp-URL-Key":                tempURLKey,
+		"X-Container-Meta-Access-Control-Allow-Origin": "https://localhost:3000",
 	}
 	err := c.AccountUpdate(ctx, headers)
 	if err != nil {

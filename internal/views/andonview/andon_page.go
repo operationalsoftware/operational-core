@@ -65,25 +65,87 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 
 	andonComments := []g.Node{}
 	for _, comment := range p.AndonComments {
+		attachments := []g.Node{}
+
+		var nonImageAttachments []g.Node
+		var imageAttachments []g.Node
+
+		for _, attachment := range comment.Attachments {
+			isImage := strings.HasPrefix(attachment.ContentType, "image/")
+
+			// link := h.Div(
+			// 	h.Class("attachment"),
+			// 	components.Icon(&components.IconProps{
+			// 		Identifier: "open-in-new",
+			// 	}),
+
+			// 	h.A(
+			// 		h.Class("attachment-link"),
+			// 		h.Href(attachment.DownloadURL),
+			// 		h.Target("_blank"),
+			// 		g.Text(attachment.Filename),
+			// 	),
+			// )
+
+			// attachments = append(attachments, link)
+
+			if isImage {
+				imgPreview := h.A(
+					h.Class("attachment"),
+					h.Href(attachment.DownloadURL),
+					h.Target("_blank"),
+					h.Img(
+						h.Src(attachment.DownloadURL),
+						h.Alt(attachment.Filename),
+					),
+				)
+				imageAttachments = append(imageAttachments, imgPreview)
+			} else {
+				link := h.Div(
+					h.Class("attachment"),
+					components.Icon(&components.IconProps{
+						Identifier: "open-in-new",
+					}),
+					h.A(
+						h.Class("attachment-link"),
+						h.Href(attachment.DownloadURL),
+						h.Target("_blank"),
+						g.Text(attachment.Filename),
+					),
+				)
+				nonImageAttachments = append(nonImageAttachments, link)
+			}
+
+		}
+		attachments = append(nonImageAttachments, imageAttachments...)
+
 		commentNode := h.Div(
 			h.Class("comment"),
 
-			h.P(
-				g.Text(comment.Comment),
-			),
-
 			h.Div(
-				h.Class("date"),
+				h.Class("comment-details"),
 
-				h.Strong(
-					g.Text(comment.CommentedAt.Format("2006-01-02 15:04:05")),
+				h.P(
+					g.Text(comment.Comment),
 				),
 
 				h.Div(
-					h.Class("username"),
+					h.Class("date"),
 
-					g.Text(comment.CommentedByUsername),
+					h.Strong(
+						g.Text(comment.CommentedAt.Format("2006-01-02 15:04:05")),
+					),
+
+					h.Div(
+						h.Class("username"),
+
+						g.Text(comment.CommentedByUsername),
+					),
 				),
+			),
+
+			h.Div(
+				attachments...,
 			),
 		)
 		andonComments = append(andonComments, commentNode)
@@ -304,9 +366,12 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 					g.Group(andonComments),
 				),
 
-				h.FormEl(
-					h.Action("/andons/add/comment"),
+				h.Form(
+					h.ID("comment-form"),
+					h.Name("comment-form"),
 					h.Method("POST"),
+					h.EncType("multipart/form-data"),
+					g.Attr("onsubmit", "submitComment(event)"),
 
 					h.Div(
 						h.Class("comment-box"),
@@ -319,9 +384,16 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 						),
 
 						h.Input(
-							h.Name("AndonID"),
+							h.Name("EntityID"),
 							h.Type("hidden"),
 							h.Value(fmt.Sprintf("%d", p.AndonID)),
+						),
+
+						h.Input(
+							h.ID("file-input"),
+							h.Name("files"),
+							h.Type("file"),
+							h.Multiple(),
 						),
 
 						components.Button(&components.ButtonProps{

@@ -16,6 +16,7 @@ type Services struct {
 	AndonService            service.AndonService
 	AndonIssueService       service.AndonIssueService
 	AuthService             service.AuthService
+	CommentService          service.CommentService
 	UserService             service.UserService
 	StockTransactionService service.StockTransactionService
 	SearchService           service.SearchService
@@ -49,8 +50,10 @@ func NewRouter(services *Services) http.Handler {
 
 	// add routes for services
 	addAuthRoutes(mux, services.AuthService)
-	addAndonRoutes(mux, services.AndonService, services.AndonIssueService, services.TeamService)
+	addAndonRoutes(mux, services.AndonService, services.AndonIssueService, services.CommentService, services.TeamService, services.FileService)
 	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
+	addCommentRoutes(mux, services.CommentService)
+	addFileRoutes(mux, services.FileService)
 	addPDFRoutes(mux, services.PDFService)
 	addSearchRoutes(mux, services.SearchService)
 	addTeamRoutes(mux, services.TeamService, services.UserService)

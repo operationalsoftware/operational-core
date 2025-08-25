@@ -14,7 +14,6 @@ type AndonService struct {
 	swiftConn         *swift.Connection
 	andonRepository   *repository.AndonRepository
 	commentRepository *repository.CommentRepository
-	fileRepository    *repository.FileRepository
 }
 
 func NewAndonService(
@@ -22,14 +21,12 @@ func NewAndonService(
 	swiftConn *swift.Connection,
 	andonRepo *repository.AndonRepository,
 	commentRepository *repository.CommentRepository,
-	fileRepository *repository.FileRepository,
 ) *AndonService {
 	return &AndonService{
 		db:                db,
 		swiftConn:         swiftConn,
 		andonRepository:   andonRepo,
 		commentRepository: commentRepository,
-		fileRepository:    fileRepository,
 	}
 }
 
@@ -220,6 +217,7 @@ func (s *AndonService) GetAndonByID(
 	andonComments, err := s.commentRepository.GetComments(
 		ctx,
 		tx,
+		s.swiftConn,
 		"andon",
 		andonEventID,
 	)
@@ -245,7 +243,7 @@ func (s *AndonService) CreateAndonComment(
 	}
 	defer tx.Rollback(ctx)
 
-	err = s.commentRepository.AddComment(
+	_, err = s.commentRepository.AddComment(
 		ctx,
 		tx,
 		comment,

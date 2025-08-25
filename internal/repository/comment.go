@@ -4,12 +4,20 @@ import (
 	"app/internal/model"
 	"app/pkg/db"
 	"context"
+	"encoding/json"
+	"time"
+
+	"github.com/ncw/swift/v2"
 )
 
-type CommentRepository struct{}
+type CommentRepository struct {
+	fileRepo *FileRepository
+}
 
-func NewCommentRepository() *CommentRepository {
-	return &CommentRepository{}
+func NewCommentRepository(fileRepo *FileRepository) *CommentRepository {
+	return &CommentRepository{
+		fileRepo: fileRepo,
+	}
 }
 
 func (r *CommentRepository) AddComment(
@@ -17,7 +25,7 @@ func (r *CommentRepository) AddComment(
 	exec db.PGExecutor,
 	comment *model.NewComment,
 	userID int,
-) error {
+) (int, error) {
 
 	query := `
 INSERT INTO comment (
@@ -32,38 +40,40 @@ VALUES (
 	$3,
 	$4
 )
+RETURNING comment_id
 `
-	_, err := exec.Exec(
+	var commentId int
+	err := exec.QueryRow(
 		ctx, query,
 
 		comment.Entity,
 		comment.EntityID,
 		comment.Comment,
 		userID,
-	)
+	).Scan(&commentId)
 
-	return err
+	return commentId, err
 }
 
 func (r *CommentRepository) GetComments(
 	ctx context.Context,
 	exec db.PGExecutor,
+	swiftConn *swift.Connection,
 	entity string,
 	entityID int,
 ) ([]model.Comment, error) {
 
 	query := `
 SELECT
-	c.comment_id,
-	c.entity_id,
-	c.comment,
-	u.username,
-	c.commented_at
-FROM comment c
-LEFT JOIN
-	app_user AS u ON c.commented_by = u.user_id
-WHERE c.entity = $1 AND c.entity_id = $2
-ORDER BY c.commented_at ASC
+	comment_id,
+	entity,
+	entity_id,
+	comment,
+	commented_by_username,
+	commented_at,
+	attachments
+FROM comment_view
+WHERE entity = $1 AND entity_id = $2
 `
 
 	rows, err := exec.Query(ctx, query, entity, entityID)
@@ -75,20 +85,38 @@ ORDER BY c.commented_at ASC
 	var comments []model.Comment
 	for rows.Next() {
 		var comment model.Comment
+		var attachments []byte
 		if err := rows.Scan(
 			&comment.CommentID,
+			&comment.Entity,
 			&comment.EntityID,
 			&comment.Comment,
 			&comment.CommentedByUsername,
 			&comment.CommentedAt,
+			&attachments,
 		); err != nil {
 			return nil, err
 		}
+
+		if err := json.Unmarshal(attachments, &comment.Attachments); err != nil {
+			return nil, err
+		}
+
 		comments = append(comments, comment)
 	}
 
 	if err = rows.Err(); err != nil {
 		return nil, err
+	}
+
+	for ci := range comments {
+		for fi := range comments[ci].Attachments {
+			url, err := r.fileRepo.GetSignedDownloadURL(ctx, swiftConn, exec, comments[ci].Attachments[fi].FileID, 15*time.Minute)
+			if err != nil {
+				return nil, err
+			}
+			comments[ci].Attachments[fi].DownloadURL = url
+		}
 	}
 
 	return comments, nil

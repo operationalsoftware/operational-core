@@ -12,6 +12,7 @@ type Comment struct {
 	CommentedBy         string
 	CommentedByUsername string
 	CommentedAt         time.Time
+	Attachments         []File
 }
 
 type NewComment struct {

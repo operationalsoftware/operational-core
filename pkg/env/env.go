@@ -99,11 +99,6 @@ func Verify() error {
 		fail = true
 	}
 
-	if os.Getenv("SWIFT_TEMP_URL_KEY") == "" {
-		fmt.Println("SWIFT_TEMP_URL_KEY environment variable not set")
-		fail = true
-	}
-
 	if fail {
 		return fmt.Errorf("missing required environment variables")
 	}
