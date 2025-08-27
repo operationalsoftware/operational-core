@@ -1,6 +1,7 @@
 package service
 
 import (
+	"app/internal/components"
 	"app/internal/model"
 	"app/internal/repository"
 	"app/pkg/validate"
@@ -8,20 +9,27 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/ncw/swift/v2"
 )
 
 type StockItemService struct {
 	db                  *pgxpool.Pool
+	swiftConn           *swift.Connection
 	stockItemRepository *repository.StockItemRepository
+	commentRepository   *repository.CommentRepository
 }
 
 func NewStockItemService(
 	db *pgxpool.Pool,
+	swiftConn *swift.Connection,
 	stockItemRepository *repository.StockItemRepository,
+	commentRepository *repository.CommentRepository,
 ) *StockItemService {
 	return &StockItemService{
 		db:                  db,
+		swiftConn:           swiftConn,
 		stockItemRepository: stockItemRepository,
+		commentRepository:   commentRepository,
 	}
 }
 
@@ -58,14 +66,35 @@ func (s *StockItemService) GetStockItems(
 func (s *StockItemService) GetStockItem(
 	ctx context.Context,
 	stockItemID int,
-) (*model.StockItem, error) {
-
-	stockItem, err := s.stockItemRepository.GetStockItem(ctx, s.db, stockItemID)
+) (*model.StockItem, []components.Comment, error) {
+	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return &model.StockItem{}, err
+		return nil, []components.Comment{}, err
+	}
+	defer tx.Rollback(ctx)
+
+	stockItem, err := s.stockItemRepository.GetStockItem(ctx, tx, stockItemID)
+	if err != nil {
+		return nil, []components.Comment{}, err
 	}
 
-	return stockItem, nil
+	comments, err := s.commentRepository.GetComments(
+		ctx,
+		tx,
+		s.swiftConn,
+		"stock item",
+		stockItemID,
+	)
+	if err != nil {
+		return nil, []components.Comment{}, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, []components.Comment{}, err
+	}
+
+	return stockItem, comments, nil
 }
 
 func (s *StockItemService) GetStockItemChanges(

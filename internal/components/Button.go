@@ -50,9 +50,11 @@ func Button(p *ButtonProps, children ...g.Node) g.Node {
 	content := g.Group(
 		[]g.Node{
 			p.Classes,
-			g.If(p.Disabled || p.Loading, h.Disabled()),
-			g.If(p.Loading, LoadingSpinner(LoadingSpinnerSm)),
-			g.If(p.Loading, h.DataAttr("loading", "true")),
+			g.If(p.Disabled, h.Disabled()),
+			g.If(p.Loading, LoadingSpinner(&LoadingSpinnerProps{
+				Size: "sm",
+			})),
+			g.If(p.Loading, h.Data("loading", "true")),
 			g.Group(children),
 		},
 	)

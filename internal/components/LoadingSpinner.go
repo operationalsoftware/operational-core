@@ -6,8 +6,6 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
-type LoadingSpinnerSize string
-
 const (
 	LoadingSpinnerSm LoadingSpinnerSize = "sm"
 	LoadingSpinnerMd LoadingSpinnerSize = "md"
@@ -15,16 +13,22 @@ const (
 	LoadingSpinnerXl LoadingSpinnerSize = "xl"
 )
 
-func LoadingSpinner(size LoadingSpinnerSize) g.Node {
+type LoadingSpinnerSize string
+
+type LoadingSpinnerProps struct {
+	Size LoadingSpinnerSize
+}
+
+func LoadingSpinner(p *LoadingSpinnerProps) g.Node {
 	classes := c.Classes{
 		"loading-spinner": true,
 	}
 
-	if size == "" {
-		size = LoadingSpinnerMd
+	if p.Size == "" {
+		p.Size = LoadingSpinnerMd
 	}
 
-	classes[string(size)] = true
+	classes[string(p.Size)] = true
 	return h.Div(
 		classes,
 	)

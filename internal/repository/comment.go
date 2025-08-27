@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"app/internal/components"
 	"app/internal/model"
 	"app/pkg/db"
 	"context"
@@ -61,7 +62,7 @@ func (r *CommentRepository) GetComments(
 	swiftConn *swift.Connection,
 	entity string,
 	entityID int,
-) ([]model.Comment, error) {
+) ([]components.Comment, error) {
 
 	query := `
 SELECT
@@ -82,9 +83,9 @@ WHERE entity = $1 AND entity_id = $2
 	}
 	defer rows.Close()
 
-	var comments []model.Comment
+	var comments []components.Comment
 	for rows.Next() {
-		var comment model.Comment
+		var comment components.Comment
 		var attachments []byte
 		if err := rows.Scan(
 			&comment.CommentID,

@@ -8,6 +8,52 @@
     flex-direction: column-reverse;
   }
 
+  .title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+
+    .severity-badge,
+    .status-badge {
+      border-radius: var(--border-radius);
+      padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .info {
+      background-color: #e0f2fe;
+      border: 1px solid #38bdf8;
+    }
+    .self-resolvable {
+      background-color: #f3e8ff;
+      border: 1px solid #a855f7;
+    }
+    .requires-intervention {
+      background-color: #ccfbf1;
+      border: 1px solid #14b8a6;
+    }
+
+    .amber {
+      background-color: #e3c206;
+    }
+
+    .flashing-red {
+      background-color: #eb4343;
+      color: #fff;
+    }
+
+    .flashing-grey {
+      background-color: #c4c4c4;
+    }
+
+    .flashing-green {
+      background-color: #32c857;
+    }
+
+    .light-green {
+      background-color: #aad1af;
+    }
+  }
+
   .detail-list {
     list-style: inside;
 
@@ -48,56 +94,5 @@
 
   @media (max-width: 480px) {
     flex-direction: column;
-  }
-}
-
-.comment-section {
-  .comments {
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-
-    .comment {
-      border-bottom: 1px solid var(--border-color);
-      padding: var(--spacing-md) var(--spacing-lg);
-
-      .comment-details {
-        display: flex;
-        justify-content: space-between;
-
-        &:last-child {
-          border-bottom: none;
-        }
-
-        strong {
-          font-size: var(--font-size-sm);
-        }
-
-        .username {
-          color: var(--text-color-light);
-          font-size: var(--font-size-sm);
-          text-align: right;
-        }
-      }
-
-      .attachment {
-        svg {
-          fill: var(--primary-color);
-          margin-right: var(--spacing-sm);
-        }
-
-        img {
-          width: 100%;
-        }
-
-        .attachment-link {
-          font-size: var(--font-size-xs);
-        }
-      }
-    }
-  }
-
-  .new-comment,
-  .add-comment-btn {
-    margin-top: var(--spacing-lg);
   }
 }

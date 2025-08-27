@@ -1,0 +1,126 @@
+.comment-section {
+  .comments {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+
+    .comment {
+      border-bottom: 1px solid var(--border-color);
+      padding: var(--spacing-md) var(--spacing-lg);
+
+      .comment-details {
+        display: flex;
+        justify-content: space-between;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        strong {
+          font-size: var(--font-size-sm);
+        }
+
+        .username {
+          color: var(--text-color-light);
+          font-size: var(--font-size-sm);
+          text-align: right;
+        }
+      }
+
+      .attachments {
+        margin-top: var(--spacing-md);
+      }
+
+      .attachment {
+        svg {
+          fill: var(--primary-color);
+          margin-right: var(--spacing-sm);
+        }
+
+        img {
+          width: 100%;
+        }
+
+        .attachment-link {
+          font-size: var(--font-size-xs);
+        }
+      }
+    }
+  }
+
+  .new-comment {
+    margin-top: var(--spacing-lg);
+  }
+}
+
+/* Styles for file input */
+
+.file-upload-wrapper {
+  margin-top: var(--spacing-md);
+
+  .files {
+    display: flex;
+    align-items: self-start;
+  }
+
+  .file-input-label {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    margin-right: var(--spacing-lg);
+    white-space: nowrap;
+
+    .file-input {
+      display: none;
+    }
+
+    .icon {
+      width: var(--font-size-md);
+      margin-right: var(--spacing-sm);
+    }
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
+  .selected-files {
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    color: var(--text-muted-color);
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+  }
+}
+
+.submit-btn {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: center;
+  margin-top: var(--spacing-lg);
+
+  .loading-spinner {
+    display: none;
+  }
+
+  .icon {
+    margin-right: var(--spacing-sm);
+  }
+
+  button {
+    background-color: var(--primary-color);
+    color: #fff !important;
+  }
+}
+
+.no-entries {
+  text-align: center;
+  color: var(--text-color-light);
+  padding: 2rem 0;
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  opacity: 0.9;
+  background-color: var(--background-color-grey);
+  border-radius: var(--border-radius);
+}

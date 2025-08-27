@@ -89,7 +89,7 @@ func main() {
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		PDFService:              *service.NewPDFService(),
 		SearchService:           *service.NewSearchService(pgPool, userRepository),
-		StockItemService:        *service.NewStockItemService(pgPool, stockItemRepository),
+		StockItemService:        *service.NewStockItemService(pgPool, swiftConn, stockItemRepository, commentRepository),
 		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),
 		TeamService:             *service.NewTeamService(pgPool, teamRepository, userRepository),
 		UserService:             *service.NewUserService(pgPool, userRepository),

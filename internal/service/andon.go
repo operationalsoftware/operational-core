@@ -1,6 +1,7 @@
 package service
 
 import (
+	"app/internal/components"
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
@@ -197,7 +198,7 @@ func (s *AndonService) GetAndonByID(
 	ctx context.Context,
 	andonEventID int,
 	userID int,
-) ([]model.AndonChange, []model.Comment, error) {
+) ([]model.AndonChange, []components.Comment, error) {
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {

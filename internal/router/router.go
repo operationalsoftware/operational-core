@@ -58,7 +58,7 @@ func NewRouter(services *Services) http.Handler {
 	addSearchRoutes(mux, services.SearchService)
 	addTeamRoutes(mux, services.TeamService, services.UserService)
 	addStockTransactionRoutes(mux, services.StockItemService, services.StockTransactionService)
-	addStockItemRoutes(mux, services.StockItemService)
+	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.FileService)
 	addUserRoutes(mux, services.UserService)
 
 	// Camera scanner route

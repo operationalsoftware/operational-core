@@ -4,12 +4,14 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
+	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	g "maragu.dev/gomponents"
 	c "maragu.dev/gomponents/components"
@@ -24,7 +26,7 @@ type AndonDetailsPageProps struct {
 	AndonID          int
 	AndonEvent       model.AndonEvent
 	AndonChanges     []model.AndonChange
-	AndonComments    []model.Comment
+	AndonComments    []components.Comment
 }
 
 var changelogFieldDefs = []components.ChangelogFieldDefinition{
@@ -42,6 +44,12 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 
 	andonEvent := p.AndonEvent
 	namePathStr := strings.Join(andonEvent.NamePath, " > ")
+
+	isAcknowledged := andonEvent.Status == "Acknowledged"
+	isResolved := andonEvent.Status == "Resolved"
+	isCancelled := andonEvent.Status == "Cancelled"
+	twoMinutesPassed := time.Since(andonEvent.RaisedAt) > 2*time.Minute && !isResolved
+	fiveMinutesPassed := time.Since(andonEvent.RaisedAt) > 5*time.Minute && !isResolved
 
 	var changelogEntries []components.ChangelogEntry
 	for _, change := range p.AndonChanges {
@@ -63,94 +71,6 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 		changelogEntries = append(changelogEntries, entry)
 	}
 
-	andonComments := []g.Node{}
-	for _, comment := range p.AndonComments {
-		attachments := []g.Node{}
-
-		var nonImageAttachments []g.Node
-		var imageAttachments []g.Node
-
-		for _, attachment := range comment.Attachments {
-			isImage := strings.HasPrefix(attachment.ContentType, "image/")
-
-			// link := h.Div(
-			// 	h.Class("attachment"),
-			// 	components.Icon(&components.IconProps{
-			// 		Identifier: "open-in-new",
-			// 	}),
-
-			// 	h.A(
-			// 		h.Class("attachment-link"),
-			// 		h.Href(attachment.DownloadURL),
-			// 		h.Target("_blank"),
-			// 		g.Text(attachment.Filename),
-			// 	),
-			// )
-
-			// attachments = append(attachments, link)
-
-			if isImage {
-				imgPreview := h.A(
-					h.Class("attachment"),
-					h.Href(attachment.DownloadURL),
-					h.Target("_blank"),
-					h.Img(
-						h.Src(attachment.DownloadURL),
-						h.Alt(attachment.Filename),
-					),
-				)
-				imageAttachments = append(imageAttachments, imgPreview)
-			} else {
-				link := h.Div(
-					h.Class("attachment"),
-					components.Icon(&components.IconProps{
-						Identifier: "open-in-new",
-					}),
-					h.A(
-						h.Class("attachment-link"),
-						h.Href(attachment.DownloadURL),
-						h.Target("_blank"),
-						g.Text(attachment.Filename),
-					),
-				)
-				nonImageAttachments = append(nonImageAttachments, link)
-			}
-
-		}
-		attachments = append(nonImageAttachments, imageAttachments...)
-
-		commentNode := h.Div(
-			h.Class("comment"),
-
-			h.Div(
-				h.Class("comment-details"),
-
-				h.P(
-					g.Text(comment.Comment),
-				),
-
-				h.Div(
-					h.Class("date"),
-
-					h.Strong(
-						g.Text(comment.CommentedAt.Format("2006-01-02 15:04:05")),
-					),
-
-					h.Div(
-						h.Class("username"),
-
-						g.Text(comment.CommentedByUsername),
-					),
-				),
-			),
-
-			h.Div(
-				attachments...,
-			),
-		)
-		andonComments = append(andonComments, commentNode)
-	}
-
 	content := g.Group([]g.Node{
 
 		h.Div(
@@ -158,8 +78,44 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 
 			h.Div(
 
-				h.H3(
-					g.Text(fmt.Sprintf("%s @ %s", namePathStr, andonEvent.Location)),
+				h.Div(
+					h.Class("title"),
+
+					h.H3(
+						g.Text(fmt.Sprintf("%s @ %s", namePathStr, andonEvent.Location)),
+					),
+
+					h.Span(
+						g.Text(" \u2013 "),
+					),
+
+					h.H3(
+						c.Classes{
+							"status-badge":   true,
+							"amber":          twoMinutesPassed,
+							"flashing-red":   fiveMinutesPassed,
+							"light-green":    isAcknowledged,
+							"flashing-green": isResolved,
+							"flashing-grey":  isCancelled,
+						},
+						g.Text(andonEvent.Status),
+					),
+
+					h.Span(
+						g.Text(" \u2013 "),
+					),
+
+					h.H3(
+						c.Classes{
+							"severity-badge":        true,
+							"info":                  andonEvent.Severity == "Info",
+							"self-resolvable":       andonEvent.Severity == "Self-resolvable",
+							"requires-intervention": andonEvent.Severity == "Requires-intervention",
+						},
+
+						h.Class("severity-badge"),
+						g.Text(andonEvent.Severity),
+					),
 				),
 
 				h.Div(
@@ -210,19 +166,6 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 						}),
 
 						h.Strong(
-							g.Text("Status: "),
-						),
-
-						h.Span(
-							g.Text(andonEvent.Status),
-						),
-					),
-					h.Li(
-						components.Icon(&components.IconProps{
-							Identifier: "arrow-right-thin",
-						}),
-
-						h.Strong(
 							g.Text("Source: "),
 						),
 
@@ -254,6 +197,95 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 
 						h.Span(
 							g.Text(andonEvent.RaisedByUsername),
+						),
+					),
+					h.Li(
+						components.Icon(&components.IconProps{
+							Identifier: "arrow-right-thin",
+						}),
+
+						h.Strong(
+							g.Text("Raised At: "),
+						),
+
+						h.Span(
+							g.Text(andonEvent.RaisedAt.Format("2006-01-02 15:04:05")),
+						),
+					),
+					h.Li(
+						components.Icon(&components.IconProps{
+							Identifier: "arrow-right-thin",
+						}),
+
+						h.Strong(
+							g.Text("Acknowledged By: "),
+						),
+
+						h.Span(
+							g.If(
+								andonEvent.AcknowledgedByUsername == nil,
+								g.Text("\u2013"),
+							),
+							g.If(
+								andonEvent.AcknowledgedByUsername != nil,
+								g.Text(nilsafe.Str(andonEvent.AcknowledgedByUsername)),
+							),
+						),
+					),
+					h.Li(
+						components.Icon(&components.IconProps{
+							Identifier: "arrow-right-thin",
+						}),
+
+						h.Strong(
+							g.Text("Acknowledged At: "),
+						),
+
+						h.Span(
+							g.If(andonEvent.AcknowledgedAt == nil,
+								g.Text("\u2013"),
+							),
+							g.If(andonEvent.AcknowledgedAt != nil,
+								g.Text(nilsafe.Time(andonEvent.AcknowledgedAt).Format("2006-01-02 15:04:05")),
+							),
+						),
+					),
+					h.Li(
+						components.Icon(&components.IconProps{
+							Identifier: "arrow-right-thin",
+						}),
+
+						h.Strong(
+							g.Text("Resolved By: "),
+						),
+
+						h.Span(
+							g.If(
+								andonEvent.ResolvedByUsername == nil,
+								g.Text("\u2013"),
+							),
+							g.If(
+								andonEvent.ResolvedByUsername != nil,
+								g.Text(nilsafe.Str(andonEvent.ResolvedByUsername)),
+							),
+						),
+					),
+					h.Li(
+						components.Icon(&components.IconProps{
+							Identifier: "arrow-right-thin",
+						}),
+
+						h.Strong(
+							g.Text("Resolved At: "),
+						),
+
+						h.Span(
+							g.If(andonEvent.ResolvedAt == nil,
+								g.Text("\u2013"),
+							),
+							g.If(andonEvent.ResolvedAt != nil,
+								g.Text(nilsafe.Time(andonEvent.ResolvedAt).Format("2006-01-02 15:04:05")),
+							),
 						),
 					),
 				),
@@ -353,63 +385,11 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 		h.Div(
 			h.Class("history-section"),
 
-			h.Div(
-				h.Class("comment-section"),
-
-				h.H3(
-					g.Text("Comments"),
-				),
-
-				h.Div(
-					h.Class("comments"),
-
-					g.Group(andonComments),
-				),
-
-				h.Form(
-					h.ID("comment-form"),
-					h.Name("comment-form"),
-					h.Method("POST"),
-					h.EncType("multipart/form-data"),
-					g.Attr("onsubmit", "submitComment(event)"),
-
-					h.Div(
-						h.Class("comment-box"),
-
-						h.Textarea(
-							h.Class("new-comment"),
-							h.Name("Comment"),
-
-							h.Placeholder("Enter Comment"),
-						),
-
-						h.Input(
-							h.Name("EntityID"),
-							h.Type("hidden"),
-							h.Value(fmt.Sprintf("%d", p.AndonID)),
-						),
-
-						h.Input(
-							h.ID("file-input"),
-							h.Name("files"),
-							h.Type("file"),
-							h.Multiple(),
-						),
-
-						components.Button(&components.ButtonProps{
-							Classes: c.Classes{
-								"add-comment-btn": true,
-							},
-							ButtonType: "submit",
-						},
-							components.Icon(&components.IconProps{
-								Identifier: "comment-text-outline",
-							}),
-							g.Text(" Comment"),
-						),
-					),
-				),
-			),
+			components.CommentsThread(&components.CommentsThreadProps{
+				Comments: p.AndonComments,
+				Entity:   "andons",
+				EntityID: p.AndonID,
+			}),
 
 			h.Br(),
 			h.Br(),

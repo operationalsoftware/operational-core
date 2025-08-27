@@ -14,14 +14,15 @@ import (
 )
 
 type StockItemDetailsPageProps struct {
-	Id               int
-	Ctx              reqcontext.ReqContext
-	StockItem        *model.StockItem
-	QRCode           string
-	StockItemChanges []model.StockItemChange
-	Sort             appsort.Sort
-	Page             int
-	PageSize         int
+	Id                int
+	Ctx               reqcontext.ReqContext
+	StockItem         *model.StockItem
+	QRCode            string
+	StockItemChanges  []model.StockItemChange
+	StockItemComments []components.Comment
+	Sort              appsort.Sort
+	Page              int
+	PageSize          int
 }
 
 var changelogFieldDefs = []components.ChangelogFieldDefinition{
@@ -103,11 +104,23 @@ func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
 			),
 		),
 
-		h.Br(),
-		h.Br(),
-		h.Hr(),
+		h.Div(
+			h.Class("history-section"),
 
-		components.Changelog(changelogEntries, changelogFieldDefs),
+			components.CommentsThread(&components.CommentsThreadProps{
+				Comments: p.StockItemComments,
+				Entity:   "stock item",
+				EntityID: p.StockItem.StockItemID,
+			}),
+
+			h.Br(),
+			h.Br(),
+
+			h.Div(
+				h.Class("change-log"),
+				components.Changelog(changelogEntries, changelogFieldDefs),
+			),
+		),
 	})
 
 	return layout.Page(layout.PageProps{

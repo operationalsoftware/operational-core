@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"app/internal/components"
 	"app/internal/model"
 	"app/pkg/db"
 	"context"
@@ -43,6 +44,8 @@ INSERT INTO andon_event (
 	source,
 	location,
 	status,
+    linked_entity_id,
+    linked_entity_type,
 	raised_by
 )
 VALUES (
@@ -51,7 +54,9 @@ VALUES (
 	$3,
 	$4,
 	$5,
-	$6
+	$6,
+	$7,
+	$8
 )
 RETURNING andon_event_id
 `
@@ -65,6 +70,8 @@ RETURNING andon_event_id
 		andonEvent.Source,
 		andonEvent.Location,
 		"Outstanding",
+		andonEvent.LinkedEntityID,
+		andonEvent.LinkedEntityType,
 		userID,
 	).Scan(&newAndonID)
 	if err != nil {
@@ -567,7 +574,7 @@ func (r *AndonRepository) GetAndonComments(
 	ctx context.Context,
 	exec db.PGExecutor,
 	andonEventID int,
-) ([]model.Comment, error) {
+) ([]components.Comment, error) {
 
 	query := `
 SELECT
@@ -589,9 +596,9 @@ ORDER BY c.commented_at ASC
 	}
 	defer rows.Close()
 
-	var comments []model.Comment
+	var comments []components.Comment
 	for rows.Next() {
-		var comment model.Comment
+		var comment components.Comment
 		if err := rows.Scan(
 			&comment.CommentID, // maps to comment_id
 			&comment.EntityID,  // maps to entity_id

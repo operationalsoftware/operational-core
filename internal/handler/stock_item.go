@@ -10,6 +10,7 @@ import (
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,10 +22,20 @@ import (
 
 type StockItemHandler struct {
 	stockItemService service.StockItemService
+	commentService   service.CommentService
+	fileService      service.FileService
 }
 
-func NewStockItemHandler(stockItemService service.StockItemService) *StockItemHandler {
-	return &StockItemHandler{stockItemService: stockItemService}
+func NewStockItemHandler(
+	stockItemService service.StockItemService,
+	commentService service.CommentService,
+	fileService service.FileService,
+) *StockItemHandler {
+	return &StockItemHandler{
+		stockItemService: stockItemService,
+		commentService:   commentService,
+		fileService:      fileService,
+	}
 }
 
 func (h *StockItemHandler) StockItemsPage(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +105,7 @@ func (h *StockItemHandler) StockItemDetailsPage(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
+	stockItem, comments, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error fetching Stock item", http.StatusInternalServerError)
 		return
@@ -123,10 +134,11 @@ func (h *StockItemHandler) StockItemDetailsPage(w http.ResponseWriter, r *http.R
 	qrCodeURI := fmt.Sprintf("data:image/png;base64,%s", base64Image)
 
 	_ = stockitemview.StockItemDetailsPage(&stockitemview.StockItemDetailsPageProps{
-		Ctx:              ctx,
-		StockItem:        stockItem,
-		QRCode:           qrCodeURI,
-		StockItemChanges: stockItemChanges,
+		Ctx:               ctx,
+		StockItem:         stockItem,
+		QRCode:            qrCodeURI,
+		StockItemChanges:  stockItemChanges,
+		StockItemComments: comments,
 	}).
 		Render(w)
 }
@@ -216,7 +228,7 @@ func (h *StockItemHandler) EditStockItemPage(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
+	stockItem, _, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error getting Stock item", http.StatusInternalServerError)
 		return
@@ -255,7 +267,7 @@ func (h *StockItemHandler) EditStockItem(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
+	stockItem, _, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error getting Stock item", http.StatusInternalServerError)
 		return
@@ -350,5 +362,106 @@ func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request)
 		})
 	}
 	_ = components.SearchSelectOptions(searchSelectOptions).Render(w)
+
+}
+
+func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	entityIDStr := r.PathValue("entityId")
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var fd addAndonCommentFormData
+	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
+		log.Println(err)
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	fd.normalise()
+
+	entityID, err := strconv.Atoi(entityIDStr)
+	if err != nil {
+		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
+		return
+	}
+
+	commentId, err := h.commentService.CreateComment(
+		r.Context(),
+		&model.NewComment{
+			Comment:  fd.Comment,
+			Entity:   "stock item",
+			EntityID: entityID,
+		},
+		ctx.User.UserID,
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error creating andon", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"commentId": commentId,
+	})
+}
+
+func (h *StockItemHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	entityIDStr := r.PathValue("commentId")
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	entityID, err := strconv.Atoi(entityIDStr)
+	if err != nil {
+		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
+		return
+	}
+
+	var fd addFileFormData
+	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	file, signedURL, err := h.fileService.CreateFile(
+		r.Context(),
+		&model.File{
+			Filename:    fd.Filename,
+			ContentType: fd.ContentType,
+			SizeBytes:   fd.SizeBytes,
+			Entity:      "comment",
+			EntityID:    entityID,
+		},
+		ctx.User.UserID,
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error adding file", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"fileId":    file.FileID,
+		"signedUrl": signedURL,
+	})
 
 }

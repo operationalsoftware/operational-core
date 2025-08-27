@@ -9,8 +9,10 @@ import (
 func addStockItemRoutes(
 	mux *http.ServeMux,
 	stockItemService service.StockItemService,
+	commentService service.CommentService,
+	fileService service.FileService,
 ) {
-	stockItemHandler := handler.NewStockItemHandler(stockItemService)
+	stockItemHandler := handler.NewStockItemHandler(stockItemService, commentService, fileService)
 
 	mux.HandleFunc("GET /stock-items", stockItemHandler.StockItemsPage)
 
@@ -18,6 +20,9 @@ func addStockItemRoutes(
 	mux.HandleFunc("POST /stock-items/add", stockItemHandler.AddStockItem)
 
 	mux.HandleFunc("GET /stock-items/{id}", stockItemHandler.StockItemDetailsPage)
+
+	mux.HandleFunc("POST /stock-items/{entityId}/comments", stockItemHandler.AddComment)
+	mux.HandleFunc("POST /stock-items/{entityId}/comments/{commentId}/attachment", stockItemHandler.AddAttachment)
 
 	mux.HandleFunc("GET /stock-items/{id}/edit", stockItemHandler.EditStockItemPage)
 	mux.HandleFunc("POST /stock-items/{id}/edit", stockItemHandler.EditStockItem)

@@ -117,6 +117,8 @@ CREATE TABLE andon_event (
 	issue_description TEXT NOT NULL,
 	source TEXT NOT NULL,
 	location TEXT NOT NULL,
+    linked_entity_id INT,
+    linked_entity_type TEXT,
 	raised_by INT NOT NULL REFERENCES app_user(user_id),
 	raised_at TIMESTAMPTZ DEFAULT NOW(),
 	acknowledged_by INT REFERENCES app_user(user_id),

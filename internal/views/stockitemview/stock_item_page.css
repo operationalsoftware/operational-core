@@ -51,3 +51,21 @@
   display: flex;
   justify-content: space-between;
 }
+
+.history-section {
+  display: flex;
+  justify-content: space-evenly;
+  margin-top: var(--spacing-xl);
+
+  & > div {
+    width: 48%;
+
+    @media (max-width: 480px) {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
+}

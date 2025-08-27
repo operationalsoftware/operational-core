@@ -154,6 +154,12 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 	sourceKey := "Source"
 	sourceValue := p.values.Get(sourceKey)
 
+	linkedEntityIDKey := "LinkedEntityType"
+	linkedEntityIDValue := p.values.Get(linkedEntityIDKey)
+
+	linkedEntityTypeKey := "LinkedEntityType"
+	linkedEntityTypeValue := p.values.Get(linkedEntityTypeKey)
+
 	locationLabel := "Location"
 	locationKey := "Location"
 	locationValue := p.values.Get(locationKey)
@@ -271,6 +277,18 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 		h.Input(
 			h.Name(sourceKey),
 			h.Value(sourceValue),
+			h.Type("hidden"),
+		),
+
+		h.Input(
+			h.Name(linkedEntityIDKey),
+			h.Value(linkedEntityIDValue),
+			h.Type("hidden"),
+		),
+
+		h.Input(
+			h.Name(linkedEntityTypeKey),
+			h.Value(linkedEntityTypeValue),
 			h.Type("hidden"),
 		),
 

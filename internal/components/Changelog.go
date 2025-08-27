@@ -28,6 +28,12 @@ func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogFieldDefinition) g
 	return h.Div(
 		h.Class("changelog"),
 		h.H3(g.Text("Changelog")),
+		g.If(len(entries) == 0,
+			h.Div(
+				h.Class("no-entries"),
+				g.Text("No changes yet."),
+			),
+		),
 		h.Ul(
 			h.Class("main-list"),
 

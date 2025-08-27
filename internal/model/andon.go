@@ -43,6 +43,8 @@ type NewAndonEvent struct {
 	Source           string
 	Location         string
 	RaisedBy         string
+	LinkedEntityID   int
+	LinkedEntityType string
 }
 
 type AndonEventUpdate struct {

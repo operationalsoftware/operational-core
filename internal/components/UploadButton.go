@@ -41,6 +41,6 @@ func UploadButton(p *UploadButtonProps) g.Node {
 			h.Class("file-info"),
 			g.Text("No file chosen"),
 		),
-		InlineScript("/components/UploadButton.js"),
+		InlineScript("/internal/components/UploadButton.js"),
 	}))
 }

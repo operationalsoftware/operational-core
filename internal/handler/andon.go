@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -255,10 +254,12 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type urlVals struct {
-		IssueOrGroupID int
-		Source         string
-		Location       string
-		ReturnTo       string
+		IssueOrGroupID   int
+		Source           string
+		LinkedEntityID   int
+		LinkedEntityType string
+		Location         string
+		ReturnTo         string
 	}
 
 	var uv urlVals
@@ -268,18 +269,6 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		http.Error(w, "Error decoding query params", http.StatusInternalServerError)
 		return
-	}
-
-	values := url.Values{}
-
-	if uv.Source != "" {
-		values.Set("Source", uv.Source)
-	}
-	if uv.Location != "" {
-		values.Set("Location", uv.Location)
-	}
-	if uv.ReturnTo != "" {
-		values.Set("ReturnTo", uv.ReturnTo)
 	}
 
 	if uv.IssueOrGroupID != 0 {
@@ -341,7 +330,7 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 
 	_ = andonview.AddPage(&andonview.AddPageProps{
 		Ctx:          ctx,
-		Values:       values,
+		Values:       r.URL.Query(),
 		AndonIssues:  andonIssues,
 		Teams:        teams,
 		SelectedPath: nodes,
@@ -437,6 +426,8 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 			IssueID:          fd.IssueID,
 			Location:         fd.Location,
 			Source:           uv.Source,
+			LinkedEntityID:   fd.LinkedEntityID,
+			LinkedEntityType: fd.LinkedEntityType,
 		},
 		ctx.User.UserID,
 	); err != nil {
@@ -504,8 +495,7 @@ func (h *AndonHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entity := r.PathValue("entity")
-	entityIDStr := r.PathValue("entityId")
+	entityIDStr := r.PathValue("commentId")
 
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
@@ -530,7 +520,7 @@ func (h *AndonHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 			Filename:    fd.Filename,
 			ContentType: fd.ContentType,
 			SizeBytes:   fd.SizeBytes,
-			Entity:      entity,
+			Entity:      "comment",
 			EntityID:    entityID,
 		},
 		ctx.User.UserID,
@@ -617,6 +607,8 @@ type addAndonEventFormData struct {
 	IssueID          int
 	AssignedTeam     string
 	Location         string
+	LinkedEntityID   int
+	LinkedEntityType string
 }
 
 func (fd *addAndonEventFormData) normalise() {
