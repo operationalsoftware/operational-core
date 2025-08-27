@@ -29,15 +29,15 @@ type AndonDetailsPageProps struct {
 	AndonComments    []components.Comment
 }
 
-var changelogFieldDefs = []components.ChangelogFieldDefinition{
-	{Name: "IssueDescription", Label: "Issue Description"},
-	{Name: "IssueID", Label: "IssueID"},
-	{Name: "Location", Label: "Location"},
-	{Name: "Status", Label: "Status"},
-	{Name: "RaisedByUsername", Label: "Raised By"},
-	{Name: "AcknowledgedByUsername", Label: "Acknowledged By"},
-	{Name: "ResolvedByUsername", Label: "Resolved By"},
-	{Name: "CancelledByUsername", Label: "Cancelled By"},
+var changelogFieldDefs = []components.ChangelogProperty{
+	{FieldKey: "IssueDescription", Label: g.Text("Issue Description")},
+	{FieldKey: "IssueID", Label: g.Text("IssueID")},
+	{FieldKey: "Location", Label: g.Text("Location")},
+	{FieldKey: "Status", Label: g.Text("Status")},
+	{FieldKey: "RaisedByUsername", Label: g.Text("Raised By")},
+	{FieldKey: "AcknowledgedByUsername", Label: g.Text("Acknowledged By")},
+	{FieldKey: "ResolvedByUsername", Label: g.Text("Resolved By")},
+	{FieldKey: "CancelledByUsername", Label: g.Text("Cancelled By")},
 }
 
 func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
@@ -54,9 +54,9 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 	var changelogEntries []components.ChangelogEntry
 	for _, change := range p.AndonChanges {
 		entry := components.ChangelogEntry{
-			ChangedAt:         change.ChangeAt,
-			ChangedByUsername: change.ChangeByUsername,
-			IsCreation:        change.IsCreation,
+			ChangedAt:        change.ChangeAt,
+			ChangeByUsername: change.ChangeByUsername,
+			IsCreation:       change.IsCreation,
 			Changes: map[string]interface{}{
 				"IssueDescription":       change.IssueDescription,
 				"IssueID":                change.IssueID,

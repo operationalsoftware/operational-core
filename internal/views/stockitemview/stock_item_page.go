@@ -25,9 +25,9 @@ type StockItemDetailsPageProps struct {
 	PageSize          int
 }
 
-var changelogFieldDefs = []components.ChangelogFieldDefinition{
-	{Name: "StockCode", Label: "Stock Code"},
-	{Name: "Description", Label: "Description"},
+var changelogFieldDefs = []components.ChangelogProperty{
+	{FieldKey: "StockCode", Label: g.Text("Stock Code")},
+	{FieldKey: "Description", Label: g.Text("Description")},
 }
 
 func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
@@ -37,9 +37,9 @@ func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
 	var changelogEntries []components.ChangelogEntry
 	for _, change := range p.StockItemChanges {
 		entry := components.ChangelogEntry{
-			ChangedAt:         change.ChangedAt,
-			ChangedByUsername: change.ChangeByUsername,
-			IsCreation:        change.IsCreation,
+			ChangedAt:        change.ChangedAt,
+			ChangeByUsername: change.ChangeByUsername,
+			IsCreation:       change.IsCreation,
 			Changes: map[string]interface{}{
 				"StockCode":   change.StockCode,
 				"Description": change.Description,

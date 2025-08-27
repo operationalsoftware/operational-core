@@ -13,18 +13,18 @@ import (
 )
 
 type ChangelogEntry struct {
-	ChangedAt         time.Time
-	ChangedByUsername string
-	IsCreation        bool
-	Changes           map[string]interface{}
+	ChangedAt        time.Time
+	ChangeByUsername string
+	IsCreation       bool
+	Changes          map[string]interface{}
 }
 
-type ChangelogFieldDefinition struct {
-	Name  string
-	Label string
+type ChangelogProperty struct {
+	FieldKey string
+	Label    g.Node
 }
 
-func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogFieldDefinition) g.Node {
+func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogProperty) g.Node {
 	return h.Div(
 		h.Class("changelog"),
 		h.H3(g.Text("Changelog")),
@@ -51,7 +51,7 @@ func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogFieldDefinition) g
 								!entry.IsCreation,
 								g.Text("Changed"),
 							),
-							g.Text(fmt.Sprintf(" by %s at ", entry.ChangedByUsername)),
+							g.Text(fmt.Sprintf(" by %s at ", entry.ChangeByUsername)),
 							h.Span(h.Class("local-datetime"), g.Text(entry.ChangedAt.Format(time.RFC3339))),
 						),
 					),
@@ -62,11 +62,11 @@ func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogFieldDefinition) g
 	)
 }
 
-func renderChanges(changes map[string]interface{}, fieldDefs []ChangelogFieldDefinition) g.Node {
+func renderChanges(changes map[string]interface{}, fieldDefs []ChangelogProperty) g.Node {
 
 	return h.Ul(
-		g.Group(g.Map(fieldDefs, func(fd ChangelogFieldDefinition) g.Node {
-			if value, exists := changes[fd.Name]; exists {
+		g.Group(g.Map(fieldDefs, func(fd ChangelogProperty) g.Node {
+			if value, exists := changes[fd.FieldKey]; exists {
 				return renderChange(fd.Label, value)
 			}
 			return nil
@@ -74,7 +74,7 @@ func renderChanges(changes map[string]interface{}, fieldDefs []ChangelogFieldDef
 	)
 }
 
-func renderChange(fieldLabel string, value interface{}) g.Node {
+func renderChange(fieldLabel g.Node, value interface{}) g.Node {
 	formattedValue := formatValue(value)
 	if formattedValue != "" {
 		return h.Li(g.Text(fmt.Sprintf("%s: %s", fieldLabel, formattedValue)))
