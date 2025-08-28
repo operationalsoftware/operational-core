@@ -20,7 +20,6 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 
 	comments := []g.Node{}
 	for _, comment := range p.Comments {
-		fmt.Println(comment.Attachments)
 
 		var nonImageAttachments []g.Node
 		var imageAttachments []g.Node
