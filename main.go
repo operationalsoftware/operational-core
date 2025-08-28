@@ -62,6 +62,8 @@ func main() {
 		log.Fatalf("Error initialising cookie instance: %v\n", err)
 	}
 
+	container := os.Getenv("ORBIT_CONTAINER")
+	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 	// Initialise some things for start up
 	swiftConn, err := filestore.InitSwift()
 	if err != nil {
@@ -72,7 +74,7 @@ func main() {
 	andonRepository := repository.NewAndonRepository()
 	andonIssueRepository := repository.NewAndonIssueRepository()
 	authRepository := repository.NewAuthRepository()
-	fileRepository := repository.NewFileRepository()
+	fileRepository := repository.NewFileRepository(container, secretKey)
 	commentRepository := repository.NewCommentRepository(fileRepository)
 	stockTrxRepository := repository.NewStockTransactionRepository()
 	teamRepository := repository.NewTeamRepository()
@@ -84,7 +86,7 @@ func main() {
 		AndonService:      *service.NewAndonService(pgPool, swiftConn, andonRepository, commentRepository),
 		AndonIssueService: *service.NewAndonIssueService(pgPool, andonIssueRepository),
 		AuthService:       *service.NewAuthService(pgPool, authRepository),
-		CommentService:    *service.NewCommentService(pgPool, commentRepository),
+		CommentService:    *service.NewCommentService(pgPool, swiftConn, commentRepository),
 		// File service is a placeholder
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		PDFService:              *service.NewPDFService(),

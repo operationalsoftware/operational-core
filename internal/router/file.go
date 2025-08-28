@@ -12,6 +12,5 @@ func addFileRoutes(
 ) {
 	fileHandler := handler.NewFileHandler(fileService)
 
-	// mux.HandleFunc("POST /files/{entity}/{entityId}/presign", fileHandler.CreateFile)
-	mux.HandleFunc("GET /files/{fileId}/complete", fileHandler.CompleteFileUpload)
+	mux.HandleFunc("GET /files/{fileID}/complete", fileHandler.CompleteFileUpload)
 }

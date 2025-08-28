@@ -1,7 +1,6 @@
 package service
 
 import (
-	"app/internal/components"
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
@@ -198,11 +197,11 @@ func (s *AndonService) GetAndonByID(
 	ctx context.Context,
 	andonEventID int,
 	userID int,
-) ([]model.AndonChange, []components.Comment, error) {
+) ([]model.AndonChange, error) {
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer tx.Rollback(ctx)
 
@@ -212,25 +211,14 @@ func (s *AndonService) GetAndonByID(
 		andonEventID,
 	)
 	if err != nil {
-		return nil, nil, err
-	}
-
-	andonComments, err := s.commentRepository.GetComments(
-		ctx,
-		tx,
-		s.swiftConn,
-		"andon",
-		andonEventID,
-	)
-	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return andonChanges, andonComments, nil
+	return andonChanges, nil
 }
 
 func (s *AndonService) CreateAndonComment(

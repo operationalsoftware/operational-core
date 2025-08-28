@@ -338,7 +338,6 @@ GROUP BY u.user_id;
 CREATE TABLE file (
     file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    storage_key TEXT NOT NULL UNIQUE,
     filename TEXT NOT NULL,
     content_type TEXT NOT NULL,
     size_bytes BIGINT NOT NULL,
@@ -364,7 +363,6 @@ SELECT
 	COALESCE(json_agg(json_build_object(
 		'file_id', f.file_id,
 		'filename', f.filename,
-		'storage_key', f.storage_key,
 		'content_type', f.content_type,
 		'size_bytes', f.size_bytes,
         'status', f.status,

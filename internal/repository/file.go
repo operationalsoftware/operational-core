@@ -4,9 +4,7 @@ import (
 	"app/internal/model"
 	"app/pkg/db"
 	"context"
-	"database/sql"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,10 +16,10 @@ type FileRepository struct {
 	secretKey string
 }
 
-func NewFileRepository() *FileRepository {
+func NewFileRepository(container, secretKey string) *FileRepository {
 	return &FileRepository{
-		container: os.Getenv("ORBIT_CONTAINER"),
-		secretKey: os.Getenv("AES_256_ENCRYPTION_KEY"),
+		container: container,
+		secretKey: secretKey,
 	}
 }
 
@@ -49,7 +47,7 @@ func (r *FileRepository) GetSignedDownloadURL(
 	expires := time.Now().Add(expiresIn)
 
 	// method "GET" for download
-	downloadURL := conn.ObjectTempUrl(r.container, file.StorageKey, r.secretKey, "GET", expires)
+	downloadURL := conn.ObjectTempUrl(r.container, file.FileID, r.secretKey, "GET", expires)
 	return downloadURL, nil
 }
 
@@ -62,7 +60,6 @@ func (r *FileRepository) GetFileByID(
 	query := `
 SELECT
 	file_id,
-	storage_key,
 	filename,
 	content_type,
 	size_bytes,
@@ -79,7 +76,6 @@ WHERE
 		ctx, query, fileID,
 	).Scan(
 		&file.FileID,
-		&file.StorageKey,
 		&file.Filename,
 		&file.ContentType,
 		&file.SizeBytes,
@@ -106,7 +102,6 @@ func (r *FileRepository) CreateFile(
 	err := exec.QueryRow(ctx, `
 INSERT INTO file (
 	file_id,
-	storage_key,
 	filename,
 	content_type,
 	size_bytes,
@@ -121,11 +116,10 @@ VALUES (
 	$4,
 	$5,
 	$6,
-	$7,
-	$8
+	$7
 )
 RETURNING file_id`,
-		objectName, objectName.String(), f.Filename, f.ContentType, f.SizeBytes, f.Entity, f.EntityID, userID,
+		objectName, f.Filename, f.ContentType, f.SizeBytes, f.Entity, f.EntityID, userID,
 	).Scan(&fileID)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to insert file metadata: %w", err)
@@ -133,7 +127,6 @@ RETURNING file_id`,
 
 	file := &model.File{
 		FileID:      fileID.String(),
-		StorageKey:  objectName.String(),
 		Filename:    f.Filename,
 		ContentType: f.ContentType,
 		SizeBytes:   f.SizeBytes,
@@ -187,25 +180,9 @@ func (r *FileRepository) DeleteFile(
 	conn *swift.Connection,
 	fileID, container, secretKey string,
 ) error {
-	// 1. Fetch file metadata from DB
-	var objectName string
-	query := `
-SELECT
-	storage_key
-FROM
-	file
-WHERE
-	file_id = $1`
-	err := exec.QueryRow(ctx, query, fileID).Scan(&objectName)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("file not found")
-		}
-		return err
-	}
 
 	// 2. Delete object from Orbit
-	err = conn.ObjectDelete(ctx, container, objectName)
+	err := conn.ObjectDelete(ctx, container, fileID)
 	if err != nil {
 		return fmt.Errorf("failed to delete object from Orbit: %w", err)
 	}
@@ -236,7 +213,6 @@ func (r *CommentRepository) GetFilesByEntity(
 SELECT
 	file_id,
 	filename,
-	storage_key,
 	content_type,
 	size_bytes,
 	status,
@@ -259,7 +235,6 @@ ORDER BY created_at ASC
 		if err := rows.Scan(
 			&file.FileID,
 			&file.Filename,
-			&file.StorageKey,
 			&file.ContentType,
 			&file.SizeBytes,
 			&file.Status,

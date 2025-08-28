@@ -13,13 +13,13 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
-type StockItemDetailsPageProps struct {
+type StockItemPageProps struct {
 	Id                int
 	Ctx               reqcontext.ReqContext
 	StockItem         *model.StockItem
 	QRCode            string
 	StockItemChanges  []model.StockItemChange
-	StockItemComments []components.Comment
+	StockItemComments []model.Comment
 	Sort              appsort.Sort
 	Page              int
 	PageSize          int
@@ -30,7 +30,7 @@ var changelogFieldDefs = []components.ChangelogProperty{
 	{FieldKey: "Description", Label: g.Text("Description")},
 }
 
-func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
+func StockItemPage(p *StockItemPageProps) g.Node {
 
 	stockItem := p.StockItem
 
@@ -112,9 +112,6 @@ func StockItemDetailsPage(p *StockItemDetailsPageProps) g.Node {
 				Entity:   "stock item",
 				EntityID: p.StockItem.StockItemID,
 			}),
-
-			h.Br(),
-			h.Br(),
 
 			h.Div(
 				h.Class("change-log"),

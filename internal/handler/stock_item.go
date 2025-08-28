@@ -90,7 +90,7 @@ func (h *StockItemHandler) StockItemsPage(w http.ResponseWriter, r *http.Request
 
 }
 
-func (h *StockItemHandler) StockItemDetailsPage(w http.ResponseWriter, r *http.Request) {
+func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 	hasPermission := ctx.User.Permissions.UserAdmin.Access
 	if !hasPermission {
@@ -105,7 +105,7 @@ func (h *StockItemHandler) StockItemDetailsPage(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	stockItem, comments, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error fetching Stock item", http.StatusInternalServerError)
 		return
@@ -114,6 +114,13 @@ func (h *StockItemHandler) StockItemDetailsPage(w http.ResponseWriter, r *http.R
 	stockItemChanges, err := h.stockItemService.GetStockItemChanges(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error fetching Stock item changes", http.StatusInternalServerError)
+		return
+	}
+
+	comments, err := h.commentService.GetComments(r.Context(), "stock item", stockItemID, ctx.User.UserID)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error fetching andon comments", http.StatusInternalServerError)
 		return
 	}
 
@@ -133,7 +140,7 @@ func (h *StockItemHandler) StockItemDetailsPage(w http.ResponseWriter, r *http.R
 
 	qrCodeURI := fmt.Sprintf("data:image/png;base64,%s", base64Image)
 
-	_ = stockitemview.StockItemDetailsPage(&stockitemview.StockItemDetailsPageProps{
+	_ = stockitemview.StockItemPage(&stockitemview.StockItemPageProps{
 		Ctx:               ctx,
 		StockItem:         stockItem,
 		QRCode:            qrCodeURI,
@@ -228,7 +235,7 @@ func (h *StockItemHandler) EditStockItemPage(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	stockItem, _, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error getting Stock item", http.StatusInternalServerError)
 		return
@@ -267,7 +274,7 @@ func (h *StockItemHandler) EditStockItem(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	stockItem, _, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
 	if err != nil {
 		http.Error(w, "Error getting Stock item", http.StatusInternalServerError)
 		return

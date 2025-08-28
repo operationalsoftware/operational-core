@@ -120,6 +120,12 @@ hr {
   svg {
     fill: currentColor;
   }
+
+  &.loading {
+    .loading-spinner {
+      display: inline;
+    }
+  }
 }
 
 .button.secondary {

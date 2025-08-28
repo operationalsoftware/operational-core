@@ -37,8 +37,7 @@ async function submitComment(e) {
   const form = e.target;
   const formData = new FormData(form);
   const submitBtn = form.querySelector("button[type='submit']");
-  const loadingSpinner = document.querySelector(".loading-spinner");
-  loadingSpinner.style.display = "inline";
+  submitBtn.classList.add("loading");
   submitBtn.disabled = true;
 
   const entity = formData.get("Entity");

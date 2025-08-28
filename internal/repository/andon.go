@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"app/internal/components"
 	"app/internal/model"
 	"app/pkg/db"
 	"context"
@@ -568,54 +567,6 @@ ORDER BY ac.change_at DESC
 	}
 
 	return events, nil
-}
-
-func (r *AndonRepository) GetAndonComments(
-	ctx context.Context,
-	exec db.PGExecutor,
-	andonEventID int,
-) ([]components.Comment, error) {
-
-	query := `
-SELECT
-	c.comment_id,
-	c.entity_id,
-	c.comment,
-	u.username,
-	c.commented_at
-FROM comment c
-LEFT JOIN
-	app_user AS u ON c.commented_by = u.user_id
-WHERE c.entity = 'andon' AND c.entity_id = $1
-ORDER BY c.commented_at ASC
-`
-
-	rows, err := exec.Query(ctx, query, andonEventID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var comments []components.Comment
-	for rows.Next() {
-		var comment components.Comment
-		if err := rows.Scan(
-			&comment.CommentID, // maps to comment_id
-			&comment.EntityID,  // maps to entity_id
-			&comment.Comment,
-			&comment.CommentedByUsername,
-			&comment.CommentedAt,
-		); err != nil {
-			return nil, err
-		}
-		comments = append(comments, comment)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return comments, nil
 }
 
 func (r *AndonRepository) AcknowledgeAndonEvent(

@@ -55,26 +55,26 @@ func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogProperty) g.Node {
 							h.Span(h.Class("local-datetime"), g.Text(entry.ChangedAt.Format(time.RFC3339))),
 						),
 					),
-					renderChanges(entry.Changes, fieldDefs),
+					changesList(entry.Changes, fieldDefs),
 				)
 			})),
 		),
 	)
 }
 
-func renderChanges(changes map[string]interface{}, fieldDefs []ChangelogProperty) g.Node {
+func changesList(changes map[string]interface{}, changeLogProperties []ChangelogProperty) g.Node {
 
 	return h.Ul(
-		g.Group(g.Map(fieldDefs, func(fd ChangelogProperty) g.Node {
-			if value, exists := changes[fd.FieldKey]; exists {
-				return renderChange(fd.Label, value)
+		g.Group(g.Map(changeLogProperties, func(clp ChangelogProperty) g.Node {
+			if value, exists := changes[clp.FieldKey]; exists {
+				return change(clp.Label, value)
 			}
 			return nil
 		})),
 	)
 }
 
-func renderChange(fieldLabel g.Node, value interface{}) g.Node {
+func change(fieldLabel g.Node, value interface{}) g.Node {
 	formattedValue := formatValue(value)
 	if formattedValue != "" {
 		return h.Li(g.Text(fmt.Sprintf("%s: %s", fieldLabel, formattedValue)))

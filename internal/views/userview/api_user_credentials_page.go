@@ -46,7 +46,7 @@ func apiUserCredentials(p *apiUserCredentialsProps) g.Node {
 				h.P(g.Text("Please keep these safe as you will not be able to access them again.")),
 				h.Span(g.Text("Username: ")),
 				h.Span(g.Text(p.username)),
-				h.Br(),
+
 				h.Span(g.Text("Password: ")),
 				h.Span(g.Text(p.password)),
 			),

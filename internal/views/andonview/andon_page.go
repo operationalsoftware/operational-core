@@ -26,7 +26,7 @@ type AndonDetailsPageProps struct {
 	AndonID          int
 	AndonEvent       model.AndonEvent
 	AndonChanges     []model.AndonChange
-	AndonComments    []components.Comment
+	AndonComments    []model.Comment
 }
 
 var changelogFieldDefs = []components.ChangelogProperty{
@@ -390,9 +390,6 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 				Entity:   "andons",
 				EntityID: p.AndonID,
 			}),
-
-			h.Br(),
-			h.Br(),
 
 			h.Div(
 				h.Class("change-log"),

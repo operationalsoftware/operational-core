@@ -580,7 +580,7 @@ func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	changes, comments, err := h.andonService.GetAndonByID(
+	changes, err := h.andonService.GetAndonByID(
 		r.Context(),
 		andonID,
 		ctx.User.UserID,
@@ -588,6 +588,13 @@ func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching andon details", http.StatusInternalServerError)
+		return
+	}
+
+	comments, err := h.commentService.GetComments(r.Context(), "andon", andonID, ctx.User.UserID)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error fetching andon comments", http.StatusInternalServerError)
 		return
 	}
 

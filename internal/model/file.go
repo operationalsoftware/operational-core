@@ -6,7 +6,6 @@ import (
 
 type File struct {
 	FileID      string    `json:"file_id"`
-	StorageKey  string    `json:"storage_key"`
 	Filename    string    `json:"filename"`
 	ContentType string    `json:"content_type"`
 	SizeBytes   int       `json:"size_bytes"`

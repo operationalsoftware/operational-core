@@ -19,7 +19,7 @@ func addStockItemRoutes(
 	mux.HandleFunc("GET /stock-items/add", stockItemHandler.AddStockItemPage)
 	mux.HandleFunc("POST /stock-items/add", stockItemHandler.AddStockItem)
 
-	mux.HandleFunc("GET /stock-items/{id}", stockItemHandler.StockItemDetailsPage)
+	mux.HandleFunc("GET /stock-items/{id}", stockItemHandler.StockItemPage)
 
 	mux.HandleFunc("POST /stock-items/{entityId}/comments", stockItemHandler.AddComment)
 	mux.HandleFunc("POST /stock-items/{entityId}/comments/{commentId}/attachment", stockItemHandler.AddAttachment)

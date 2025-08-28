@@ -46,7 +46,9 @@ func PostProductionPage(p *PostGenericPageProps) g.Node {
 				`Use this utility to post a manual Production entry from
 				PRODUCTION to STOCK accounts for a given location and bin. The
 				stock code will also be	received in  at the given location.`),
-			h.Br(),
+		),
+		h.P(
+			h.Class("transaction-info"),
 			g.Text(`NOTE: this utility does not consume stock and should be used for
 				corrections with caution.`),
 		),

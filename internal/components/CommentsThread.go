@@ -4,26 +4,14 @@ import (
 	"app/internal/model"
 	"fmt"
 	"strings"
-	"time"
 
 	g "maragu.dev/gomponents"
 	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
-type Comment struct {
-	CommentID           int
-	EntityID            int
-	Entity              string
-	Comment             string
-	CommentedBy         string
-	CommentedByUsername string
-	CommentedAt         time.Time
-	Attachments         []model.File
-}
-
 type CommentsThreadProps struct {
-	Comments []Comment
+	Comments []model.Comment
 	Entity   string
 	EntityID int
 }
@@ -67,8 +55,7 @@ func CommentsThread(p *CommentsThreadProps, children ...g.Node) g.Node {
 			}
 
 		}
-		attachments := []g.Node{}
-		attachments = append(nonImageAttachments, imageAttachments...)
+		attachments := append(nonImageAttachments, imageAttachments...)
 
 		commentNode := h.Div(
 			h.Class("comment"),

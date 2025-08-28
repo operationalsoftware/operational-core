@@ -23,3 +23,5 @@ assets/assets.go
 # SSL certificates
 cert.pem
 key.pem
+
+**/build_version.txt

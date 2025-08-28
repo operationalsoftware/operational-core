@@ -52,7 +52,6 @@ func NewRouter(services *Services) http.Handler {
 	addAuthRoutes(mux, services.AuthService)
 	addAndonRoutes(mux, services.AndonService, services.AndonIssueService, services.CommentService, services.TeamService, services.FileService)
 	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
-	addCommentRoutes(mux, services.CommentService)
 	addFileRoutes(mux, services.FileService)
 	addPDFRoutes(mux, services.PDFService)
 	addSearchRoutes(mux, services.SearchService)

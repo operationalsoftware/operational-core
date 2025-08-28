@@ -36,7 +36,9 @@ func PostStockAdjustPage(p *PostGenericPageProps) g.Node {
 				`Use this utility to post a manual Stock Adjustment entry from
 				ADJUST to STOCK accounts for a given location and bin. The
 				stock code will also be	received in  at the given location.`),
-			h.Br(),
+		),
+		h.P(
+			h.Class("transaction-info"),
 			g.Text(`NOTE: this utility should be used for corrections with caution.`),
 		),
 

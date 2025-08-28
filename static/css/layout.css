@@ -339,6 +339,6 @@ body {
 
 .commit-hash {
   position: absolute;
-  right: 10px;
+  right: 20px;
   font-family: monospace;
 }

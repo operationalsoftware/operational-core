@@ -36,11 +36,13 @@ func PostConsumptionPage(p *PostGenericPageProps) g.Node {
 				`Use this utility to post a manual Consumption entry from
 				STOCK to CONSUMED accounts for a given location and bin. The
 				stock code will also be	issued in  at the given location.`),
-			h.Br(),
+		),
+		h.P(
+			h.Class("transaction-info"),
 			g.Text(`NOTE: this utility should be used for corrections with caution.`),
 		),
 
-		h.FormEl(
+		h.Form(
 			h.Method("POST"),
 
 			formPartialStockCodeLocBinLot(p),

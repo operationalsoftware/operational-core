@@ -1,7 +1,6 @@
 package service
 
 import (
-	"app/internal/components"
 	"app/internal/model"
 	"app/internal/repository"
 	"app/pkg/validate"
@@ -66,35 +65,24 @@ func (s *StockItemService) GetStockItems(
 func (s *StockItemService) GetStockItem(
 	ctx context.Context,
 	stockItemID int,
-) (*model.StockItem, []components.Comment, error) {
+) (*model.StockItem, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, []components.Comment{}, err
+		return nil, err
 	}
 	defer tx.Rollback(ctx)
 
 	stockItem, err := s.stockItemRepository.GetStockItem(ctx, tx, stockItemID)
 	if err != nil {
-		return nil, []components.Comment{}, err
-	}
-
-	comments, err := s.commentRepository.GetComments(
-		ctx,
-		tx,
-		s.swiftConn,
-		"stock item",
-		stockItemID,
-	)
-	if err != nil {
-		return nil, []components.Comment{}, err
+		return nil, err
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, []components.Comment{}, err
+		return nil, err
 	}
 
-	return stockItem, comments, nil
+	return stockItem, nil
 }
 
 func (s *StockItemService) GetStockItemChanges(

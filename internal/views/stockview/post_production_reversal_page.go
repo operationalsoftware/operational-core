@@ -36,7 +36,9 @@ func PostProductionReversalPage(p *PostGenericPageProps) g.Node {
 				`Use this utility to post a manual Production Reversal entry from
 				STOCK to PRODUCTION accounts for a given location and bin. The
 				stock code will also be	issued in  at the given location.`),
-			h.Br(),
+		),
+		h.P(
+			h.Class("transaction-info"),
 			g.Text(`NOTE: this utility does not reverse the consumption of stock
 				and should be used for corrections with caution.`),
 		),
