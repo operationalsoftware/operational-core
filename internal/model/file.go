@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Json tags for decoding json array from postgres
 type File struct {
 	FileID      string    `json:"file_id"`
 	Filename    string    `json:"filename"`

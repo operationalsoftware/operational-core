@@ -47,6 +47,7 @@ func (s *CommentService) GetComments(
 		entity,
 		entityID,
 	)
+
 	if err != nil {
 		return []model.Comment{}, err
 	}

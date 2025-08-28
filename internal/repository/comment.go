@@ -5,6 +5,7 @@ import (
 	"app/pkg/db"
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/ncw/swift/v2"
@@ -111,7 +112,9 @@ WHERE entity = $1 AND entity_id = $2
 
 	for ci := range comments {
 		for fi := range comments[ci].Attachments {
+			fmt.Println("ERRURUUR : ", fi)
 			url, err := r.fileRepo.GetSignedDownloadURL(ctx, swiftConn, exec, comments[ci].Attachments[fi].FileID, 15*time.Minute)
+
 			if err != nil {
 				return nil, err
 			}
