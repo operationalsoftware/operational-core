@@ -16,7 +16,7 @@ type CommentsThreadProps struct {
 	EntityID int
 }
 
-func CommentsThread(p *CommentsThreadProps, children ...g.Node) g.Node {
+func CommentsThread(p *CommentsThreadProps) g.Node {
 
 	comments := []g.Node{}
 	for _, comment := range p.Comments {
