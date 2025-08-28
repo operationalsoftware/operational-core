@@ -471,7 +471,7 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		&model.NewComment{
 			Comment:  fd.Comment,
-			Entity:   "andon",
+			Entity:   "Andon",
 			EntityID: entityID,
 		},
 		ctx.User.UserID,
@@ -520,7 +520,7 @@ func (h *AndonHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 			Filename:    fd.Filename,
 			ContentType: fd.ContentType,
 			SizeBytes:   fd.SizeBytes,
-			Entity:      "comment",
+			Entity:      "Comment",
 			EntityID:    entityID,
 		},
 		ctx.User.UserID,
@@ -591,7 +591,7 @@ func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	comments, err := h.commentService.GetComments(r.Context(), "andon", andonID, ctx.User.UserID)
+	comments, err := h.commentService.GetComments(r.Context(), "Andon", andonID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching andon comments", http.StatusInternalServerError)

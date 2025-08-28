@@ -96,12 +96,10 @@ func (r *FileRepository) CreateFile(
 	f *model.File,
 	userID int,
 ) (*model.File, string, error) {
-	objectName := uuid.New()
 
 	var fileID uuid.UUID
 	err := exec.QueryRow(ctx, `
 INSERT INTO file (
-	file_id,
 	filename,
 	content_type,
 	size_bytes,
@@ -115,11 +113,10 @@ VALUES (
 	$3,
 	$4,
 	$5,
-	$6,
-	$7
+	$6
 )
 RETURNING file_id`,
-		objectName, f.Filename, f.ContentType, f.SizeBytes, f.Entity, f.EntityID, userID,
+		f.Filename, f.ContentType, f.SizeBytes, f.Entity, f.EntityID, userID,
 	).Scan(&fileID)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to insert file metadata: %w", err)
@@ -136,7 +133,7 @@ RETURNING file_id`,
 	}
 
 	// 3. Generate signed upload URL
-	uploadURL, err := r.getSignedUploadURL(conn, objectName.String(), 15*time.Minute)
+	uploadURL, err := r.getSignedUploadURL(conn, fileID.String(), 15*time.Minute)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to generate signed upload URL: %w", err)
 	}

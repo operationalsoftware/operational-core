@@ -48,8 +48,8 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 	isAcknowledged := andonEvent.Status == "Acknowledged"
 	isResolved := andonEvent.Status == "Resolved"
 	isCancelled := andonEvent.Status == "Cancelled"
-	twoMinutesPassed := time.Since(andonEvent.RaisedAt) > 2*time.Minute && !isResolved
-	fiveMinutesPassed := time.Since(andonEvent.RaisedAt) > 5*time.Minute && !isResolved
+	twoMinutesPassed := time.Since(andonEvent.RaisedAt) > 2*time.Minute
+	fiveMinutesPassed := time.Since(andonEvent.RaisedAt) > 5*time.Minute
 
 	var changelogEntries []components.ChangelogEntry
 	for _, change := range p.AndonChanges {
@@ -383,11 +383,11 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 		),
 
 		h.Div(
-			h.Class("history-section"),
+			h.Class("comments-and-changelog-container"),
 
 			components.CommentsThread(&components.CommentsThreadProps{
 				Comments: p.AndonComments,
-				Entity:   "andons",
+				Entity:   "Andon",
 				EntityID: p.AndonID,
 			}),
 

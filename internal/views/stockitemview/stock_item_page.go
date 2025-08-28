@@ -105,11 +105,11 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 		),
 
 		h.Div(
-			h.Class("history-section"),
+			h.Class("comments-and-changelog-container"),
 
 			components.CommentsThread(&components.CommentsThreadProps{
 				Comments: p.StockItemComments,
-				Entity:   "stock item",
+				Entity:   "StockItem",
 				EntityID: p.StockItem.StockItemID,
 			}),
 

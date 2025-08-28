@@ -64,8 +64,18 @@ func main() {
 
 	container := os.Getenv("ORBIT_CONTAINER")
 	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
+	swiftAPIUser := os.Getenv("SWIFT_API_USER")
+	swiftAPIKey := os.Getenv("SWIFT_API_KEY")
+	swiftAuthURL := os.Getenv("SWIFT_AUTH_URL")
+	swiftTenantID := os.Getenv("SWIFT_TENANT_ID")
 	// Initialise some things for start up
-	swiftConn, err := filestore.InitSwift()
+	swiftConn, err := filestore.InitSwift(
+		secretKey,
+		swiftAPIUser,
+		swiftAPIKey,
+		swiftAuthURL,
+		swiftTenantID,
+	)
 	if err != nil {
 		log.Fatalf("Error initialising swift sdk: %v\n", err)
 	}

@@ -52,7 +52,7 @@
   justify-content: space-between;
 }
 
-.history-section {
+.comments-and-changelog-container {
   display: flex;
   justify-content: space-evenly;
   margin-top: var(--spacing-xl);

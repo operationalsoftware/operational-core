@@ -370,6 +370,6 @@ SELECT
 	)) FILTER (WHERE f.file_id IS NOT NULL), '[]') AS attachments
 FROM comment c
 LEFT JOIN app_user u ON c.commented_by = u.user_id
-LEFT JOIN file f ON f.entity = 'comment' AND f.entity_id = c.comment_id
+LEFT JOIN file f ON f.entity = 'Comment' AND f.entity_id = c.comment_id
 GROUP BY c.comment_id, c.entity_id, c.comment, u.username, c.commented_at
 ORDER BY c.commented_at ASC;

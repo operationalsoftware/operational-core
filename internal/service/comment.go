@@ -44,7 +44,7 @@ func (s *CommentService) GetComments(
 		ctx,
 		tx,
 		s.swiftConn,
-		"andon",
+		"Andon",
 		entityID,
 	)
 	if err != nil {

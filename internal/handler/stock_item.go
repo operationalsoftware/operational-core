@@ -117,7 +117,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	comments, err := h.commentService.GetComments(r.Context(), "stock item", stockItemID, ctx.User.UserID)
+	comments, err := h.commentService.GetComments(r.Context(), "StockItem", stockItemID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching andon comments", http.StatusInternalServerError)
@@ -405,7 +405,7 @@ func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		&model.NewComment{
 			Comment:  fd.Comment,
-			Entity:   "stock item",
+			Entity:   "StockItem",
 			EntityID: entityID,
 		},
 		ctx.User.UserID,
@@ -454,7 +454,7 @@ func (h *StockItemHandler) AddAttachment(w http.ResponseWriter, r *http.Request)
 			Filename:    fd.Filename,
 			ContentType: fd.ContentType,
 			SizeBytes:   fd.SizeBytes,
-			Entity:      "comment",
+			Entity:      "Comment",
 			EntityID:    entityID,
 		},
 		ctx.User.UserID,
