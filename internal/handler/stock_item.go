@@ -379,7 +379,7 @@ func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entityIDStr := r.PathValue("entityId")
+	entityIDStr := r.PathValue("entityID")
 
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
@@ -429,7 +429,7 @@ func (h *StockItemHandler) AddAttachment(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	entityIDStr := r.PathValue("commentId")
+	entityIDStr := r.PathValue("commentID")
 
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
