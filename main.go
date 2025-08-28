@@ -62,7 +62,7 @@ func main() {
 		log.Fatalf("Error initialising cookie instance: %v\n", err)
 	}
 
-	container := os.Getenv("SWIFT_CONTAINER")
+	swiftContainer := os.Getenv("SWIFT_CONTAINER")
 	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 	swiftAPIUser := os.Getenv("SWIFT_API_USER")
 	swiftAPIKey := os.Getenv("SWIFT_API_KEY")
@@ -84,7 +84,7 @@ func main() {
 	andonRepository := repository.NewAndonRepository()
 	andonIssueRepository := repository.NewAndonIssueRepository()
 	authRepository := repository.NewAuthRepository()
-	fileRepository := repository.NewFileRepository(container, secretKey)
+	fileRepository := repository.NewFileRepository(swiftContainer, secretKey)
 	commentRepository := repository.NewCommentRepository(fileRepository)
 	stockTrxRepository := repository.NewStockTransactionRepository()
 	teamRepository := repository.NewTeamRepository()
