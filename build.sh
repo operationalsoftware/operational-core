@@ -3,6 +3,13 @@
 # Fail on any error
 set -e
 
+
+if [[ -n "$(git status --porcelain)" ]]; then
+    echo "development" > ./internal/layout/build_version.txt
+else
+    git rev-parse --short HEAD > ./internal/layout/build_version.txt
+fi
+
 go-assets-builder --package=assets --output=assets/assets.go $(find ./internal ./static -type f ! -name "*.go")
 
 # error if executable name not provided as first argument

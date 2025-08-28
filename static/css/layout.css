@@ -275,6 +275,7 @@ body {
     justify-content: center;
     color: var(--text-color-light);
     font-size: var(--font-size-xs);
+    position: relative;
 
     sup {
       font-size: var(--font-size-icon);
@@ -335,3 +336,9 @@ body {
   background-color: var(--background-color-content);
 }
 /* End Breadcrumbs */
+
+.commit-hash {
+  position: absolute;
+  right: 10px;
+  font-family: monospace;
+}

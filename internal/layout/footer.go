@@ -1,11 +1,31 @@
 package layout
 
 import (
+	"app/assets"
+	"fmt"
+	"io"
+
 	g "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
 )
 
 func footer() g.Node {
+	assetPath := "/internal/layout/build_version.txt"
+	file, err := assets.Assets.Open(assetPath)
+	if err != nil {
+		fmt.Printf("Error opening file %s: %s\n", assetPath, err)
+		panic(err)
+	}
+	defer file.Close()
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+
+	// Convert the byte slice to a string
+	fileContent := string(fileBytes)
+
 	return Footer(
 		Div(
 			g.Text("An OperationalPlatform"),
@@ -16,6 +36,11 @@ func footer() g.Node {
 				Target("_blank"),
 				g.Text("Operational Software"),
 			),
+		),
+
+		Code(
+			Class("commit-hash"),
+			g.Text(fmt.Sprintf("build: %s", fileContent)),
 		),
 	)
 }
