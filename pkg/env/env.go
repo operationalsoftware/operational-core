@@ -94,8 +94,8 @@ func Verify() error {
 		fail = true
 	}
 
-	if os.Getenv("ORBIT_CONTAINER") == "" {
-		fmt.Println("ORBIT_CONTAINER environment variable not set")
+	if os.Getenv("SWIFT_CONTAINER") == "" {
+		fmt.Println("SWIFT_CONTAINER environment variable not set")
 		fail = true
 	}
 

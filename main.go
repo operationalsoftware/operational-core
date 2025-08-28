@@ -62,7 +62,7 @@ func main() {
 		log.Fatalf("Error initialising cookie instance: %v\n", err)
 	}
 
-	container := os.Getenv("ORBIT_CONTAINER")
+	container := os.Getenv("SWIFT_CONTAINER")
 	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 	swiftAPIUser := os.Getenv("SWIFT_API_USER")
 	swiftAPIKey := os.Getenv("SWIFT_API_KEY")
