@@ -16,25 +16,25 @@ type AndonEvent struct {
 	CanUserAcknowledge     bool
 	CanUserResolve         bool
 	CanUserCancel          bool
-	Severity               string     `sortable:"true"`
-	Source                 string     `sortable:"true"`
-	Location               string     `sortable:"true"`
-	RaisedBy               int        `sortable:"true"`
-	RaisedByUsername       string     `sortable:"true"`
-	RaisedAt               time.Time  `sortable:"true"`
-	AssignedTeam           int        `sortable:"true"`
-	AssignedTeamName       string     `sortable:"true"`
-	AcknowledgedBy         *int       `sortable:"true"`
-	AcknowledgedByUsername *string    `sortable:"true"`
-	AcknowledgedAt         *time.Time `sortable:"true"`
-	ResolvedBy             *int       `sortable:"true"`
-	ResolvedByUsername     *string    `sortable:"true"`
-	ResolvedAt             *time.Time `sortable:"true"`
-	CancelledBy            *int       `sortable:"true"`
-	CancelledByUsername    *string    `sortable:"true"`
-	CancelledAt            *time.Time `sortable:"true"`
-	Status                 string     `sortable:"true"`
-	LastUpdated            *time.Time `sortable:"true"`
+	Severity               AndonSeverity `sortable:"true"`
+	Source                 string        `sortable:"true"`
+	Location               string        `sortable:"true"`
+	RaisedBy               int           `sortable:"true"`
+	RaisedByUsername       string        `sortable:"true"`
+	RaisedAt               time.Time     `sortable:"true"`
+	AssignedTeam           int           `sortable:"true"`
+	AssignedTeamName       string        `sortable:"true"`
+	AcknowledgedBy         *int          `sortable:"true"`
+	AcknowledgedByUsername *string       `sortable:"true"`
+	AcknowledgedAt         *time.Time    `sortable:"true"`
+	ResolvedBy             *int          `sortable:"true"`
+	ResolvedByUsername     *string       `sortable:"true"`
+	ResolvedAt             *time.Time    `sortable:"true"`
+	CancelledBy            *int          `sortable:"true"`
+	CancelledByUsername    *string       `sortable:"true"`
+	CancelledAt            *time.Time    `sortable:"true"`
+	Status                 string        `sortable:"true"`
+	LastUpdated            *time.Time    `sortable:"true"`
 }
 
 type NewAndonEvent struct {

@@ -445,6 +445,7 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	entity := "Andon"
 	entityIDStr := r.PathValue("entityID")
 
 	if err := r.ParseForm(); err != nil {
@@ -467,11 +468,11 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	commentId, err := h.commentService.CreateComment(
+	commentID, err := h.commentService.CreateComment(
 		r.Context(),
 		&model.NewComment{
 			Comment:  fd.Comment,
-			Entity:   "Andon",
+			Entity:   entity,
 			EntityID: entityID,
 		},
 		ctx.User.UserID,
@@ -484,7 +485,7 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"commentId": commentId,
+		"commentId": commentID,
 	})
 }
 

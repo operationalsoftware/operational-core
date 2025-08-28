@@ -44,7 +44,7 @@ func (s *CommentService) GetComments(
 		ctx,
 		tx,
 		s.swiftConn,
-		"Andon",
+		entity,
 		entityID,
 	)
 	if err != nil {
@@ -69,7 +69,7 @@ func (s *CommentService) CreateComment(
 	}
 	defer tx.Rollback(ctx)
 
-	commentId, err := s.commentRepository.AddComment(
+	commentID, err := s.commentRepository.AddComment(
 		ctx,
 		tx,
 		comment,
@@ -83,5 +83,5 @@ func (s *CommentService) CreateComment(
 		return 0, err
 	}
 
-	return commentId, nil
+	return commentID, nil
 }

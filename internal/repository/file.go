@@ -23,14 +23,6 @@ func NewFileRepository(container, secretKey string) *FileRepository {
 	}
 }
 
-func (r *FileRepository) getSignedUploadURL(conn *swift.Connection, objectName string, expiresIn time.Duration) (string, error) {
-	expires := time.Now().Add(expiresIn)
-
-	// method "PUT" for upload
-	uploadURL := conn.ObjectTempUrl(r.container, objectName, r.secretKey, "PUT", expires)
-	return uploadURL, nil
-}
-
 func (r *FileRepository) GetSignedDownloadURL(
 	ctx context.Context,
 	conn *swift.Connection,
@@ -139,6 +131,14 @@ RETURNING file_id`,
 	}
 
 	return file, uploadURL, nil
+}
+
+func (r *FileRepository) getSignedUploadURL(conn *swift.Connection, objectName string, expiresIn time.Duration) (string, error) {
+	expires := time.Now().Add(expiresIn)
+
+	// method "PUT" for upload
+	uploadURL := conn.ObjectTempUrl(r.container, objectName, r.secretKey, "PUT", expires)
+	return uploadURL, nil
 }
 
 func (r *FileRepository) CompleteFileUpload(

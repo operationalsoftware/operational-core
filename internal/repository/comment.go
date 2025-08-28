@@ -42,7 +42,7 @@ VALUES (
 )
 RETURNING comment_id
 `
-	var commentId int
+	var commentID int
 	err := exec.QueryRow(
 		ctx, query,
 
@@ -50,9 +50,9 @@ RETURNING comment_id
 		comment.EntityID,
 		comment.Comment,
 		userID,
-	).Scan(&commentId)
+	).Scan(&commentID)
 
-	return commentId, err
+	return commentID, err
 }
 
 func (r *CommentRepository) GetComments(

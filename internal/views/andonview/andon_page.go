@@ -108,13 +108,13 @@ func AndonDetailsPage(p *AndonDetailsPageProps) g.Node {
 					h.H3(
 						c.Classes{
 							"severity-badge":        true,
-							"info":                  andonEvent.Severity == "Info",
-							"self-resolvable":       andonEvent.Severity == "Self-resolvable",
-							"requires-intervention": andonEvent.Severity == "Requires-intervention",
+							"info":                  andonEvent.Severity == model.AndonSeverityInfo,
+							"self-resolvable":       andonEvent.Severity == model.AndonSeveritySelfResolvable,
+							"requires-intervention": andonEvent.Severity == model.AndonSeverityRequiresIntervention,
 						},
 
 						h.Class("severity-badge"),
-						g.Text(andonEvent.Severity),
+						g.Text(string(andonEvent.Severity)),
 					),
 				),
 

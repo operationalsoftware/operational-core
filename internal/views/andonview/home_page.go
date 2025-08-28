@@ -125,7 +125,7 @@ func HomePage(p *HomePageProps) g.Node {
 				Contents: g.Text(ai.AssignedTeamName),
 			},
 			{
-				Contents: g.Text(ai.Severity),
+				Contents: g.Text(string(ai.Severity)),
 			},
 			{
 				Contents: g.Text(ai.Status),
@@ -230,7 +230,7 @@ func HomePage(p *HomePageProps) g.Node {
 				Contents: g.Text(ai.AssignedTeamName),
 			},
 			{
-				Contents: g.Text(ai.Severity),
+				Contents: g.Text(string(ai.Severity)),
 			},
 			{
 				Contents: g.Text(ai.Status),

@@ -337,8 +337,48 @@ body {
 }
 /* End Breadcrumbs */
 
-.commit-hash {
+/* .commit-hash {
   position: absolute;
   right: 20px;
   font-family: monospace;
+} */
+
+footer {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  /* don't center the whole group here */
+  color: var(--text-color-light);
+  font-size: var(--font-size-xs);
+
+  .footer-right {
+    display: flex;
+    justify-content: flex-end; /* push hash to the edge */
+  }
+
+  .footer-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 var(--spacing-md);
+  }
+
+  .footer-left,
+  .footer-right {
+    flex: 1 1 0; /* take remaining space on both sides */
+  }
+
+  sup {
+    font-size: var(--font-size-icon);
+  }
+
+  .footer-center {
+    flex: 0 0 auto; /* size to content */
+    text-align: center;
+  }
+
+  .commit-hash {
+    font-family: monospace;
+    opacity: 0.85;
+  }
 }

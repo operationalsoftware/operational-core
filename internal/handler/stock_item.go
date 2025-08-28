@@ -401,7 +401,7 @@ func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	commentId, err := h.commentService.CreateComment(
+	commentID, err := h.commentService.CreateComment(
 		r.Context(),
 		&model.NewComment{
 			Comment:  fd.Comment,
@@ -418,7 +418,7 @@ func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"commentId": commentId,
+		"commentId": commentID,
 	})
 }
 

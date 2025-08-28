@@ -24,7 +24,7 @@ type ChangelogProperty struct {
 	Label    g.Node
 }
 
-func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogProperty) g.Node {
+func Changelog(entries []ChangelogEntry, changelogProperties []ChangelogProperty) g.Node {
 	return h.Div(
 		h.Class("changelog"),
 		h.H3(g.Text("Changelog")),
@@ -55,7 +55,7 @@ func Changelog(entries []ChangelogEntry, fieldDefs []ChangelogProperty) g.Node {
 							h.Span(h.Class("local-datetime"), g.Text(entry.ChangedAt.Format(time.RFC3339))),
 						),
 					),
-					changesList(entry.Changes, fieldDefs),
+					changesList(entry.Changes, changelogProperties),
 				)
 			})),
 		),
