@@ -22,4 +22,4 @@ echo "Backup complete at $TIMESTAMP - uploaded to orbit:$ORBIT_BACKUP_CONTAINER/
 
 rm "$DUMP_FILE"
 
-rclone delete "orbit:$ORBIT_BACKUP_CONTAINER" --min-age 90d
+rclone delete "orbit:$ORBIT_BACKUP_CONTAINER" --min-age 30d
