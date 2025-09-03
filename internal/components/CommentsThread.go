@@ -22,22 +22,13 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 	for _, comment := range p.Comments {
 
 		var nonImageAttachments []g.Node
-		var imageAttachments []g.Node
+		var imageURLs []string
 
 		for _, attachment := range comment.Attachments {
 			isImage := strings.HasPrefix(attachment.ContentType, "image/")
 
 			if isImage {
-				imgPreview := h.A(
-					h.Class("attachment"),
-					h.Href(attachment.DownloadURL),
-					h.Target("_blank"),
-					h.Img(
-						h.Src(attachment.DownloadURL),
-						h.Alt(attachment.Filename),
-					),
-				)
-				imageAttachments = append(imageAttachments, imgPreview)
+				imageURLs = append(imageURLs, attachment.DownloadURL)
 			} else {
 				link := h.Div(
 					h.Class("attachment"),
@@ -55,7 +46,10 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 			}
 
 		}
-		attachments := append(nonImageAttachments, imageAttachments...)
+		attachments := []g.Node{
+			g.Group(nonImageAttachments),
+			Gallery(imageURLs),
+		}
 
 		commentNode := h.Div(
 			h.Class("comment"),
@@ -76,7 +70,6 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 
 					h.Div(
 						h.Class("username"),
-
 						g.Text(comment.CommentedByUsername),
 					),
 				),
