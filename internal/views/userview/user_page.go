@@ -142,6 +142,17 @@ func UserPage(p *UserPageProps) g.Node {
 					),
 				),
 			),
+
+			g.If(
+				user.Permissions.Andon.Admin,
+				h.Div(
+					h.H4(h.Class("permission-group-title"), g.Text("Andons")),
+					h.Ul(
+						h.Class("permission-group-list"),
+						h.Li(g.Text(getPermissionDescription("Andon", "Admin"))),
+					),
+				),
+			),
 		),
 
 		h.Div(

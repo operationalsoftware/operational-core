@@ -46,6 +46,19 @@ func permissionsCheckboxesPartial(userPermissions model.UserPermissions) g.Node 
 			},
 		),
 
+		h.H4(h.Class("module-title"), g.Text("Andon")),
+		components.Checkbox(
+			&components.CheckboxProps{
+				Classes: c.Classes{
+					"permission-checkbox": true,
+				},
+				Name:    "Permissions.Andon.Admin",
+				Label:   getPermissionDescription("Andon", "Admin"),
+				Checked: userPermissions.Andon.Admin,
+				Value:   "true",
+			},
+		),
+
 		components.InlineStyle("/internal/views/userview/permissions_checkboxes_partial.css"),
 	)
 

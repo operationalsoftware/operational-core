@@ -7,6 +7,7 @@ import (
 	"app/pkg/appsort"
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -100,63 +101,63 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 	}
 
 	var tableRows components.TableRows
-	for _, ai := range p.Andons {
-		namePathStr := strings.Join(ai.NamePath, " > ")
+	for _, a := range p.Andons {
+		namePathStr := strings.Join(a.NamePath, " > ")
 
-		isAcknowledged := ai.Status == "Acknowledged"
-		isResolved := ai.Status == "Resolved"
-		isCancelled := ai.Status == "Cancelled"
-		twoMinutesPassed := time.Since(ai.RaisedAt) > 2*time.Minute && !isResolved
-		fiveMinutesPassed := time.Since(ai.RaisedAt) > 5*time.Minute && !isResolved
+		isAcknowledged := a.Status == "Acknowledged"
+		isResolved := a.Status == "Resolved"
+		isCancelled := a.Status == "Cancelled"
+		twoMinutesPassed := time.Since(a.RaisedAt) > 2*time.Minute && !isResolved
+		fiveMinutesPassed := time.Since(a.RaisedAt) > 5*time.Minute && !isResolved
 
 		cells := []components.TableCell{
 			{
-				Contents: g.Text(ai.Location),
+				Contents: g.Text(a.Location),
 			},
 			{
-				Contents: g.Text(ai.IssueDescription),
+				Contents: g.Text(a.IssueDescription),
 			},
 			{
 				Contents: g.Text(namePathStr),
 			},
 			{
-				Contents: g.Text(ai.AssignedTeamName),
+				Contents: g.Text(a.AssignedTeamName),
 			},
 			{
-				Contents: g.Text(string(ai.Severity)),
+				Contents: g.Text(string(a.Severity)),
 			},
 			{
-				Contents: g.Text(ai.Status),
+				Contents: g.Text(a.Status),
 			},
 			{
-				Contents: g.Text(ai.RaisedByUsername),
+				Contents: g.Text(a.RaisedByUsername),
 			},
 			{
-				Contents: g.Text(ai.RaisedAt.Format("2006-01-02 15:04:05")),
+				Contents: g.Text(a.RaisedAt.Format("2006-01-02 15:04:05")),
 			},
 			{
 				Contents: g.Group([]g.Node{
-					g.If(ai.AcknowledgedByUsername != nil, g.Text(nilsafe.Str(ai.AcknowledgedByUsername))),
+					g.If(a.AcknowledgedByUsername != nil, g.Text(nilsafe.Str(a.AcknowledgedByUsername))),
 				}),
 			},
 			{
 				Contents: g.Group([]g.Node{
-					g.If(ai.AcknowledgedAt != nil, g.Text(nilsafe.Time(ai.AcknowledgedAt).Format("2006-01-02 15:04:05"))),
+					g.If(a.AcknowledgedAt != nil, g.Text(nilsafe.Time(a.AcknowledgedAt).Format("2006-01-02 15:04:05"))),
 				}),
 			},
 			{
 				Contents: g.Group([]g.Node{
-					g.If(ai.ResolvedByUsername != nil, g.Text(nilsafe.Str(ai.ResolvedByUsername))),
+					g.If(a.ResolvedByUsername != nil, g.Text(nilsafe.Str(a.ResolvedByUsername))),
 				}),
 			},
 			{
 				Contents: g.Group([]g.Node{
-					g.If(ai.ResolvedAt != nil, g.Text(nilsafe.Time(ai.ResolvedAt).Format("2006-01-02 15:04:05"))),
+					g.If(a.ResolvedAt != nil, g.Text(nilsafe.Time(a.ResolvedAt).Format("2006-01-02 15:04:05"))),
 				}),
 			},
 			{
 				Contents: g.Group([]g.Node{
-					g.If(ai.LastUpdated != nil, g.Text(nilsafe.Time(ai.LastUpdated).Format("2006-01-02 15:04:05"))),
+					g.If(a.LastUpdated != nil, g.Text(nilsafe.Time(a.LastUpdated).Format("2006-01-02 15:04:05"))),
 				}),
 			},
 			{
@@ -165,13 +166,13 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 					h.Div(
 						h.Class("andon-actions"),
 
-						g.If(ai.Status == "Outstanding" && ai.CanUserAcknowledge,
+						g.If(a.Status == "Outstanding" && a.CanUserAcknowledge,
 							components.Button(&components.ButtonProps{
 								Size:       "small",
 								ButtonType: "button",
 							},
 								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(ai.AndonEventID)),
+								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
 								g.Attr("data-action", "acknowledge"),
 								g.Attr("title", "Acknowledge"),
 
@@ -180,13 +181,13 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 								}),
 							),
 						),
-						g.If(ai.Status == "Acknowledged" && ai.CanUserResolve,
+						g.If(a.Status == "Acknowledged" && a.CanUserResolve,
 							components.Button(&components.ButtonProps{
 								Size:       "small",
 								ButtonType: "button",
 							},
 								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(ai.AndonEventID)),
+								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
 								g.Attr("data-action", "resolve"),
 								g.Attr("title", "Resolve"),
 
@@ -195,13 +196,13 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 								}),
 							),
 						),
-						g.If(ai.Status == "Outstanding" && ai.Severity == "Self-resolvable" && ai.CanUserResolve,
+						g.If(a.Status == "Outstanding" && a.Severity == "Self-resolvable" && a.CanUserResolve,
 							components.Button(&components.ButtonProps{
 								Size:       "small",
 								ButtonType: "button",
 							},
 								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(ai.AndonEventID)),
+								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
 								g.Attr("data-action", "resolve"),
 								g.Attr("title", "Resolve"),
 
@@ -210,13 +211,13 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 								}),
 							),
 						),
-						g.If(ai.Status == "Cancelled",
+						g.If(a.Status == "Cancelled",
 							components.Button(&components.ButtonProps{
 								Size:       "small",
 								ButtonType: "button",
 							},
 								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(ai.AndonEventID)),
+								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
 								g.Attr("data-action", "reopen"),
 								g.Attr("title", "Reopen"),
 
@@ -227,12 +228,12 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 							),
 						),
 
-						g.If(ai.CanUserCancel,
+						g.If(a.CanUserCancel,
 							components.Button(&components.ButtonProps{
 								Size: "small",
 							},
 								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(ai.AndonEventID)),
+								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
 								g.Attr("data-action", "cancel"),
 								g.Attr("title", "Cancel"),
 
@@ -257,6 +258,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 
 		tableRows = append(tableRows, components.TableRow{
 			Cells: cells,
+			HREF:  fmt.Sprintf("/andons/%d", a.AndonEventID),
 		})
 	}
 
@@ -264,7 +266,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 
 		h.H3(g.Text("All Andons")),
 
-		h.FormEl(
+		h.Form(
 			h.ID("all-andon-table-form"),
 			g.Attr("method", "GET"),
 

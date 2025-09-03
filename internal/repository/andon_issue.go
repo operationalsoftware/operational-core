@@ -266,7 +266,8 @@ SELECT
 	name_path,
 	depth,
 	down_depth,
-	parent_id
+	parent_id,
+	is_archived
 FROM
 	andon_issue_group_view
 
@@ -274,14 +275,15 @@ WHERE
 	andon_issue_id = $1
 `
 
-	var andonIssue model.AndonIssueGroup
+	var group model.AndonIssueGroup
 	err := exec.QueryRow(ctx, query, andonIssueGroupID).Scan(
-		&andonIssue.AndonIssueID,
-		&andonIssue.IssueName,
-		&andonIssue.NamePath,
-		&andonIssue.Depth,
-		&andonIssue.DownDepth,
-		&andonIssue.ParentID,
+		&group.AndonIssueID,
+		&group.IssueName,
+		&group.NamePath,
+		&group.Depth,
+		&group.DownDepth,
+		&group.ParentID,
+		&group.IsArchived,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil
@@ -290,7 +292,7 @@ WHERE
 		return nil, err
 	}
 
-	return &andonIssue, nil
+	return &group, nil
 }
 
 func (r *AndonIssueRepository) ListIssues(
@@ -474,7 +476,8 @@ SELECT
 	name_path,
 	parent_id,
 	depth,
-	down_depth
+	down_depth,
+	is_archived
 FROM
 	andon_issue_group_view
 `
@@ -484,24 +487,25 @@ FROM
 	}
 	defer rows.Close()
 
-	var andonIssues []model.AndonIssueGroup
+	var groups []model.AndonIssueGroup
 	for rows.Next() {
-		var andonIssue model.AndonIssueGroup
+		var group model.AndonIssueGroup
 		if err := rows.Scan(
-			&andonIssue.AndonIssueID,
-			&andonIssue.IssueName,
-			&andonIssue.NamePath,
-			&andonIssue.ParentID,
-			&andonIssue.Depth,
-			&andonIssue.DownDepth,
+			&group.AndonIssueID,
+			&group.IssueName,
+			&group.NamePath,
+			&group.ParentID,
+			&group.Depth,
+			&group.DownDepth,
+			&group.IsArchived,
 		); err != nil {
 			return nil, err
 		}
 
-		andonIssues = append(andonIssues, andonIssue)
+		groups = append(groups, group)
 	}
 
-	return andonIssues, nil
+	return groups, nil
 }
 
 func (r *AndonIssueRepository) ListTopLevelGroups(
@@ -516,7 +520,8 @@ SELECT
 	name_path,
 	parent_id,
 	depth,
-	down_depth
+	down_depth,
+	is_archived
 FROM
 	andon_issue_group_view
 WHERE
@@ -528,24 +533,25 @@ WHERE
 	}
 	defer rows.Close()
 
-	var andonIssues []model.AndonIssueGroup
+	var groups []model.AndonIssueGroup
 	for rows.Next() {
-		var andonIssue model.AndonIssueGroup
+		var group model.AndonIssueGroup
 		if err := rows.Scan(
-			&andonIssue.AndonIssueID,
-			&andonIssue.IssueName,
-			&andonIssue.NamePath,
-			&andonIssue.ParentID,
-			&andonIssue.Depth,
-			&andonIssue.DownDepth,
+			&group.AndonIssueID,
+			&group.IssueName,
+			&group.NamePath,
+			&group.ParentID,
+			&group.Depth,
+			&group.DownDepth,
+			&group.IsArchived,
 		); err != nil {
 			return nil, err
 		}
 
-		andonIssues = append(andonIssues, andonIssue)
+		groups = append(groups, group)
 	}
 
-	return andonIssues, nil
+	return groups, nil
 }
 
 func (r *AndonIssueRepository) generateWhereClause(q model.ListAndonIssuesQuery) string {
@@ -649,7 +655,8 @@ func (r *AndonIssueRepository) UpdateGroup(
 
 	// Check if anything changed
 	hasChange := update.IssueName != existing.IssueName ||
-		update.ParentID != existing.ParentID
+		update.ParentID != existing.ParentID ||
+		update.IsArchived != existing.IsArchived
 
 	if !hasChange {
 		return nil
@@ -660,6 +667,7 @@ UPDATE andon_issue
 SET
 	issue_name = :issue_name,
 	parent_id = :parent_id,
+	is_archived = :is_archived,
 	updated_by = :updated_by,
 	updated_at = NOW()
 WHERE
@@ -669,6 +677,7 @@ WHERE
 	query, params, err := db.BindNamed(namedQuery, map[string]any{
 		"issue_name":     update.IssueName,
 		"parent_id":      update.ParentID,
+		"is_archived":    update.IsArchived,
 		"updated_by":     userID,
 		"andon_issue_id": andonIssueID,
 	})
