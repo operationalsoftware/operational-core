@@ -55,8 +55,9 @@ type AndonIssueUpdate struct {
 }
 
 type AndonIssueGroupUpdate struct {
-	IssueName string
-	ParentID  *int
+	IssueName  string
+	ParentID   *int
+	IsArchived bool
 }
 
 type ListAndonIssuesQuery struct {
@@ -91,6 +92,7 @@ type AndonIssueNode struct {
 
 type AndonIssueGroup struct {
 	AndonIssueID int
+	IsArchived   bool
 	IssueName    string
 	ParentID     *int
 	NamePath     []string

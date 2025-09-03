@@ -79,7 +79,7 @@ type editGroupFormProps struct {
 
 func editGroupForm(p *editGroupFormProps) g.Node {
 
-	andonIssue := p.andonIssueGroup
+	group := p.andonIssueGroup
 
 	issueNameLabel := "Issue Name"
 	issueNameKey := "IssueName"
@@ -87,7 +87,7 @@ func editGroupForm(p *editGroupFormProps) g.Node {
 	if p.values.Get(issueNameKey) != "" {
 		issueNameValue = p.values.Get(issueNameKey)
 	} else {
-		issueNameValue = andonIssue.IssueName
+		issueNameValue = group.IssueName
 	}
 	issueNameError := ""
 	if p.isSubmission || issueNameValue != "" {
@@ -103,8 +103,8 @@ func editGroupForm(p *editGroupFormProps) g.Node {
 	parentIDValue := ""
 	if p.values.Get(parentIDKey) != "" {
 		parentIDValue = p.values.Get(parentIDKey)
-	} else if andonIssue.ParentID != nil {
-		parentIDValue = fmt.Sprintf("%d", *andonIssue.ParentID)
+	} else if group.ParentID != nil {
+		parentIDValue = fmt.Sprintf("%d", *group.ParentID)
 	}
 	parentIDError := ""
 	if p.isSubmission || parentIDValue != "" {
@@ -120,6 +120,23 @@ func editGroupForm(p *editGroupFormProps) g.Node {
 			h.Value(""),
 			g.Text("\u2013"),
 		),
+	}
+
+	isArchivedLabel := "Is Archived?"
+	isArchivedKey := "IsArchived"
+	isArchivedValue := false
+	if p.values.Get(isArchivedKey) == "true" {
+		isArchivedValue = true
+	} else if group.IsArchived {
+		isArchivedValue = true
+	}
+	isArchivedError := ""
+	if p.isSubmission {
+		isArchivedError = p.validationErrors.GetError(isArchivedKey, isArchivedLabel)
+	}
+	isArchivedHelperType := components.InputHelperTypeNone
+	if isArchivedError != "" {
+		isArchivedHelperType = components.InputHelperTypeError
 	}
 
 	spareDepth := MaxIssueDepth - p.andonIssueGroup.DownDepth
@@ -188,6 +205,25 @@ func editGroupForm(p *editGroupFormProps) g.Node {
 			h.P(
 				h.Class("note"),
 				g.Text("* Only two levels of groups are supported"),
+			),
+		),
+
+		h.Div(
+			h.Label(
+				g.Text(isArchivedLabel),
+
+				h.Input(
+					h.Type("checkbox"),
+					h.Name(isArchivedKey),
+					g.If(isArchivedValue, h.Checked()),
+					h.Value("true"),
+				),
+			),
+			g.If(isArchivedError != "",
+				components.InputHelper(&components.InputHelperProps{
+					Label: isArchivedError,
+					Type:  isArchivedHelperType,
+				}),
 			),
 		),
 

@@ -525,18 +525,18 @@ func (h *AndonIssueHandler) EditGroupPage(w http.ResponseWriter, r *http.Request
 	andonIssueGroupID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Invalid andon issue ID", http.StatusBadRequest)
+		http.Error(w, "Invalid andon issue group ID", http.StatusBadRequest)
 		return
 	}
 
 	andonIssueGroup, err := h.andonIssueService.GetGroupByID(r.Context(), andonIssueGroupID)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Error getting andon issue", http.StatusInternalServerError)
+		http.Error(w, "Error getting andon issue group", http.StatusInternalServerError)
 		return
 	}
 	if andonIssueGroup == nil {
-		http.Error(w, "Andon issue does not exist", http.StatusBadRequest)
+		http.Error(w, "Andon issue group does not exist", http.StatusBadRequest)
 		return
 	}
 
@@ -564,7 +564,7 @@ func (h *AndonIssueHandler) EditGroup(w http.ResponseWriter, r *http.Request) {
 	andonIssueGroupID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Invalid andon issue ID", http.StatusBadRequest)
+		http.Error(w, "Invalid andon issue group ID", http.StatusBadRequest)
 		return
 	}
 
@@ -607,6 +607,7 @@ func (h *AndonIssueHandler) EditGroup(w http.ResponseWriter, r *http.Request) {
 		model.AndonIssueGroupUpdate{
 			IssueName: fd.IssueName,
 			ParentID:  fd.ParentID,
+			IsArchived: fd.IsArchived,
 		},
 		ctx.User.UserID,
 	)
@@ -620,8 +621,9 @@ func (h *AndonIssueHandler) EditGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 type editAndonIssueGroupFormData struct {
-	IssueName string
-	ParentID  *int
+	IssueName  string
+	ParentID   *int
+	IsArchived bool
 }
 
 func (fd *editAndonIssueGroupFormData) normalise() {
