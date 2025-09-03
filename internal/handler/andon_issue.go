@@ -32,7 +32,7 @@ func NewAndonIssueHandler(
 
 func (h *AndonIssueHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -98,7 +98,7 @@ func (uv *andonIssuesHomePageUrlVals) normalise() {
 
 func (h *AndonIssueHandler) AndonIssuePage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -129,7 +129,7 @@ func (h *AndonIssueHandler) AndonIssuePage(w http.ResponseWriter, r *http.Reques
 
 func (h *AndonIssueHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -159,7 +159,7 @@ func (h *AndonIssueHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 
 func (h *AndonIssueHandler) Add(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -228,7 +228,7 @@ func (h *AndonIssueHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 func (h *AndonIssueHandler) AddGroupPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -248,7 +248,7 @@ func (h *AndonIssueHandler) AddGroupPage(w http.ResponseWriter, r *http.Request)
 
 func (h *AndonIssueHandler) AddGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -352,7 +352,7 @@ func (fd *addAndonIssueGroupFormData) validate() validate.ValidationErrors {
 
 func (h *AndonIssueHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -400,7 +400,7 @@ func (h *AndonIssueHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 
 func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -517,7 +517,7 @@ func (fd *editAndonIssueFormData) validate() *validate.ValidationErrors {
 
 func (h *AndonIssueHandler) EditGroupPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -556,7 +556,7 @@ func (h *AndonIssueHandler) EditGroupPage(w http.ResponseWriter, r *http.Request
 
 func (h *AndonIssueHandler) EditGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+	if !ctx.User.Permissions.Andon.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}

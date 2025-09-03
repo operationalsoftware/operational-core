@@ -304,17 +304,21 @@ func HomePage(p *HomePageProps) g.Node {
 				g.Text("New Andon"),
 			),
 			h.A(h.Href("/andons/all"), g.Text("All Andons")),
-			h.A(
-				h.Href("/andon-issues"),
 
-				components.Icon(&components.IconProps{
-					Identifier: "wrench-outline",
-					Classes: c.Classes{
-						"icon": true,
+			g.If(
+				p.Ctx.User.Permissions.Andon.Admin,
+				h.A(
+					h.Href("/andon-issues"),
+
+					components.Icon(&components.IconProps{
+						Identifier: "wrench-outline",
+						Classes: c.Classes{
+							"icon": true,
+						},
 					},
-				},
-				),
-				g.Text("Andon Issues")),
+					),
+					g.Text("Andon Issues")),
+			),
 		),
 
 		h.Div(
