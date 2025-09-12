@@ -1,3 +1,18 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+
+  .title {
+    h3 {
+      font-size: var(--font-size-lg);
+    }
+
+    p {
+      font-size: var(--font-size-sm);
+    }
+  }
+}
+
 .gallery-grid {
   display: flex;
   flex-wrap: wrap;
@@ -65,6 +80,7 @@
   .files {
     display: flex;
     align-items: self-start;
+    justify-content: right;
   }
 
   .file-input-label {
@@ -96,6 +112,7 @@
     display: flex;
     gap: var(--spacing-md);
     flex-wrap: wrap;
+    width: 50%;
   }
 }
 
@@ -104,6 +121,8 @@
   gap: var(--spacing-lg);
   align-items: center;
   margin-top: var(--spacing-lg);
+  width: fit-content;
+  margin-left: auto;
 
   .loading-spinner {
     display: none;

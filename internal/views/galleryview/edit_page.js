@@ -203,6 +203,7 @@ async function submitGalleryItems(e) {
 }
 
 async function uploadWithRetry(signedUrl, file, maxRetries = 3) {
+  const uploadBtn = document.querySelector(".upload-gallery-btn");
   const encodedFilename = encodeURIComponent(file.name);
 
   const isImage = file.type.startsWith("image/");
@@ -241,5 +242,7 @@ async function uploadWithRetry(signedUrl, file, maxRetries = 3) {
     }
     attempt++;
   }
+  uploadBtn.disabled = false;
+  uploadBtn.dataset.loading = false;
   throw new Error(`Failed to upload ${file.name} after ${maxRetries} attempts`);
 }

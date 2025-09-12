@@ -65,73 +65,80 @@ func EditGalleryPage(p *EditGalleryPageProps) g.Node {
 
 	content := g.Group([]g.Node{
 
-		h.Div(),
 		h.Div(
-			h.H1(g.Text("Edit Gallery")),
-			h.P(g.Text("Add, reorder, or remove items in this gallery.")),
 
-			h.Form(
-				h.Class("gallery-edit-form"),
-				h.Name("gallery-edit-form"),
-				h.Method("POST"),
-				h.EncType("multipart/form-data"),
-				g.Attr("onsubmit", "submitGalleryItems(event)"),
+			h.Div(
+				h.Class("header"),
 
 				h.Div(
-					h.Class("comment-box"),
+					h.Class("title"),
+					h.H3(g.Text("Edit Gallery")),
+					h.P(g.Text("Add, reorder, or remove items in this gallery.")),
+				),
 
-					h.Input(
-						h.Name("EntityID"),
-						h.Type("hidden"),
-						h.Value(fmt.Sprintf("%d", p.GalleryID)),
-					),
+				h.Form(
+					h.Class("gallery-edit-form"),
+					h.Name("gallery-edit-form"),
+					h.Method("POST"),
+					h.EncType("multipart/form-data"),
+					g.Attr("onsubmit", "submitGalleryItems(event)"),
 
 					h.Div(
-						h.Class("file-upload-wrapper"),
+						h.Class("comment-box"),
+
+						h.Input(
+							h.Name("EntityID"),
+							h.Type("hidden"),
+							h.Value(fmt.Sprintf("%d", p.GalleryID)),
+						),
 
 						h.Div(
-							h.Class("files"),
-
-							h.Label(
-								h.Class("file-input-label button small"),
-
-								h.Input(
-									h.Class("file-input"),
-									h.Name("Files"),
-									h.Type("file"),
-									h.Multiple(),
-									h.Accept("image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.odt,.ods,.odp"),
-									g.Attr("data-max-files", "10"),
-								),
-
+							h.Class("submit-btn"),
+							components.Button(&components.ButtonProps{
+								Classes: c.Classes{
+									"upload-gallery-btn": true,
+								},
+								ButtonType: "primary",
+								Loading:    true,
+								Disabled:   true,
+							},
+								h.Type("submit"),
 								components.Icon(&components.IconProps{
-									Identifier: "paperclip-plus",
+									Identifier: "upload",
 								}),
-								g.Text("Choose files"),
-							),
-
-							h.Div(
-								h.ID("selected-files"),
-								h.Class("selected-files"),
+								g.Text(" Upload Items"),
 							),
 						),
-					),
 
-					h.Div(
-						h.Class("submit-btn"),
-						components.Button(&components.ButtonProps{
-							Classes: c.Classes{
-								"upload-gallery-btn": true,
-							},
-							ButtonType: "primary",
-							Loading:    true,
-							Disabled:   true,
-						},
-							h.Type("submit"),
-							components.Icon(&components.IconProps{
-								Identifier: "upload",
-							}),
-							g.Text(" Upload Items"),
+						h.Div(
+							h.Class("file-upload-wrapper"),
+
+							h.Div(
+								h.Class("files"),
+
+								h.Div(
+									h.ID("selected-files"),
+									h.Class("selected-files"),
+								),
+
+								h.Label(
+									h.Class("file-input-label button small"),
+
+									h.Input(
+										h.Class("file-input"),
+										h.Name("Files"),
+										h.Type("file"),
+										h.Multiple(),
+										h.Accept("image/*,video/*,application/pdf"),
+										g.Attr("data-max-files", "10"),
+									),
+
+									components.Icon(&components.IconProps{
+										Identifier: "paperclip-plus",
+									}),
+									g.Text("Choose files"),
+								),
+							),
 						),
 					),
 				),

@@ -104,11 +104,14 @@ func (r *GalleryRepository) UpdateGalleryItemPosition(
 
 	if item.NewPosition < item.OldPosition {
 		_, err = exec.Exec(ctx, `
-            UPDATE gallery_item
-            SET position = position + 1
-            WHERE gallery_id = $1
-              AND position >= $2
-              AND position < $3
+UPDATE
+	gallery_item
+SET
+	position = position + 1
+WHERE
+	gallery_id = $1
+	AND position >= $2
+	AND position < $3
         `, galleryID, item.NewPosition, item.OldPosition)
 	} else {
 		_, err = exec.Exec(ctx, `

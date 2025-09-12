@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -128,6 +129,23 @@ func (h *GalleryHandler) AddGalleryItem(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	var allowedContentTypes = map[string]bool{
+		"image/jpeg":      true,
+		"image/png":       true,
+		"image/gif":       true,
+		"image/webp":      true,
+		"video/mp4":       true,
+		"application/pdf": true,
+	}
+	if !allowedContentTypes[fd.ContentType] {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": "File type not allowed",
+		})
+		return
+	}
+
 	file, signedURL, err := h.galleryService.AddGalleryItem(
 		r.Context(),
 		&model.NewGalleryItem{
@@ -230,14 +248,9 @@ func (h *GalleryHandler) ReorderGalleryItem(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
-	isEditable := false
-	for _, op := range allowedOperations {
-		if op == "edit" {
-			isEditable = true
-		}
-	}
+	isEditable := slices.Contains(allowedOperations, "edit")
 	if !isEditable {
-		http.Error(w, "Resource is not editable", http.StatusForbidden)
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -298,14 +311,9 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isEditable := false
-	for _, op := range allowedOperations {
-		if op == "edit" {
-			isEditable = true
-		}
-	}
+	isEditable := slices.Contains(allowedOperations, "edit")
 	if !isEditable {
-		http.Error(w, "Resource is not editable", http.StatusForbidden)
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 

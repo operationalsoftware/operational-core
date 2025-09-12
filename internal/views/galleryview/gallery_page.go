@@ -5,6 +5,7 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/reqcontext"
+	"slices"
 
 	g "maragu.dev/gomponents"
 	c "maragu.dev/gomponents/components"
@@ -21,12 +22,7 @@ type GalleryPageProps struct {
 
 func GalleryPage(p *GalleryPageProps) g.Node {
 
-	isEditable := false
-	for _, op := range p.AllowedOperations {
-		if op == "edit" {
-			isEditable = true
-		}
-	}
+	isEditable := slices.Contains(p.AllowedOperations, "edit")
 
 	var galleryItems []g.Node
 	var galleryImages []string
