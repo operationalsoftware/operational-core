@@ -876,10 +876,10 @@ img.logo-img-full.dark-theme {
     width: auto;
     padding: var(--spacing-lg) var(--spacing-lg);
   }
-}
 
-.search-button:hover {
-  background-color: var(--bg-hover);
+  &:hover {
+    background-color: var(--bg-hover);
+  }
 }
 
 .icon {
@@ -895,7 +895,7 @@ img.logo-img-full.dark-theme {
   }
 }
 
-.search-text {
+.search-button .search-text {
   display: inline-block;
   vertical-align: middle;
   margin-left: var(--margin-xs);

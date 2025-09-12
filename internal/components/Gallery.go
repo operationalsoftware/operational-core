@@ -13,10 +13,12 @@ func Gallery(imageURLs []string) g.Node {
 	return h.Div(
 		h.Class("gallery"),
 		g.Group(g.Map(imageURLs, func(src string) g.Node {
-			return h.Img(
+			return h.Div(
 				h.Class("gallery-item"),
-				h.Src(src),
-				h.Alt("attachment"),
+				h.Img(
+					h.Src(src),
+					h.Alt("gallery image"),
+				),
 			)
 		})),
 

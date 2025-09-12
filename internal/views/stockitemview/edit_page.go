@@ -44,7 +44,7 @@ func EditStockItemPage(p *EditStockItemPageProps) g.Node {
 			},
 			{
 				Title:   p.StockItem.StockCode,
-				URLPart: p.StockItem.StockCode,
+				URLPart: fmt.Sprintf("%d", p.StockItem.StockItemID),
 			},
 			{
 				IconIdentifier: "pencil",

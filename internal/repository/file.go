@@ -175,11 +175,11 @@ func (r *FileRepository) DeleteFile(
 	ctx context.Context,
 	exec db.PGExecutor,
 	conn *swift.Connection,
-	fileID, container, secretKey string,
+	fileID string,
 ) error {
 
 	// 2. Delete object from Orbit
-	err := conn.ObjectDelete(ctx, container, fileID)
+	err := conn.ObjectDelete(ctx, r.container, fileID)
 	if err != nil {
 		return fmt.Errorf("failed to delete object from Orbit: %w", err)
 	}

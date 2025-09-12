@@ -66,6 +66,18 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 					Identifier: "pencil",
 				}),
 			),
+			components.Button(&components.ButtonProps{
+				ButtonType: "primary",
+				Classes: c.Classes{
+					"gallery-button": true,
+				},
+				Link: p.StockItem.GalleryURL,
+			},
+				components.Icon(&components.IconProps{
+					Identifier: "upload",
+				}),
+				g.Text("Gallery"),
+			),
 		),
 		h.Div(
 			h.H3(g.Text("Stock Item "+p.StockItem.StockCode)),

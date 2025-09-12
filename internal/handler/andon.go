@@ -537,7 +537,6 @@ func (h *AndonHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 		"fileId":    file.FileID,
 		"signedUrl": signedURL,
 	})
-
 }
 
 func (h *AndonHandler) AndonUpdate(w http.ResponseWriter, r *http.Request) {

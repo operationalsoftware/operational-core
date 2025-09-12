@@ -11,6 +11,8 @@ type StockItem struct {
 	StockItemID int
 	StockCode   string
 	Description string
+	GalleryID   int
+	GalleryURL  string
 	CreatedAt   time.Time
 }
 

@@ -1,0 +1,144 @@
+.gallery-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.gallery-item {
+  position: relative;
+  border: 1px solid #ddd;
+  padding: 5px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.drag-handle {
+  cursor: grab;
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .icon {
+    fill: var(--text-color);
+    width: var(--font-size-xl);
+    height: var(--font-size-xl);
+  }
+}
+
+.thumbnail {
+  height: 150px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+}
+
+.btn-danger {
+  border: none;
+  cursor: pointer;
+
+  svg {
+    fill: red;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  color: #555;
+  margin-top: 50px;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.file-upload-wrapper {
+  margin-top: var(--spacing-md);
+
+  .files {
+    display: flex;
+    align-items: self-start;
+  }
+
+  .file-input-label {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    margin-right: var(--spacing-lg);
+    white-space: nowrap;
+
+    .file-input {
+      display: none;
+    }
+
+    .icon {
+      width: var(--font-size-md);
+      margin-right: var(--spacing-sm);
+    }
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
+  .selected-files {
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    color: var(--text-muted-color);
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+  }
+}
+
+.submit-btn {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: center;
+  margin-top: var(--spacing-lg);
+
+  .loading-spinner {
+    display: none;
+  }
+
+  .icon {
+    margin-right: var(--spacing-sm);
+  }
+
+  button {
+    background-color: var(--primary-color);
+    color: #fff !important;
+  }
+}
+
+/* Add a visible dragging state */
+.gallery-item.dragging {
+  opacity: 0.6;
+  transform: scale(0.98);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  z-index: 999;
+  transition: none;
+}
+
+/* Optional: make the grid stable while dragging */
+.gallery-grid {
+  /* use grid for responsive multi-column; DOM order defines visual order */
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  /* grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); */
+  gap: 12px;
+}
+
+/* make children not shift height wildly */
+.gallery-item {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  will-change: transform;
+}

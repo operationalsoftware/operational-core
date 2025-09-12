@@ -28,7 +28,7 @@
   let currentImages = [];
   let currentIndex = 0;
 
-  const images = gallery.querySelectorAll(".gallery-item");
+  const images = gallery.querySelectorAll(".gallery-item img");
   images.forEach((image, index) => {
     image.addEventListener("click", () => {
       currentImages = Array.from(images);

@@ -9,6 +9,10 @@ type AndonPermissions struct {
 	Admin bool `description:"Able to manage andon issues and structure (groups)"`
 }
 
+type StockItemPermissions struct {
+	Admin bool `description:"Able to manage stock items"`
+}
+
 type SupplyChainPermissions struct {
 	Admin      bool `description:"Administrative supply chain tasks"`
 	TeamMember bool `description:"General supply chain tasks"`
@@ -19,4 +23,5 @@ type UserPermissions struct {
 	UserAdmin   UserAdminPermissions
 	Andon       AndonPermissions
 	SupplyChain SupplyChainPermissions
+	Stock       StockItemPermissions
 }

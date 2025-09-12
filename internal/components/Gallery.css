@@ -8,12 +8,20 @@
 .gallery-item {
   width: 100%;
   height: auto;
-  border-radius: 6px;
   cursor: pointer;
   transition: transform 0.2s ease;
 
   &:hover {
     transform: scale(1.05);
+  }
+
+  img {
+    border-radius: 6px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
   }
 }
 
