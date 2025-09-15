@@ -1,6 +1,7 @@
 package andonview
 
 import (
+	"slices"
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
@@ -19,90 +20,71 @@ import (
 
 type HomePageProps struct {
 	Ctx                     reqcontext.ReqContext
-	ShowArchived            bool
-	OutstandingAndons       []model.AndonEvent
-	AcknowledgedAndons      []model.AndonEvent
-	NewAndonsCount          int
+	OutstandingAndons       []model.Andon
+	OutstandingAndonsCount  int
+	AcknowledgedAndons      []model.Andon
 	AcknowledgedAndonsCount int
 	Teams                   []model.Team
 	SelectedTeams           []string
 	IsSelfResolvable        bool
-	Sort                    appsort.Sort
-	Page                    int
-	PageSize                int
+	OutstandingSort         appsort.Sort
+	WIPSort                 appsort.Sort
 }
 
 func HomePage(p *HomePageProps) g.Node {
 
-	var outstandingColumns = components.TableColumns{
+	var commonColumns = components.TableColumns{
+		{
+			TitleContents: g.Text("Issue"),
+			SortKey:       "NamePath",
+		},
 		{
 			TitleContents: g.Text("Location"),
 		},
 		{
-			TitleContents: g.Text("Issue Description"),
-		},
-		{
-			TitleContents: g.Text("Issue"),
-			SortKey:       "IssueName",
+			TitleContents: g.Text("Description"),
 		},
 		{
 			TitleContents: g.Text("Assigned Team"),
-			SortKey:       "AssignedTeam",
+			SortKey:       "AssignedTeamName",
 		},
 		{
 			TitleContents: g.Text("Severity"),
 			SortKey:       "Severity",
-		},
-		{
-			TitleContents: g.Text("Status"),
-			SortKey:       "Status",
-		},
-		{
-			TitleContents: g.Text("Raised By"),
-			SortKey:       "RaisedBy",
-		},
-		{
-			TitleContents: g.Text("Raised At"),
-			SortKey:       "RaisedAt",
-		},
-		{
-			TitleContents: g.Text("Actions"),
 		},
 	}
 
-	var acknowledgedColumns = components.TableColumns{
-		{
-			TitleContents: g.Text("Location"),
-		},
-		{
-			TitleContents: g.Text("Issue Description"),
-		},
-		{
-			TitleContents: g.Text("Issue"),
-			SortKey:       "IssueByName",
-		},
-		{
-			TitleContents: g.Text("Assigned Team"),
-			SortKey:       "AssignedTeam",
-		},
-		{
-			TitleContents: g.Text("Severity"),
-			SortKey:       "Severity",
-		},
-		{
-			TitleContents: g.Text("Status"),
-			SortKey:       "Status",
-		},
-		{
-			TitleContents: g.Text("Acknowledged By"),
-		},
-		{
-			TitleContents: g.Text("Acknowledged At"),
-		},
-		{
-			TitleContents: g.Text("Actions"),
-		},
-	}
+	var outstandingColumns = append(
+		commonColumns,
+		components.TableColumns{
+			{
+				TitleContents: g.Text("Raised By"),
+				SortKey:       "RaisedByUsername",
+			},
+			{
+				TitleContents: g.Text("Raised At"),
+				SortKey:       "RaisedAt",
+			}, {
+				TitleContents: g.Text("Actions"),
+			},
+		}...,
+	)
+
+	var acknowledgedColumns = append(
+		commonColumns,
+		components.TableColumns{
+			{
+				TitleContents: g.Text("Acknowledged By"),
+				SortKey:       "AcknowledgedByUsername",
+			},
+			{
+				TitleContents: g.Text("Acknowledged At"),
+				SortKey:       "AcknowledgedAt",
+			}, {
+				TitleContents: g.Text("Actions"),
+			},
+		}...,
+	)
 
 	var outstandingTableRows []components.TableRow
 	for _, a := range p.OutstandingAndons {
@@ -113,30 +95,13 @@ func HomePage(p *HomePageProps) g.Node {
 		fiveMinutesPassed := time.Since(a.RaisedAt) > 5*time.Minute
 
 		cells := []components.TableCell{
-			{
-				Contents: g.Text(a.Location),
-			},
-			{
-				Contents: g.Text(a.IssueDescription),
-			},
-			{
-				Contents: g.Text(namePathStr),
-			},
-			{
-				Contents: g.Text(a.AssignedTeamName),
-			},
-			{
-				Contents: g.Text(string(a.Severity)),
-			},
-			{
-				Contents: g.Text(a.Status),
-			},
-			{
-				Contents: g.Text(a.RaisedByUsername),
-			},
-			{
-				Contents: g.Text(a.RaisedAt.Format("2006-01-02 15:04:05")),
-			},
+			{Contents: g.Text(namePathStr)},
+			{Contents: g.Text(a.Location)},
+			{Contents: g.Text(a.Description)},
+			{Contents: g.Text(a.AssignedTeamName)},
+			{Contents: severityBadge(a.Severity, "small")},
+			{Contents: g.Text(a.RaisedByUsername)},
+			{Contents: g.Text(a.RaisedAt.Format("2006-01-02 15:04:05"))},
 			{
 				Contents: g.Group([]g.Node{
 
@@ -151,7 +116,7 @@ func HomePage(p *HomePageProps) g.Node {
 								ButtonType: "button",
 							},
 								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
+								g.Attr("data-id", strconv.Itoa(a.AndonID)),
 								g.Attr("data-action", "acknowledge"),
 								g.Attr("title", "Acknowledge"),
 
@@ -168,7 +133,7 @@ func HomePage(p *HomePageProps) g.Node {
 								ButtonType: "button",
 							},
 								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
+								g.Attr("data-id", strconv.Itoa(a.AndonID)),
 								g.Attr("data-action", "resolve"),
 								g.Attr("title", "Resolve"),
 
@@ -183,7 +148,7 @@ func HomePage(p *HomePageProps) g.Node {
 								Size: "small",
 							},
 								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
+								g.Attr("data-id", strconv.Itoa(a.AndonID)),
 								g.Attr("data-action", "cancel"),
 								g.Attr("title", "Cancel"),
 
@@ -199,14 +164,14 @@ func HomePage(p *HomePageProps) g.Node {
 
 		for i := 0; i < len(cells)-1; i++ {
 			cells[i].Classes = c.Classes{
-				"amber":        twoMinutesPassed,
-				"flashing-red": fiveMinutesPassed,
+				"two-minutes-passed":  !fiveMinutesPassed && twoMinutesPassed,
+				"five-minutes-passed": fiveMinutesPassed,
 			}
 		}
 
 		outstandingTableRows = append(outstandingTableRows, components.TableRow{
 			Cells: cells,
-			HREF:  fmt.Sprintf("/andons/%d", a.AndonEventID),
+			HREF:  fmt.Sprintf("/andons/%d", a.AndonID),
 		})
 	}
 
@@ -214,33 +179,25 @@ func HomePage(p *HomePageProps) g.Node {
 	for _, a := range p.AcknowledgedAndons {
 		namePathStr := strings.Join(a.NamePath, " > ")
 
-		if a.Severity == "Info" {
-			continue
-		}
-
 		cells := []components.TableCell{
+			{
+				Contents: g.Text(namePathStr),
+			},
 			{
 				Contents: g.Text(a.Location),
 			},
 			{
-				Contents: g.Text(a.IssueDescription),
-			},
-			{
-				Contents: g.Text(namePathStr),
+				Contents: g.Text(a.Description),
 			},
 			{
 				Contents: g.Text(a.AssignedTeamName),
 			},
 			{
-				Contents: g.Text(string(a.Severity)),
+				Contents: severityBadge(a.Severity, "small"),
 			},
+
 			{
-				Contents: g.Text(a.Status),
-			},
-			{
-				Contents: g.Group([]g.Node{
-					g.If(a.AcknowledgedByUsername != nil, g.Text(nilsafe.Str(a.AcknowledgedByUsername))),
-				}),
+				Contents: g.Text(nilsafe.Str(a.AcknowledgedByUsername)),
 			},
 			{
 				Contents: g.Text(a.AcknowledgedAt.Format("2006-01-02 15:04:05")),
@@ -256,7 +213,7 @@ func HomePage(p *HomePageProps) g.Node {
 							ButtonType: "button",
 						},
 							g.Attr("onclick", "updateAndon(event)"),
-							g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
+							g.Attr("data-id", strconv.Itoa(a.AndonID)),
 							g.Attr("data-action", "resolve"),
 							g.Attr("title", "Resolve"),
 
@@ -268,7 +225,7 @@ func HomePage(p *HomePageProps) g.Node {
 							Size: "small",
 						},
 							g.Attr("onclick", "updateAndon(event)"),
-							g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
+							g.Attr("data-id", strconv.Itoa(a.AndonID)),
 							g.Attr("data-action", "cancel"),
 							g.Attr("title", "Cancel"),
 
@@ -283,7 +240,7 @@ func HomePage(p *HomePageProps) g.Node {
 
 		acknowledgedTableRows = append(acknowledgedTableRows, components.TableRow{
 			Cells: cells,
-			HREF:  fmt.Sprintf("/andons/%d", a.AndonEventID),
+			HREF:  fmt.Sprintf("/andons/%d", a.AndonID),
 		})
 	}
 
@@ -354,16 +311,10 @@ func HomePage(p *HomePageProps) g.Node {
 			),
 			h.Hr(),
 			components.Table(&components.TableProps{
-				Columns: outstandingColumns,
-				Sort:    p.Sort,
-				Rows:    outstandingTableRows,
-				Pagination: &components.TablePaginationProps{
-					TotalRecords:        p.NewAndonsCount,
-					PageSize:            p.PageSize,
-					CurrentPage:         p.Page,
-					CurrentPageQueryKey: "Page",
-					PageSizeQueryKey:    "PageSize",
-				},
+				Columns:      outstandingColumns,
+				SortQueryKey: "OutstandingSort",
+				Sort:         p.OutstandingSort,
+				Rows:         outstandingTableRows,
 			},
 				h.ID("new-andon-table"),
 			),
@@ -374,16 +325,10 @@ func HomePage(p *HomePageProps) g.Node {
 			),
 			h.Hr(),
 			components.Table(&components.TableProps{
-				Columns: acknowledgedColumns,
-				Sort:    p.Sort,
-				Rows:    acknowledgedTableRows,
-				Pagination: &components.TablePaginationProps{
-					TotalRecords:        p.AcknowledgedAndonsCount,
-					PageSize:            p.PageSize,
-					CurrentPage:         p.Page,
-					CurrentPageQueryKey: "Page",
-					PageSizeQueryKey:    "PageSize",
-				},
+				Columns:      acknowledgedColumns,
+				SortQueryKey: "WIPSort",
+				Sort:         p.WIPSort,
+				Rows:         acknowledgedTableRows,
 			},
 				h.ID("andon-wip-table"),
 			),
@@ -432,6 +377,7 @@ func HomePage(p *HomePageProps) g.Node {
 			},
 		},
 		AppendHead: []g.Node{
+			components.InlineStyle("/internal/views/andonview/components.css"),
 			components.InlineStyle("/internal/views/andonview/home_page.css"),
 		},
 		AppendBody: []g.Node{
@@ -449,13 +395,7 @@ var andonIssuesBreadCrumb = layout.Breadcrumb{
 func MapTeamsToOptions(teams []model.Team, selectedValues []string) []components.SearchSelectOption {
 	out := make([]components.SearchSelectOption, len(teams))
 	for i, v := range teams {
-		isSelected := false
-		for _, selectedTeam := range selectedValues {
-			if v.TeamName == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
+		isSelected := slices.Contains(selectedValues, v.TeamName)
 
 		out[i] = components.SearchSelectOption{
 			Text:     v.TeamName,

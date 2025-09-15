@@ -1,12 +1,9 @@
 package components
 
 import (
-	"database/sql"
 	"fmt"
-	"reflect"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/shopspring/decimal"
 	g "maragu.dev/gomponents"
 	h "maragu.dev/gomponents/html"
@@ -16,7 +13,7 @@ type ChangelogEntry struct {
 	ChangedAt        time.Time
 	ChangeByUsername string
 	IsCreation       bool
-	Changes          map[string]interface{}
+	Changes          map[string]any
 }
 
 type ChangelogProperty struct {
@@ -62,7 +59,7 @@ func Changelog(entries []ChangelogEntry, changelogProperties []ChangelogProperty
 	)
 }
 
-func changesList(changes map[string]interface{}, changeLogProperties []ChangelogProperty) g.Node {
+func changesList(changes map[string]any, changeLogProperties []ChangelogProperty) g.Node {
 
 	return h.Ul(
 		g.Group(g.Map(changeLogProperties, func(clp ChangelogProperty) g.Node {
@@ -74,51 +71,80 @@ func changesList(changes map[string]interface{}, changeLogProperties []Changelog
 	)
 }
 
-func change(fieldLabel g.Node, value interface{}) g.Node {
+func change(fieldLabel g.Node, value any) g.Node {
+	if value == nil {
+		return nil
+	}
+
 	formattedValue := formatValue(value)
 	if formattedValue != "" {
-		return h.Li(g.Text(fmt.Sprintf("%s: %s", fieldLabel, formattedValue)))
+		return h.Li(
+			h.B(fieldLabel),
+			g.Textf(": %s", formattedValue),
+		)
 	}
 	return nil
 }
 
-func formatValue(value interface{}) string {
-	v := reflect.ValueOf(value)
+func formatValue(value any) string {
 
-	switch v.Type() {
-	case reflect.TypeOf(pgtype.Text{}):
-		if v.Interface().(pgtype.Text).Valid {
-			return v.Interface().(pgtype.Text).String
+	switch v := value.(type) {
+	case *string:
+		if v == nil {
+			return ""
 		}
-	case reflect.TypeOf(sql.NullInt16{}):
-		if v.Interface().(sql.NullInt16).Valid {
-			return fmt.Sprintf("%d", v.Interface().(sql.NullInt16).Int16)
+		return *v
+	case *int:
+		if v == nil {
+			return ""
 		}
-	case reflect.TypeOf(sql.NullInt32{}):
-		if v.Interface().(sql.NullInt32).Valid {
-			return fmt.Sprintf("%d", v.Interface().(sql.NullInt32).Int32)
+		return fmt.Sprintf("%d", *v)
+	case *int8:
+		if v == nil {
+			return ""
 		}
-	case reflect.TypeOf(sql.NullInt64{}):
-		if v.Interface().(sql.NullInt64).Valid {
-			return fmt.Sprintf("%d", v.Interface().(sql.NullInt64).Int64)
+		return fmt.Sprintf("%d", *v)
+	case *int16:
+		if v == nil {
+			return ""
 		}
-	case reflect.TypeOf(sql.NullFloat64{}):
-		if v.Interface().(sql.NullFloat64).Valid {
-			return fmt.Sprintf("%f", v.Interface().(sql.NullFloat64).Float64)
+		return fmt.Sprintf("%d", *v)
+	case *int32:
+		if v == nil {
+			return ""
 		}
-	case reflect.TypeOf(sql.NullBool{}):
-		if v.Interface().(sql.NullBool).Valid {
-			return fmt.Sprintf("%t", v.Interface().(sql.NullBool).Bool)
+		return fmt.Sprintf("%d", *v)
+	case *int64:
+		if v == nil {
+			return ""
 		}
-	case reflect.TypeOf(decimal.NullDecimal{}):
-		if v.Interface().(decimal.NullDecimal).Valid {
-			return v.Interface().(decimal.NullDecimal).Decimal.String()
+		return fmt.Sprintf("%d", *v)
+	case *float32:
+		if v == nil {
+			return ""
 		}
-	case reflect.TypeOf(pgtype.Timestamptz{}):
-		if v.Interface().(pgtype.Timestamptz).Valid {
-			return v.Interface().(pgtype.Timestamptz).Time.Format(time.RFC3339)
+		return fmt.Sprintf("%f", *v)
+	case *float64:
+		if v == nil {
+			return ""
 		}
+		return fmt.Sprintf("%f", *v)
+	case *bool:
+		if v == nil {
+			return ""
+		}
+		return fmt.Sprintf("%t", *v)
+	case *time.Time:
+		if v == nil {
+			return ""
+		}
+		return v.Format(time.RFC3339)
+	case *decimal.Decimal:
+		if v == nil {
+			return ""
+		}
+		return v.String()
+	default:
+		return ""
 	}
-
-	return ""
 }

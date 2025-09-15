@@ -57,24 +57,34 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uv.normalise()
-
-	sort := appsort.Sort{}
-	err = sort.ParseQueryParam(model.AndonEvent{}, uv.Sort)
+	outstandingSort := appsort.Sort{}
+	err = outstandingSort.ParseQueryParam(model.Andon{}, uv.OutstandingSort)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, fmt.Sprintf("Error parsing sort: %v", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Error parsing outstanding sort: %v", err), http.StatusBadRequest)
+		return
+	}
+	wipSort := appsort.Sort{}
+	err = wipSort.ParseQueryParam(model.Andon{}, uv.WIPSort)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, fmt.Sprintf("Error parsing WIP sort: %v", err), http.StatusBadRequest)
 		return
 	}
 
+
+	trueBool := true
+	falseBool := false
+
 	outstandingAndons, outstandingAndonsCount, _, err := h.andonService.ListAndons(r.Context(),
 		model.ListAndonQuery{
-			Sort:     sort,
-			Page:     uv.Page,
-			PageSize: uv.PageSize,
+			Sort:     outstandingSort,
+			Page:     1,
+			PageSize: 10000, // reasonable limit
 
+			IsAcknowledged:   &falseBool,
+			IsOpen:           &trueBool,
 			Teams:            uv.AndonTeams,
-			Statuses:         []string{"Outstanding"},
 			OrderBy:          "raised_at",
 			OrderByDirection: "asc",
 		}, ctx.User.UserID)
@@ -84,15 +94,16 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	acknowledgedAndons, acknowledgedAndonsCount, _, err := h.andonService.ListAndons(
+	wipAndons, wipAndonsCount, _, err := h.andonService.ListAndons(
 		r.Context(),
 		model.ListAndonQuery{
-			Sort:     sort,
-			Page:     uv.Page,
-			PageSize: uv.PageSize,
+			Sort:     wipSort,
+			Page:     1,
+			PageSize: 10000, // reasonable limit
 
+			IsAcknowledged:   &trueBool,
+			IsOpen:           &trueBool,
 			Teams:            uv.AndonTeams,
-			Statuses:         []string{"Acknowledged"},
 			OrderBy:          "acknowledged_at",
 			OrderByDirection: "asc",
 		},
@@ -116,33 +127,21 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	_ = andonview.HomePage(&andonview.HomePageProps{
 		Ctx:                     ctx,
 		OutstandingAndons:       outstandingAndons,
-		AcknowledgedAndons:      acknowledgedAndons,
-		NewAndonsCount:          outstandingAndonsCount,
-		AcknowledgedAndonsCount: acknowledgedAndonsCount,
+		AcknowledgedAndons:      wipAndons,
+		OutstandingAndonsCount:  outstandingAndonsCount,
+		AcknowledgedAndonsCount: wipAndonsCount,
 		Teams:                   teams,
 		SelectedTeams:           uv.AndonTeams,
-		Sort:                    sort,
-		Page:                    uv.Page,
-		PageSize:                uv.PageSize,
+		OutstandingSort:         outstandingSort,
+		WIPSort:                 wipSort,
 	}).Render(w)
 }
 
 type andonEventsHomePageUrlVals struct {
-	Sort     string
-	Page     int
-	PageSize int
+	OutstandingSort string
+	WIPSort         string
 
-	Status     string
 	AndonTeams []string
-}
-
-func (uv *andonEventsHomePageUrlVals) normalise() {
-	if uv.Page == 0 {
-		uv.Page = 1
-	}
-	if uv.PageSize == 0 {
-		uv.PageSize = 50
-	}
 }
 
 type andonAllEventsUrlVals struct {
@@ -190,7 +189,7 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 	uv.normalise()
 
 	sort := appsort.Sort{}
-	err = sort.ParseQueryParam(model.AndonEvent{}, uv.Sort)
+	err = sort.ParseQueryParam(model.Andon{}, uv.Sort)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, fmt.Sprintf("Error parsing sort: %v", err), http.StatusBadRequest)
@@ -207,10 +206,9 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 			StartDate:              uv.StartDate,
 			EndDate:                uv.EndDate,
 			Issues:                 uv.IssueIn,
-			Serverities:            uv.SeverityIn,
+			Severities:             uv.SeverityIn,
 			Teams:                  uv.TeamIn,
 			Locations:              uv.LocationIn,
-			Statuses:               uv.StatusIn,
 			RaisedByUsername:       uv.RaisedByUsernameIn,
 			AcknowledgedByUsername: uv.AcknowledgedByUsernameIn,
 			ResolvedByUsername:     uv.ResolvedByUsernameIn,
@@ -238,7 +236,6 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 			Severities:             uv.SeverityIn,
 			Teams:                  uv.TeamIn,
 			Locations:              uv.LocationIn,
-			Statuses:               uv.StatusIn,
 			RaisedByUsername:       uv.RaisedByUsernameIn,
 			AcknowledgedByUsername: uv.AcknowledgedByUsernameIn,
 			ResolvedByUsername:     uv.ResolvedByUsernameIn,
@@ -421,13 +418,11 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.andonService.CreateAndonEvent(
 		r.Context(),
-		model.NewAndonEvent{
-			IssueDescription: fd.IssueDescription,
-			IssueID:          fd.IssueID,
-			Location:         fd.Location,
-			Source:           uv.Source,
-			LinkedEntityID:   fd.LinkedEntityID,
-			LinkedEntityType: fd.LinkedEntityType,
+		model.NewAndon{
+			Description: fd.Description,
+			IssueID:     fd.IssueID,
+			Location:    fd.Location,
+			Source:      uv.Source,
 		},
 		ctx.User.UserID,
 	); err != nil {
@@ -574,21 +569,21 @@ func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) 
 
 	andonID, _ := strconv.Atoi(r.PathValue("andonID"))
 
-	andonEvent, err := h.andonService.GetAndonEventByID(r.Context(), andonID, ctx.User.UserID)
+	andon, err := h.andonService.GetAndonByID(r.Context(), andonID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Failed to get andon event", http.StatusInternalServerError)
+		http.Error(w, "Error fetching andon", http.StatusInternalServerError)
 		return
 	}
 
-	changes, err := h.andonService.GetAndonByID(
+	changelog, err := h.andonService.GetAndonChangelog(
 		r.Context(),
 		andonID,
 		ctx.User.UserID,
 	)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Error fetching andon details", http.StatusInternalServerError)
+		http.Error(w, "Error fetching andon changelog", http.StatusInternalServerError)
 		return
 	}
 
@@ -599,35 +594,33 @@ func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	_ = andonview.AndonDetailsPage(&andonview.AndonDetailsPageProps{
-		Ctx:           ctx,
-		Values:        r.Form,
-		IsSubmission:  true,
-		AndonID:       andonID,
-		AndonEvent:    *andonEvent,
-		AndonChanges:  changes,
-		AndonComments: comments,
+	_ = andonview.AndonPage(&andonview.AndonPageProps{
+		Ctx:            ctx,
+		Values:         r.Form,
+		IsSubmission:   true,
+		AndonID:        andonID,
+		Andon:          *andon,
+		AndonChangelog: changelog,
+		AndonComments:  comments,
 	}).Render(w)
 }
 
 type addAndonEventFormData struct {
-	IssueDescription string
-	IssueID          int
-	AssignedTeam     string
-	Location         string
-	LinkedEntityID   int
-	LinkedEntityType string
+	Description  string
+	IssueID      int
+	AssignedTeam string
+	Location     string
 }
 
 func (fd *addAndonEventFormData) normalise() {
-	fd.IssueDescription = strings.TrimSpace(fd.IssueDescription)
+	fd.Description = strings.TrimSpace(fd.Description)
 }
 
 func (fd *addAndonEventFormData) validate() validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
 
-	if fd.IssueDescription == "" {
-		ve.Add("IssueDescription", "is required")
+	if fd.Description == "" {
+		ve.Add("Description", "is required")
 	}
 
 	if fd.IssueID == 0 {

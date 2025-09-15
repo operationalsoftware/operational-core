@@ -86,19 +86,39 @@ hr {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: var(--spacing-xs) var(--spacing-md);
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 12px;
-  background-color: var(--primary-color);
+  gap: var(--spacing-sm);
 
   .icon {
     fill: currentColor;
   }
 
+  /* badge sizes */
+  /* medium - default */
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius);
+  &.small {
+    font-size: var(--font-size-sm);
+    border-radius: var(--border-radius-sm);
+  }
+  &.large {
+    font-size: var(--font-size-lg);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+  }
+
+  /* some preset badge types */
   &.primary {
     background-color: var(--primary-color);
+    color: white;
+  }
+
+  &.success {
+    background-color: var(--green-4);
+    color: white;
+  }
+
+  &.danger {
+    background-color: var(--red-5);
     color: white;
   }
 }

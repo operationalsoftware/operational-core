@@ -1,98 +1,61 @@
-.details {
-  width: 98%;
-  margin: var(--spacing-lg) auto;
+.header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 
-  @media (max-width: 480px) {
-    flex-direction: column-reverse;
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    align-items: start;
+    justify-content: start;
+    gap: var(--spacing-sm);
+
+    & > * {
+      flex: 1 1 auto;
+    }
   }
 
   .title {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
-
-    .severity-badge,
-    .status-badge {
-      border-radius: var(--border-radius);
-      padding: var(--spacing-xs) var(--spacing-sm);
-    }
-
-    .info {
-      background-color: #e0f2fe;
-      border: 1px solid #38bdf8;
-    }
-    .self-resolvable {
-      background-color: #f3e8ff;
-      border: 1px solid #a855f7;
-    }
-    .requires-intervention {
-      background-color: #ccfbf1;
-      border: 1px solid #14b8a6;
-    }
-
-    .amber {
-      background-color: #e3c206;
-    }
-
-    .flashing-red {
-      background-color: #eb4343;
-      color: #fff;
-    }
-
-    .flashing-grey {
-      background-color: #c4c4c4;
-    }
-
-    .flashing-green {
-      background-color: #32c857;
-    }
-
-    .light-green {
-      background-color: #aad1af;
-    }
-  }
-
-  .detail-list {
-    list-style: inside;
-
-    li {
-      list-style: none;
-
-      svg {
-        fill: var(--primary-color);
-        margin-right: var(--spacing-md);
-        width: 22px;
-        height: 22px;
-      }
-    }
+    gap: var(--spacing-lg);
   }
 
   .actions {
-    button {
-      margin-right: var(--spacing-lg);
+    display: flex;
+    gap: var(--spacing-md);
+  }
+}
 
-      svg {
-        margin-right: var(--spacing-xs);
-      }
+.attributes-list {
+  margin-top: var(--spacing-lg);
+
+  list-style: inside;
+
+  li {
+    list-style: none;
+
+    svg {
+      fill: var(--primary-color);
+      margin-right: var(--spacing-md);
+      width: 22px;
+      height: 22px;
     }
   }
 }
 
 .comments-and-changelog-container {
   display: flex;
-  justify-content: space-evenly;
-
-  & > div {
-    width: 48%;
-
-    @media (max-width: 480px) {
-      width: 100%;
-    }
+  gap: var(--spacing-md);
+  
+  & > * {
+    flex: 1 1;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 1024px) {
     flex-direction: column;
+
+    & > * {
+      flex: 1 1 auto;
+    }
   }
 }

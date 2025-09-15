@@ -86,29 +86,6 @@ VALUES (
 	return err
 }
 
-func (r *AndonIssueRepository) isTopLevelGroup(
-	ctx context.Context,
-	exec db.PGExecutor,
-	groupID int,
-) (bool, error) {
-
-	var parentID *int
-	query := `
-SELECT
-	parent_id
-FROM
-	andon_issue
-WHERE
-	andon_issue_id = $1 AND is_group = true
-`
-	err := exec.QueryRow(ctx, query, groupID).Scan(&parentID)
-	if err != nil {
-		return false, err
-	}
-	return parentID == nil, nil
-
-}
-
 var andonIssueGroupSelect = `
 SELECT
 	andon_issue_id,

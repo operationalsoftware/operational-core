@@ -152,7 +152,7 @@ func (r *FileRepository) CompleteFileUpload(
 		return err
 	}
 	if existing == nil {
-		return fmt.Errorf("team with ID %d not found", fileID)
+		return fmt.Errorf("team with ID %s not found", fileID)
 	}
 
 	query := `

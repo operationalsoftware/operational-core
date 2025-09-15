@@ -96,16 +96,16 @@ type addAndonFormProps struct {
 
 func addAndonForm(p *addAndonFormProps) g.Node {
 
-	issueDescriptionLabel := "Issue Description"
-	issueDescriptionKey := "IssueDescription"
-	issueDescriptionValue := p.values.Get(issueDescriptionKey)
-	issueDescriptionError := ""
-	if p.isSubmission || issueDescriptionValue != "" {
-		issueDescriptionError = p.validationErrors.GetError(issueDescriptionKey, issueDescriptionLabel)
+	descriptionLabel := "Description"
+	descriptionKey := "Description"
+	descriptionValue := p.values.Get(descriptionKey)
+	descriptionError := ""
+	if p.isSubmission || descriptionValue != "" {
+		descriptionError = p.validationErrors.GetError(descriptionKey, descriptionLabel)
 	}
-	issueDescriptionHelperType := components.InputHelperTypeNone
-	if issueDescriptionError != "" {
-		issueDescriptionHelperType = components.InputHelperTypeError
+	descriptionHelperType := components.InputHelperTypeNone
+	if descriptionError != "" {
+		descriptionHelperType = components.InputHelperTypeError
 	}
 
 	issueIDLabel := "Issue"
@@ -210,10 +210,9 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 			),
 			g.If(
 				assignedTeam != "",
-				h.Option(
+				h.Div(
 					h.Class("assigned-team-label"),
-					h.Value(assignedTeam),
-					g.Text(fmt.Sprintf("* Assigned to: %s", assignedTeam)),
+					g.Textf("Assigned to: %s", assignedTeam),
 				),
 			),
 			g.If(issueIDError != "",
@@ -230,21 +229,21 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 
 		h.Div(
 			h.Label(
-				g.Text(issueDescriptionLabel),
+				g.Text(descriptionLabel),
 
 				h.Textarea(
-					h.Name(issueDescriptionKey),
-					h.Placeholder("Enter issue description"),
-					h.Value(issueDescriptionValue),
+					h.Name(descriptionKey),
+					h.Placeholder("Enter description"),
+					h.Value(descriptionValue),
 					h.AutoComplete("off"),
-					g.Text(issueDescriptionValue),
+					g.Text(descriptionValue),
 				),
 			),
 			g.If(
-				issueDescriptionError != "",
+				descriptionError != "",
 				components.InputHelper(&components.InputHelperProps{
-					Label: issueDescriptionError,
-					Type:  issueDescriptionHelperType,
+					Label: descriptionError,
+					Type:  descriptionHelperType,
 				})),
 		),
 

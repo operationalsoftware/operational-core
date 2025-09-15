@@ -1,44 +1,43 @@
 CREATE TABLE app_user (
-	user_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	is_api_user BOOLEAN DEFAULT FALSE NOT NULL,
-	username TEXT NOT NULL UNIQUE,
-	email TEXT UNIQUE,
-	first_name TEXT,
-	last_name TEXT,
-	created TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-	last_login TIMESTAMPTZ DEFAULT NULL,
-	hashed_password TEXT NOT NULL,
-	failed_login_attempts INTEGER DEFAULT 0 NOT NULL,
-	login_blocked_until TIMESTAMPTZ DEFAULT NULL,
-	permissions JSONB DEFAULT '{}'::JSONB NOT NULL,
-	user_data JSONB DEFAULT '{}'::JSONB NOT NULL,
-	session_duration_minutes INT
+    user_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    is_api_user BOOLEAN DEFAULT FALSE NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT UNIQUE,
+    first_name TEXT,
+    last_name TEXT,
+    created TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMPTZ DEFAULT NULL,
+    hashed_password TEXT NOT NULL,
+    failed_login_attempts INTEGER DEFAULT 0 NOT NULL,
+    login_blocked_until TIMESTAMPTZ DEFAULT NULL,
+    permissions JSONB DEFAULT '{}'::JSONB NOT NULL,
+    user_data JSONB DEFAULT '{}'::JSONB NOT NULL,
+    session_duration_minutes INT
 );
 
-
 CREATE TABLE team (
-	team_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	team_name TEXT NOT NULL,
-	is_archived BOOLEAN NOT NULL DEFAULT FALSE
+    team_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    team_name TEXT NOT NULL,
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE user_team (
-	user_team_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	user_id INT NOT NULL REFERENCES app_user(user_id) ON DELETE CASCADE,
-	team_id INT NOT NULL REFERENCES team(team_id) ON DELETE CASCADE,
-	role TEXT NOT NULL,
-	created_at TIMESTAMPTZ DEFAULT NOW(),
-	UNIQUE (user_id, team_id)
+    user_team_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES app_user(user_id) ON DELETE CASCADE,
+    team_id INT NOT NULL REFERENCES team(team_id) ON DELETE CASCADE,
+    role TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (user_id, team_id)
 );
 
 CREATE TABLE recent_search (
-	recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	search_term TEXT NOT NULL,
-	search_entities TEXT[] NOT NULL,
-	user_id INT REFERENCES app_user(user_id),
-	last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    recent_search_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    search_term TEXT NOT NULL,
+    search_entities TEXT[] NOT NULL,
+    user_id INT REFERENCES app_user(user_id),
+    last_searched_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
-	CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
+    CONSTRAINT unique_search_per_user UNIQUE (search_term, search_entities, user_id)
 );
 
 
@@ -54,101 +53,93 @@ CREATE INDEX idx_comment_entity ON comment(entity, entity_id);
 
 
 CREATE TABLE stock_item (
-	stock_item_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	stock_code TEXT NOT NULL,
-	description TEXT NOT NULL,
-	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    stock_item_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    stock_code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 
 CREATE TABLE stock_item_change (
-	stock_item_change_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	stock_item_id INT NOT NULL REFERENCES stock_item(stock_item_id),
-	stock_code TEXT,
-	description TEXT,
-	change_by INT REFERENCES app_user(user_id),
-	changed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    stock_item_change_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    stock_item_id INT NOT NULL REFERENCES stock_item(stock_item_id),
+    stock_code TEXT,
+    description TEXT,
+    change_by INT REFERENCES app_user(user_id),
+    changed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 
 CREATE TABLE stock_transaction (
-	stock_transaction_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	transaction_type TEXT NOT NULL,
-	stock_item_id INT NOT NULL REFERENCES stock_item(stock_item_id),
-	transaction_by INT NOT NULL REFERENCES app_user(user_id),
-	transaction_note TEXT NOT NULL,
-	timestamp TIMESTAMPTZ NOT NULL
+    stock_transaction_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    transaction_type TEXT NOT NULL,
+    stock_item_id INT NOT NULL REFERENCES stock_item(stock_item_id),
+    transaction_by INT NOT NULL REFERENCES app_user(user_id),
+    transaction_note TEXT NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL
 );
 
 
 CREATE TABLE stock_transaction_entry (
-	stock_transaction_entry_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	account TEXT NOT NULL,
-	location TEXT NOT NULL,
-	bin TEXT NOT NULL,
-	lot_number TEXT NOT NULL,
-	quantity NUMERIC NOT NULL,
-	running_total NUMERIC NOT NULL,
-	stock_transaction_id INT NOT NULL REFERENCES stock_transaction(stock_transaction_id)
+    stock_transaction_entry_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account TEXT NOT NULL,
+    location TEXT NOT NULL,
+    bin TEXT NOT NULL,
+    lot_number TEXT NOT NULL,
+    quantity NUMERIC NOT NULL,
+    running_total NUMERIC NOT NULL,
+    stock_transaction_id INT NOT NULL REFERENCES stock_transaction(stock_transaction_id)
 );
 
 
 CREATE TABLE andon_issue (
-	andon_issue_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	issue_name TEXT NOT NULL,
-	is_archived BOOLEAN NOT NULL DEFAULT FALSE,
-	parent_id INTEGER REFERENCES andon_issue(andon_issue_id),
-	is_group BOOLEAN NOT NULL DEFAULT FALSE,
-	assigned_team INTEGER REFERENCES team(team_id),
-	severity TEXT,
+    andon_issue_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    issue_name TEXT NOT NULL,
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+    parent_id INTEGER REFERENCES andon_issue(andon_issue_id),
+    is_group BOOLEAN NOT NULL DEFAULT FALSE,
+    assigned_team INTEGER REFERENCES team(team_id),
+    severity TEXT,
 
-	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-	created_by INTEGER NOT NULL REFERENCES app_user(user_id),
-	updated_at TIMESTAMPTZ,
-	updated_by INTEGER REFERENCES app_user(user_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by INTEGER NOT NULL REFERENCES app_user(user_id),
+    updated_at TIMESTAMPTZ,
+    updated_by INTEGER REFERENCES app_user(user_id),
 
-	UNIQUE (parent_id, issue_name)
+    UNIQUE (parent_id, issue_name)
 );
 
 
-CREATE TABLE andon_event (
-	andon_event_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	issue_id INTEGER REFERENCES andon_issue(andon_issue_id),
-	issue_description TEXT NOT NULL,
-	source TEXT NOT NULL,
-	location TEXT NOT NULL,
-    linked_entity_id INT,
-    linked_entity_type TEXT,
-	raised_by INT NOT NULL REFERENCES app_user(user_id),
-	raised_at TIMESTAMPTZ DEFAULT NOW(),
-	acknowledged_by INT REFERENCES app_user(user_id),
-	acknowledged_at TIMESTAMPTZ,
-	resolved_by INT REFERENCES app_user(user_id),
-	resolved_at TIMESTAMPTZ,
-	cancelled_by INT REFERENCES app_user(user_id),
-	cancelled_at TIMESTAMPTZ,
-	status TEXT NOT NULL,
-	last_updated TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE andon (
+    andon_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    andon_issue_id INTEGER REFERENCES andon_issue(andon_issue_id),
+    description TEXT NOT NULL,
+    source TEXT NOT NULL,
+    location TEXT NOT NULL,
+    raised_by INT NOT NULL REFERENCES app_user(user_id),
+    raised_at TIMESTAMPTZ DEFAULT NOW(),
+    acknowledged_by INT REFERENCES app_user(user_id),
+    acknowledged_at TIMESTAMPTZ,
+    resolved_by INT REFERENCES app_user(user_id),
+    resolved_at TIMESTAMPTZ,
+    cancelled_by INT REFERENCES app_user(user_id),
+    cancelled_at TIMESTAMPTZ,
+    last_updated TIMESTAMPTZ DEFAULT NOW()
 );
 
 
 CREATE TABLE andon_change (
-  andon_change_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  andon_event_id INT NOT NULL REFERENCES andon_event(andon_event_id) ON DELETE CASCADE,
-  change_by INT NOT NULL REFERENCES app_user(user_id),
-  change_at TIMESTAMPTZ DEFAULT NOW(),
-  issue_id INTEGER REFERENCES andon_issue(andon_issue_id),
-  issue_description TEXT,
-  location TEXT,
-  raised_by INT REFERENCES app_user(user_id),
-  raised_at TIMESTAMPTZ,
-  acknowledged_by INT REFERENCES app_user(user_id),
-  acknowledged_at TIMESTAMPTZ,
-  resolved_by INT REFERENCES app_user(user_id),
-  resolved_at TIMESTAMPTZ,
-  cancelled_by INT REFERENCES app_user(user_id),
-  cancelled_at TIMESTAMPTZ,
-  status TEXT
+    andon_change_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    andon_id INT NOT NULL REFERENCES andon(andon_id) ON DELETE CASCADE,
+    change_by INT NOT NULL REFERENCES app_user(user_id),
+    change_at TIMESTAMPTZ DEFAULT NOW(),
+
+    description TEXT,
+    raised_by INT REFERENCES app_user(user_id),
+    acknowledged_by INT REFERENCES app_user(user_id),
+    resolved_by INT REFERENCES app_user(user_id),
+    cancelled_by INT REFERENCES app_user(user_id),
+    reopened_by INT REFERENCES app_user(user_id)
 );
 
 
@@ -276,21 +267,19 @@ SELECT
 FROM andon_issue_tree_view
 WHERE is_group = true;
 
-
 CREATE VIEW andon_view AS
 SELECT
-    ae.andon_event_id,
-    ae.issue_description,
-    ae.issue_id,
-    ae.source,
-    ae.location,
-    ae.status,
-    ae.raised_at,
-    ae.raised_by,
-    ae.acknowledged_at,
-    ae.resolved_at,
-    ae.cancelled_at,
-    ae.last_updated,
+    a.andon_id,
+    a.description,
+    a.andon_issue_id,
+    a.source,
+    a.location,
+    a.raised_at,
+    a.raised_by,
+    a.acknowledged_at,
+    a.resolved_at,
+    a.cancelled_at,
+    a.last_updated,
     aiv.issue_name,
     aiv.assigned_team,
     aiv.assigned_team_name,
@@ -299,14 +288,79 @@ SELECT
     acku.username AS acknowledged_by_username,
     ru.username AS resolved_by_username,
     cu.username AS cancelled_by_username,
-    aiv.severity
+    aiv.severity,
+    (acknowledged_at IS NOT NULL) AS is_acknowledged,
+    (resolved_at IS NOT NULL) AS is_resolved,
+    (cancelled_at IS NOT NULL) AS is_cancelled,
+    CASE
+        WHEN cancelled_at IS NOT NULL THEN false
+        WHEN severity = 'Info' AND acknowledged_at IS NOT NULL THEN false
+        WHEN severity IN ('Self-resolvable', 'Requires Intervention')
+             AND acknowledged_at IS NOT NULL
+             AND resolved_at IS NOT NULL
+        THEN false
+        ELSE true
+    END AS is_open,
+    CASE
+        WHEN cancelled_at IS NOT NULL THEN 'Cancelled'
+        WHEN (
+            (severity = 'Info' AND acknowledged_at IS NOT NULL)
+            OR (
+                severity IN ('Self-resolvable', 'Requires Intervention')
+                AND acknowledged_at IS NOT NULL
+                AND resolved_at IS NOT NULL
+            )
+        ) THEN 'Closed'
+        WHEN acknowledged_at IS NOT NULL THEN 'Work In Progress'
+        ELSE 'Outstanding'
+    END AS status
+
 FROM
-    andon_event ae
-    INNER JOIN app_user u ON ae.raised_by = u.user_id
-    LEFT JOIN app_user acku ON ae.acknowledged_by = acku.user_id
-    LEFT JOIN app_user ru ON ae.resolved_by = ru.user_id
-    LEFT JOIN app_user cu ON ae.cancelled_by = cu.user_id
-    INNER JOIN andon_issue_view aiv ON ae.issue_id = aiv.andon_issue_id;
+    andon a
+    INNER JOIN app_user u ON a.raised_by = u.user_id
+    LEFT JOIN app_user acku ON a.acknowledged_by = acku.user_id
+    LEFT JOIN app_user ru ON a.resolved_by = ru.user_id
+    LEFT JOIN app_user cu ON a.cancelled_by = cu.user_id
+    INNER JOIN andon_issue_view aiv ON a.andon_issue_id = aiv.andon_issue_id;
+
+
+CREATE VIEW andon_change_view AS
+SELECT
+    ac.andon_change_id,
+	ac.andon_id,
+    ac.change_by,
+	change_user.username AS change_by_username,
+	ac.change_at,
+    CASE
+        WHEN ac.change_at = MIN(ac.change_at) OVER (PARTITION BY ac.andon_id)
+        THEN true
+        ELSE false
+    END AS is_creation,
+	ac.description,
+    ac.raised_by,
+	rau.username AS raised_by_username,
+    ac.acknowledged_by,
+	au.username AS acknowledged_by_username,
+    ac.resolved_by,
+	reu.username AS resolved_by_username,
+    ac.cancelled_by,
+	cu.username AS cancelled_by_username,
+    ac.reopened_by,
+	reou.username AS reopened_by_username
+FROM
+    andon_change AS ac
+    INNER JOIN
+        app_user AS change_user ON ac.change_by = change_user.user_id
+    LEFT JOIN
+        app_user AS rau ON ac.raised_by = rau.user_id
+    LEFT JOIN
+        app_user AS au ON ac.acknowledged_by = au.user_id
+    LEFT JOIN
+        app_user AS reu ON ac.resolved_by = reu.user_id
+    LEFT JOIN
+        app_user AS cu ON ac.cancelled_by = cu.user_id
+    LEFT JOIN
+        app_user AS reou ON ac.reopened_by = reou.user_id;
 
 
 CREATE VIEW user_view AS
@@ -354,20 +408,20 @@ CREATE INDEX idx_files_entity ON file(entity, entity_id);
 
 CREATE VIEW comment_view AS
 SELECT
-	c.comment_id,
-	c.entity,
-	c.entity_id,
-	c.comment,
-	u.username as commented_by_username,
-	c.commented_at,
-	COALESCE(json_agg(json_build_object(
-		'file_id', f.file_id,
-		'filename', f.filename,
-		'content_type', f.content_type,
-		'size_bytes', f.size_bytes,
+    c.comment_id,
+    c.entity,
+    c.entity_id,
+    c.comment,
+    u.username as commented_by_username,
+    c.commented_at,
+    COALESCE(json_agg(json_build_object(
+        'file_id', f.file_id,
+        'filename', f.filename,
+        'content_type', f.content_type,
+        'size_bytes', f.size_bytes,
         'status', f.status,
-		'user_id', f.user_id
-	)) FILTER (WHERE f.file_id IS NOT NULL), '[]') AS attachments
+        'user_id', f.user_id
+    )) FILTER (WHERE f.file_id IS NOT NULL), '[]') AS attachments
 FROM comment c
 LEFT JOIN app_user u ON c.commented_by = u.user_id
 LEFT JOIN file f ON f.entity = 'Comment' AND f.entity_id = c.comment_id

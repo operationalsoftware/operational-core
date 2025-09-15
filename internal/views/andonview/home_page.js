@@ -1,3 +1,5 @@
+setInterval(() => { console.log("page reloading"); window.location.reload(); }, 30000);
+
 function updateAndon(e) {
   e.preventDefault();
   const targetBtn = e.currentTarget;
@@ -5,7 +7,7 @@ function updateAndon(e) {
   const andonAction = targetBtn.dataset.action;
 
   confirmUpdate = confirm(
-    `Are you sure you want to ${andonAction} Andon \u2013 ${andonId}?`
+    `Are you sure you want to ${andonAction} this Andon?`
   );
 
   if (confirmUpdate) {
@@ -15,7 +17,7 @@ function updateAndon(e) {
       if (res.ok) {
         window.location.href = "/andons";
       } else {
-        alert("Failed to update Andon.");
+        alert("Failed to update Andon");
       }
     });
   }

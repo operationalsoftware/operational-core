@@ -4,6 +4,7 @@ import (
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ncw/swift/v2"
@@ -32,7 +33,7 @@ func NewAndonService(
 
 func (s *AndonService) CreateAndonEvent(
 	ctx context.Context,
-	andonIssue model.NewAndonEvent,
+	andonIssue model.NewAndon,
 	userID int,
 ) error {
 
@@ -58,11 +59,11 @@ func (s *AndonService) CreateAndonEvent(
 	return nil
 }
 
-func (s *AndonService) GetAndonEventByID(
+func (s *AndonService) GetAndonByID(
 	ctx context.Context,
 	andonEventID int,
 	userID int,
-) (*model.AndonEvent, error) {
+) (*model.Andon, error) {
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -70,7 +71,7 @@ func (s *AndonService) GetAndonEventByID(
 	}
 	defer tx.Rollback(ctx)
 
-	andonEvent, err := s.andonRepository.GetAndonEventByID(
+	andonEvent, err := s.andonRepository.GetAndonByID(
 		ctx,
 		s.db,
 		andonEventID,
@@ -146,15 +147,15 @@ func (s *AndonService) ListAndons(
 	ctx context.Context,
 	q model.ListAndonQuery,
 	userID int,
-) ([]model.AndonEvent, int, model.AndonAvailableFilters, error) {
+) ([]model.Andon, int, model.AndonAvailableFilters, error) {
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return []model.AndonEvent{}, 0, model.AndonAvailableFilters{}, err
+		return []model.Andon{}, 0, model.AndonAvailableFilters{}, err
 	}
 	defer tx.Rollback(ctx)
 
-	var andonEvents []model.AndonEvent
+	var andonEvents []model.Andon
 
 	andonEvents, err = s.andonRepository.ListAndons(
 		ctx,
@@ -163,12 +164,12 @@ func (s *AndonService) ListAndons(
 		userID,
 	)
 	if err != nil {
-		return []model.AndonEvent{}, 0, model.AndonAvailableFilters{}, err
+		return []model.Andon{}, 0, model.AndonAvailableFilters{}, err
 	}
 
 	count, err := s.andonRepository.Count(ctx, tx, q)
 	if err != nil {
-		return []model.AndonEvent{}, 0, model.AndonAvailableFilters{}, err
+		return []model.Andon{}, 0, model.AndonAvailableFilters{}, err
 	}
 
 	filters, err := s.andonRepository.GetAvailableFilters(ctx, tx, model.AndonFilters{
@@ -177,23 +178,23 @@ func (s *AndonService) ListAndons(
 		Issues:                 q.Issues,
 		Teams:                  q.Teams,
 		Locations:              q.Locations,
-		Statuses:               q.Statuses,
 		RaisedByUsername:       q.RaisedByUsername,
 		AcknowledgedByUsername: q.AcknowledgedByUsername,
 		ResolvedByUsername:     q.ResolvedByUsername,
 	})
 	if err != nil {
-		return []model.AndonEvent{}, 0, model.AndonAvailableFilters{}, err
+		fmt.Println(err)
+		return []model.Andon{}, 0, model.AndonAvailableFilters{}, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return []model.AndonEvent{}, 0, model.AndonAvailableFilters{}, err
+		return []model.Andon{}, 0, model.AndonAvailableFilters{}, err
 	}
 
 	return andonEvents, count, filters, nil
 }
 
-func (s *AndonService) GetAndonByID(
+func (s *AndonService) GetAndonChangelog(
 	ctx context.Context,
 	andonEventID int,
 	userID int,
@@ -205,7 +206,7 @@ func (s *AndonService) GetAndonByID(
 	}
 	defer tx.Rollback(ctx)
 
-	andonChanges, err := s.andonRepository.GetAndonChangeLog(
+	changelog, err := s.andonRepository.GetAndonChangelog(
 		ctx,
 		tx,
 		andonEventID,
@@ -218,7 +219,7 @@ func (s *AndonService) GetAndonByID(
 		return nil, err
 	}
 
-	return andonChanges, nil
+	return changelog, nil
 }
 
 func (s *AndonService) CreateAndonComment(

@@ -8,19 +8,16 @@ import (
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
-	"strconv"
 	"strings"
-	"time"
 
 	g "maragu.dev/gomponents"
-	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
 type AllAndonsPageProps struct {
 	Ctx              reqcontext.ReqContext
 	ShowArchived     bool
-	Andons           []model.AndonEvent
+	Andons           []model.Andon
 	AndonsCount      int
 	AvailableFilters model.AndonAvailableFilters
 	Filters          model.AndonFilters
@@ -34,7 +31,6 @@ type AvailableFilters struct {
 	SeverityIn               []components.SearchSelectOption
 	TeamIn                   []components.SearchSelectOption
 	LocationIn               []components.SearchSelectOption
-	StatusIn                 []components.SearchSelectOption
 	RaisedByUsernameIn       []components.SearchSelectOption
 	AcknowledgedByUsernameIn []components.SearchSelectOption
 	ResolvedByUsernameIn     []components.SearchSelectOption
@@ -95,27 +91,18 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 			TitleContents: g.Text("Updated At"),
 			SortKey:       "LastUpdated",
 		},
-		{
-			TitleContents: g.Text("Actions"),
-		},
 	}
 
 	var tableRows components.TableRows
 	for _, a := range p.Andons {
 		namePathStr := strings.Join(a.NamePath, " > ")
 
-		isAcknowledged := a.Status == "Acknowledged"
-		isResolved := a.Status == "Resolved"
-		isCancelled := a.Status == "Cancelled"
-		twoMinutesPassed := time.Since(a.RaisedAt) > 2*time.Minute && !isResolved
-		fiveMinutesPassed := time.Since(a.RaisedAt) > 5*time.Minute && !isResolved
-
 		cells := []components.TableCell{
 			{
 				Contents: g.Text(a.Location),
 			},
 			{
-				Contents: g.Text(a.IssueDescription),
+				Contents: g.Text(a.Description),
 			},
 			{
 				Contents: g.Text(namePathStr),
@@ -124,10 +111,10 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 				Contents: g.Text(a.AssignedTeamName),
 			},
 			{
-				Contents: g.Text(string(a.Severity)),
+				Contents: severityBadge(a.Severity, "small"),
 			},
 			{
-				Contents: g.Text(a.Status),
+				Contents: statusBadge(a.Status, "small"),
 			},
 			{
 				Contents: g.Text(a.RaisedByUsername),
@@ -160,105 +147,11 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 					g.If(a.LastUpdated != nil, g.Text(nilsafe.Time(a.LastUpdated).Format("2006-01-02 15:04:05"))),
 				}),
 			},
-			{
-				Contents: g.Group([]g.Node{
-
-					h.Div(
-						h.Class("andon-actions"),
-
-						g.If(a.Status == "Outstanding" && a.CanUserAcknowledge,
-							components.Button(&components.ButtonProps{
-								Size:       "small",
-								ButtonType: "button",
-							},
-								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
-								g.Attr("data-action", "acknowledge"),
-								g.Attr("title", "Acknowledge"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "gesture-tap-hold",
-								}),
-							),
-						),
-						g.If(a.Status == "Acknowledged" && a.CanUserResolve,
-							components.Button(&components.ButtonProps{
-								Size:       "small",
-								ButtonType: "button",
-							},
-								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
-								g.Attr("data-action", "resolve"),
-								g.Attr("title", "Resolve"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "check",
-								}),
-							),
-						),
-						g.If(a.Status == "Outstanding" && a.Severity == "Self-resolvable" && a.CanUserResolve,
-							components.Button(&components.ButtonProps{
-								Size:       "small",
-								ButtonType: "button",
-							},
-								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
-								g.Attr("data-action", "resolve"),
-								g.Attr("title", "Resolve"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "check",
-								}),
-							),
-						),
-						g.If(a.Status == "Cancelled",
-							components.Button(&components.ButtonProps{
-								Size:       "small",
-								ButtonType: "button",
-							},
-								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
-								g.Attr("data-action", "reopen"),
-								g.Attr("title", "Reopen"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "restore",
-								},
-								),
-							),
-						),
-
-						g.If(a.CanUserCancel,
-							components.Button(&components.ButtonProps{
-								Size: "small",
-							},
-								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonEventID)),
-								g.Attr("data-action", "cancel"),
-								g.Attr("title", "Cancel"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "cancel",
-								}),
-							),
-						),
-					),
-				}),
-			},
-		}
-
-		for i := 0; i < len(cells)-1; i++ {
-			cells[i].Classes = c.Classes{
-				"amber":         twoMinutesPassed,
-				"flashing-red":  fiveMinutesPassed,
-				"light-green":   isAcknowledged,
-				"flashing-grey": isCancelled,
-			}
 		}
 
 		tableRows = append(tableRows, components.TableRow{
 			Cells: cells,
-			HREF:  fmt.Sprintf("/andons/%d", a.AndonEventID),
+			HREF:  fmt.Sprintf("/andons/%d", a.AndonID),
 		})
 	}
 
@@ -372,20 +265,6 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 					h.Class("search-item"),
 
 					h.Label(
-						g.Text("Statuses"),
-					),
-					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "StatusIn",
-						Placeholder: "-",
-						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.StatusIn, p.Filters.Statuses),
-						Selected:    strings.Join(p.Filters.Statuses, ","),
-					}),
-				),
-				h.Div(
-					h.Class("search-item"),
-
-					h.Label(
 						g.Text("Raised By"),
 					),
 					components.SearchSelect(&components.SearchSelectProps{
@@ -466,18 +345,6 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 				),
 				g.Text("Outstanding (> 5 minutes)"),
 			),
-			h.Div(
-				h.Span(
-					h.Class("status-dot status-acknowledged"),
-				),
-				g.Text("Acknowledged"),
-			),
-			h.Div(
-				h.Span(
-					h.Class("status-dot status-cancelled"),
-				),
-				g.Text("Cancelled"),
-			),
 		),
 	})
 
@@ -498,6 +365,7 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 		},
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/andonview/all_andons_page.css"),
+			components.InlineStyle("/internal/views/andonview/components.css"),
 		},
 		AppendBody: []g.Node{
 			components.InlineScript("/internal/views/andonview/all_andons_page.js"),

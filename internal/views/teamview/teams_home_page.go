@@ -41,12 +41,13 @@ func TeamsHomePage(p *TeamsHomePageProps) g.Node {
 	var tableRows components.TableRows
 	for _, t := range p.Teams {
 
+		teamURL := fmt.Sprintf("/teams/%d", t.TeamID)
 		cells := []components.TableCell{
 			{
 				Contents: h.A(
 					g.Text(t.TeamName),
-					g.Attr("href",
-						fmt.Sprintf("/teams/%d", t.TeamID))),
+					g.Attr("href", teamURL),
+				),
 			},
 		}
 
@@ -62,6 +63,7 @@ func TeamsHomePage(p *TeamsHomePageProps) g.Node {
 
 		tableRows = append(tableRows, components.TableRow{
 			Cells: cells,
+			HREF:  teamURL,
 		})
 	}
 
@@ -83,7 +85,7 @@ func TeamsHomePage(p *TeamsHomePageProps) g.Node {
 		),
 
 		// form container for table interaction
-		h.FormEl(
+		h.Form(
 			h.ID("teams-table-form"),
 			g.Attr("method", "GET"),
 

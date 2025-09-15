@@ -1,0 +1,26 @@
+.badge {
+  /* severity colours */
+  &.info {
+    background-color: var(--geekblue-3);
+  }
+  &.self-resolvable {
+    background-color: var(--gold-5);
+  }
+  &.requires-intervention {
+    background-color: var(--purple-5);
+  }
+
+  /* action colours */
+  &.cancelled {
+    background-color: var(--grey-2);
+  }
+  &.resolved {
+    background-color: var(--green-3);
+  }
+  &.wip {
+    background-color: var(--yellow-3);
+  }
+  &.outstanding {
+    background-color: var(--red-3);
+  }
+}

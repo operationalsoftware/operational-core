@@ -36,30 +36,6 @@
   white-space: nowrap;
 }
 
-.amber {
-  background-color: #e3c206;
-}
-
-.flashing-red {
-  background-color: #eb4343;
-}
-
-.flashing-grey {
-  background-color: #c4c4c4;
-}
-
-.flashing-green {
-  background-color: #32c857;
-}
-
-.blue {
-  background-color: #29a4e5;
-}
-
-.light-green {
-  background-color: #aad1af;
-}
-
 .andon-nav {
   svg {
     margin-right: var(--spacing-sm);
@@ -101,19 +77,11 @@
 }
 
 .two-minutes-passed {
-  background-color: #e3c206; /* yellow */
+  background-color: var(--red-2);
 }
 
 .five-minutes-passed {
-  background-color: #eb4343; /* yellow */
-}
-
-.status-cancelled {
-  background-color: #c4c4c4; /* red */
-}
-
-.status-acknowledged {
-  background-color: #aad1af; /* blue */
+  background-color: var(--red-5);
 }
 
 /* Legend styling */
