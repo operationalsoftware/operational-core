@@ -27,6 +27,6 @@ func addAndonRoutes(
 	mux.HandleFunc("POST /andons/{entityID}/comments", andonHandler.AddComment)
 	mux.HandleFunc("POST /andons/{entityID}/comments/{commentID}/attachment", andonHandler.AddAttachment)
 
-	mux.HandleFunc("POST /andons/{andonID}/{action}/update", andonHandler.AndonUpdate)
+	mux.HandleFunc("POST /andons/{andonID}/{action}/update", andonHandler.UpdateAndon)
 
 }

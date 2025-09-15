@@ -21,7 +21,10 @@ input[type="button"] {
   background-color: transparent;
 }
 
-
+pre {
+  margin: 0;
+  font-family: inherit;
+}
 
 /* Clears the X from Internet Explorer */
 input[type="search"]::-ms-clear,

@@ -24,3 +24,23 @@
     background-color: var(--red-3);
   }
 }
+
+.button {
+  &.acknowledge {
+    border-color: var(--yellow-7);
+    color: var(--yellow-7);
+
+    &:hover {
+      background-color: var(--yellow-7);
+    }
+  }
+
+  &.resolve {
+    border-color: var(--green-7);
+    color: var(--green-7);
+
+    &:hover {
+      background-color: var(--green-7);
+    }
+  }
+}

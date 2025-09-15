@@ -26,6 +26,10 @@
   }
 }
 
+.description {
+  font-size: var(--font-size-lg);
+}
+
 .attributes-list {
   margin-top: var(--spacing-lg);
 

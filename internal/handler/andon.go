@@ -72,21 +72,20 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	trueBool := true
 	falseBool := false
 
 	outstandingAndons, outstandingAndonsCount, _, err := h.andonService.ListAndons(r.Context(),
 		model.ListAndonQuery{
-			Sort:     outstandingSort,
-			Page:     1,
-			PageSize: 10000, // reasonable limit
+			Sort:                 outstandingSort,
+			DefaultSortField:     "raised_at",
+			DefaultSortDirection: appsort.DirectionAsc,
+			Page:                 1,
+			PageSize:             10000, // reasonable limit
 
-			IsAcknowledged:   &falseBool,
-			IsOpen:           &trueBool,
-			Teams:            uv.AndonTeams,
-			OrderBy:          "raised_at",
-			OrderByDirection: "asc",
+			IsAcknowledged: &falseBool,
+			IsOpen:         &trueBool,
+			TeamIn:         uv.AndonTeams,
 		}, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
@@ -97,15 +96,15 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	wipAndons, wipAndonsCount, _, err := h.andonService.ListAndons(
 		r.Context(),
 		model.ListAndonQuery{
-			Sort:     wipSort,
-			Page:     1,
-			PageSize: 10000, // reasonable limit
+			Sort:                 wipSort,
+			DefaultSortField:     "raised_at",
+			DefaultSortDirection: appsort.DirectionAsc,
+			Page:                 1,
+			PageSize:             10000, // reasonable limit
 
-			IsAcknowledged:   &trueBool,
-			IsOpen:           &trueBool,
-			Teams:            uv.AndonTeams,
-			OrderBy:          "acknowledged_at",
-			OrderByDirection: "asc",
+			IsAcknowledged: &trueBool,
+			IsOpen:         &trueBool,
+			TeamIn:         uv.AndonTeams,
 		},
 		ctx.User.UserID,
 	)
@@ -199,19 +198,21 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 	andons, count, filters, err := h.andonService.ListAndons(
 		r.Context(),
 		model.ListAndonQuery{
-			Sort:     sort,
-			Page:     uv.Page,
-			PageSize: uv.PageSize,
+			Sort:                 sort,
+			DefaultSortField:     "andon_id",
+			DefaultSortDirection: appsort.DirectionDesc,
+			Page:                 uv.Page,
+			PageSize:             uv.PageSize,
 
-			StartDate:              uv.StartDate,
-			EndDate:                uv.EndDate,
-			Issues:                 uv.IssueIn,
-			Severities:             uv.SeverityIn,
-			Teams:                  uv.TeamIn,
-			Locations:              uv.LocationIn,
-			RaisedByUsername:       uv.RaisedByUsernameIn,
-			AcknowledgedByUsername: uv.AcknowledgedByUsernameIn,
-			ResolvedByUsername:     uv.ResolvedByUsernameIn,
+			StartDate:                uv.StartDate,
+			EndDate:                  uv.EndDate,
+			IssueIn:                  uv.IssueIn,
+			SeverityIn:               uv.SeverityIn,
+			TeamIn:                   uv.TeamIn,
+			LocationIn:               uv.LocationIn,
+			RaisedByUsernameIn:       uv.RaisedByUsernameIn,
+			AcknowledgedByUsernameIn: uv.AcknowledgedByUsernameIn,
+			ResolvedByUsernameIn:     uv.ResolvedByUsernameIn,
 		},
 		ctx.User.UserID,
 	)
@@ -230,15 +231,15 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 		Page:             uv.Page,
 		PageSize:         uv.PageSize,
 		Filters: model.AndonFilters{
-			StartDate:              uv.StartDate,
-			EndDate:                uv.EndDate,
-			Issues:                 uv.IssueIn,
-			Severities:             uv.SeverityIn,
-			Teams:                  uv.TeamIn,
-			Locations:              uv.LocationIn,
-			RaisedByUsername:       uv.RaisedByUsernameIn,
-			AcknowledgedByUsername: uv.AcknowledgedByUsernameIn,
-			ResolvedByUsername:     uv.ResolvedByUsernameIn,
+			StartDate:                uv.StartDate,
+			EndDate:                  uv.EndDate,
+			IssueIn:                  uv.IssueIn,
+			SeverityIn:               uv.SeverityIn,
+			TeamIn:                   uv.TeamIn,
+			LocationIn:               uv.LocationIn,
+			RaisedByUsernameIn:       uv.RaisedByUsernameIn,
+			AcknowledgedByUsernameIn: uv.AcknowledgedByUsernameIn,
+			ResolvedByUsernameIn:     uv.ResolvedByUsernameIn,
 		},
 	}).Render(w)
 }
@@ -535,7 +536,7 @@ func (h *AndonHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *AndonHandler) AndonUpdate(w http.ResponseWriter, r *http.Request) {
+func (h *AndonHandler) UpdateAndon(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 	if !ctx.User.Permissions.UserAdmin.Access {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -545,7 +546,7 @@ func (h *AndonHandler) AndonUpdate(w http.ResponseWriter, r *http.Request) {
 	andonEventID, _ := strconv.Atoi(r.PathValue("andonID"))
 	andonAction := r.PathValue("action")
 
-	err := h.andonService.UpdateAndonEvent(
+	err := h.andonService.UpdateAndon(
 		r.Context(),
 		andonEventID,
 		andonAction,

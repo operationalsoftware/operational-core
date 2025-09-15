@@ -9,7 +9,6 @@ import (
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -108,55 +107,15 @@ func HomePage(p *HomePageProps) g.Node {
 					h.Div(
 						h.Class("andon-actions"),
 
-						g.If(
-							a.CanUserAcknowledge,
+						acknowledgeButton(&acknowledgeButtonProps{
+							andonID: a.AndonID,
+							buttonSize: components.ButtonSm,
+						}),
 
-							components.Button(&components.ButtonProps{
-								Size:       "small",
-								ButtonType: "button",
-							},
-								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonID)),
-								g.Attr("data-action", "acknowledge"),
-								g.Attr("title", "Acknowledge"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "gesture-tap-hold",
-								}),
-							),
-						),
-
-						g.If(
-							a.Severity == "Self-resolvable" && a.CanUserResolve,
-							components.Button(&components.ButtonProps{
-								Size:       "small",
-								ButtonType: "button",
-							},
-								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonID)),
-								g.Attr("data-action", "resolve"),
-								g.Attr("title", "Resolve"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "check",
-								}),
-							),
-						),
-
-						g.If(a.CanUserCancel,
-							components.Button(&components.ButtonProps{
-								Size: "small",
-							},
-								g.Attr("onclick", "updateAndon(event)"),
-								g.Attr("data-id", strconv.Itoa(a.AndonID)),
-								g.Attr("data-action", "cancel"),
-								g.Attr("title", "Cancel"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "cancel",
-								}),
-							),
-						),
+						cancelButton(&cancelButtonProps{
+							andonID: a.AndonID,
+							buttonSize: components.ButtonSm,
+						}),
 					),
 				}),
 			},
@@ -208,31 +167,15 @@ func HomePage(p *HomePageProps) g.Node {
 					h.Div(
 						h.Class("andon-actions"),
 
-						components.Button(&components.ButtonProps{
-							Size:       "small",
-							ButtonType: "button",
-						},
-							g.Attr("onclick", "updateAndon(event)"),
-							g.Attr("data-id", strconv.Itoa(a.AndonID)),
-							g.Attr("data-action", "resolve"),
-							g.Attr("title", "Resolve"),
+						resolveButton(&resolveButtonProps{
+							andonID: a.AndonID,
+							buttonSize: components.ButtonSm,
+						}),
 
-							components.Icon(&components.IconProps{
-								Identifier: "check",
-							}),
-						),
-						components.Button(&components.ButtonProps{
-							Size: "small",
-						},
-							g.Attr("onclick", "updateAndon(event)"),
-							g.Attr("data-id", strconv.Itoa(a.AndonID)),
-							g.Attr("data-action", "cancel"),
-							g.Attr("title", "Cancel"),
-
-							components.Icon(&components.IconProps{
-								Identifier: "cancel",
-							}),
-						),
+						cancelButton(&cancelButtonProps{
+							andonID: a.AndonID,
+							buttonSize: components.ButtonSm,
+						}),
 					),
 				}),
 			},
@@ -348,18 +291,6 @@ func HomePage(p *HomePageProps) g.Node {
 					h.Class("status-dot five-minutes-passed"),
 				),
 				g.Text("Outstanding (> 5 minutes)"),
-			),
-			h.Div(
-				h.Span(
-					h.Class("status-dot status-acknowledged"),
-				),
-				g.Text("Acknowledged"),
-			),
-			h.Div(
-				h.Span(
-					h.Class("status-dot status-cancelled"),
-				),
-				g.Text("Cancelled"),
 			),
 		),
 	})

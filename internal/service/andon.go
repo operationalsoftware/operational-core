@@ -88,7 +88,7 @@ func (s *AndonService) GetAndonByID(
 	return andonEvent, nil
 }
 
-func (s *AndonService) UpdateAndonEvent(
+func (s *AndonService) UpdateAndon(
 	ctx context.Context,
 	andonEventID int,
 	action string,
@@ -103,28 +103,28 @@ func (s *AndonService) UpdateAndonEvent(
 
 	switch action {
 	case "acknowledge":
-		err = s.andonRepository.AcknowledgeAndonEvent(
+		err = s.andonRepository.AcknowledgeAndon(
 			ctx,
 			tx,
 			andonEventID,
 			userID,
 		)
 	case "resolve":
-		err = s.andonRepository.ResolveAndonEvent(
+		err = s.andonRepository.ResolveAndon(
 			ctx,
 			tx,
 			andonEventID,
 			userID,
 		)
 	case "cancel":
-		err = s.andonRepository.CancelAndonEvent(
+		err = s.andonRepository.CancelAndon(
 			ctx,
 			tx,
 			andonEventID,
 			userID,
 		)
 	case "reopen":
-		err = s.andonRepository.ReopenAndonEvent(
+		err = s.andonRepository.ReopenAndon(
 			ctx,
 			tx,
 			andonEventID,
@@ -175,12 +175,12 @@ func (s *AndonService) ListAndons(
 	filters, err := s.andonRepository.GetAvailableFilters(ctx, tx, model.AndonFilters{
 		StartDate:              q.StartDate,
 		EndDate:                q.EndDate,
-		Issues:                 q.Issues,
-		Teams:                  q.Teams,
-		Locations:              q.Locations,
-		RaisedByUsername:       q.RaisedByUsername,
-		AcknowledgedByUsername: q.AcknowledgedByUsername,
-		ResolvedByUsername:     q.ResolvedByUsername,
+		IssueIn:                 q.IssueIn,
+		TeamIn:                  q.TeamIn,
+		LocationIn:              q.LocationIn,
+		RaisedByUsernameIn:       q.RaisedByUsernameIn,
+		AcknowledgedByUsernameIn: q.AcknowledgedByUsernameIn,
+		ResolvedByUsernameIn:     q.ResolvedByUsernameIn,
 	})
 	if err != nil {
 		fmt.Println(err)

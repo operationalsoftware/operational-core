@@ -5,7 +5,7 @@ function updateAndon(e) {
   const andonAction = targetBtn.dataset.action;
 
   confirmUpdate = confirm(
-    `Are you sure you want to ${andonAction} Andon \u2013 ${andonId}?`
+    `Are you sure you want to ${andonAction} this Andon?`
   );
 
   if (confirmUpdate) {

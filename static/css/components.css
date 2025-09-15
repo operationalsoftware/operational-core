@@ -127,7 +127,9 @@ hr {
 /* Start Button */
 .button,
 .button.primary {
-  border: var(--button-border-width) solid var(--primary-color);
+  border-width: var(--button-border-width);
+  border-style: solid;
+  border-color: var(--primary-color);
   border-radius: var(--border-radius);
   color: var(--primary-color);
   font-size: var(--font-size-md);
@@ -146,52 +148,51 @@ hr {
       display: inline;
     }
   }
+
+  &:hover {
+    background-color: var(--primary-color);
+    color: var(--text-color-contrast);
+  }
 }
 
 .button.secondary {
-  border: var(--button-border-width) solid var(--secondary-color);
+  border-color: var(--secondary-color);
   color: var(--secondary-color);
+
+  &:hover {
+    background-color: var(--secondary-color);
+    color: var(--text-color-contrast);
+  }
 }
 
 .button.danger {
-  border: var(--button-border-width) solid var(--danger-color);
+  border-color: var(--danger-color);
   color: var(--danger-color);
+
+  &:hover {
+    background-color: var(--danger-color);
+    color: var(--text-color-contrast);
+  }
 }
 
 .button.success {
-  border: var(--button-border-width) solid var(--success-color);
+  border-color: var(--success-color);
   color: var(--success-color);
+
+  &:hover {
+    background-color: var(--success-color);
+    color: var(--text-color-contrast);
+  }
 }
 
 .button.warning {
-  border: var(--button-border-width) solid var(--warning-color);
+  border-color: var(--warning-color);
   color: var(--warning-color);
-}
 
-.button:hover,
-.button.primary:hover {
-  background-color: var(--primary-color);
-  color: var(--text-color-contrast);
-}
-
-.button.secondary:hover {
-  background-color: var(--secondary-color);
-  color: var(--text-color-contrast);
-}
-
-.button.danger:hover {
-  background-color: var(--danger-color);
-  color: var(--text-color-contrast);
-}
-
-.button.success:hover {
-  background-color: var(--success-color);
-  color: var(--text-color-contrast);
-}
-
-.button.warning:hover {
-  background-color: var(--warning-color);
-  color: var(--text-color-contrast);
+  &:hover {
+    background-color: var(--warning-color);
+    color: var(--text-color-contrast);
+  }
 }
 
 .button:disabled,
@@ -238,23 +239,18 @@ hr {
   margin: 1.5rem 0;
   font-family: system-ui, sans-serif;
 
-  h3 {
-    margin-bottom: 0.5rem;
-    /* border-bottom: 1px solid var(--border-color); */
-    padding-bottom: 0.3rem;
-  }
-
   .main-list {
+
     list-style: none;
     padding: 0;
     margin: 0;
   }
 
   .main-list > li {
-    margin-bottom: 1rem;
+    margin-bottom: var(--spacing-md);
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border-color);
-    margin-left: var(--spacing-xl);
+    margin-left: var(--spacing-lg);
   }
 
   ul ul {

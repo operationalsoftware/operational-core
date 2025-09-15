@@ -214,8 +214,8 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "IssueIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.IssueIn, p.Filters.Issues),
-						Selected:    strings.Join(p.Filters.Issues, ","),
+						Options:     components.MapStringsToOptions(availableFilters.IssueIn, p.Filters.IssueIn),
+						Selected:    strings.Join(p.Filters.IssueIn, ","),
 					}),
 				),
 				h.Div(
@@ -229,8 +229,8 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Placeholder: "-",
 						Mode:        "multi",
 						Options: components.MapStringsToOptions(availableFilters.
-							SeverityIn, p.Filters.Severities),
-						Selected: strings.Join(p.Filters.Severities, ","),
+							SeverityIn, p.Filters.SeverityIn),
+						Selected: strings.Join(p.Filters.SeverityIn, ","),
 					}),
 				),
 				h.Div(
@@ -243,8 +243,8 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "TeamIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.TeamIn, p.Filters.Teams),
-						Selected:    strings.Join(p.Filters.Teams, ","),
+						Options:     components.MapStringsToOptions(availableFilters.TeamIn, p.Filters.TeamIn),
+						Selected:    strings.Join(p.Filters.TeamIn, ","),
 					}),
 				),
 				h.Div(
@@ -257,8 +257,8 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "LocationIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.LocationIn, p.Filters.Locations),
-						Selected:    strings.Join(p.Filters.Locations, ","),
+						Options:     components.MapStringsToOptions(availableFilters.LocationIn, p.Filters.LocationIn),
+						Selected:    strings.Join(p.Filters.LocationIn, ","),
 					}),
 				),
 				h.Div(
@@ -271,8 +271,8 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "RaisedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.RaisedByUsernameIn, p.Filters.RaisedByUsername),
-						Selected:    strings.Join(p.Filters.RaisedByUsername, ","),
+						Options:     components.MapStringsToOptions(availableFilters.RaisedByUsernameIn, p.Filters.RaisedByUsernameIn),
+						Selected:    strings.Join(p.Filters.RaisedByUsernameIn, ","),
 					}),
 				),
 				h.Div(
@@ -285,8 +285,8 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "AcknowledgedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.AcknowledgedByUsernameIn, p.Filters.AcknowledgedByUsername),
-						Selected:    strings.Join(p.Filters.AcknowledgedByUsername, ","),
+						Options:     components.MapStringsToOptions(availableFilters.AcknowledgedByUsernameIn, p.Filters.AcknowledgedByUsernameIn),
+						Selected:    strings.Join(p.Filters.AcknowledgedByUsernameIn, ","),
 					}),
 				),
 				h.Div(
@@ -299,8 +299,8 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 						Name:        "ResolvedByUsernameIn",
 						Placeholder: "-",
 						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.ResolvedByUsernameIn, p.Filters.ResolvedByUsername),
-						Selected:    strings.Join(p.Filters.ResolvedByUsername, ","),
+						Options:     components.MapStringsToOptions(availableFilters.ResolvedByUsernameIn, p.Filters.ResolvedByUsernameIn),
+						Selected:    strings.Join(p.Filters.ResolvedByUsernameIn, ","),
 					}),
 				),
 			),
@@ -327,23 +327,6 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 				},
 			},
 				h.ID("andon-table"),
-			),
-		),
-
-		h.Div(
-			h.Class("status-legend"),
-
-			h.Div(
-				h.Span(
-					h.Class("status-dot two-minutes-passed"),
-				),
-				g.Text("Outstanding (> 2 minutes)"),
-			),
-			h.Div(
-				h.Span(
-					h.Class("status-dot five-minutes-passed"),
-				),
-				g.Text("Outstanding (> 5 minutes)"),
 			),
 		),
 	})

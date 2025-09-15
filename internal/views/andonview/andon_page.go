@@ -9,7 +9,6 @@ import (
 	"app/pkg/validate"
 	"fmt"
 	"net/url"
-	"strconv"
 	"strings"
 
 	g "maragu.dev/gomponents"
@@ -33,6 +32,7 @@ var changelogFieldDefs = []components.ChangelogProperty{
 	{FieldKey: "AcknowledgedByUsername", Label: g.Text("Acknowledged By")},
 	{FieldKey: "ResolvedByUsername", Label: g.Text("Resolved By")},
 	{FieldKey: "CancelledByUsername", Label: g.Text("Cancelled By")},
+	{FieldKey: "ReopenedByUsername", Label: g.Text("Reopened By")},
 }
 
 func AndonPage(p *AndonPageProps) g.Node {
@@ -52,11 +52,16 @@ func AndonPage(p *AndonPageProps) g.Node {
 				"AcknowledgedByUsername": change.AcknowledgedByUsername,
 				"ResolvedByUsername":     change.ResolvedByUsername,
 				"CancelledByUsername":    change.CancelledByUsername,
+				"ReopenedByUsername":     change.ReopenedByUsername,
 			},
 		}
 		changelogEntries = append(changelogEntries, entry)
 	}
 
+	source := "\u2013"
+	if andon.Source != "" {
+		source = andon.Source
+	}
 	acknowledgedByUsername := "\u2013"
 	if andon.AcknowledgedByUsername != nil {
 		acknowledgedByUsername = *andon.AcknowledgedByUsername
@@ -79,10 +84,9 @@ func AndonPage(p *AndonPageProps) g.Node {
 		value g.Node
 	}
 	attributes := []attribute{
-		{label: "Location", value: g.Text(andon.Location)},
 		{label: "Issue", value: g.Text(namePathStr)},
-		{label: "Description", value: g.Text(andon.Description)},
-		{label: "Source", value: g.Text(andon.Source)},
+		{label: "Location", value: g.Text(andon.Location)},
+		{label: "Source", value: g.Text(source)},
 		{label: "Assigned Team", value: g.Text(andon.AssignedTeamName)},
 		{label: "Raised By", value: g.Text(andon.RaisedByUsername)},
 		{label: "Raised At", value: g.Text(andon.RaisedAt.Format("2006-01-02 15:04:05"))},
@@ -122,64 +126,28 @@ func AndonPage(p *AndonPageProps) g.Node {
 			h.Div(
 				h.Class("actions"),
 
-				g.If(andon.CanUserAcknowledge,
-					components.Button(&components.ButtonProps{},
-						g.Attr("onclick", "updateAndon(event)"),
-						g.Attr("data-id", strconv.Itoa(p.AndonID)),
-						g.Attr("data-action", "acknowledge"),
-						g.Attr("title", "Acknowledge"),
-
-						components.Icon(&components.IconProps{
-							Identifier: "gesture-tap-hold",
-						}),
-
-						g.Text("Acknowledge"),
-					),
-				),
-				g.If(andon.CanUserResolve,
-					components.Button(&components.ButtonProps{},
-						g.Attr("onclick", "updateAndon(event)"),
-						g.Attr("data-id", strconv.Itoa(p.AndonID)),
-						g.Attr("data-action", "resolve"),
-						g.Attr("title", "Resolve"),
-
-						components.Icon(&components.IconProps{
-							Identifier: "check",
-						}),
-
-						g.Text("Resolve"),
-					),
-				),
-				g.If(andon.CanUserReopen,
-					components.Button(&components.ButtonProps{},
-						g.Attr("onclick", "updateAndon(event)"),
-						g.Attr("data-id", strconv.Itoa(p.AndonID)),
-						g.Attr("data-action", "reopen"),
-						g.Attr("title", "Reopen"),
-
-						components.Icon(&components.IconProps{
-							Identifier: "restore",
-						}),
-
-						g.Text("Reopen"),
-					),
-				),
-
-				g.If(andon.CanUserCancel,
-					components.Button(&components.ButtonProps{},
-						g.Attr("onclick", "updateAndon(event)"),
-						g.Attr("data-id", strconv.Itoa(p.AndonID)),
-						g.Attr("data-action", "cancel"),
-						g.Attr("title", "Cancel"),
-
-						components.Icon(&components.IconProps{
-							Identifier: "cancel",
-						}),
-
-						g.Text("Cancel"),
-					),
-				),
+				g.If(andon.CanUserAcknowledge, acknowledgeButton(&acknowledgeButtonProps{
+					andonID: p.AndonID,
+					showText: true,
+				})),
+				g.If(andon.CanUserResolve, resolveButton(&resolveButtonProps{
+					andonID: p.AndonID,
+					showText: true,
+				})),
+				g.If(andon.CanUserCancel, cancelButton(&cancelButtonProps{
+					andonID: p.AndonID,
+					showText: true,
+				})),
+				g.If(andon.CanUserReopen, reopenButton(&reopenButtonProps{
+					andonID: p.AndonID,
+					showText: true,
+				})),
 			),
+		),
+
+		h.Div(
+			h.Class("description"),
+			h.Pre(g.Text(andon.Description)),
 		),
 
 		h.Div(
@@ -214,7 +182,7 @@ func AndonPage(p *AndonPageProps) g.Node {
 
 	return layout.Page(layout.PageProps{
 		Ctx:   p.Ctx,
-		Title: "Add New Andon Issue",
+		Title: fmt.Sprintf("Andon: %s", andon.Description),
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
 			andonIssuesBreadCrumb,

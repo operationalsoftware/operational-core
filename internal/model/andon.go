@@ -59,26 +59,25 @@ type NewAndon struct {
 }
 
 type ListAndonQuery struct {
-	Sort     appsort.Sort
-	Page     int
-	PageSize int
+	Sort                 appsort.Sort
+	DefaultSortField     string
+	DefaultSortDirection appsort.Direction
+	Page                 int
+	PageSize             int
 
-	StartDate              *time.Time
-	EndDate                *time.Time
-	IsOpen                 *bool
-	IsAcknowledged         *bool
-	IsResolved             *bool
-	IsCancelled            *bool
-	Issues                 []string
-	Severities             []string
-	Teams                  []string
-	Locations              []string
-	RaisedByUsername       []string
-	AcknowledgedByUsername []string
-	ResolvedByUsername     []string
-
-	OrderBy          string
-	OrderByDirection string
+	StartDate                *time.Time
+	EndDate                  *time.Time
+	IsOpen                   *bool
+	IsAcknowledged           *bool
+	IsResolved               *bool
+	IsCancelled              *bool
+	IssueIn                  []string
+	SeverityIn               []string
+	TeamIn                   []string
+	LocationIn               []string
+	RaisedByUsernameIn       []string
+	AcknowledgedByUsernameIn []string
+	ResolvedByUsernameIn     []string
 }
 
 type AndonChange struct {
@@ -91,28 +90,26 @@ type AndonChange struct {
 	Description            *string
 	RaisedBy               *int
 	RaisedByUsername       *string
-	RaisedAt               *time.Time
 	AcknowledgedBy         *int
 	AcknowledgedByUsername *string
-	AcknowledgedAt         *time.Time
 	ResolvedBy             *int
 	ResolvedByUsername     *string
-	ResolvedAt             *time.Time
 	CancelledBy            *int
 	CancelledByUsername    *string
-	CancelledAt            *time.Time
+	ReopenedBy             *int
+	ReopenedByUsername     *string
 }
 
 type AndonFilters struct {
-	StartDate              *time.Time
-	EndDate                *time.Time
-	Issues                 []string
-	Severities             []string
-	Teams                  []string
-	Locations              []string
-	RaisedByUsername       []string
-	AcknowledgedByUsername []string
-	ResolvedByUsername     []string
+	StartDate                *time.Time
+	EndDate                  *time.Time
+	IssueIn                  []string
+	SeverityIn               []string
+	TeamIn                   []string
+	LocationIn               []string
+	RaisedByUsernameIn       []string
+	AcknowledgedByUsernameIn []string
+	ResolvedByUsernameIn     []string
 }
 
 type AndonAvailableFilters struct {

@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -114,22 +115,12 @@ SELECT
 	    AND
 		is_acknowledged = false
 		AND
-		(
-			(
-				severity = 'Self-resolvable'
-				AND
-				raised_by = ` + currentUserIDPlaceholderStr + `
-			)
-			OR
-			assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholderStr + `)
-		)
+		assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholderStr + `)
 	) AS can_user_acknowledge,
 	(
 		severity <> 'Info'
 		AND
 		is_cancelled = false
-		AND
-		is_acknowledged = true
 		AND
 		is_resolved = false
 		AND
@@ -157,9 +148,7 @@ SELECT
 		)
 	) AS can_user_cancel,
 	(
-		is_cancelled = true
-		AND
-		is_resolved = true
+		is_open = false
 		AND
 		(
 			(
@@ -260,18 +249,9 @@ FROM andon_view
 	limit := q.PageSize
 	offset := (q.Page - 1) * q.PageSize
 	orderByClause, _ := q.Sort.ToOrderByClause(model.Andon{})
-	defaultOrderBy := "resolved_at"
-	defaultOrderByDirection := "asc"
 
-	if q.OrderBy != "" {
-		defaultOrderBy = q.OrderBy
-	}
-	if q.OrderByDirection != "" {
-		defaultOrderByDirection = q.OrderByDirection
-	}
-
-	if orderByClause == "" {
-		orderByClause = fmt.Sprintf("ORDER BY %s %s", defaultOrderBy, defaultOrderByDirection)
+	if orderByClause == "" && q.DefaultSortDirection != "" && q.DefaultSortField != "" {
+		orderByClause = fmt.Sprintf("ORDER BY %s %s", q.DefaultSortField, q.DefaultSortDirection)
 	}
 
 	finalQuery := query + "\n" + whereClause + "\n" + orderByClause + "\n" +
@@ -372,30 +352,30 @@ func (r *AndonRepository) GetAvailableFilters(
 	// helper to select into a *[]string
 	var collect = func(key string, dest *[]string) error {
 		queryFilters := model.ListAndonQuery{
-			StartDate:              baseFilters.StartDate,
-			EndDate:                baseFilters.EndDate,
-			Issues:                 baseFilters.Issues,
-			Severities:             baseFilters.Severities,
-			Teams:                  baseFilters.Teams,
-			Locations:              baseFilters.Locations,
-			RaisedByUsername:       baseFilters.RaisedByUsername,
-			AcknowledgedByUsername: baseFilters.AcknowledgedByUsername,
-			ResolvedByUsername:     baseFilters.ResolvedByUsername,
+			StartDate:                baseFilters.StartDate,
+			EndDate:                  baseFilters.EndDate,
+			IssueIn:                  baseFilters.IssueIn,
+			SeverityIn:               baseFilters.SeverityIn,
+			TeamIn:                   baseFilters.TeamIn,
+			LocationIn:               baseFilters.LocationIn,
+			RaisedByUsernameIn:       baseFilters.RaisedByUsernameIn,
+			AcknowledgedByUsernameIn: baseFilters.AcknowledgedByUsernameIn,
+			ResolvedByUsernameIn:     baseFilters.ResolvedByUsernameIn,
 		}
 
 		switch key {
 		case "IssueIn":
-			queryFilters.Issues = nil
+			queryFilters.IssueIn = nil
 		case "SeverityIn":
-			queryFilters.Severities = nil
+			queryFilters.SeverityIn = nil
 		case "TeamIn":
-			queryFilters.Teams = nil
+			queryFilters.TeamIn = nil
 		case "LocationIn":
-			queryFilters.Locations = nil
+			queryFilters.LocationIn = nil
 		case "AcknowledgedByUsernameIn":
-			queryFilters.AcknowledgedByUsername = nil
+			queryFilters.AcknowledgedByUsernameIn = nil
 		case "ResolvedByUsernameIn":
-			queryFilters.ResolvedByUsername = nil
+			queryFilters.ResolvedByUsernameIn = nil
 		}
 
 		where, args := generateWhereClause(queryFilters)
@@ -475,16 +455,14 @@ SELECT
 	description,
 	raised_by,
 	raised_by_username,
-	raised_at,
 	acknowledged_by,
 	acknowledged_by_username,
-	acknowledged_at,
 	resolved_by,
 	resolved_by_username,
-	resolved_at,
 	cancelled_by,
 	cancelled_by_username,
-	cancelled_at
+	reopened_by,
+	reopened_by_username
 FROM
 	andon_change_view
 
@@ -511,16 +489,14 @@ ORDER BY change_at DESC
 			&change.Description,
 			&change.RaisedBy,
 			&change.RaisedByUsername,
-			&change.RaisedAt,
 			&change.AcknowledgedBy,
 			&change.AcknowledgedByUsername,
-			&change.AcknowledgedAt,
 			&change.ResolvedBy,
 			&change.ResolvedByUsername,
-			&change.ResolvedAt,
 			&change.CancelledBy,
 			&change.CancelledByUsername,
-			&change.CancelledAt,
+			&change.ReopenedBy,
+			&change.ReopenedByUsername,
 		); err != nil {
 			return nil, err
 		}
@@ -533,179 +509,268 @@ ORDER BY change_at DESC
 	return changes, nil
 }
 
-func (r *AndonRepository) AcknowledgeAndonEvent(
+func (r *AndonRepository) AcknowledgeAndon(
 	ctx context.Context,
 	exec db.PGExecutor,
-	andonEventID int,
+	andonID int,
 	userID int,
 ) error {
 
-	insertQuery := `
-INSERT INTO 
-  andon_change (
-    change_by, 
-    andon_id, 
-    acknowledged_by
-) 
-VALUES ($1, $2, $1)
-`
+	now := time.Now()
 
-	updateQuery := `
+	namedParams := map[string]any{
+		"andon_id": andonID,
+		"user_id":  userID,
+		"now":      now,
+	}
+
+	andonUpdateQuery, andonUpdateParams, err := db.BindNamed(`
 UPDATE 
-  andon
+	andon
 SET 
-  acknowledged_by = $1,
-  acknowledged_at = NOW(),
-  last_updated = NOW()
-WHERE 
-  andon_id = $2
-`
-
-	_, err := exec.Exec(ctx, insertQuery, userID, andonEventID)
+	acknowledged_by = :user_id,
+	acknowledged_at = :now,
+	last_updated = :now
+WHERE
+	andon_id = :andon_id
+`, namedParams)
+	if err != nil {
+		return fmt.Errorf("error binding andon update params: %v", err)
+	}
+	_, err = exec.Exec(
+		ctx, andonUpdateQuery,
+		andonUpdateParams...,
+	)
 	if err != nil {
 		return err
 	}
 
-	_, err = exec.Exec(ctx, updateQuery, userID, andonEventID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *AndonRepository) ResolveAndonEvent(
-	ctx context.Context,
-	exec db.PGExecutor,
-	andonEventID int,
-	userID int,
-) error {
-
-	insertQuery := `
-INSERT INTO 
-  andon_change (
-    change_by, 
-    andon_id, 
-    resolved_by, 
-) 
-VALUES ($1, $2, $1)
-`
-
-	updateQuery := `
-UPDATE 
-  andon
-SET 
-  resolved_by = $1,
-  resolved_at = NOW(),
-  last_updated = NOW()
-WHERE 
-  andon_id = $2
-`
-
-	_, err := exec.Exec(ctx, insertQuery, userID, andonEventID)
-	if err != nil {
-		return err
-	}
-
-	_, err = exec.Exec(ctx, updateQuery, userID, andonEventID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *AndonRepository) CancelAndonEvent(
-	ctx context.Context,
-	exec db.PGExecutor,
-	andonEventID int,
-	userID int,
-) error {
-
-	insertQuery := `
-INSERT INTO 
-  andon_change (
-    change_by, 
-    andon_id, 
-    cancelled_by,
-    cancelled_at,
-    status
-) 
-VALUES ($1, $2, $1)
-`
-
-	updateQuery := `
-UPDATE 
-  andon
-SET 
-  cancelled_by = $1,
-  cancelled_at = NOW(),
-  last_updated = NOW()
-WHERE 
-  andon_id = $2
-`
-
-	_, err := exec.Exec(ctx, insertQuery, userID, andonEventID)
-	if err != nil {
-		return err
-	}
-
-	_, err = exec.Exec(ctx, updateQuery, userID, andonEventID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *AndonRepository) ReopenAndonEvent(
-	ctx context.Context,
-	exec db.PGExecutor,
-	andonEventID int,
-	userID int,
-) error {
-
-	insertQuery := `
-INSERT INTO 
-  andon_change (
-    change_by, 
-    andon_id, 
-    raised_by,
-    raised_at,
-    status
-) 
+	changelogQuery, changelogParams, err := db.BindNamed(`
+INSERT INTO
+	andon_change (
+		andon_id,
+		change_by,
+		change_at,
+		acknowledged_by
+	)
 VALUES (
-    $1, $2, $1, NOW(), 'Outstanding'
+	:andon_id,
+	:user_id,
+	:now,
+	:user_id
 )
-`
+`, namedParams)
+	if err != nil {
+		return fmt.Errorf("error binding changelog params: %v", err)
+	}
+	_, err = exec.Exec(
+		ctx, changelogQuery,
+		changelogParams...,
+	)
+	if err != nil {
+		return err
+	}
 
-	updateQuery := `
+	return nil
+
+}
+
+func (r *AndonRepository) ResolveAndon(
+	ctx context.Context,
+	exec db.PGExecutor,
+	andonID int,
+	userID int,
+) error {
+
+	now := time.Now()
+
+	namedParams := map[string]any{
+		"andon_id": andonID,
+		"user_id":  userID,
+		"now":      now,
+	}
+
+	andonUpdateQuery, andonUpdateParams, err := db.BindNamed(`
 UPDATE 
-  andon
-SET
-	raised_by = $1,
-	raised_at = NOW(),
+	andon
+SET 
+	resolved_by = :user_id,
+	resolved_at = :now,
+	last_updated = :now
+WHERE
+	andon_id = :andon_id
+`, namedParams)
+	if err != nil {
+		return fmt.Errorf("error binding andon update params: %v", err)
+	}
+	_, err = exec.Exec(
+		ctx, andonUpdateQuery,
+		andonUpdateParams...,
+	)
+	if err != nil {
+		return err
+	}
+
+	changelogQuery, changelogParams, err := db.BindNamed(`
+INSERT INTO
+	andon_change (
+		andon_id,
+		change_by,
+		change_at,
+		resolved_by
+	)
+VALUES (
+	:andon_id,
+	:user_id,
+	:now,
+	:user_id
+)
+`, namedParams)
+	if err != nil {
+		return fmt.Errorf("error binding changelog params: %v", err)
+	}
+	_, err = exec.Exec(
+		ctx, changelogQuery,
+		changelogParams...,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *AndonRepository) CancelAndon(
+	ctx context.Context,
+	exec db.PGExecutor,
+	andonID int,
+	userID int,
+) error {
+
+	now := time.Now()
+
+	namedParams := map[string]any{
+		"andon_id": andonID,
+		"user_id":  userID,
+		"now":      now,
+	}
+
+	andonUpdateQuery, andonUpdateParams, err := db.BindNamed(`
+UPDATE 
+	andon
+SET 
+	cancelled_by = :user_id,
+	cancelled_at = :now,
+	last_updated = :now
+WHERE
+	andon_id = :andon_id
+`, namedParams)
+	if err != nil {
+		return fmt.Errorf("error binding andon update params: %v", err)
+	}
+	_, err = exec.Exec(
+		ctx, andonUpdateQuery,
+		andonUpdateParams...,
+	)
+	if err != nil {
+		return err
+	}
+
+	changelogQuery, changelogParams, err := db.BindNamed(`
+INSERT INTO
+	andon_change (
+		andon_id,
+		change_by,
+		change_at,
+		cancelled_by
+	)
+VALUES (
+	:andon_id,
+	:user_id,
+	:now,
+	:user_id
+)
+`, namedParams)
+	if err != nil {
+		return fmt.Errorf("error binding changelog params: %v", err)
+	}
+	_, err = exec.Exec(
+		ctx, changelogQuery,
+		changelogParams...,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *AndonRepository) ReopenAndon(
+	ctx context.Context,
+	exec db.PGExecutor,
+	andonID int,
+	userID int,
+) error {
+
+	now := time.Now()
+
+	namedParams := map[string]any{
+		"andon_id": andonID,
+		"user_id":  userID,
+		"now":      now,
+	}
+
+	andonUpdateQuery, andonUpdateParams, err := db.BindNamed(`
+UPDATE 
+	andon
+SET 
 	acknowledged_by = NULL,
 	acknowledged_at = NULL,
+	cancelled_by = NULL,
+	cancelled_at = NULL,
 	resolved_by = NULL,
 	resolved_at = NULL,
-	status = 'Outstanding',
-	last_updated = NOW()
-WHERE 
-  andon_id = $2
-`
-
-	_, err := exec.Exec(ctx, insertQuery, userID, andonEventID)
+	last_updated = :now
+WHERE
+	andon_id = :andon_id
+`, namedParams)
+	if err != nil {
+		return fmt.Errorf("error binding andon update params: %v", err)
+	}
+	_, err = exec.Exec(
+		ctx, andonUpdateQuery,
+		andonUpdateParams...,
+	)
 	if err != nil {
 		return err
 	}
 
-	_, err = exec.Exec(ctx, updateQuery, userID, andonEventID)
+	changelogQuery, changelogParams, err := db.BindNamed(`
+INSERT INTO	andon_change (
+	andon_id,
+	change_by,
+	change_at,
+	reopened_by
+) VALUES (
+	:andon_id,
+	:user_id,
+	:now,
+	:user_id
+)
+`, namedParams)
+	if err != nil {
+		return fmt.Errorf("error binding changelog params: %v", err)
+	}
+	_, err = exec.Exec(
+		ctx, changelogQuery,
+		changelogParams...,
+	)
 	if err != nil {
 		return err
 	}
 
 	return nil
+
 }
 
 func generateWhereClause(filters model.ListAndonQuery) (string, []any) {
@@ -762,13 +827,13 @@ func generateWhereClause(filters model.ListAndonQuery) (string, []any) {
 		argID++
 	}
 
-	addInClause("issue_name", filters.Issues)
-	addInClause("severity", filters.Severities)
-	addInClause("assigned_team_name", filters.Teams)
-	addInClause("location", filters.Locations)
-	addInClause("raised_by_username", filters.RaisedByUsername)
-	addInClause("acknowledged_by_username", filters.AcknowledgedByUsername)
-	addInClause("resolved_by_username", filters.ResolvedByUsername)
+	addInClause("issue_name", filters.IssueIn)
+	addInClause("severity", filters.SeverityIn)
+	addInClause("assigned_team_name", filters.TeamIn)
+	addInClause("location", filters.LocationIn)
+	addInClause("raised_by_username", filters.RaisedByUsernameIn)
+	addInClause("acknowledged_by_username", filters.AcknowledgedByUsernameIn)
+	addInClause("resolved_by_username", filters.ResolvedByUsernameIn)
 
 	if len(whereClauses) == 0 {
 		return "", args
