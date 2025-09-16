@@ -1,6 +1,7 @@
 package components
 
 import (
+	"slices"
 	g "maragu.dev/gomponents"
 	h "maragu.dev/gomponents/html"
 )
@@ -32,7 +33,7 @@ func SearchSelectOptions(options []SearchSelectOption) g.Node {
 
 		selectOption := h.Div(
 			h.Class(classes),
-			h.DataAttr("value", o.Value),
+			h.Data("value", o.Value),
 			g.Group(o.Nodes),
 			g.Text(o.Text),
 		)
@@ -61,15 +62,15 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 
 	return h.Div(
 		h.Class("search-select"),
-		g.Attr("data-mode", p.Mode),
-		g.Attr("data-name", p.Name),
+		h.Data("mode", p.Mode),
+		h.Data("name", p.Name),
 		g.If(
 			p.SearchQueryParamName != "",
 			g.Attr("data-options-endpoint", p.OptionsEndpoint),
 		),
 		g.If(
 			p.SearchQueryParamName != "",
-			h.DataAttr("search-query-param", p.SearchQueryParamName),
+			h.Data("search-query-param", p.SearchQueryParamName),
 		),
 
 		h.Div(
@@ -109,13 +110,7 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 func MapStringsToOptions(vals []string, selectedValues []string) []SearchSelectOption {
 	out := make([]SearchSelectOption, len(vals))
 	for i, v := range vals {
-		isSelected := false
-		for _, selectedTeam := range selectedValues {
-			if v == selectedTeam {
-				isSelected = true
-				break
-			}
-		}
+		isSelected := slices.Contains(selectedValues, v)
 		out[i] = SearchSelectOption{Text: v, Value: v, Selected: isSelected}
 	}
 	return out
