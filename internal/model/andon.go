@@ -25,22 +25,22 @@ type Andon struct {
 	Location         string        `sortable:"true"`
 	IsOpen           bool          `sortable:"true"`
 	Status           AndonStatus   `sortable:"true"`
-	RaisedBy         int           `sortable:"true"`
-	RaisedByUsername string        `sortable:"true"`
-	RaisedAt         time.Time     `sortable:"true"`
-	AssignedTeam     int           `sortable:"true"`
-	AssignedTeamName string        `sortable:"true"`
+	RaisedBy         int
+	RaisedByUsername string    `sortable:"true"`
+	RaisedAt         time.Time `sortable:"true"`
+	AssignedTeam     int
+	AssignedTeamName string `sortable:"true"`
 
 	IsAcknowledged         bool
-	AcknowledgedBy         *int       `sortable:"true"`
+	AcknowledgedBy         *int
 	AcknowledgedByUsername *string    `sortable:"true"`
 	AcknowledgedAt         *time.Time `sortable:"true"`
 	IsResolved             bool
-	ResolvedBy             *int       `sortable:"true"`
+	ResolvedBy             *int
 	ResolvedByUsername     *string    `sortable:"true"`
 	ResolvedAt             *time.Time `sortable:"true"`
 	IsCancelled            bool
-	CancelledBy            *int       `sortable:"true"`
+	CancelledBy            *int
 	CancelledByUsername    *string    `sortable:"true"`
 	CancelledAt            *time.Time `sortable:"true"`
 	LastUpdated            *time.Time `sortable:"true"`
@@ -73,6 +73,7 @@ type ListAndonQuery struct {
 	IsCancelled              *bool
 	IssueIn                  []string
 	SeverityIn               []string
+	StatusIn                 []string
 	TeamIn                   []string
 	LocationIn               []string
 	RaisedByUsernameIn       []string
@@ -105,6 +106,7 @@ type AndonFilters struct {
 	EndDate                  *time.Time
 	IssueIn                  []string
 	SeverityIn               []string
+	StatusIn                 []string
 	TeamIn                   []string
 	LocationIn               []string
 	RaisedByUsernameIn       []string
@@ -115,6 +117,7 @@ type AndonFilters struct {
 type AndonAvailableFilters struct {
 	IssueIn                  []string
 	SeverityIn               []string
+	StatusIn                 []string
 	TeamIn                   []string
 	LocationIn               []string
 	RaisedByUsernameIn       []string

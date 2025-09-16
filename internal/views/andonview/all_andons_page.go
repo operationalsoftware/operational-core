@@ -20,25 +20,13 @@ type AllAndonsPageProps struct {
 	Andons           []model.Andon
 	AndonsCount      int
 	AvailableFilters model.AndonAvailableFilters
-	Filters          model.AndonFilters
+	ActiveFilters    model.AndonFilters
 	Sort             appsort.Sort
 	Page             int
 	PageSize         int
 }
 
-type AvailableFilters struct {
-	IssueIn                  []components.SearchSelectOption
-	SeverityIn               []components.SearchSelectOption
-	TeamIn                   []components.SearchSelectOption
-	LocationIn               []components.SearchSelectOption
-	RaisedByUsernameIn       []components.SearchSelectOption
-	AcknowledgedByUsernameIn []components.SearchSelectOption
-	ResolvedByUsernameIn     []components.SearchSelectOption
-}
-
 func AllAndonsPage(p *AllAndonsPageProps) g.Node {
-
-	availableFilters := p.AvailableFilters
 
 	var columns = components.TableColumns{
 		{
@@ -163,147 +151,10 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 			h.ID("all-andon-table-form"),
 			g.Attr("method", "GET"),
 
-			h.Div(
-				h.Class("andon-filters"),
-
-				h.Div(
-					h.Class("search-item date-section"),
-
-					h.Div(
-
-						h.Label(
-							g.Text("Start date"),
-						),
-						h.Input(
-							h.Name("StartDate"),
-							h.Type("date"),
-
-							func() g.Node {
-								if p.Filters.StartDate != nil {
-									return h.Value(p.Filters.StartDate.Format("2006-01-02"))
-								}
-								return nil
-							}(),
-						),
-					),
-
-					h.Div(
-
-						h.Label(
-							g.Text("End date"),
-						),
-						h.Input(
-							h.Name("EndDate"),
-							h.Type("date"),
-							func() g.Node {
-								if p.Filters.EndDate != nil {
-									return h.Value(p.Filters.EndDate.Format("2006-01-02"))
-								}
-								return nil
-							}(),
-						),
-					),
-				),
-				h.Div(
-					h.Class("search-item"),
-
-					h.Label(
-						g.Text("Issues"),
-					),
-					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "IssueIn",
-						Placeholder: "-",
-						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.IssueIn, p.Filters.IssueIn),
-						Selected:    strings.Join(p.Filters.IssueIn, ","),
-					}),
-				),
-				h.Div(
-					h.Class("search-item"),
-
-					h.Label(
-						g.Text("Severity"),
-					),
-					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "SeverityIn",
-						Placeholder: "-",
-						Mode:        "multi",
-						Options: components.MapStringsToOptions(availableFilters.
-							SeverityIn, p.Filters.SeverityIn),
-						Selected: strings.Join(p.Filters.SeverityIn, ","),
-					}),
-				),
-				h.Div(
-					h.Class("search-item"),
-
-					h.Label(
-						g.Text("Assigned Teams"),
-					),
-					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "TeamIn",
-						Placeholder: "-",
-						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.TeamIn, p.Filters.TeamIn),
-						Selected:    strings.Join(p.Filters.TeamIn, ","),
-					}),
-				),
-				h.Div(
-					h.Class("search-item"),
-
-					h.Label(
-						g.Text("Locations"),
-					),
-					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "LocationIn",
-						Placeholder: "-",
-						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.LocationIn, p.Filters.LocationIn),
-						Selected:    strings.Join(p.Filters.LocationIn, ","),
-					}),
-				),
-				h.Div(
-					h.Class("search-item"),
-
-					h.Label(
-						g.Text("Raised By"),
-					),
-					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "RaisedByUsernameIn",
-						Placeholder: "-",
-						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.RaisedByUsernameIn, p.Filters.RaisedByUsernameIn),
-						Selected:    strings.Join(p.Filters.RaisedByUsernameIn, ","),
-					}),
-				),
-				h.Div(
-					h.Class("search-item"),
-
-					h.Label(
-						g.Text("Acknowledged By"),
-					),
-					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "AcknowledgedByUsernameIn",
-						Placeholder: "-",
-						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.AcknowledgedByUsernameIn, p.Filters.AcknowledgedByUsernameIn),
-						Selected:    strings.Join(p.Filters.AcknowledgedByUsernameIn, ","),
-					}),
-				),
-				h.Div(
-					h.Class("search-item"),
-
-					h.Label(
-						g.Text("Resolved By"),
-					),
-					components.SearchSelect(&components.SearchSelectProps{
-						Name:        "ResolvedByUsernameIn",
-						Placeholder: "-",
-						Mode:        "multi",
-						Options:     components.MapStringsToOptions(availableFilters.ResolvedByUsernameIn, p.Filters.ResolvedByUsernameIn),
-						Selected:    strings.Join(p.Filters.ResolvedByUsernameIn, ","),
-					}),
-				),
-			),
+			allAndonsFilters(&allAndonsFiltersProps{
+				availableFilters: p.AvailableFilters,
+				activeFilters:    p.ActiveFilters,
+			}),
 
 			components.Button(&components.ButtonProps{
 				ButtonType: components.ButtonPrimary,
@@ -354,4 +205,168 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 			components.InlineScript("/internal/views/andonview/all_andons_page.js"),
 		},
 	})
+}
+
+type allAndonsFiltersProps struct {
+	availableFilters model.AndonAvailableFilters
+	activeFilters    model.AndonFilters
+}
+
+func allAndonsFilters(p *allAndonsFiltersProps) g.Node {
+	var startDateValue, endDateValue g.Node
+	if p.activeFilters.StartDate != nil {
+		startDateValue = h.Value(p.activeFilters.StartDate.Format("2006-01-02"))
+	}
+	if p.activeFilters.EndDate != nil {
+		endDateValue = h.Value(p.activeFilters.EndDate.Format("2006-01-02"))
+	}
+
+	return h.Div(
+		h.Class("andon-filters"),
+
+		h.Div(
+			h.Class("search-item date-section"),
+
+			h.Div(
+
+				h.Label(
+					g.Text("Start date"),
+				),
+				h.Input(
+					h.Name("StartDate"),
+					h.Type("date"),
+					startDateValue,
+				),
+			),
+
+			h.Div(
+
+				h.Label(
+					g.Text("End date"),
+				),
+				h.Input(
+					h.Name("EndDate"),
+					h.Type("date"),
+					endDateValue,
+				),
+			),
+		),
+
+		h.Div(
+			h.Class("search-item"),
+
+			h.Label(
+				g.Text("Location"),
+			),
+			components.SearchSelect(&components.SearchSelectProps{
+				Name:        "LocationIn",
+				Placeholder: "-",
+				Mode:        "multi",
+				Options:     components.MapStringsToOptions(p.availableFilters.LocationIn, p.activeFilters.LocationIn),
+				Selected:    strings.Join(p.activeFilters.LocationIn, ","),
+			}),
+		),
+		h.Div(
+			h.Class("search-item"),
+
+			h.Label(
+				g.Text("Issue"),
+			),
+			components.SearchSelect(&components.SearchSelectProps{
+				Name:        "IssueIn",
+				Placeholder: "-",
+				Mode:        "multi",
+				Options:     components.MapStringsToOptions(p.availableFilters.IssueIn, p.activeFilters.IssueIn),
+				Selected:    strings.Join(p.activeFilters.IssueIn, ","),
+			}),
+		),
+		h.Div(
+			h.Class("search-item"),
+
+			h.Label(
+				g.Text("Assigned Team"),
+			),
+			components.SearchSelect(&components.SearchSelectProps{
+				Name:        "TeamIn",
+				Placeholder: "-",
+				Mode:        "multi",
+				Options:     components.MapStringsToOptions(p.availableFilters.TeamIn, p.activeFilters.TeamIn),
+				Selected:    strings.Join(p.activeFilters.TeamIn, ","),
+			}),
+		),
+		h.Div(
+			h.Class("search-item"),
+
+			h.Label(
+				g.Text("Severity"),
+			),
+			components.SearchSelect(&components.SearchSelectProps{
+				Name:        "SeverityIn",
+				Placeholder: "-",
+				Mode:        "multi",
+				Options: components.MapStringsToOptions(
+					p.availableFilters.SeverityIn,
+					p.activeFilters.SeverityIn),
+				Selected: strings.Join(p.activeFilters.SeverityIn, ","),
+			}),
+		),
+		h.Div(
+			h.Class("search-item"),
+
+			h.Label(
+				g.Text("Status"),
+			),
+			components.SearchSelect(&components.SearchSelectProps{
+				Name:        "StatusIn",
+				Placeholder: "-",
+				Mode:        "multi",
+				Options: components.MapStringsToOptions(
+					p.availableFilters.StatusIn,
+					p.activeFilters.StatusIn),
+				Selected: strings.Join(p.activeFilters.StatusIn, ","),
+			}),
+		),
+		h.Div(
+			h.Class("search-item"),
+
+			h.Label(
+				g.Text("Raised By"),
+			),
+			components.SearchSelect(&components.SearchSelectProps{
+				Name:        "RaisedByUsernameIn",
+				Placeholder: "-",
+				Mode:        "multi",
+				Options:     components.MapStringsToOptions(p.availableFilters.RaisedByUsernameIn, p.activeFilters.RaisedByUsernameIn),
+				Selected:    strings.Join(p.activeFilters.RaisedByUsernameIn, ","),
+			}),
+		),
+		h.Div(
+			h.Class("search-item"),
+
+			h.Label(
+				g.Text("Acknowledged By"),
+			),
+			components.SearchSelect(&components.SearchSelectProps{
+				Name:        "AcknowledgedByUsernameIn",
+				Placeholder: "-",
+				Mode:        "multi",
+				Options:     components.MapStringsToOptions(p.availableFilters.AcknowledgedByUsernameIn, p.activeFilters.AcknowledgedByUsernameIn),
+				Selected:    strings.Join(p.activeFilters.AcknowledgedByUsernameIn, ","),
+			}),
+		),
+		h.Div(
+			h.Class("search-item"),
+
+			h.Label(
+				g.Text("Resolved By"),
+			),
+			components.SearchSelect(&components.SearchSelectProps{
+				Name:        "ResolvedByUsernameIn",
+				Placeholder: "-",
+				Mode:        "multi",
+				Options:     components.MapStringsToOptions(p.availableFilters.ResolvedByUsernameIn, p.activeFilters.ResolvedByUsernameIn),
+				Selected:    strings.Join(p.activeFilters.ResolvedByUsernameIn, ","),
+			}),
+		),
+	)
 }

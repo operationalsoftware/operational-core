@@ -4,7 +4,6 @@ import (
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
-	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ncw/swift/v2"
@@ -155,9 +154,9 @@ func (s *AndonService) ListAndons(
 	}
 	defer tx.Rollback(ctx)
 
-	var andonEvents []model.Andon
+	var andons []model.Andon
 
-	andonEvents, err = s.andonRepository.ListAndons(
+	andons, err = s.andonRepository.ListAndons(
 		ctx,
 		tx,
 		q,
@@ -172,18 +171,19 @@ func (s *AndonService) ListAndons(
 		return []model.Andon{}, 0, model.AndonAvailableFilters{}, err
 	}
 
-	filters, err := s.andonRepository.GetAvailableFilters(ctx, tx, model.AndonFilters{
+	availableFilters, err := s.andonRepository.GetAvailableFilters(ctx, tx, model.AndonFilters{
 		StartDate:              q.StartDate,
 		EndDate:                q.EndDate,
+		LocationIn:              q.LocationIn,
 		IssueIn:                 q.IssueIn,
 		TeamIn:                  q.TeamIn,
-		LocationIn:              q.LocationIn,
+		SeverityIn: q.SeverityIn,
+		StatusIn: q.StatusIn,
 		RaisedByUsernameIn:       q.RaisedByUsernameIn,
 		AcknowledgedByUsernameIn: q.AcknowledgedByUsernameIn,
 		ResolvedByUsernameIn:     q.ResolvedByUsernameIn,
 	})
 	if err != nil {
-		fmt.Println(err)
 		return []model.Andon{}, 0, model.AndonAvailableFilters{}, err
 	}
 
@@ -191,7 +191,7 @@ func (s *AndonService) ListAndons(
 		return []model.Andon{}, 0, model.AndonAvailableFilters{}, err
 	}
 
-	return andonEvents, count, filters, nil
+	return andons, count, availableFilters, nil
 }
 
 func (s *AndonService) GetAndonChangelog(

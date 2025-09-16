@@ -338,10 +338,11 @@ func (r *AndonRepository) GetAvailableFilters(
 ) (model.AndonAvailableFilters, error) {
 
 	mapping := map[string]string{
+		"LocationIn":               "location",
 		"IssueIn":                  "issue_name",
 		"SeverityIn":               "severity",
+		"StatusIn":               "status",
 		"TeamIn":                   "assigned_team_name",
-		"LocationIn":               "location",
 		"RaisedByUsernameIn":       "raised_by_username",
 		"AcknowledgedByUsernameIn": "acknowledged_by_username",
 		"ResolvedByUsernameIn":     "resolved_by_username",
@@ -354,10 +355,11 @@ func (r *AndonRepository) GetAvailableFilters(
 		queryFilters := model.ListAndonQuery{
 			StartDate:                baseFilters.StartDate,
 			EndDate:                  baseFilters.EndDate,
-			IssueIn:                  baseFilters.IssueIn,
-			SeverityIn:               baseFilters.SeverityIn,
-			TeamIn:                   baseFilters.TeamIn,
 			LocationIn:               baseFilters.LocationIn,
+			IssueIn:                  baseFilters.IssueIn,
+			TeamIn:                   baseFilters.TeamIn,
+			SeverityIn:               baseFilters.SeverityIn,
+			StatusIn: baseFilters.StatusIn,
 			RaisedByUsernameIn:       baseFilters.RaisedByUsernameIn,
 			AcknowledgedByUsernameIn: baseFilters.AcknowledgedByUsernameIn,
 			ResolvedByUsernameIn:     baseFilters.ResolvedByUsernameIn,
@@ -366,6 +368,8 @@ func (r *AndonRepository) GetAvailableFilters(
 		switch key {
 		case "IssueIn":
 			queryFilters.IssueIn = nil
+		case "StatusIn":
+			queryFilters.StatusIn = nil
 		case "SeverityIn":
 			queryFilters.SeverityIn = nil
 		case "TeamIn":
@@ -417,6 +421,9 @@ ORDER BY val ASC
 		return avail, err
 	}
 	if err := collect("SeverityIn", &avail.SeverityIn); err != nil {
+		return avail, err
+	}
+	if err := collect("StatusIn", &avail.StatusIn); err != nil {
 		return avail, err
 	}
 	if err := collect("TeamIn", &avail.TeamIn); err != nil {
@@ -829,6 +836,7 @@ func generateWhereClause(filters model.ListAndonQuery) (string, []any) {
 
 	addInClause("issue_name", filters.IssueIn)
 	addInClause("severity", filters.SeverityIn)
+	addInClause("status", filters.StatusIn)
 	addInClause("assigned_team_name", filters.TeamIn)
 	addInClause("location", filters.LocationIn)
 	addInClause("raised_by_username", filters.RaisedByUsernameIn)

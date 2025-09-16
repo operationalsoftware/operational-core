@@ -143,24 +143,24 @@ type andonEventsHomePageUrlVals struct {
 	AndonTeams []string
 }
 
-type andonAllEventsUrlVals struct {
+type allAndonsURLVals struct {
 	Sort     string
 	Page     int
 	PageSize int
 
 	StartDate                *time.Time
 	EndDate                  *time.Time
+	LocationIn               []string
 	IssueIn                  []string
 	SeverityIn               []string
-	TeamIn                   []string
-	LocationIn               []string
 	StatusIn                 []string
+	TeamIn                   []string
 	RaisedByUsernameIn       []string
 	AcknowledgedByUsernameIn []string
 	ResolvedByUsernameIn     []string
 }
 
-func (uv *andonAllEventsUrlVals) normalise() {
+func (uv *allAndonsURLVals) normalise() {
 	if uv.Page == 0 {
 		uv.Page = 1
 	}
@@ -176,7 +176,7 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var uv andonAllEventsUrlVals
+	var uv allAndonsURLVals
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
@@ -195,7 +195,7 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	andons, count, filters, err := h.andonService.ListAndons(
+	andons, count, availableFilters, err := h.andonService.ListAndons(
 		r.Context(),
 		model.ListAndonQuery{
 			Sort:                 sort,
@@ -206,10 +206,11 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 
 			StartDate:                uv.StartDate,
 			EndDate:                  uv.EndDate,
+			LocationIn:               uv.LocationIn,
 			IssueIn:                  uv.IssueIn,
 			SeverityIn:               uv.SeverityIn,
+			StatusIn:                 uv.StatusIn,
 			TeamIn:                   uv.TeamIn,
-			LocationIn:               uv.LocationIn,
 			RaisedByUsernameIn:       uv.RaisedByUsernameIn,
 			AcknowledgedByUsernameIn: uv.AcknowledgedByUsernameIn,
 			ResolvedByUsernameIn:     uv.ResolvedByUsernameIn,
@@ -226,15 +227,16 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 		Ctx:              ctx,
 		Andons:           andons,
 		AndonsCount:      count,
-		AvailableFilters: filters,
+		AvailableFilters: availableFilters,
 		Sort:             sort,
 		Page:             uv.Page,
 		PageSize:         uv.PageSize,
-		Filters: model.AndonFilters{
+		ActiveFilters: model.AndonFilters{
 			StartDate:                uv.StartDate,
 			EndDate:                  uv.EndDate,
 			IssueIn:                  uv.IssueIn,
 			SeverityIn:               uv.SeverityIn,
+			StatusIn: uv.StatusIn,
 			TeamIn:                   uv.TeamIn,
 			LocationIn:               uv.LocationIn,
 			RaisedByUsernameIn:       uv.RaisedByUsernameIn,
@@ -480,7 +482,7 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	json.NewEncoder(w).Encode(map[string]any{
 		"commentId": commentID,
 	})
 }
@@ -529,7 +531,7 @@ func (h *AndonHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	json.NewEncoder(w).Encode(map[string]any{
 		"fileId":    file.FileID,
 		"signedUrl": signedURL,
 	})
