@@ -174,7 +174,6 @@ func (h *GalleryHandler) DeleteGalleryItem(w http.ResponseWriter, r *http.Reques
 
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 	galleryItemID, _ := strconv.Atoi(r.PathValue("galleryItemID"))
-	position, _ := strconv.Atoi(r.PathValue("position"))
 
 	type urlVals struct {
 		HMAC              string
@@ -205,7 +204,7 @@ func (h *GalleryHandler) DeleteGalleryItem(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = h.galleryService.DeleteGalleryItem(r.Context(), galleryID, galleryItemID, position, ctx.User.UserID)
+	err = h.galleryService.DeleteGalleryItem(r.Context(), galleryID, galleryItemID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error deleting gallery item", http.StatusInternalServerError)

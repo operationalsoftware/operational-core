@@ -1,69 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const galleryItemsUploadBtn = document.querySelector(".upload-gallery-btn");
-  const grid = document.querySelector(".gallery-grid");
-  if (!grid) return;
-
-  let draggingEl = null;
-
-  // Make items draggable and attach dragstart/dragend via event delegation
-  grid.querySelectorAll(".gallery-item").forEach((item) => {
-    item.setAttribute("draggable", "true");
-
-    item.addEventListener("dragstart", (e) => {
-      draggingEl = item;
-      item.classList.add("dragging");
-
-      // Save old position at drag start
-      draggingEl.dataset.oldPosition =
-        [...grid.querySelectorAll(".gallery-item")].indexOf(item) + 1;
-
-      // Required for Firefox to allow dragging
-      try {
-        e.dataTransfer.setData("text/plain", item.dataset.id || "");
-      } catch (err) {
-        // ignore (some browsers throw here if blocked)
-      }
-      e.dataTransfer.effectAllowed = "move";
-    });
-
-    item.addEventListener("dragend", () => {
-      if (draggingEl) {
-        draggingEl.classList.remove("dragging");
-
-        const items = [...grid.querySelectorAll(".gallery-item")];
-        const newPos = items.indexOf(draggingEl) + 1;
-        const oldPos = parseInt(draggingEl.dataset.oldPosition, 10);
-
-        saveNewOrder({
-          gallery_item_id: parseInt(draggingEl.dataset.id, 10),
-          old_position: oldPos,
-          new_position: newPos,
-        });
-
-        draggingEl = null;
-      }
-    });
-  });
-
-  // Single dragover listener on the grid container
-  grid.addEventListener("dragover", (e) => {
-    e.preventDefault(); // allow drop
-
-    const pointerX = e.clientX;
-    const pointerY = e.clientY;
-
-    const dragging = grid.querySelector(".dragging");
-    if (!dragging) return;
-
-    const afterElement = getClosestElement(grid, pointerX, pointerY, dragging);
-
-    if (!afterElement) {
-      grid.appendChild(dragging);
-    } else {
-      grid.insertBefore(dragging, afterElement);
-    }
-  });
-
   // Handles file selection
   document.querySelector('[name="Files"]').addEventListener("change", (e) => {
     const container = document.getElementById("selected-files");
@@ -95,6 +31,64 @@ document.addEventListener("DOMContentLoaded", () => {
       div.textContent = file.name;
       container.appendChild(div);
     });
+  });
+
+  const grid = document.querySelector(".gallery-grid");
+  if (!grid) return;
+
+  let draggingEl = null;
+
+  // Make items draggable and attach dragstart/dragend via event delegation
+  grid.querySelectorAll(".gallery-item").forEach((item) => {
+    item.setAttribute("draggable", "true");
+
+    item.addEventListener("dragstart", (e) => {
+      draggingEl = item;
+      item.classList.add("dragging");
+
+      // Required for Firefox to allow dragging
+      try {
+        e.dataTransfer.setData("text/plain", item.dataset.id || "");
+      } catch (err) {
+        // ignore (some browsers throw here if blocked)
+      }
+      e.dataTransfer.effectAllowed = "move";
+    });
+
+    item.addEventListener("dragend", () => {
+      if (draggingEl) {
+        draggingEl.classList.remove("dragging");
+
+        const items = [...grid.querySelectorAll(".gallery-item")];
+        const newPos = items.indexOf(draggingEl) + 1;
+
+        saveNewOrder({
+          gallery_item_id: parseInt(draggingEl.dataset.id, 10),
+          new_position: newPos,
+        });
+
+        draggingEl = null;
+      }
+    });
+  });
+
+  // Single dragover listener on the grid container
+  grid.addEventListener("dragover", (e) => {
+    e.preventDefault(); // allow drop
+
+    const pointerX = e.clientX;
+    const pointerY = e.clientY;
+
+    const dragging = grid.querySelector(".dragging");
+    if (!dragging) return;
+
+    const afterElement = getClosestElement(grid, pointerX, pointerY, dragging);
+
+    if (!afterElement) {
+      grid.appendChild(dragging);
+    } else {
+      grid.insertBefore(dragging, afterElement);
+    }
   });
 });
 
@@ -156,13 +150,9 @@ function deleteItem(galleryId, itemId, position) {
   );
 
   if (confirmDelete) {
-    fetch(
-      `/gallery/${galleryId}/item/${itemId}/${position}` +
-        window.location.search,
-      {
-        method: "DELETE",
-      }
-    ).then(() => location.reload());
+    fetch(`/gallery/${galleryId}/item/${itemId}` + window.location.search, {
+      method: "DELETE",
+    }).then(() => location.reload());
   }
 }
 

@@ -29,5 +29,4 @@ type NewGalleryItem struct {
 type UpdateGalleryItem struct {
 	GalleryItemID int `json:"gallery_item_id"`
 	NewPosition   int `json:"new_position"`
-	OldPosition   int `json:"old_position"`
 }

@@ -137,7 +137,6 @@ func (s *GalleryService) DeleteGalleryItem(
 	ctx context.Context,
 	galleryID int,
 	galleryItemID int,
-	position int,
 	userID int,
 ) error {
 	tx, err := s.db.Begin(ctx)
@@ -155,22 +154,21 @@ func (s *GalleryService) DeleteGalleryItem(
 		return err
 	}
 
-	err = s.fileRepository.DeleteFile(
-		ctx,
-		tx,
-		s.swiftConn,
-		galleryItem.FileID,
-	)
-	if err != nil {
-		return err
-	}
-
 	err = s.galleryRepository.DeleteGalleryItem(
 		ctx,
 		tx,
 		galleryID,
 		galleryItemID,
-		position,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = s.fileRepository.DeleteFile(
+		ctx,
+		tx,
+		s.swiftConn,
+		galleryItem.FileID,
 	)
 	if err != nil {
 		return err

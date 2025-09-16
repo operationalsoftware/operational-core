@@ -96,13 +96,23 @@ func (r *GalleryRepository) UpdateGalleryItemPosition(
 	item model.UpdateGalleryItem,
 ) error {
 
-	if item.NewPosition == item.OldPosition {
+	var oldPosition int
+	exec.QueryRow(ctx, `
+SELECT
+	position
+FROM
+	gallery_item
+WHERE
+	gallery_item_id = $1
+`, item.GalleryItemID).Scan(&oldPosition)
+
+	if item.NewPosition == oldPosition {
 		return nil
 	}
 
 	var err error
 
-	if item.NewPosition < item.OldPosition {
+	if item.NewPosition < oldPosition {
 		_, err = exec.Exec(ctx, `
 UPDATE
 	gallery_item
@@ -112,7 +122,7 @@ WHERE
 	gallery_id = $1
 	AND position >= $2
 	AND position < $3
-        `, galleryID, item.NewPosition, item.OldPosition)
+        `, galleryID, item.NewPosition, oldPosition)
 	} else {
 		_, err = exec.Exec(ctx, `
 UPDATE
@@ -123,7 +133,7 @@ WHERE
 	gallery_id = $1
 	AND position > $2
 	AND position <= $3
-        `, galleryID, item.OldPosition, item.NewPosition)
+        `, galleryID, oldPosition, item.NewPosition)
 	}
 
 	if err != nil {
@@ -150,8 +160,17 @@ func (r *GalleryRepository) DeleteGalleryItem(
 	exec db.PGExecutor,
 	galleryID int,
 	galleryItemID int,
-	position int,
 ) error {
+
+	var position int
+	exec.QueryRow(ctx, `
+SELECT
+	position
+FROM
+	gallery_item
+WHERE
+	gallery_item_id = $1
+`, galleryItemID).Scan(&position)
 
 	query := `
 DELETE FROM
