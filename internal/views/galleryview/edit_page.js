@@ -132,10 +132,15 @@ async function setPosition(galleryItemId, position) {
     `/gallery/${galleryId}/${galleryItemId}/set-position` +
     window.location.search;
 
+  const body = new URLSearchParams();
+  body.append("NewPosition", position);
+
   const res = await fetch(url, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(position),
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: body.toString(),
   });
 
   if (!res.ok) {

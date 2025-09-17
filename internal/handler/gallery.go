@@ -254,10 +254,19 @@ func (h *GalleryHandler) SetGalleryItemPosition(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	var newPosition int
-	if err := json.NewDecoder(r.Body).Decode(&newPosition); err != nil {
+	if err := r.ParseForm(); err != nil {
 		log.Println(err)
-		http.Error(w, "Invalid body", http.StatusBadRequest)
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	type galleryItemUpdate struct {
+		NewPosition int
+	}
+	var update galleryItemUpdate
+	if err := appurl.Unmarshal(r.Form, &update); err != nil {
+		log.Println(err)
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
 	}
 
@@ -265,7 +274,7 @@ func (h *GalleryHandler) SetGalleryItemPosition(w http.ResponseWriter, r *http.R
 		r.Context(),
 		galleryID,
 		galleryItemID,
-		newPosition,
+		update.NewPosition,
 		ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
