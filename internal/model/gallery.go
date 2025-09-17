@@ -25,8 +25,3 @@ type NewGalleryItem struct {
 	ContentType string
 	SizeBytes   int
 }
-
-type UpdateGalleryItem struct {
-	GalleryItemID int `json:"gallery_item_id"`
-	NewPosition   int `json:"new_position"`
-}

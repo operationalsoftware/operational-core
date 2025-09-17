@@ -214,10 +214,11 @@ func (h *GalleryHandler) DeleteGalleryItem(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *GalleryHandler) ReorderGalleryItem(w http.ResponseWriter, r *http.Request) {
+func (h *GalleryHandler) SetGalleryItemPosition(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
+	galleryItemID, _ := strconv.Atoi(r.PathValue("galleryItemID"))
 
 	type urlVals struct {
 		HMAC              string
@@ -253,17 +254,18 @@ func (h *GalleryHandler) ReorderGalleryItem(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var item model.UpdateGalleryItem
-	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
+	var newPosition int
+	if err := json.NewDecoder(r.Body).Decode(&newPosition); err != nil {
 		log.Println(err)
 		http.Error(w, "Invalid body", http.StatusBadRequest)
 		return
 	}
 
-	err = h.galleryService.ReorderGalleryItem(
+	err = h.galleryService.SetGalleryItemPosition(
 		r.Context(),
 		galleryID,
-		item,
+		galleryItemID,
+		newPosition,
 		ctx.User.UserID)
 	if err != nil {
 		log.Println(err)

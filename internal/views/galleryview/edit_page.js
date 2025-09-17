@@ -62,10 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const items = [...grid.querySelectorAll(".gallery-item")];
         const newPos = items.indexOf(draggingEl) + 1;
 
-        saveNewOrder({
-          gallery_item_id: parseInt(draggingEl.dataset.id, 10),
-          new_position: newPos,
-        });
+        setPosition(parseInt(draggingEl.dataset.id, 10), newPos);
 
         draggingEl = null;
       }
@@ -127,16 +124,18 @@ function getClosestElement(container, x, y, draggingElement) {
   return closest;
 }
 
-async function saveNewOrder(payload) {
+async function setPosition(galleryItemId, position) {
   const grid = document.querySelector(".gallery-grid");
   const galleryId = grid.dataset.galleryId;
 
-  const url = `/gallery/${galleryId}/reorder` + window.location.search;
+  const url =
+    `/gallery/${galleryId}/${galleryItemId}/set-position` +
+    window.location.search;
 
   const res = await fetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(position),
   });
 
   if (!res.ok) {

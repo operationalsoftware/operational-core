@@ -93,7 +93,8 @@ func (r *GalleryRepository) UpdateGalleryItemPosition(
 	ctx context.Context,
 	exec db.PGExecutor,
 	galleryID int,
-	item model.UpdateGalleryItem,
+	galleryItemID int,
+	newPosition int,
 ) error {
 
 	var oldPosition int
@@ -104,15 +105,15 @@ FROM
 	gallery_item
 WHERE
 	gallery_item_id = $1
-`, item.GalleryItemID).Scan(&oldPosition)
+`, galleryItemID).Scan(&oldPosition)
 
-	if item.NewPosition == oldPosition {
+	if newPosition == oldPosition {
 		return nil
 	}
 
 	var err error
 
-	if item.NewPosition < oldPosition {
+	if newPosition < oldPosition {
 		_, err = exec.Exec(ctx, `
 UPDATE
 	gallery_item
@@ -122,7 +123,7 @@ WHERE
 	gallery_id = $1
 	AND position >= $2
 	AND position < $3
-        `, galleryID, item.NewPosition, oldPosition)
+        `, galleryID, newPosition, oldPosition)
 	} else {
 		_, err = exec.Exec(ctx, `
 UPDATE
@@ -133,7 +134,7 @@ WHERE
 	gallery_id = $1
 	AND position > $2
 	AND position <= $3
-        `, galleryID, oldPosition, item.NewPosition)
+        `, galleryID, oldPosition, newPosition)
 	}
 
 	if err != nil {
@@ -149,8 +150,8 @@ WHERE
 	gallery_id = $1 AND gallery_item_id = $3
 `,
 		galleryID,
-		item.NewPosition,
-		item.GalleryItemID)
+		newPosition,
+		galleryItemID)
 
 	return err
 }

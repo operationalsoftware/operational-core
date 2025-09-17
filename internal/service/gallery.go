@@ -109,10 +109,11 @@ func (s *GalleryService) AddGalleryItem(
 	return newFile, signedURL, nil
 }
 
-func (s *GalleryService) ReorderGalleryItem(
+func (s *GalleryService) SetGalleryItemPosition(
 	ctx context.Context,
 	galleryID int,
-	item model.UpdateGalleryItem,
+	galleryItemID int,
+	newPosition int,
 	userID int,
 ) error {
 	tx, err := s.db.Begin(ctx)
@@ -121,7 +122,7 @@ func (s *GalleryService) ReorderGalleryItem(
 	}
 	defer tx.Rollback(ctx)
 
-	err = s.galleryRepository.UpdateGalleryItemPosition(ctx, tx, galleryID, item)
+	err = s.galleryRepository.UpdateGalleryItemPosition(ctx, tx, galleryID, galleryItemID, newPosition)
 	if err != nil {
 		return err
 	}
