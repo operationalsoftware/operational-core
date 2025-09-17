@@ -3,7 +3,6 @@ package router
 import (
 	"app/assets"
 	"app/internal/service"
-	"app/internal/views/camerascannerview"
 	"app/internal/views/homeview"
 	"app/internal/views/notfoundview"
 	"app/pkg/middleware"
@@ -53,6 +52,7 @@ func NewRouter(services *Services) http.Handler {
 	addAuthRoutes(mux, services.AuthService)
 	addAndonRoutes(mux, services.AndonService, services.AndonIssueService, services.CommentService, services.TeamService, services.FileService)
 	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
+	addCameraScannerRoutes(mux)
 	addFileRoutes(mux, services.FileService)
 	addGalleryRoutes(mux, services.FileService, services.GalleryService)
 	addPDFRoutes(mux, services.PDFService)
@@ -61,15 +61,6 @@ func NewRouter(services *Services) http.Handler {
 	addStockTransactionRoutes(mux, services.StockItemService, services.StockTransactionService)
 	addTeamRoutes(mux, services.TeamService, services.UserService)
 	addUserRoutes(mux, services.UserService)
-
-	// Camera scanner route
-	mux.HandleFunc("/camera-scanner", func(w http.ResponseWriter, r *http.Request) {
-		ctx := reqcontext.GetContext(r)
-
-		_ = camerascannerview.CameraScannerApp(&camerascannerview.CameraScannerAppProps{
-			Ctx: ctx,
-		}).Render(w)
-	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		ctx := reqcontext.GetContext(r)
