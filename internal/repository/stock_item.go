@@ -21,14 +21,16 @@ func (r *StockItemRepository) CreateStockItem(
 	ctx context.Context,
 	exec db.PGExecutor,
 	stockItem *model.PostStockItem,
+	galleryID int,
 ) (int, error) {
 
 	insertStmt := `
 INSERT INTO stock_item (
 	stock_code,
-	description
+	description,
+	gallery_id
 )
-VALUES ($1, $2)
+VALUES ($1, $2, $3)
 RETURNING stock_item_id
 	`
 	var newStockItemID int
@@ -37,6 +39,7 @@ RETURNING stock_item_id
 		insertStmt,
 		stockItem.StockCode,
 		stockItem.Description,
+		galleryID,
 	).Scan(&newStockItemID)
 
 	if err != nil {
@@ -100,6 +103,7 @@ SELECT
     stock_item_id,
     stock_code,
     description,
+    gallery_id,
     created_at
 FROM
     stock_item
@@ -112,6 +116,7 @@ WHERE
 		&stockItem.StockItemID,
 		&stockItem.StockCode,
 		&stockItem.Description,
+		&stockItem.GalleryID,
 		&stockItem.CreatedAt,
 	)
 

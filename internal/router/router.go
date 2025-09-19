@@ -3,7 +3,6 @@ package router
 import (
 	"app/assets"
 	"app/internal/service"
-	"app/internal/views/camerascannerview"
 	"app/internal/views/homeview"
 	"app/internal/views/notfoundview"
 	"app/pkg/middleware"
@@ -17,13 +16,14 @@ type Services struct {
 	AndonIssueService       service.AndonIssueService
 	AuthService             service.AuthService
 	CommentService          service.CommentService
-	UserService             service.UserService
-	StockTransactionService service.StockTransactionService
-	SearchService           service.SearchService
-	PDFService              service.PDFService
 	FileService             service.FileService
-	TeamService             service.TeamService
+	GalleryService          service.GalleryService
+	SearchService           service.SearchService
+	StockTransactionService service.StockTransactionService
+	PDFService              service.PDFService
 	StockItemService        service.StockItemService
+	TeamService             service.TeamService
+	UserService             service.UserService
 }
 
 func NewRouter(services *Services) http.Handler {
@@ -52,22 +52,15 @@ func NewRouter(services *Services) http.Handler {
 	addAuthRoutes(mux, services.AuthService)
 	addAndonRoutes(mux, services.AndonService, services.AndonIssueService, services.CommentService, services.TeamService, services.FileService)
 	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
+	addCameraScannerRoutes(mux)
 	addFileRoutes(mux, services.FileService)
+	addGalleryRoutes(mux, services.FileService, services.GalleryService)
 	addPDFRoutes(mux, services.PDFService)
 	addSearchRoutes(mux, services.SearchService)
-	addTeamRoutes(mux, services.TeamService, services.UserService)
+	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.FileService, services.GalleryService)
 	addStockTransactionRoutes(mux, services.StockItemService, services.StockTransactionService)
-	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.FileService)
+	addTeamRoutes(mux, services.TeamService, services.UserService)
 	addUserRoutes(mux, services.UserService)
-
-	// Camera scanner route
-	mux.HandleFunc("/camera-scanner", func(w http.ResponseWriter, r *http.Request) {
-		ctx := reqcontext.GetContext(r)
-
-		_ = camerascannerview.CameraScannerApp(&camerascannerview.CameraScannerAppProps{
-			Ctx: ctx,
-		}).Render(w)
-	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		ctx := reqcontext.GetContext(r)

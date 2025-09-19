@@ -14,6 +14,7 @@ import (
 type StockItemService struct {
 	db                  *pgxpool.Pool
 	swiftConn           *swift.Connection
+	galleryRepository   *repository.GalleryRepository
 	stockItemRepository *repository.StockItemRepository
 	commentRepository   *repository.CommentRepository
 }
@@ -21,12 +22,14 @@ type StockItemService struct {
 func NewStockItemService(
 	db *pgxpool.Pool,
 	swiftConn *swift.Connection,
+	galleryRepository *repository.GalleryRepository,
 	stockItemRepository *repository.StockItemRepository,
 	commentRepository *repository.CommentRepository,
 ) *StockItemService {
 	return &StockItemService{
 		db:                  db,
 		swiftConn:           swiftConn,
+		galleryRepository:   galleryRepository,
 		stockItemRepository: stockItemRepository,
 		commentRepository:   commentRepository,
 	}
@@ -65,6 +68,7 @@ func (s *StockItemService) GetStockItems(
 func (s *StockItemService) GetStockItem(
 	ctx context.Context,
 	stockItemID int,
+	currentUser model.User,
 ) (*model.StockItem, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -123,7 +127,14 @@ func (s *StockItemService) CreateStockItem(
 		return validationErrors, err
 	}
 
-	newStockItemID, err := s.stockItemRepository.CreateStockItem(ctx, tx, input)
+	galleryID, err := s.galleryRepository.CreateGallery(ctx, tx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	newStockItemID, err := s.stockItemRepository.CreateStockItem(ctx, tx, input,
+		galleryID,
+	)
 	if err != nil {
 		return validate.ValidationErrors{}, err
 	}

@@ -24,17 +24,20 @@ type StockItemHandler struct {
 	stockItemService service.StockItemService
 	commentService   service.CommentService
 	fileService      service.FileService
+	galleryService   service.GalleryService
 }
 
 func NewStockItemHandler(
 	stockItemService service.StockItemService,
 	commentService service.CommentService,
 	fileService service.FileService,
+	galleryService service.GalleryService,
 ) *StockItemHandler {
 	return &StockItemHandler{
 		stockItemService: stockItemService,
 		commentService:   commentService,
 		fileService:      fileService,
+		galleryService:   galleryService,
 	}
 }
 
@@ -105,7 +108,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID, ctx.User)
 	if err != nil {
 		http.Error(w, "Error fetching Stock item", http.StatusInternalServerError)
 		return
@@ -128,6 +131,10 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "Stock item not found", http.StatusNotFound)
 		return
 	}
+
+	galleryURL := h.galleryService.GenerateTempURL(stockItem.GalleryID, ctx.User.Permissions.Stock.Admin)
+
+	stockItem.GalleryURL = galleryURL
 
 	png, err := qrcode.Encode(stockItem.StockCode, qrcode.Medium, 256)
 	if err != nil {
@@ -235,7 +242,7 @@ func (h *StockItemHandler) EditStockItemPage(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID, ctx.User)
 	if err != nil {
 		http.Error(w, "Error getting Stock item", http.StatusInternalServerError)
 		return
@@ -274,7 +281,7 @@ func (h *StockItemHandler) EditStockItem(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID, ctx.User)
 	if err != nil {
 		http.Error(w, "Error getting Stock item", http.StatusInternalServerError)
 		return
