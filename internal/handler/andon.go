@@ -21,23 +21,26 @@ type AndonHandler struct {
 	andonService      service.AndonService
 	andonIssueService service.AndonIssueService
 	commentService    service.CommentService
-	teamService       service.TeamService
 	fileService       service.FileService
+	galleryService service.GalleryService
+	teamService       service.TeamService
 }
 
 func NewAndonHandler(
 	andonService service.AndonService,
 	andonIssueService service.AndonIssueService,
 	commentService service.CommentService,
-	teamService service.TeamService,
 	fileService service.FileService,
+	galleryService service.GalleryService,
+	teamService service.TeamService,
 ) *AndonHandler {
 	return &AndonHandler{
 		andonService:      andonService,
 		andonIssueService: andonIssueService,
 		commentService:    commentService,
-		teamService:       teamService,
 		fileService:       fileService,
+		galleryService:    galleryService,
+		teamService:       teamService,
 	}
 }
 
@@ -48,7 +51,7 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var uv andonEventsHomePageUrlVals
+	var uv andonsHomePageUrlVals
 
 	err := appurl.Unmarshal(r.URL.Query(), &uv)
 	if err != nil {
@@ -136,7 +139,7 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	}).Render(w)
 }
 
-type andonEventsHomePageUrlVals struct {
+type andonsHomePageUrlVals struct {
 	OutstandingSort string
 	WIPSort         string
 
@@ -562,7 +565,7 @@ func (h *AndonHandler) UpdateAndon(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/andons", http.StatusSeeOther)
 }
 
-func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) {
+func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 	if !ctx.User.Permissions.UserAdmin.Access {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -589,6 +592,21 @@ func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	galleryImgURLs, err := h.galleryService.GetGalleryImgURLs(r.Context(), andon.GalleryID)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error fetching andon gallery", http.StatusInternalServerError)
+		return
+	}
+
+	var galleryURL string
+	if len(galleryImgURLs) == 0 && andon.CanUserEdit {
+		galleryURL = h.galleryService.GenerateEditTempURL(andon.GalleryID, true)
+	} else {
+		galleryURL = h.galleryService.GenerateTempURL(andon.GalleryID, andon.CanUserEdit)
+	}
+
+
 	comments, err := h.commentService.GetComments(r.Context(), "Andon", andonID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
@@ -604,6 +622,8 @@ func (h *AndonHandler) AndonDetailsPage(w http.ResponseWriter, r *http.Request) 
 		Andon:          *andon,
 		AndonChangelog: changelog,
 		AndonComments:  comments,
+		GalleryURL: galleryURL,
+		GalleryImageURLs: galleryImgURLs,
 	}).Render(w)
 }
 

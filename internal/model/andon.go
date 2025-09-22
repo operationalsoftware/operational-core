@@ -18,6 +18,7 @@ type Andon struct {
 	AndonID          int
 	Description      string
 	AndonIssueID     int
+	GalleryID int
 	IssueName        string        `sortable:"true"`
 	NamePath         []string      `sortable:"true"`
 	Severity         AndonSeverity `sortable:"true"`
@@ -44,6 +45,7 @@ type Andon struct {
 	CancelledByUsername    *string    `sortable:"true"`
 	CancelledAt            *time.Time `sortable:"true"`
 	LastUpdated            *time.Time `sortable:"true"`
+	CanUserEdit            bool
 	CanUserAcknowledge     bool
 	CanUserResolve         bool
 	CanUserCancel          bool
@@ -53,6 +55,7 @@ type Andon struct {
 type NewAndon struct {
 	Description string
 	IssueID     int
+	GalleryID   int
 	Source      string
 	Location    string
 	RaisedBy    string

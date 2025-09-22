@@ -29,6 +29,11 @@ var AppMenu = []components.GridMenuGroup{
 					return permissions.UserAdmin.Access
 				},
 			},
+		},
+	},
+	{
+		GroupName: "Tools",
+		Items: []components.GridMenuItem{
 			{
 				Icon: "alert-octagon-outline",
 				Name: "Andons",

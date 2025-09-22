@@ -66,14 +66,14 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gallery, err := h.galleryService.GetGallery(r.Context(), galleryID, ctx.User)
+	gallery, err := h.galleryService.GetGallery(r.Context(), galleryID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching gallery", http.StatusInternalServerError)
 		return
 	}
 
-	editURL := h.galleryService.GenerateEditTempURL(galleryID, ctx.User.Permissions.Stock.Admin)
+	editURL := h.galleryService.GenerateEditTempURL(galleryID, slices.Contains(allowedOperations, "edit"))
 
 	_ = galleryview.GalleryPage(&galleryview.GalleryPageProps{
 		Ctx:               ctx,
@@ -327,7 +327,7 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gallery, err := h.galleryService.GetGallery(r.Context(), galleryID, ctx.User)
+	gallery, err := h.galleryService.GetGallery(r.Context(), galleryID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching gallery", http.StatusInternalServerError)

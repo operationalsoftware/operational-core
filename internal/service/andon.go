@@ -14,6 +14,7 @@ type AndonService struct {
 	swiftConn         *swift.Connection
 	andonRepository   *repository.AndonRepository
 	commentRepository *repository.CommentRepository
+	galleryRepository *repository.GalleryRepository
 }
 
 func NewAndonService(
@@ -21,20 +22,23 @@ func NewAndonService(
 	swiftConn *swift.Connection,
 	andonRepo *repository.AndonRepository,
 	commentRepository *repository.CommentRepository,
+	galleryRepository *repository.GalleryRepository,
 ) *AndonService {
 	return &AndonService{
 		db:                db,
 		swiftConn:         swiftConn,
 		andonRepository:   andonRepo,
 		commentRepository: commentRepository,
+		galleryRepository: galleryRepository,
 	}
 }
 
 func (s *AndonService) CreateAndonEvent(
 	ctx context.Context,
-	andonIssue model.NewAndon,
+	andon model.NewAndon,
 	userID int,
 ) error {
+	var err error
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -42,16 +46,30 @@ func (s *AndonService) CreateAndonEvent(
 	}
 	defer tx.Rollback(ctx)
 
-	if err := s.andonRepository.CreateAndonEvent(
+
+	galleryId, err:= s.galleryRepository.CreateGallery(
 		ctx,
-		s.db,
-		andonIssue,
+		tx,
 		userID,
-	); err != nil {
+	)
+	if err != nil {
 		return err
 	}
 
-	if err := tx.Commit(ctx); err != nil {
+	andon.GalleryID = galleryId
+
+	err = s.andonRepository.CreateAndonEvent(
+		ctx,
+		tx,
+		andon,
+		userID,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
 		return err
 	}
 

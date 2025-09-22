@@ -148,16 +148,25 @@ async function setPosition(galleryItemId, position) {
   }
 }
 
-function deleteItem(galleryId, itemId, position) {
+var isDeleting = false;
+
+function deleteItem(galleryId, itemId) {
+  if (isDeleting) return;
+
+  isDeleting = true;
+
   confirmDelete = confirm(
     "Are you sure you want to delete this gallery item ?"
   );
 
-  if (confirmDelete) {
-    fetch(`/gallery/${galleryId}/item/${itemId}` + window.location.search, {
-      method: "DELETE",
-    }).then(() => location.reload());
+  if (!confirmDelete) {
+    isDeleting = false;
+    return;
   }
+
+  fetch(`/gallery/${galleryId}/item/${itemId}` + window.location.search, {
+    method: "DELETE",
+  }).then(() => location.reload());
 }
 
 async function submitGalleryItems(e) {

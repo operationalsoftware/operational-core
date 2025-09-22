@@ -29,13 +29,28 @@
   let currentIndex = 0;
 
   const images = gallery.querySelectorAll(".gallery-item img");
+
+  function openLightbox(index) {
+    currentImages = Array.from(images);
+    currentIndex = index;
+    img.src = currentImages[currentIndex].src;
+    lightbox.style.display = "flex";
+    document.addEventListener("keydown", handleKeydown);
+  }
+
+  function closeLightbox() {
+    lightbox.style.display = "none";
+    document.removeEventListener("keydown", handleKeydown);
+  }
+
+  function handleKeydown(e) {
+    if (e.key === "Escape") {
+      closeLightbox();
+    }
+  }
+
   images.forEach((image, index) => {
-    image.addEventListener("click", () => {
-      currentImages = Array.from(images);
-      currentIndex = index;
-      img.src = currentImages[currentIndex].src;
-      lightbox.style.display = "flex";
-    });
+    image.addEventListener("click", () => openLightbox(index));
   });
 
   prevBtn.addEventListener("click", (e) => {
@@ -55,12 +70,13 @@
 
   closeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    lightbox.style.display = "none";
+    closeLightbox();
   });
 
   lightbox.addEventListener("click", (e) => {
     if (e.target === lightbox) {
-      lightbox.style.display = "none";
+      closeLightbox();
     }
   });
 })();
+

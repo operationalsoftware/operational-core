@@ -25,7 +25,6 @@ type EditGroupPageProps struct {
 	ErrorText        string
 }
 
-const MaxIssueDepth = 4
 
 func EditGroupPage(p *EditGroupPageProps) g.Node {
 
@@ -139,7 +138,7 @@ func editGroupForm(p *editGroupFormProps) g.Node {
 		isArchivedHelperType = components.InputHelperTypeError
 	}
 
-	spareDepth := MaxIssueDepth - p.andonIssueGroup.DownDepth
+	spareDepth := model.MaxAndonIssueDepth - p.andonIssueGroup.DownDepth
 
 	for _, aig := range p.andonIssueGroups {
 		if p.andonIssueGroup.AndonIssueID == aig.AndonIssueID {
@@ -204,7 +203,7 @@ func editGroupForm(p *editGroupFormProps) g.Node {
 
 			h.P(
 				h.Class("note"),
-				g.Text("* Only two levels of groups are supported"),
+				g.Textf("* Only %d levels of groups are supported", model.MaxAndonIssueDepth-1),
 			),
 		),
 

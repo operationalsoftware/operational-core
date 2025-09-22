@@ -44,7 +44,7 @@ func EditGalleryPage(p *EditGalleryPageProps) g.Node {
 
 					h.Button(
 						g.Attr("class", "btn-danger"),
-						g.Attr("onclick", fmt.Sprintf("deleteItem(%d, %d, %d)", p.Gallery.GalleryID, item.GalleryItemID, item.Position)),
+						g.Attr("onclick", fmt.Sprintf("deleteItem(%d, %d)", p.Gallery.GalleryID, item.GalleryItemID)),
 
 						components.Icon(&components.IconProps{
 							Identifier: "close",

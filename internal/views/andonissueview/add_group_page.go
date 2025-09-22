@@ -146,7 +146,7 @@ func addGroupForm(p *addGroupFormProps) g.Node {
 
 				h.P(
 					h.Class("note"),
-					g.Text("* Only two levels of groups are supported"),
+					g.Textf("* Only %d levels of groups are supported", model.MaxAndonIssueDepth-1),
 				),
 			),
 			g.If(parentIDError != "",

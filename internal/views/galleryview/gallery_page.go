@@ -5,7 +5,6 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/reqcontext"
-	"slices"
 
 	g "maragu.dev/gomponents"
 	c "maragu.dev/gomponents/components"
@@ -21,8 +20,6 @@ type GalleryPageProps struct {
 }
 
 func GalleryPage(p *GalleryPageProps) g.Node {
-
-	isEditable := slices.Contains(p.AllowedOperations, "edit")
 
 	var galleryItems []g.Node
 	var galleryImages []string
@@ -45,7 +42,7 @@ func GalleryPage(p *GalleryPageProps) g.Node {
 			h.Class("button-container"),
 
 			g.If(
-				isEditable,
+				p.EditURL != "",
 				components.Button(&components.ButtonProps{
 					ButtonType: "primary",
 					Classes: c.Classes{
@@ -60,15 +57,7 @@ func GalleryPage(p *GalleryPageProps) g.Node {
 				),
 			),
 		),
-		h.Div(
-
-			// h.Div(
-			// 	h.Class("gallery-grid"),
-			// g.Group(galleryItems),
-			// ),
-
-			components.Gallery(galleryImages),
-		),
+		components.Gallery(galleryImages),
 	})
 
 	return layout.Page(layout.PageProps{
@@ -80,7 +69,6 @@ func GalleryPage(p *GalleryPageProps) g.Node {
 				Title:          "Gallery",
 				URLPart:        "gallery",
 			},
-			// {Title: stockItem.StockCode},
 		},
 		Content: content,
 		Ctx:     p.Ctx,

@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const MaxAndonIssueDepth = 4
+
 type AndonSeverity string
 
 const (

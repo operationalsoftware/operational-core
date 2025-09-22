@@ -11,6 +11,7 @@ import (
 )
 
 type CommentsThreadProps struct {
+	Title    g.Node
 	Comments []model.Comment
 	Entity   string
 	EntityID int
@@ -86,8 +87,11 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 	return h.Div(
 		h.Class("comment-section"),
 
-		h.H3(
-			g.Text("Comments"),
+		g.If(p.Title != nil, p.Title),
+		g.If(p.Title == nil,
+			h.H3(
+				g.Text("Comments"),
+			),
 		),
 
 		g.If(len(p.Comments) == 0,

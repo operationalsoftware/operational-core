@@ -296,6 +296,10 @@ func (s *UserService) validateUserUpdate(
 	s.validateFirstName(&ve, "FirstName", update.FirstName)
 	s.validateLastName(&ve, "LastName", update.LastName)
 
+	if update.SessionDurationMinutes != nil {
+		s.validateSessionDuration(&ve, "SessionDurationMinutes", *update.SessionDurationMinutes)
+	}
+
 	if update.Email != nil {
 		validate.Email(&ve, "Email", *update.Email)
 	}
@@ -382,8 +386,8 @@ func (s *UserService) validateLastName(
 func (s *UserService) validateSessionDuration(
 	ve *validate.ValidationErrors,
 	sessDurationKey string,
-	firstName string,
+	duration int,
 ) {
-	validate.MinLength(ve, sessDurationKey, firstName, 1)
-	validate.MaxLength(ve, sessDurationKey, firstName, 20)
+	validate.IntGTE(ve, sessDurationKey, duration, 1)
+	validate.IntLTE(ve, sessDurationKey, duration, 525600)
 }

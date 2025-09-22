@@ -38,7 +38,6 @@ func NewGalleryService(
 func (s *GalleryService) GetGallery(
 	ctx context.Context,
 	galleryID int,
-	currentUser model.User,
 ) (model.Gallery, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -61,6 +60,38 @@ func (s *GalleryService) GetGallery(
 	}
 
 	return gallery, nil
+}
+
+func (s *GalleryService) GetGalleryImgURLs(
+	ctx context.Context,
+	galleryID int,
+) ([]string, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	gallery, err := s.galleryRepository.GetGalleryByID(
+		ctx,
+		tx,
+		s.swiftConn,
+		galleryID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	urls := make([]string, 0, len(gallery.Items))
+	for _, item := range gallery.Items {
+		urls = append(urls, item.DownloadURL)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return urls, nil
 }
 
 func (s *GalleryService) AddGalleryItem(

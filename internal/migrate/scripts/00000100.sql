@@ -52,6 +52,61 @@ CREATE TABLE comment (
 CREATE INDEX idx_comment_entity ON comment(entity, entity_id);
 
 
+CREATE TABLE file (
+    file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    filename TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    size_bytes BIGINT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    entity TEXT NOT NULL,
+    entity_id INT NOT NULL,
+    user_id INT NOT NULL REFERENCES app_user(user_id),
+
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_files_user ON file(user_id);
+CREATE INDEX idx_files_entity ON file(entity, entity_id);
+
+
+CREATE TABLE gallery (
+    gallery_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by INT REFERENCES app_user(user_id)
+);
+
+
+CREATE TABLE gallery_item (
+    gallery_item_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    gallery_id INTEGER NOT NULL REFERENCES gallery(gallery_id) ON DELETE CASCADE,
+    file_id UUID NOT NULL REFERENCES file(file_id) ON DELETE CASCADE,
+    position INT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by INT REFERENCES app_user(user_id)
+);
+
+CREATE VIEW gallery_view AS
+SELECT
+    g.gallery_id,
+    g.created_by,
+    g.created_at,
+    COALESCE(json_agg(json_build_object(
+        'gallery_item_id', gi.gallery_item_id,
+        'position', gi.position,
+        'file_id', f.file_id,
+        'filename', f.filename,
+        'created_at', gi.created_at,
+        'created_by', gi.created_by
+    ) ORDER BY gi.position, gi.created_at
+    ) FILTER (WHERE gi.gallery_item_id IS NOT NULL), '[]'::json
+    ) AS items
+FROM
+    gallery g
+LEFT JOIN gallery_item gi on gi.gallery_id = g.gallery_id
+LEFT JOIN file f ON gi.file_id = f.file_id
+GROUP BY g.gallery_id, g.created_at, g.created_by;
+
+
 CREATE TABLE stock_item (
 	stock_item_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	stock_code TEXT NOT NULL,
@@ -113,7 +168,8 @@ CREATE TABLE andon_issue (
 
 CREATE TABLE andon (
     andon_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    andon_issue_id INTEGER REFERENCES andon_issue(andon_issue_id),
+    andon_issue_id INTEGER REFERENCES andon_issue(andon_issue_id) NOT NULL,
+    gallery_id INTEGER REFERENCES gallery(gallery_id) NOT NULL,
     description TEXT NOT NULL,
     source TEXT NOT NULL,
     location TEXT NOT NULL,
@@ -273,6 +329,7 @@ SELECT
     a.andon_id,
     a.description,
     a.andon_issue_id,
+    a.gallery_id,
     a.source,
     a.location,
     a.raised_at,
@@ -390,23 +447,6 @@ LEFT JOIN team t ON ut.team_id = t.team_id
 GROUP BY u.user_id;
 
 
-CREATE TABLE file (
-    file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    filename TEXT NOT NULL,
-    content_type TEXT NOT NULL,
-    size_bytes BIGINT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending',
-    entity TEXT NOT NULL,
-    entity_id INT NOT NULL,
-    user_id INT NOT NULL REFERENCES app_user(user_id),
-
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-CREATE INDEX idx_files_user ON file(user_id);
-CREATE INDEX idx_files_entity ON file(entity, entity_id);
-
-
 CREATE VIEW comment_view AS
 SELECT
     c.comment_id,
@@ -428,41 +468,3 @@ LEFT JOIN app_user u ON c.commented_by = u.user_id
 LEFT JOIN file f ON f.entity = 'Comment' AND f.entity_id = c.comment_id
 GROUP BY c.comment_id, c.entity_id, c.comment, u.username, c.commented_at
 ORDER BY c.commented_at ASC;
-
-
-CREATE TABLE gallery (
-    gallery_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by INT REFERENCES app_user(user_id)
-);
-
-
-CREATE TABLE gallery_item (
-    gallery_item_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    gallery_id INTEGER NOT NULL REFERENCES gallery(gallery_id) ON DELETE CASCADE,
-    file_id UUID NOT NULL REFERENCES file(file_id) ON DELETE CASCADE,
-    position INT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    created_by INT REFERENCES app_user(user_id)
-);
-
-CREATE VIEW gallery_view AS
-SELECT
-    g.gallery_id,
-    g.created_by,
-    g.created_at,
-    COALESCE(json_agg(json_build_object(
-        'gallery_item_id', gi.gallery_item_id,
-        'position', gi.position,
-        'file_id', f.file_id,
-        'filename', f.filename,
-        'created_at', gi.created_at,
-        'created_by', gi.created_by
-    ) ORDER BY gi.position, gi.created_at
-    ) FILTER (WHERE gi.gallery_item_id IS NOT NULL), '[]'::json
-    ) AS items
-FROM
-    gallery g
-LEFT JOIN gallery_item gi on gi.gallery_id = g.gallery_id
-LEFT JOIN file f ON gi.file_id = f.file_id
-GROUP BY g.gallery_id, g.created_at, g.created_by;

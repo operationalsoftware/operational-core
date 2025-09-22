@@ -47,7 +47,13 @@
   }
 }
 
-.comments-and-changelog-container {
+.gallery-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.two-column-flex {
   display: flex;
   gap: var(--spacing-md);
   

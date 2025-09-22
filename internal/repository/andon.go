@@ -28,6 +28,7 @@ func (r *AndonRepository) CreateAndonEvent(
 INSERT INTO andon (
 	description,
 	andon_issue_id,
+	gallery_id,
 	source,
 	location,
 	raised_by
@@ -37,7 +38,8 @@ VALUES (
 	$2,
 	$3,
 	$4,
-	$5
+	$5,
+	$6
 )
 RETURNING andon_id
 `
@@ -59,6 +61,7 @@ VALUES ($1, $2, $3, $1)
 
 		andon.Description,
 		andon.IssueID,
+		andon.GalleryID,
 		andon.Source,
 		andon.Location,
 		userID,
@@ -90,6 +93,7 @@ SELECT
 	andon_id,
 	description,
 	andon_issue_id,
+	gallery_id,
 	source,
 	location,
 	assigned_team,
@@ -110,6 +114,11 @@ SELECT
 	severity,
 	is_open,
 	status,
+	(
+		raised_by = ` + currentUserIDPlaceholderStr + `
+		OR
+		assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholderStr + `)
+	) AS can_user_edit,
 	(
 		is_cancelled = false
 	    AND
@@ -197,6 +206,7 @@ WHERE
 		&andon.AndonID,
 		&andon.Description,
 		&andon.AndonIssueID,
+		&andon.GalleryID,
 		&andon.Source,
 		&andon.Location,
 		&andon.AssignedTeam,
@@ -217,6 +227,7 @@ WHERE
 		&andon.Severity,
 		&andon.IsOpen,
 		&andon.Status,
+		&andon.CanUserEdit,
 		&andon.CanUserAcknowledge,
 		&andon.CanUserResolve,
 		&andon.CanUserCancel,
@@ -272,6 +283,7 @@ FROM andon_view
 			&andon.AndonID,
 			&andon.Description,
 			&andon.AndonIssueID,
+			&andon.GalleryID,
 			&andon.Source,
 			&andon.Location,
 			&andon.AssignedTeam,
@@ -292,6 +304,7 @@ FROM andon_view
 			&andon.Severity,
 			&andon.IsOpen,
 			&andon.Status,
+			&andon.CanUserEdit,
 			&andon.CanUserAcknowledge,
 			&andon.CanUserResolve,
 			&andon.CanUserCancel,
@@ -341,7 +354,7 @@ func (r *AndonRepository) GetAvailableFilters(
 		"LocationIn":               "location",
 		"IssueIn":                  "issue_name",
 		"SeverityIn":               "severity",
-		"StatusIn":               "status",
+		"StatusIn":                 "status",
 		"TeamIn":                   "assigned_team_name",
 		"RaisedByUsernameIn":       "raised_by_username",
 		"AcknowledgedByUsernameIn": "acknowledged_by_username",
@@ -359,7 +372,7 @@ func (r *AndonRepository) GetAvailableFilters(
 			IssueIn:                  baseFilters.IssueIn,
 			TeamIn:                   baseFilters.TeamIn,
 			SeverityIn:               baseFilters.SeverityIn,
-			StatusIn: baseFilters.StatusIn,
+			StatusIn:                 baseFilters.StatusIn,
 			RaisedByUsernameIn:       baseFilters.RaisedByUsernameIn,
 			AcknowledgedByUsernameIn: baseFilters.AcknowledgedByUsernameIn,
 			ResolvedByUsernameIn:     baseFilters.ResolvedByUsernameIn,

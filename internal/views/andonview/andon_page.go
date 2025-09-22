@@ -22,6 +22,8 @@ type AndonPageProps struct {
 	IsSubmission     bool
 	AndonID          int
 	Andon            model.Andon
+	GalleryURL       string
+	GalleryImageURLs []string
 	AndonChangelog   []model.AndonChange
 	AndonComments    []model.Comment
 }
@@ -127,19 +129,19 @@ func AndonPage(p *AndonPageProps) g.Node {
 				h.Class("actions"),
 
 				g.If(andon.CanUserAcknowledge, acknowledgeButton(&acknowledgeButtonProps{
-					andonID: p.AndonID,
+					andonID:  p.AndonID,
 					showText: true,
 				})),
 				g.If(andon.CanUserResolve, resolveButton(&resolveButtonProps{
-					andonID: p.AndonID,
+					andonID:  p.AndonID,
 					showText: true,
 				})),
 				g.If(andon.CanUserCancel, cancelButton(&cancelButtonProps{
-					andonID: p.AndonID,
+					andonID:  p.AndonID,
 					showText: true,
 				})),
 				g.If(andon.CanUserReopen, reopenButton(&reopenButtonProps{
-					andonID: p.AndonID,
+					andonID:  p.AndonID,
 					showText: true,
 				})),
 			),
@@ -151,21 +153,41 @@ func AndonPage(p *AndonPageProps) g.Node {
 		),
 
 		h.Div(
-			h.Class("attributes-list"),
+			h.Class("two-column-flex"),
+			h.Div(
+				h.Class("attributes-list"),
 
-			g.Group{g.Map(attributes, func(a attribute) g.Node {
-				return h.Li(
+				g.Group{g.Map(attributes, func(a attribute) g.Node {
+					return h.Li(
+						components.Icon(&components.IconProps{
+							Identifier: "arrow-right-thin",
+						}),
+						h.Strong(g.Textf("%s: ", a.label)),
+						h.Span(a.value),
+					)
+				})},
+			),
+
+			h.Div(
+				h.Class("gallery-container"),
+
+				components.Gallery(p.GalleryImageURLs),
+
+				h.A(
+					h.Class("button primary"),
+					h.Href(p.GalleryURL),
+
+					g.Text("Gallery"),
+
 					components.Icon(&components.IconProps{
 						Identifier: "arrow-right-thin",
 					}),
-					h.Strong(g.Textf("%s: ", a.label)),
-					h.Span(a.value),
-				)
-			})},
+				),
+			),
 		),
 
 		h.Div(
-			h.Class("comments-and-changelog-container"),
+			h.Class("two-column-flex"),
 
 			components.CommentsThread(&components.CommentsThreadProps{
 				Comments: p.AndonComments,

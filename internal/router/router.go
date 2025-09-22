@@ -48,9 +48,17 @@ func NewRouter(services *Services) http.Handler {
 	staticFS := http.FileServer(assets.Assets)
 	mux.Handle("/static/", staticFS)
 
-	// add routes for services
+	// add routes
 	addAuthRoutes(mux, services.AuthService)
-	addAndonRoutes(mux, services.AndonService, services.AndonIssueService, services.CommentService, services.TeamService, services.FileService)
+	addAndonRoutes(
+		mux,
+		services.AndonService,
+		services.AndonIssueService,
+		services.CommentService,
+		services.FileService,
+		services.GalleryService,
+		services.TeamService,
+	)
 	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
 	addCameraScannerRoutes(mux)
 	addFileRoutes(mux, services.FileService)
