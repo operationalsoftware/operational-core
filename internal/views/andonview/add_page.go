@@ -387,13 +387,13 @@ func issueSelect(level int, nodes []model.AndonIssueNode, selectedID int, baseUR
 					val := fmt.Sprintf("%d", n.AndonIssueID)
 					opt := h.Option(
 						h.Value(val),
-						g.Text(strings.Join(n.NamePath, " > ")),
+						g.Text(n.IssueName),
 					)
 					if n.AndonIssueID == selectedID {
 						opt = h.Option(
 							h.Value(val),
 							h.Selected(),
-							g.Text(strings.Join(n.NamePath, " > ")),
+							g.Text(n.IssueName),
 						)
 					}
 					opts = append(opts, opt)
