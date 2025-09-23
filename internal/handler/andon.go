@@ -22,7 +22,7 @@ type AndonHandler struct {
 	andonIssueService service.AndonIssueService
 	commentService    service.CommentService
 	fileService       service.FileService
-	galleryService service.GalleryService
+	galleryService    service.GalleryService
 	teamService       service.TeamService
 }
 
@@ -239,7 +239,7 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 			EndDate:                  uv.EndDate,
 			IssueIn:                  uv.IssueIn,
 			SeverityIn:               uv.SeverityIn,
-			StatusIn: uv.StatusIn,
+			StatusIn:                 uv.StatusIn,
 			TeamIn:                   uv.TeamIn,
 			LocationIn:               uv.LocationIn,
 			RaisedByUsernameIn:       uv.RaisedByUsernameIn,
@@ -366,7 +366,7 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var fd addAndonEventFormData
+	var fd addAndonFormData
 	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
@@ -606,7 +606,6 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		galleryURL = h.galleryService.GenerateTempURL(andon.GalleryID, andon.CanUserEdit)
 	}
 
-
 	comments, err := h.commentService.GetComments(r.Context(), "Andon", andonID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
@@ -615,35 +614,31 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = andonview.AndonPage(&andonview.AndonPageProps{
-		Ctx:            ctx,
-		Values:         r.Form,
-		IsSubmission:   true,
-		AndonID:        andonID,
-		Andon:          *andon,
-		AndonChangelog: changelog,
-		AndonComments:  comments,
-		GalleryURL: galleryURL,
+		Ctx:              ctx,
+		Values:           r.Form,
+		IsSubmission:     true,
+		AndonID:          andonID,
+		Andon:            *andon,
+		AndonChangelog:   changelog,
+		AndonComments:    comments,
+		GalleryURL:       galleryURL,
 		GalleryImageURLs: galleryImgURLs,
 	}).Render(w)
 }
 
-type addAndonEventFormData struct {
+type addAndonFormData struct {
 	Description  string
 	IssueID      int
 	AssignedTeam string
 	Location     string
 }
 
-func (fd *addAndonEventFormData) normalise() {
+func (fd *addAndonFormData) normalise() {
 	fd.Description = strings.TrimSpace(fd.Description)
 }
 
-func (fd *addAndonEventFormData) validate() validate.ValidationErrors {
+func (fd *addAndonFormData) validate() validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
-
-	if fd.Description == "" {
-		ve.Add("Description", "is required")
-	}
 
 	if fd.IssueID == 0 {
 		ve.Add("IssueID", "is required")
