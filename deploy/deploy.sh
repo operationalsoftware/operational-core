@@ -3,17 +3,14 @@
 # Exit if any command fails
 set -e
 
-# Get the directory of this script
-deploy_dir="$(cd "$(dirname "$0")" && pwd)"
+# Check if environment is provided
+if [ -z "$1" ]; then
+  echo "Error: No deployment environment specified."
+  echo "Usage: $0 <environment>"
+  exit 1
+fi
 
-# Set the working directory to that of this script
-cd "$deploy_dir"
-
-# Source the get-deploy-config script to read the configuration values
-. ./get-deploy-config.sh
-
-# Go to the main project directory
-cd "$deploy_dir/.."
+deployment_env="$1"
 
 # Check if there are uncommitted changes
 if [ -n "$(git status --porcelain)" ]; then
@@ -27,15 +24,39 @@ if [ -n "$(git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD)" ]; then
   exit 1
 fi
 
-# Perform the deployment using the host value
-echo "Deploying branch '$(git rev-parse --abbrev-ref HEAD)' to $host..."
+# Load in variables:
+#   DEPLOY_HOST
+#   DEPLOY_SSH_KEY_FLAG
+#   DEPLOY_REQUIRES_CONFIRMATION
+source ./read_config.sh "$deployment_env"
+
+echo "Starting deployment to $DEPLOY_HOST"
+
+if [ "$DEPLOY_REQUIRES_CONFIRMATION" = "true" ]; then
+  echo "⚠️  You are about to deploy to: $deployment_env"
+  read -p "Type the environment name to confirm: " confirm
+  if [ "$confirm" != "$deployment_env" ]; then
+    echo "Deployment cancelled."
+    exit 1
+  fi
+fi
+
+# Get the directory of this script
+deploy_dir="$(cd "$(dirname "$0")" && pwd)"
+
+# Set the working directory to that of this script
+cd "$deploy_dir"
+
+
+# Go to the main project directory
+cd "$deploy_dir/.."
 
 # Build the Golang binary
 ./build.sh app linux/amd64
 
 # Copy built app to server
-scp $ssh_key_flag ./app "$host:~"
-scp $ssh_key_flag "./deploy/$branch.env" "$host:~/.env"
+scp $DEPLOY_SSH_KEY_FLAG ./app "$DEPLOY_HOST:~"
+scp $DEPLOY_SSH_KEY_FLAG "./deploy/$deployment_env.env" "$DEPLOY_HOST:~/.env"
 
 # Remove the local binary
 rm ./app
@@ -44,16 +65,16 @@ rm ./app
 cd "$deploy_dir"
 
 # Copy config files to server
-scp $ssh_key_flag ./Caddyfile "$host:~"
-scp $ssh_key_flag ./caddy.service "$host:~"
-scp $ssh_key_flag ./app.service "$host:~"
-scp $ssh_key_flag ./db-backup.service "$host:~"
-scp $ssh_key_flag ./db-backup.sh "$host:~"
-scp $ssh_key_flag ./db-backup.timer "$host:~"
-scp $ssh_key_flag ./rclone.conf "$host:~"
+scp $DEPLOY_SSH_KEY_FLAG ./Caddyfile "$DEPLOY_HOST:~"
+scp $DEPLOY_SSH_KEY_FLAG ./caddy.service "$DEPLOY_HOST:~"
+scp $DEPLOY_SSH_KEY_FLAG ./app.service "$DEPLOY_HOST:~"
+scp $DEPLOY_SSH_KEY_FLAG ./db-backup.service "$DEPLOY_HOST:~"
+scp $DEPLOY_SSH_KEY_FLAG ./db-backup.sh "$DEPLOY_HOST:~"
+scp $DEPLOY_SSH_KEY_FLAG ./db-backup.timer "$DEPLOY_HOST:~"
+scp $DEPLOY_SSH_KEY_FLAG ./rclone.conf "$DEPLOY_HOST:~"
 
 # Running commands in remote server via ssh
-ssh $ssh_key_flag "$host" <<EOF
+ssh $DEPLOY_SSH_KEY_FLAG "$DEPLOY_HOST" <<EOF
     set -e
 
     echo "📦 Ensuring directories exist..."
