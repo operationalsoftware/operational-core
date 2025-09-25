@@ -24,6 +24,12 @@ if [ -n "$(git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD)" ]; then
   exit 1
 fi
 
+# Get the directory of this script
+deploy_dir="$(cd "$(dirname "$0")" && pwd)"
+
+# Set the working directory to that of this script
+cd "$deploy_dir"
+
 # Load in variables:
 #   DEPLOY_HOST
 #   DEPLOY_SSH_KEY_FLAG
@@ -34,19 +40,12 @@ echo "Starting deployment to $DEPLOY_HOST"
 
 if [ "$DEPLOY_REQUIRES_CONFIRMATION" = "true" ]; then
   echo "⚠️  You are about to deploy to: $deployment_env"
-  read -p "Type the environment name to confirm: " confirm
+  read -p "Type \"$deployment_env\" to confirm: " confirm
   if [ "$confirm" != "$deployment_env" ]; then
     echo "Deployment cancelled."
     exit 1
   fi
 fi
-
-# Get the directory of this script
-deploy_dir="$(cd "$(dirname "$0")" && pwd)"
-
-# Set the working directory to that of this script
-cd "$deploy_dir"
-
 
 # Go to the main project directory
 cd "$deploy_dir/.."

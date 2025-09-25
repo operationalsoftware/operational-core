@@ -2,24 +2,21 @@
 
 set -e;
 
-# Load Orbit credentials and config
-source /opt/app/.env
+timestamp=$(date +%F_%T | tr ':' '-');
+echo "Starting backup at $timestamp";
 
-TIMESTAMP=$(date +%F_%T | tr ':' '-');
-echo "Starting backup at $TIMESTAMP";
-
-DUMP_FILE="/opt/app/${DUMP_PREFIX}-${TIMESTAMP}.dump"
-ORBIT_OBJECT="${DUMP_PREFIX}-${TIMESTAMP}.dump"
+dump_file="/opt/app/${DUMP_PREFIX}-${timestamp}.dump"
+orbit_object="${DUMP_PREFIX}-${timestamp}.dump"
 
 # Create database dump
-pg_dump -Fc --no-acl -U postgres batten_allen > "$DUMP_FILE"
+pg_dump -Fc --no-acl -U postgres $PG_DATABASE > "$dump_file"
 
 # Upload to Orbit
-rclone copyto "$DUMP_FILE" "orbit:$ORBIT_BACKUP_CONTAINER/$ORBIT_OBJECT"
+rclone copyto "$dump_file" "orbit:$ORBIT_BACKUP_CONTAINER/$orbit_object"
 
-TIMESTAMP=$(date +%F_%T | tr ':' '-');
-echo "Backup complete at $TIMESTAMP - uploaded to orbit:$ORBIT_BACKUP_CONTAINER/$ORBIT_OBJECT"
+timestamp=$(date +%F_%T | tr ':' '-');
+echo "Backup complete at $timestamp - uploaded to orbit:$ORBIT_BACKUP_CONTAINER/$orbit_object"
 
-rm "$DUMP_FILE"
+rm "$dump_file"
 
 rclone delete "orbit:$ORBIT_BACKUP_CONTAINER" --min-age 30d
