@@ -75,7 +75,6 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 			h.Class("two-column-flex"),
 
 			components.CommentsThread(&components.CommentsThreadProps{
-				Title:    h.H3(g.Text("Notes")),
 				Comments: p.StockItemComments,
 				Entity:   "StockItem",
 				EntityID: p.StockItem.StockItemID,
