@@ -132,9 +132,9 @@ func (s *StockItemService) CreateStockItem(
 		return nil, err
 	}
 
-	newStockItemID, err := s.stockItemRepository.CreateStockItem(ctx, tx, input,
-		galleryID,
-	)
+	input.GalleryID = galleryID
+
+	newStockItemID, err := s.stockItemRepository.CreateStockItem(ctx, tx, input)
 	if err != nil {
 		return validate.ValidationErrors{}, err
 	}

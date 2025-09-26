@@ -21,7 +21,6 @@ func (r *StockItemRepository) CreateStockItem(
 	ctx context.Context,
 	exec db.PGExecutor,
 	stockItem *model.PostStockItem,
-	galleryID int,
 ) (int, error) {
 
 	insertStmt := `
@@ -39,7 +38,7 @@ RETURNING stock_item_id
 		insertStmt,
 		stockItem.StockCode,
 		stockItem.Description,
-		galleryID,
+		stockItem.GalleryID,
 	).Scan(&newStockItemID)
 
 	if err != nil {

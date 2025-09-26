@@ -40,6 +40,7 @@ type LabelGenerator struct {
 type PostStockItem struct {
 	StockCode   string
 	Description string
+	GalleryID   int
 }
 
 type GetStockItemsQuery struct {
