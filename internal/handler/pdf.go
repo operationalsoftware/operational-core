@@ -35,8 +35,6 @@ func (h *PDFHandler) PDFGeneratorPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pdfview.PDFGeneratorPage(props).Render(w)
-
-	return
 }
 
 func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {

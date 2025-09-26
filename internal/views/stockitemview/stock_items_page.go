@@ -42,13 +42,12 @@ func StockItemsPage(p *StockItemsPageProps) g.Node {
 	var tableRows components.TableRows
 	for _, u := range p.StockItems {
 
+		stockItemHref := fmt.Sprintf("/stock-items/%d", u.StockItemID)
+
 		tableRows = append(tableRows, components.TableRow{
 			Cells: []components.TableCell{
 				{
-					Contents: h.A(
-						g.Text(u.StockCode),
-						g.Attr("href",
-							fmt.Sprintf("/stock-items/%d", u.StockItemID))),
+					Contents: h.A(h.Href(stockItemHref), g.Text(u.StockCode)),
 				},
 				{
 					Contents: g.Group([]g.Node{
@@ -60,6 +59,7 @@ func StockItemsPage(p *StockItemsPageProps) g.Node {
 					Contents: g.Text(u.CreatedAt.Format("2006-01-02 15:04:05")),
 				},
 			},
+			HREF: stockItemHref,
 		})
 	}
 
@@ -82,7 +82,7 @@ func StockItemsPage(p *StockItemsPageProps) g.Node {
 		),
 
 		// form container for table interaction
-		h.FormEl(
+		h.Form(
 			h.ID("stock-items-table-form"),
 			g.Attr("method", "GET"),
 

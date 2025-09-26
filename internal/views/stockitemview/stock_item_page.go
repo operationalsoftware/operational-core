@@ -9,15 +9,16 @@ import (
 	"fmt"
 
 	g "maragu.dev/gomponents"
-	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
 type StockItemPageProps struct {
 	Id                int
 	Ctx               reqcontext.ReqContext
-	StockItem         *model.StockItem
+	StockItem         model.StockItem
 	QRCode            string
+	GalleryImageURLs  []string
+	GalleryURL        string
 	StockItemChanges  []model.StockItemChange
 	StockItemComments []model.Comment
 	Sort              appsort.Sort
@@ -25,110 +26,62 @@ type StockItemPageProps struct {
 	PageSize          int
 }
 
-var changelogFieldDefs = []components.ChangelogProperty{
-	{FieldKey: "StockCode", Label: g.Text("Stock Code")},
-	{FieldKey: "Description", Label: g.Text("Description")},
-}
-
 func StockItemPage(p *StockItemPageProps) g.Node {
-
-	stockItem := p.StockItem
-
-	var changelogEntries []components.ChangelogEntry
-	for _, change := range p.StockItemChanges {
-		entry := components.ChangelogEntry{
-			ChangedAt:        change.ChangedAt,
-			ChangeByUsername: change.ChangeByUsername,
-			IsCreation:       change.IsCreation,
-			Changes: map[string]interface{}{
-				"StockCode":   change.StockCode,
-				"Description": change.Description,
-			},
-		}
-		changelogEntries = append(changelogEntries, entry)
-	}
-
-	stockCode := stockItem.StockCode
-	stockDescription := stockItem.Description
 
 	content := g.Group([]g.Node{
 
 		h.Div(
-			h.Class("button-container"),
-			components.Button(&components.ButtonProps{
-				ButtonType: "primary",
-				Classes: c.Classes{
-					"edit-button": true,
-				},
-				Link: fmt.Sprintf("/stock-items/%d/edit", p.StockItem.StockItemID),
-			},
-				components.Icon(&components.IconProps{
-					Identifier: "pencil",
-				}),
-			),
-			components.Button(&components.ButtonProps{
-				ButtonType: "primary",
-				Classes: c.Classes{
-					"gallery-button": true,
-				},
-				Link: p.StockItem.GalleryURL,
-			},
-				components.Icon(&components.IconProps{
-					Identifier: "upload",
-				}),
-				g.Text("Gallery"),
-			),
-		),
-		h.Div(
-			h.H3(g.Text("Stock Item "+p.StockItem.StockCode)),
+			h.Class("header"),
+
+			h.H3(g.Text(p.StockItem.StockCode)),
 
 			h.Div(
-				h.Class("flex"),
+				h.Class("actions"),
 
-				h.Div(
-					h.Class("properties-grid"),
-
-					g.Group([]g.Node{
-						h.Span(
-							h.Strong(g.Text("Stock Code")),
-						),
-						h.Div(
-							h.Class("form-value"),
-
-							h.Span(
-								g.Text(stockCode),
-							),
-							components.CopyButton(stockCode),
-						),
-						h.Span(
-							h.Strong(g.Text("Description")),
-						),
-						h.Div(
-							h.Class("form-value"),
-
-							h.Span(
-								g.Text(stockDescription),
-							),
-							components.CopyButton(stockDescription),
-						),
+				h.A(
+					h.Class("button primary"),
+					h.Href(fmt.Sprintf("/stock-items/%d/edit", p.StockItem.StockItemID)),
+					components.Icon(&components.IconProps{
+						Identifier: "pencil",
 					}),
 				),
 			),
 		),
 
 		h.Div(
-			h.Class("comments-and-changelog-container"),
+			h.Class("two-column-flex"),
+
+			stockItemProperties(p.StockItem),
+
+			h.Div(
+				h.Class("gallery-container"),
+
+				components.Gallery(p.GalleryImageURLs),
+
+				h.A(
+					h.Class("button primary"),
+					h.Href(p.GalleryURL),
+
+					g.Text("Gallery"),
+
+					components.Icon(&components.IconProps{
+						Identifier: "arrow-right-thin",
+					}),
+				),
+			),
+		),
+
+		h.Div(
+			h.Class("two-column-flex"),
 
 			components.CommentsThread(&components.CommentsThreadProps{
+				Title:    h.H3(g.Text("Notes")),
 				Comments: p.StockItemComments,
 				Entity:   "StockItem",
 				EntityID: p.StockItem.StockItemID,
 			}),
 
-			h.Div(
-				h.Class("change-log"),
-				components.Changelog(changelogEntries, changelogFieldDefs),
-			),
+			stockItemChangeLog(p.StockItemChanges),
 		),
 	})
 
@@ -141,7 +94,7 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 				Title:          "Stock Items",
 				URLPart:        "stock-items",
 			},
-			{Title: stockItem.StockCode},
+			{Title: p.StockItem.StockCode},
 		},
 		Content: content,
 		Ctx:     p.Ctx,
@@ -149,4 +102,51 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 			components.InlineStyle("/internal/views/stockitemview/stock_item_page.css"),
 		},
 	})
+}
+
+func stockItemProperties(si model.StockItem) g.Node {
+	return h.Div(
+		h.Class("properties"),
+
+		g.Map([]struct {
+			label string
+			value string
+		}{
+			{"Stock Code", si.StockCode},
+			{"Description", si.Description},
+		}, func(i struct {
+			label string
+			value string
+		}) g.Node {
+			return g.Group([]g.Node{
+				h.Div(h.Strong(g.Text(i.label))),
+				h.Div(g.Text(i.value)),
+				components.CopyButton(i.value),
+			})
+		}),
+	)
+}
+
+var changelogFieldDefs = []components.ChangelogProperty{
+	{FieldKey: "StockCode", Label: g.Text("Stock Code")},
+	{FieldKey: "Description", Label: g.Text("Description")},
+}
+
+func stockItemChangeLog(changes []model.StockItemChange) g.Node {
+
+	var changelogEntries []components.ChangelogEntry
+	for _, change := range changes {
+		entry := components.ChangelogEntry{
+			ChangedAt:        change.ChangedAt,
+			ChangeByUsername: change.ChangeByUsername,
+			IsCreation:       change.IsCreation,
+			Changes: map[string]any{
+				"StockCode":   change.StockCode,
+				"Description": change.Description,
+			},
+		}
+		changelogEntries = append(changelogEntries, entry)
+	}
+
+	return components.Changelog(changelogEntries, changelogFieldDefs)
 }

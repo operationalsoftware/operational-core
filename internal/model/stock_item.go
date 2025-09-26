@@ -12,7 +12,6 @@ type StockItem struct {
 	StockCode   string
 	Description string
 	GalleryID   int
-	GalleryURL  string
 	CreatedAt   time.Time
 }
 

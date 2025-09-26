@@ -69,6 +69,4 @@ func (h *SearchHandler) SearchPage(w http.ResponseWriter, r *http.Request) {
 		UserPermissions: ctx.User.Permissions,
 	}).
 		Render(w)
-
-	return
 }

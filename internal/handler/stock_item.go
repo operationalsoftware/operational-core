@@ -95,11 +95,7 @@ func (h *StockItemHandler) StockItemsPage(w http.ResponseWriter, r *http.Request
 
 func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
-	if !hasPermission {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
+	canUserEdit := ctx.User.Permissions.Stock.Admin
 
 	stockItemID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -132,9 +128,19 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	galleryURL := h.galleryService.GenerateTempURL(stockItem.GalleryID, ctx.User.Permissions.Stock.Admin)
+	galleryImgURLs, err := h.galleryService.GetGalleryImgURLs(r.Context(), stockItem.GalleryID)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error fetching andon gallery", http.StatusInternalServerError)
+		return
+	}
 
-	stockItem.GalleryURL = galleryURL
+	var galleryURL string
+	if len(galleryImgURLs) == 0 && canUserEdit {
+		galleryURL = h.galleryService.GenerateEditTempURL(stockItem.GalleryID, true)
+	} else {
+		galleryURL = h.galleryService.GenerateTempURL(stockItem.GalleryID, canUserEdit)
+	}
 
 	png, err := qrcode.Encode(stockItem.StockCode, qrcode.Medium, 256)
 	if err != nil {
@@ -149,8 +155,9 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 
 	_ = stockitemview.StockItemPage(&stockitemview.StockItemPageProps{
 		Ctx:               ctx,
-		StockItem:         stockItem,
+		StockItem:         *stockItem,
 		QRCode:            qrCodeURI,
+		GalleryURL:        galleryURL,
 		StockItemChanges:  stockItemChanges,
 		StockItemComments: comments,
 	}).
@@ -419,12 +426,12 @@ func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Error creating andon", http.StatusInternalServerError)
+		http.Error(w, "Error adding comment", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	json.NewEncoder(w).Encode(map[string]any{
 		"commentId": commentID,
 	})
 }
@@ -473,9 +480,8 @@ func (h *StockItemHandler) AddAttachment(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	json.NewEncoder(w).Encode(map[string]any{
 		"fileId":    file.FileID,
 		"signedUrl": signedURL,
 	})
-
 }

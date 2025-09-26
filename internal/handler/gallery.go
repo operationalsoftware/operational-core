@@ -73,7 +73,10 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	editURL := h.galleryService.GenerateEditTempURL(galleryID, slices.Contains(allowedOperations, "edit"))
+	editURL := ""
+	if slices.Contains(allowedOperations, "edit") {
+		editURL = h.galleryService.GenerateEditTempURL(galleryID, true)
+	}
 
 	_ = galleryview.GalleryPage(&galleryview.GalleryPageProps{
 		Ctx:               ctx,
