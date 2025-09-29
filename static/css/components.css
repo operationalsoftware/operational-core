@@ -236,11 +236,7 @@ hr {
 /* End Card */
 
 .changelog {
-  margin: 1.5rem 0;
-  font-family: system-ui, sans-serif;
-
   .main-list {
-
     list-style: none;
     padding: 0;
     margin: 0;
