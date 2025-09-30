@@ -91,23 +91,6 @@ func (h *UserHandler) UserPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var uv userPageUrlVals
-
-	err := appurl.Unmarshal(r.URL.Query(), &uv)
-	if err != nil {
-		http.Error(w, "Error decoding url values", http.StatusBadRequest)
-		return
-	}
-
-	uv.normalise()
-
-	sort := appsort.Sort{}
-	err = sort.ParseQueryParam(model.UserTeam{}, uv.Sort)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error parsing sort: %v", err), http.StatusBadRequest)
-		return
-	}
-
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -128,25 +111,7 @@ func (h *UserHandler) UserPage(w http.ResponseWriter, r *http.Request) {
 	_ = userview.UserPage(&userview.UserPageProps{
 		Ctx:      ctx,
 		User:     *user,
-		Sort:     sort,
-		Page:     uv.Page,
-		PageSize: uv.PageSize,
 	}).Render(w)
-}
-
-type userPageUrlVals struct {
-	Sort     string
-	Page     int
-	PageSize int
-}
-
-func (uv *userPageUrlVals) normalise() {
-	if uv.Page == 0 {
-		uv.Page = 1
-	}
-	if uv.PageSize == 0 {
-		uv.PageSize = 50
-	}
 }
 
 func (h *UserHandler) AddUserPage(w http.ResponseWriter, r *http.Request) {

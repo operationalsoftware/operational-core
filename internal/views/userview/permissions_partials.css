@@ -1,0 +1,45 @@
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+
+  .module {
+    .title {
+      margin: 0;
+    }
+
+    .permission {
+      margin: var(--spacing-xs) 0;
+
+      .label-checkbox {
+        display: flex;
+        justify-content: space-between;
+      }
+      .description {
+        font-size: var(--font-size-xs);
+        color: var(--text-color-light);
+      }
+    }
+  }
+}
+
+.permissions-display {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+
+  .module {
+    .title {
+      margin: 0;
+    }
+
+    .permission {
+      margin: var(--spacing-xs) 0;
+
+      .description {
+        font-size: var(--font-size-xs);
+        color: var(--text-color-light);
+      }
+    }
+  }
+}
