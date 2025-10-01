@@ -20,8 +20,8 @@ type SupplyChainPermissions struct {
 
 // Finally, group under the UserPermissions struct
 type UserPermissions struct {
-	UserAdmin   UserAdminPermissions
-	Andon       AndonPermissions
-	SupplyChain SupplyChainPermissions
-	Stock       StockItemPermissions
+	Andon       AndonPermissions       `description:"Andon"`
+	Stock       StockItemPermissions   `description:"Stock"`
+	SupplyChain SupplyChainPermissions `description:"Supply Chain"`
+	UserAdmin   UserAdminPermissions   `description:"User Admin"`
 }
