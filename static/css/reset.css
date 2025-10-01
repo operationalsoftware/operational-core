@@ -18,7 +18,11 @@ body {
 button,
 input[type="submit"],
 input[type="button"] {
-  background-color: transparent;
+  background-color: unset;
+  border-width: unset;
+  border-style: unset;
+  border-color: unset;
+  border-image: unset;
 }
 
 pre {
