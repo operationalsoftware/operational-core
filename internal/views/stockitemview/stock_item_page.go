@@ -28,6 +28,8 @@ type StockItemPageProps struct {
 
 func StockItemPage(p *StockItemPageProps) g.Node {
 
+	canEdit := p.Ctx.User.Permissions.Stock.Admin
+
 	content := g.Group([]g.Node{
 
 		h.Div(
@@ -37,13 +39,14 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 
 			h.Div(
 				h.Class("actions"),
-
-				h.A(
-					h.Class("button primary"),
-					h.Href(fmt.Sprintf("/stock-items/%d/edit", p.StockItem.StockItemID)),
-					components.Icon(&components.IconProps{
-						Identifier: "pencil",
-					}),
+				g.If(canEdit,
+					h.A(
+						h.Class("button primary"),
+						h.Href(fmt.Sprintf("/stock-items/%d/edit", p.StockItem.StockItemID)),
+						components.Icon(&components.IconProps{
+							Identifier: "pencil",
+						}),
+					),
 				),
 			),
 		),

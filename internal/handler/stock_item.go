@@ -167,7 +167,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 func (h *StockItemHandler) AddStockItemPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
+	hasPermission := ctx.User.Permissions.Stock.Admin
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -189,7 +189,8 @@ func (h *StockItemHandler) AddStockItemPage(w http.ResponseWriter, r *http.Reque
 
 func (h *StockItemHandler) AddStockItem(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
+
+	hasPermission := ctx.User.Permissions.Stock.Admin
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -236,7 +237,8 @@ func (h *StockItemHandler) AddStockItem(w http.ResponseWriter, r *http.Request) 
 
 func (h *StockItemHandler) EditStockItemPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
+
+	hasPermission := ctx.User.Permissions.Stock.Admin
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -275,7 +277,8 @@ func (h *StockItemHandler) EditStockItemPage(w http.ResponseWriter, r *http.Requ
 
 func (h *StockItemHandler) EditStockItem(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	hasPermission := ctx.User.Permissions.UserAdmin.Access
+
+	hasPermission := ctx.User.Permissions.Stock.Admin
 	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -388,7 +391,9 @@ func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request)
 
 func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+
+	hasPermission := ctx.User.Permissions.Stock.Admin
+	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -438,7 +443,9 @@ func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 
 func (h *StockItemHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
+
+	hasPermission := ctx.User.Permissions.Stock.Admin
+	if !hasPermission {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
