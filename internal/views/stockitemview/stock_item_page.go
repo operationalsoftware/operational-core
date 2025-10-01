@@ -28,7 +28,7 @@ type StockItemPageProps struct {
 
 func StockItemPage(p *StockItemPageProps) g.Node {
 
-	canEdit := p.Ctx.User.Permissions.Stock.Admin
+	userCanEdit := p.Ctx.User.Permissions.Stock.Admin
 
 	content := g.Group([]g.Node{
 
@@ -37,18 +37,7 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 
 			h.H3(g.Text(p.StockItem.StockCode)),
 
-			h.Div(
-				h.Class("actions"),
-				g.If(canEdit,
-					h.A(
-						h.Class("button primary"),
-						h.Href(fmt.Sprintf("/stock-items/%d/edit", p.StockItem.StockItemID)),
-						components.Icon(&components.IconProps{
-							Identifier: "pencil",
-						}),
-					),
-				),
-			),
+			stockItemActions(p.StockItem.StockItemID, userCanEdit),
 		),
 
 		h.Div(
@@ -104,6 +93,21 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 			components.InlineStyle("/internal/views/stockitemview/stock_item_page.css"),
 		},
 	})
+}
+
+func stockItemActions(stockItemID int, userCanEdit bool) g.Node {
+	return h.Div(
+		h.Class("actions"),
+		g.If(userCanEdit,
+			h.A(
+				h.Class("button primary"),
+				h.Href(fmt.Sprintf("/stock-items/%d/edit", stockItemID)),
+				components.Icon(&components.IconProps{
+					Identifier: "pencil",
+				}),
+			),
+		),
+	)
 }
 
 func stockItemProperties(si model.StockItem) g.Node {

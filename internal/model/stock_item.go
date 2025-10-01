@@ -3,22 +3,20 @@ package model
 import (
 	"app/pkg/appsort"
 	"time"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type StockItem struct {
 	StockItemID int
-	StockCode   string
-	Description string
+	StockCode   string `sortable:"true"`
+	Description string `sortable:"true"`
 	GalleryID   int
-	CreatedAt   time.Time
+	CreatedAt   time.Time `sortable:"true"`
 }
 
 type StockItemChange struct {
 	StockItemID      int
-	StockCode        pgtype.Text
-	Description      pgtype.Text
+	StockCode        *string
+	Description      *string
 	ChangeByUsername string
 	ChangedAt        time.Time
 	IsCreation       bool
