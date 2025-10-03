@@ -33,6 +33,8 @@ func statusBadge(status model.AndonStatus, size components.BadgeSize) g.Node {
 		classes["resolved"] = true
 	case model.AndonStatusWorkInProgress:
 		classes["wip"] = true
+	case model.AndonStatusRequiresAcknowledgement:
+		classes["requires-acknowledgement"] = true
 	case model.AndonStatusOutstanding:
 		classes["outstanding"] = true
 	}
@@ -49,6 +51,7 @@ type acknowledgeButtonProps struct {
 	andonID    int
 	showText   bool
 	buttonSize components.ButtonSize
+	ReturnTo   string
 }
 
 func acknowledgeButton(p *acknowledgeButtonProps) g.Node {
@@ -60,6 +63,7 @@ func acknowledgeButton(p *acknowledgeButtonProps) g.Node {
 		g.Attr("data-id", strconv.Itoa(p.andonID)),
 		g.Attr("data-action", "acknowledge"),
 		g.Attr("title", "Acknowledge"),
+		g.Attr("data-return-to", p.ReturnTo),
 
 		components.Icon(&components.IconProps{
 			Identifier: "gesture-tap-hold",
@@ -73,6 +77,7 @@ type resolveButtonProps struct {
 	andonID    int
 	showText   bool
 	buttonSize components.ButtonSize
+	ReturnTo   string
 }
 
 func resolveButton(p *resolveButtonProps) g.Node {
@@ -84,6 +89,7 @@ func resolveButton(p *resolveButtonProps) g.Node {
 		g.Attr("data-id", strconv.Itoa(p.andonID)),
 		g.Attr("data-action", "resolve"),
 		g.Attr("title", "Resolve"),
+		g.Attr("data-return-to", p.ReturnTo),
 
 		components.Icon(&components.IconProps{
 			Identifier: "check",
@@ -97,6 +103,7 @@ type cancelButtonProps struct {
 	andonID    int
 	showText   bool
 	buttonSize components.ButtonSize
+	ReturnTo   string
 }
 
 func cancelButton(p *cancelButtonProps) g.Node {
@@ -108,6 +115,7 @@ func cancelButton(p *cancelButtonProps) g.Node {
 		g.Attr("data-id", strconv.Itoa(p.andonID)),
 		g.Attr("data-action", "cancel"),
 		g.Attr("title", "Cancel"),
+		g.Attr("data-return-to", p.ReturnTo),
 
 		components.Icon(&components.IconProps{
 			Identifier: "cancel",

@@ -84,6 +84,10 @@
   background-color: var(--red-5);
 }
 
+.requires-acknowledgement {
+  background-color: var(--geekblue-3);
+}
+
 /* Legend styling */
 .status-legend {
   display: flex;

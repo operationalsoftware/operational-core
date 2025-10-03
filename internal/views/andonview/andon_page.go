@@ -94,10 +94,20 @@ func AndonPage(p *AndonPageProps) g.Node {
 		{label: "Raised At", value: g.Text(andon.RaisedAt.Format("2006-01-02 15:04:05"))},
 		{label: "Acknowledged By", value: g.Text(acknowledgedByUsername)},
 		{label: "Acknowledged At", value: g.Text(acknowledgedAtStr)},
-		{label: "Resolved By", value: g.Text(resolvedByUsername)},
-		{label: "Resolved At", value: g.Text(resolvedAtStr)},
 	}
 
+	if andon.Severity != model.AndonSeverityInfo {
+		attributes = append(attributes,
+			attribute{
+				label: "Resolved By",
+				value: g.Text(resolvedByUsername),
+			},
+			attribute{
+				label: "Resolved At",
+				value: g.Text(resolvedAtStr),
+			},
+		)
+	}
 	if andon.IsCancelled {
 		attributes = append(attributes,
 			attribute{

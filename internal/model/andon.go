@@ -8,17 +8,18 @@ import (
 type AndonStatus string
 
 const (
-	AndonStatusCancelled      AndonStatus = "Cancelled"
-	AndonStatusClosed         AndonStatus = "Closed"
-	AndonStatusWorkInProgress AndonStatus = "Work In Progress"
-	AndonStatusOutstanding    AndonStatus = "Outstanding"
+	AndonStatusCancelled               AndonStatus = "Cancelled"
+	AndonStatusClosed                  AndonStatus = "Closed"
+	AndonStatusWorkInProgress          AndonStatus = "Work In Progress"
+	AndonStatusRequiresAcknowledgement AndonStatus = "Requires Acknowledgement"
+	AndonStatusOutstanding             AndonStatus = "Outstanding"
 )
 
 type Andon struct {
 	AndonID          int
 	Description      string
 	AndonIssueID     int
-	GalleryID int
+	GalleryID        int
 	IssueName        string        `sortable:"true"`
 	NamePath         []string      `sortable:"true"`
 	Severity         AndonSeverity `sortable:"true"`

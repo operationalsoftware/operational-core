@@ -1,7 +1,6 @@
 package andonview
 
 import (
-	"slices"
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
@@ -9,6 +8,7 @@ import (
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -28,6 +28,7 @@ type HomePageProps struct {
 	IsSelfResolvable        bool
 	OutstandingSort         appsort.Sort
 	WIPSort                 appsort.Sort
+	ReturnTo                string
 }
 
 func HomePage(p *HomePageProps) g.Node {
@@ -92,6 +93,7 @@ func HomePage(p *HomePageProps) g.Node {
 
 		twoMinutesPassed := time.Since(a.RaisedAt) > 2*time.Minute
 		fiveMinutesPassed := time.Since(a.RaisedAt) > 5*time.Minute
+		requiresAcknowledgement := a.Status == model.AndonStatusRequiresAcknowledgement
 
 		cells := []components.TableCell{
 			{Contents: g.Text(namePathStr)},
@@ -108,13 +110,15 @@ func HomePage(p *HomePageProps) g.Node {
 						h.Class("andon-actions"),
 
 						acknowledgeButton(&acknowledgeButtonProps{
-							andonID: a.AndonID,
+							andonID:    a.AndonID,
 							buttonSize: components.ButtonSm,
+							ReturnTo:   p.ReturnTo,
 						}),
 
 						cancelButton(&cancelButtonProps{
-							andonID: a.AndonID,
+							andonID:    a.AndonID,
 							buttonSize: components.ButtonSm,
+							ReturnTo:   p.ReturnTo,
 						}),
 					),
 				}),
@@ -123,8 +127,9 @@ func HomePage(p *HomePageProps) g.Node {
 
 		for i := 0; i < len(cells)-1; i++ {
 			cells[i].Classes = c.Classes{
-				"two-minutes-passed":  !fiveMinutesPassed && twoMinutesPassed,
-				"five-minutes-passed": fiveMinutesPassed,
+				"two-minutes-passed":       !fiveMinutesPassed && twoMinutesPassed,
+				"five-minutes-passed":      fiveMinutesPassed,
+				"requires-acknowledgement": requiresAcknowledgement,
 			}
 		}
 
@@ -168,12 +173,12 @@ func HomePage(p *HomePageProps) g.Node {
 						h.Class("andon-actions"),
 
 						resolveButton(&resolveButtonProps{
-							andonID: a.AndonID,
+							andonID:    a.AndonID,
 							buttonSize: components.ButtonSm,
 						}),
 
 						cancelButton(&cancelButtonProps{
-							andonID: a.AndonID,
+							andonID:    a.AndonID,
 							buttonSize: components.ButtonSm,
 						}),
 					),
@@ -291,6 +296,12 @@ func HomePage(p *HomePageProps) g.Node {
 					h.Class("status-dot five-minutes-passed"),
 				),
 				g.Text("Outstanding (> 5 minutes)"),
+			),
+			h.Div(
+				h.Span(
+					h.Class("status-dot requires-acknowledgement"),
+				),
+				g.Text("Requires Acknowledgement"),
 			),
 		),
 	})

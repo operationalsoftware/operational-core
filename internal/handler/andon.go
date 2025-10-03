@@ -136,12 +136,15 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		SelectedTeams:           uv.AndonTeams,
 		OutstandingSort:         outstandingSort,
 		WIPSort:                 wipSort,
+		ReturnTo:                uv.ReturnTo,
 	}).Render(w)
 }
 
 type andonsHomePageUrlVals struct {
 	OutstandingSort string
 	WIPSort         string
+
+	ReturnTo string
 
 	AndonTeams []string
 }

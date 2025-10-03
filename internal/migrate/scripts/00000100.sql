@@ -362,14 +362,19 @@ SELECT
     CASE
         WHEN cancelled_at IS NOT NULL THEN 'Cancelled'
         WHEN (
-            (severity = 'Info' AND acknowledged_at IS NOT NULL)
-            OR (
-                severity IN ('Self-resolvable', 'Requires Intervention')
-                AND acknowledged_at IS NOT NULL
-                AND resolved_at IS NOT NULL
-            )
+            severity = 'Info' AND acknowledged_at IS NOT NULL
+        ) THEN 'Closed'
+        WHEN (
+            severity IN ('Self-resolvable', 'Requires Intervention')
+            AND acknowledged_at IS NOT NULL
+            AND resolved_at IS NOT NULL
         ) THEN 'Closed'
         WHEN acknowledged_at IS NOT NULL THEN 'Work In Progress'
+        WHEN (
+            resolved_at IS NOT NULL
+            OR
+            severity = 'Info' AND acknowledged_at IS NULL
+        ) THEN 'Requires Acknowledgement'
         ELSE 'Outstanding'
     END AS status
 
