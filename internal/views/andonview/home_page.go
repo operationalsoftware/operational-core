@@ -65,7 +65,7 @@ func HomePage(p *HomePageProps) g.Node {
 
 			h.H3(h.Class("table-title"), g.Text("New")),
 			h.Hr(),
-			outstandingTable(&outstandingTableProps{
+			newAndonsTable(&newAndonsTableProps{
 				andons:   p.NewAndons,
 				sort:     p.NewSort,
 				returnTo: p.ReturnTo,
@@ -74,7 +74,7 @@ func HomePage(p *HomePageProps) g.Node {
 
 			h.H3(h.Class("table-title wip-heading"), g.Text("WIP")),
 			h.Hr(),
-			wipTable(&wipTableProps{
+			wipAndonsTable(&wipAndonsTableProps{
 				andons:   p.WIPAndons,
 				sort:     p.WIPSort,
 				returnTo: p.ReturnTo,
@@ -169,13 +169,13 @@ var commonColumns = components.TableColumns{
 	{TitleContents: g.Text("Severity"), SortKey: "Severity"},
 }
 
-type outstandingTableProps struct {
+type newAndonsTableProps struct {
 	andons   []model.Andon
 	sort     appsort.Sort
 	returnTo string
 }
 
-func outstandingTable(p *outstandingTableProps) g.Node {
+func newAndonsTable(p *newAndonsTableProps) g.Node {
 	var columns = append(
 		commonColumns,
 		components.TableColumns{
@@ -244,13 +244,13 @@ func outstandingTable(p *outstandingTableProps) g.Node {
 	})
 }
 
-type wipTableProps struct {
+type wipAndonsTableProps struct {
 	andons   []model.Andon
 	sort     appsort.Sort
 	returnTo string
 }
 
-func wipTable(p *wipTableProps) g.Node {
+func wipAndonsTable(p *wipAndonsTableProps) g.Node {
 	var columns = append(
 		commonColumns,
 		components.TableColumns{
@@ -274,7 +274,6 @@ func wipTable(p *wipTableProps) g.Node {
 			{Contents: g.Text(a.AcknowledgedAt.Format("2006-01-02 15:04:05"))},
 			{
 				Contents: g.Group([]g.Node{
-
 					h.Div(
 						h.Class("andon-actions"),
 
@@ -300,7 +299,7 @@ func wipTable(p *wipTableProps) g.Node {
 
 	return components.Table(&components.TableProps{
 		Columns:      columns,
-		SortQueryKey: "NewSort",
+		SortQueryKey: "WIPSort",
 		Sort:         p.sort,
 		Rows:         rows,
 	})
@@ -309,7 +308,6 @@ func wipTable(p *wipTableProps) g.Node {
 func statusLegend() g.Node {
 	return h.Div(
 		h.Class("status-legend"),
-
 		h.Div(
 			h.Span(h.Class("status-dot outstanding")),
 			g.Text("Outstanding"),

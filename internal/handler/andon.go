@@ -60,8 +60,8 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	outstandingSort := appsort.Sort{}
-	err = outstandingSort.ParseQueryParam(model.Andon{}, uv.OutstandingSort)
+	newSort := appsort.Sort{}
+	err = newSort.ParseQueryParam(model.Andon{}, uv.NewSort)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, fmt.Sprintf("Error parsing outstanding sort: %v", err), http.StatusBadRequest)
@@ -78,9 +78,9 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	falseBool := false
 	trueBool := true
 
-	outstandingAndons, outstandingAndonsCount, _, err := h.andonService.ListAndons(r.Context(),
+	newAndons, newAndonsCount, _, err := h.andonService.ListAndons(r.Context(),
 		model.ListAndonQuery{
-			Sort:                 outstandingSort,
+			Sort:                 newSort,
 			DefaultSortField:     "raised_at",
 			DefaultSortDirection: appsort.DirectionAsc,
 			Page:                 1,
@@ -91,7 +91,7 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 			TeamIn:         uv.AndonTeams,
 		}, ctx.User.UserID)
 	if err != nil {
-		log.Println(err)
+		log.Println("error listing outstanding andons:", err)
 		http.Error(w, "Error listing outstanding andons", http.StatusInternalServerError)
 		return
 	}
@@ -112,8 +112,8 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		ctx.User.UserID,
 	)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error listing work-in-progress andons", http.StatusInternalServerError)
+		log.Println("error listing work in progress andons:", err)
+		http.Error(w, "Error listing work in progress andons", http.StatusInternalServerError)
 		return
 	}
 
@@ -127,22 +127,22 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = andonview.HomePage(&andonview.HomePageProps{
-		Ctx:                     ctx,
-		NewAndons:       outstandingAndons,
+		Ctx:            ctx,
+		NewAndons:      newAndons,
 		WIPAndons:      wipAndons,
-		NewAndonsCount:  outstandingAndonsCount,
+		NewAndonsCount: newAndonsCount,
 		WIPAndonsCount: wipAndonsCount,
-		Teams:                   teams,
-		SelectedTeams:           uv.AndonTeams,
-		NewSort:         outstandingSort,
-		WIPSort:                 wipSort,
-		ReturnTo:                uv.ReturnTo,
+		Teams:          teams,
+		SelectedTeams:  uv.AndonTeams,
+		NewSort:        newSort,
+		WIPSort:        wipSort,
+		ReturnTo:       uv.ReturnTo,
 	}).Render(w)
 }
 
 type andonsHomePageUrlVals struct {
-	OutstandingSort string
-	WIPSort         string
+	NewSort string
+	WIPSort string
 
 	ReturnTo string
 
