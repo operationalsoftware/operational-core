@@ -291,8 +291,8 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 			h.Type("hidden"),
 		),
 
-		components.Button(
-			&components.ButtonProps{},
+		h.Button(
+			h.Class("button primary"),
 			h.Type("submit"),
 			g.Text("Add Andon Event"),
 		),

@@ -1,5 +1,10 @@
 @import "./variables.css";
 
+/* Labels usually contain inputs, so make them take width of parent container */
+label {
+  width: 100%;
+}
+
 /* Native inputs/select by type */
 input,
 select,

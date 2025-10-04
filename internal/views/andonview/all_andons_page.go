@@ -5,7 +5,6 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/appsort"
-	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
 	"strings"
@@ -28,121 +27,6 @@ type AllAndonsPageProps struct {
 
 func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 
-	var columns = components.TableColumns{
-		{
-			TitleContents: g.Text("Location"),
-		},
-		{
-			TitleContents: g.Text("Issue Description"),
-		},
-		{
-			TitleContents: g.Text("Issue"),
-			SortKey:       "IssueName",
-		},
-		{
-			TitleContents: g.Text("Assigned Team"),
-			SortKey:       "AssignedTeam",
-		},
-		{
-			TitleContents: g.Text("Severity"),
-			SortKey:       "Severity",
-		},
-		{
-			TitleContents: g.Text("Status"),
-			SortKey:       "Status",
-		},
-		{
-			TitleContents: g.Text("Raised By"),
-			SortKey:       "RaisedBy",
-		},
-		{
-			TitleContents: g.Text("Raised At"),
-			SortKey:       "RaisedAt",
-		},
-		{
-			TitleContents: g.Text("Acknowledged By"),
-			SortKey:       "AcknowledgedBy",
-		},
-		{
-			TitleContents: g.Text("Acknowledged At"),
-			SortKey:       "AcknowledgedAt",
-		},
-		{
-			TitleContents: g.Text("Resolved By"),
-			SortKey:       "ResolvedBy",
-		},
-		{
-			TitleContents: g.Text("Resolved At"),
-			SortKey:       "ResolvedAt",
-		},
-		{
-			TitleContents: g.Text("Updated At"),
-			SortKey:       "LastUpdated",
-		},
-	}
-
-	var tableRows components.TableRows
-	for _, a := range p.Andons {
-		namePathStr := strings.Join(a.NamePath, " > ")
-
-		cells := []components.TableCell{
-			{
-				Contents: g.Text(a.Location),
-			},
-			{
-				Contents: g.Text(a.Description),
-			},
-			{
-				Contents: g.Text(namePathStr),
-			},
-			{
-				Contents: g.Text(a.AssignedTeamName),
-			},
-			{
-				Contents: severityBadge(a.Severity, "small"),
-			},
-			{
-				Contents: statusBadge(a.Status, "small"),
-			},
-			{
-				Contents: g.Text(a.RaisedByUsername),
-			},
-			{
-				Contents: g.Text(a.RaisedAt.Format("2006-01-02 15:04:05")),
-			},
-			{
-				Contents: g.Group([]g.Node{
-					g.If(a.AcknowledgedByUsername != nil, g.Text(nilsafe.Str(a.AcknowledgedByUsername))),
-				}),
-			},
-			{
-				Contents: g.Group([]g.Node{
-					g.If(a.AcknowledgedAt != nil, g.Text(nilsafe.Time(a.AcknowledgedAt).Format("2006-01-02 15:04:05"))),
-				}),
-			},
-			{
-				Contents: g.Group([]g.Node{
-					g.If(a.ResolvedByUsername != nil, g.Text(nilsafe.Str(a.ResolvedByUsername))),
-				}),
-			},
-			{
-				Contents: g.Group([]g.Node{
-					g.If(a.ResolvedAt != nil, g.Text(nilsafe.Time(a.ResolvedAt).Format("2006-01-02 15:04:05"))),
-				}),
-			},
-			{
-				Contents: g.Group([]g.Node{
-					g.If(a.LastUpdated != nil, g.Text(nilsafe.Time(a.LastUpdated).Format("2006-01-02 15:04:05"))),
-				}),
-			},
-		}
-
-		tableRows = append(tableRows, components.TableRow{
-			Cells: cells,
-			HREF:  fmt.Sprintf("/andons/%d", a.AndonID),
-		})
-	}
-
 	content := g.Group([]g.Node{
 
 		h.H3(g.Text("All Andons")),
@@ -156,29 +40,13 @@ func AllAndonsPage(p *AllAndonsPageProps) g.Node {
 				activeFilters:    p.ActiveFilters,
 			}),
 
-			components.Button(&components.ButtonProps{
-				ButtonType: components.ButtonPrimary,
-				Size:       components.ButtonLg,
-			},
-				h.Type("submit"),
-				h.ID("go-button"),
-				g.Text("GO"),
-			),
-
-			components.Table(&components.TableProps{
-				Columns: columns,
-				Sort:    p.Sort,
-				Rows:    tableRows,
-				Pagination: &components.TablePaginationProps{
-					TotalRecords:        p.AndonsCount,
-					PageSize:            p.PageSize,
-					CurrentPage:         p.Page,
-					CurrentPageQueryKey: "Page",
-					PageSizeQueryKey:    "PageSize",
-				},
-			},
-				h.ID("andon-table"),
-			),
+			allAndonsTable(&allAndonsTableProps{
+				sort:     p.Sort,
+				andons:   p.Andons,
+				count:    p.AndonsCount,
+				pageSize: p.PageSize,
+				page:     p.Page,
+			}),
 		),
 	})
 
@@ -213,6 +81,14 @@ type allAndonsFiltersProps struct {
 }
 
 func allAndonsFilters(p *allAndonsFiltersProps) g.Node {
+
+	type selectDef struct {
+		label            string
+		name             string
+		availableFilters []string
+		activeFilters    []string
+	}
+
 	var startDateValue, endDateValue g.Node
 	if p.activeFilters.StartDate != nil {
 		startDateValue = h.Value(p.activeFilters.StartDate.Format("2006-01-02"))
@@ -221,152 +97,183 @@ func allAndonsFilters(p *allAndonsFiltersProps) g.Node {
 		endDateValue = h.Value(p.activeFilters.EndDate.Format("2006-01-02"))
 	}
 
-	return h.Div(
-		h.Class("andon-filters"),
-
+	return g.Group{
 		h.Div(
-			h.Class("search-item date-section"),
+			h.Class("andon-filters"),
 
 			h.Div(
-
+				h.Class("date-filters"),
 				h.Label(
 					g.Text("Start date"),
+					h.Input(
+						h.Name("StartDate"),
+						h.Type("date"),
+						startDateValue,
+					),
 				),
-				h.Input(
-					h.Name("StartDate"),
-					h.Type("date"),
-					startDateValue,
-				),
-			),
-
-			h.Div(
-
 				h.Label(
 					g.Text("End date"),
+					h.Input(
+						h.Name("EndDate"),
+						h.Type("date"),
+						endDateValue,
+					),
 				),
-				h.Input(
-					h.Name("EndDate"),
-					h.Type("date"),
-					endDateValue,
-				),
 			),
-		),
 
-		h.Div(
-			h.Class("search-item"),
-
-			h.Label(
-				g.Text("Location"),
-			),
-			components.SearchSelect(&components.SearchSelectProps{
-				Name:        "LocationIn",
-				Placeholder: "-",
-				Mode:        "multi",
-				Options:     components.MapStringsToOptions(p.availableFilters.LocationIn, p.activeFilters.LocationIn),
-				Selected:    strings.Join(p.activeFilters.LocationIn, ","),
+			g.Map([]selectDef{
+				{
+					label:            "Location",
+					name:             "LocationIn",
+					availableFilters: p.availableFilters.LocationIn,
+					activeFilters:    p.activeFilters.LocationIn,
+				},
+				{
+					label:            "Issue",
+					name:             "IssueIn",
+					availableFilters: p.availableFilters.IssueIn,
+					activeFilters:    p.activeFilters.IssueIn,
+				},
+				{
+					label:            "Assigned Team",
+					name:             "TeamIn",
+					availableFilters: p.availableFilters.TeamIn,
+					activeFilters:    p.activeFilters.TeamIn,
+				},
+				{
+					label:            "Severity",
+					name:             "SeverityIn",
+					availableFilters: p.availableFilters.SeverityIn,
+					activeFilters:    p.activeFilters.SeverityIn,
+				},
+				{
+					label:            "Status",
+					name:             "StatusIn",
+					availableFilters: p.availableFilters.StatusIn,
+					activeFilters:    p.activeFilters.StatusIn,
+				},
+				{
+					label:            "Raised By",
+					name:             "RaisedByUsernameIn",
+					availableFilters: p.availableFilters.RaisedByUsernameIn,
+					activeFilters:    p.activeFilters.RaisedByUsernameIn,
+				},
+				{
+					label:            "Acknowledged By",
+					name:             "AcknowledgedByUsernameIn",
+					availableFilters: p.availableFilters.AcknowledgedByUsernameIn,
+					activeFilters:    p.activeFilters.AcknowledgedByUsernameIn,
+				},
+				{
+					label:            "Resolved By",
+					name:             "ResolvedByUsernameIn",
+					availableFilters: p.availableFilters.ResolvedByUsernameIn,
+					activeFilters:    p.activeFilters.ResolvedByUsernameIn,
+				},
+			}, func(i selectDef) g.Node {
+				return h.Label(
+					g.Text(i.label),
+					components.SearchSelect(&components.SearchSelectProps{
+						Name:        i.name,
+						Placeholder: "-",
+						Mode:        "multi",
+						Options:     components.MapStringsToOptions(i.availableFilters, i.activeFilters),
+						Selected:    strings.Join(i.activeFilters, ","),
+					}),
+				)
 			}),
 		),
-		h.Div(
-			h.Class("search-item"),
 
-			h.Label(
-				g.Text("Issue"),
-			),
-			components.SearchSelect(&components.SearchSelectProps{
-				Name:        "IssueIn",
-				Placeholder: "-",
-				Mode:        "multi",
-				Options:     components.MapStringsToOptions(p.availableFilters.IssueIn, p.activeFilters.IssueIn),
-				Selected:    strings.Join(p.activeFilters.IssueIn, ","),
-			}),
+		h.Button(
+			h.Class("button primary"),
+			h.Type("submit"),
+			g.Text("GO"),
 		),
-		h.Div(
-			h.Class("search-item"),
+	}
+}
 
-			h.Label(
-				g.Text("Assigned Team"),
-			),
-			components.SearchSelect(&components.SearchSelectProps{
-				Name:        "TeamIn",
-				Placeholder: "-",
-				Mode:        "multi",
-				Options:     components.MapStringsToOptions(p.availableFilters.TeamIn, p.activeFilters.TeamIn),
-				Selected:    strings.Join(p.activeFilters.TeamIn, ","),
-			}),
-		),
-		h.Div(
-			h.Class("search-item"),
+type allAndonsTableProps struct {
+	sort     appsort.Sort
+	andons   []model.Andon
+	count    int
+	pageSize int
+	page     int
+}
 
-			h.Label(
-				g.Text("Severity"),
-			),
-			components.SearchSelect(&components.SearchSelectProps{
-				Name:        "SeverityIn",
-				Placeholder: "-",
-				Mode:        "multi",
-				Options: components.MapStringsToOptions(
-					p.availableFilters.SeverityIn,
-					p.activeFilters.SeverityIn),
-				Selected: strings.Join(p.activeFilters.SeverityIn, ","),
-			}),
-		),
-		h.Div(
-			h.Class("search-item"),
+func allAndonsTable(p *allAndonsTableProps) g.Node {
+	var columns = components.TableColumns{
+		{TitleContents: g.Text("Location")},
+		{TitleContents: g.Text("Issue Description")},
+		{TitleContents: g.Text("Issue"), SortKey: "IssueName"},
+		{TitleContents: g.Text("Assigned Team"), SortKey: "AssignedTeam"},
+		{TitleContents: g.Text("Severity"), SortKey: "Severity"},
+		{TitleContents: g.Text("Status"), SortKey: "Status"},
+		{TitleContents: g.Text("Raised By"), SortKey: "RaisedByUsername"},
+		{TitleContents: g.Text("Raised At"), SortKey: "RaisedAt"},
+		{TitleContents: g.Text("Acknowledged By"), SortKey: "AcknowledgedByUsername"},
+		{TitleContents: g.Text("Acknowledged At"), SortKey: "AcknowledgedAt"},
+		{TitleContents: g.Text("Resolved By"), SortKey: "ResolvedByUsername"},
+		{TitleContents: g.Text("Resolved At"), SortKey: "ResolvedAt"},
+		{TitleContents: g.Text("Updated At"), SortKey: "LastUpdated"},
+	}
 
-			h.Label(
-				g.Text("Status"),
-			),
-			components.SearchSelect(&components.SearchSelectProps{
-				Name:        "StatusIn",
-				Placeholder: "-",
-				Mode:        "multi",
-				Options: components.MapStringsToOptions(
-					p.availableFilters.StatusIn,
-					p.activeFilters.StatusIn),
-				Selected: strings.Join(p.activeFilters.StatusIn, ","),
-			}),
-		),
-		h.Div(
-			h.Class("search-item"),
+	var tableRows components.TableRows
+	for _, a := range p.andons {
+		namePathStr := strings.Join(a.NamePath, " > ")
+		acknowledgedAt := "\u2013"
+		if a.AcknowledgedAt != nil {
+			acknowledgedAt = a.AcknowledgedAt.Format("2006-01-02 15:04:05")
+		}
+		acknowledgedBy := "\u2013"
+		if a.AcknowledgedByUsername != nil {
+			acknowledgedBy = *a.AcknowledgedByUsername
+		}
+		resolvedAt := "\u2013"
+		if a.ResolvedAt != nil {
+			resolvedAt = a.ResolvedAt.Format("2006-01-02 15:04:05")
+		}
+		resolvedBy := "\u2013"
+		if a.ResolvedByUsername != nil {
+			resolvedBy = *a.ResolvedByUsername
+		}
+		lastUpdated := "\u2013"
+		if a.LastUpdated != nil {
+			lastUpdated = a.LastUpdated.Format("2006-01-02 15:04:05")
+		}
 
-			h.Label(
-				g.Text("Raised By"),
-			),
-			components.SearchSelect(&components.SearchSelectProps{
-				Name:        "RaisedByUsernameIn",
-				Placeholder: "-",
-				Mode:        "multi",
-				Options:     components.MapStringsToOptions(p.availableFilters.RaisedByUsernameIn, p.activeFilters.RaisedByUsernameIn),
-				Selected:    strings.Join(p.activeFilters.RaisedByUsernameIn, ","),
-			}),
-		),
-		h.Div(
-			h.Class("search-item"),
+		cells := []components.TableCell{
+			{Contents: g.Text(a.Location)},
+			{Contents: g.Text(a.Description)},
+			{Contents: g.Text(namePathStr)},
+			{Contents: g.Text(a.AssignedTeamName)},
+			{Contents: severityBadge(a.Severity, "small")},
+			{Contents: statusBadge(a.Status, "small")},
+			{Contents: g.Text(a.RaisedByUsername)},
+			{Contents: g.Text(a.RaisedAt.Format("2006-01-02 15:04:05"))},
+			{Contents: g.Text(acknowledgedBy)},
+			{Contents: g.Text(acknowledgedAt)},
+			{Contents: g.Text(resolvedBy)},
+			{Contents: g.Text(resolvedAt)},
+			{Contents: g.Text(lastUpdated)},
+		}
 
-			h.Label(
-				g.Text("Acknowledged By"),
-			),
-			components.SearchSelect(&components.SearchSelectProps{
-				Name:        "AcknowledgedByUsernameIn",
-				Placeholder: "-",
-				Mode:        "multi",
-				Options:     components.MapStringsToOptions(p.availableFilters.AcknowledgedByUsernameIn, p.activeFilters.AcknowledgedByUsernameIn),
-				Selected:    strings.Join(p.activeFilters.AcknowledgedByUsernameIn, ","),
-			}),
-		),
-		h.Div(
-			h.Class("search-item"),
+		tableRows = append(tableRows, components.TableRow{
+			Cells: cells,
+			HREF:  fmt.Sprintf("/andons/%d", a.AndonID),
+		})
+	}
 
-			h.Label(
-				g.Text("Resolved By"),
-			),
-			components.SearchSelect(&components.SearchSelectProps{
-				Name:        "ResolvedByUsernameIn",
-				Placeholder: "-",
-				Mode:        "multi",
-				Options:     components.MapStringsToOptions(p.availableFilters.ResolvedByUsernameIn, p.activeFilters.ResolvedByUsernameIn),
-				Selected:    strings.Join(p.activeFilters.ResolvedByUsernameIn, ","),
-			}),
-		),
-	)
+	return components.Table(&components.TableProps{
+		Columns: columns,
+		Sort:    p.sort,
+		Rows:    tableRows,
+		Pagination: &components.TablePaginationProps{
+			TotalRecords:        p.count,
+			PageSize:            p.pageSize,
+			CurrentPage:         p.page,
+			CurrentPageQueryKey: "Page",
+			PageSizeQueryKey:    "PageSize",
+		},
+	})
+
 }

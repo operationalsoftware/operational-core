@@ -361,21 +361,37 @@ SELECT
     END AS is_open,
     CASE
         WHEN cancelled_at IS NOT NULL THEN 'Cancelled'
-        WHEN (
-            severity = 'Info' AND acknowledged_at IS NOT NULL
-        ) THEN 'Closed'
-        WHEN (
-            severity IN ('Self-resolvable', 'Requires Intervention')
+
+        -- Info
+        WHEN severity = 'Info'
+            AND acknowledged_at IS NOT NULL THEN 'Closed'
+        WHEN severity = 'Info'
+            AND acknowledged_at IS NULL THEN 'Requires Acknowledgement'
+
+        -- Self-resolvable
+        WHEN severity ='Self-resolvable'
             AND acknowledged_at IS NOT NULL
-            AND resolved_at IS NOT NULL
-        ) THEN 'Closed'
-        WHEN acknowledged_at IS NOT NULL THEN 'Work In Progress'
-        WHEN (
-            resolved_at IS NOT NULL
-            OR
-            severity = 'Info' AND acknowledged_at IS NULL
-        ) THEN 'Requires Acknowledgement'
-        ELSE 'Outstanding'
+            AND resolved_at IS NOT NULL THEN 'Closed'
+        -- Self-resolvable andons are considered WIP immediately upon creation
+        WHEN severity = 'Self-resolvable'
+            AND resolved_at IS NULL THEN 'Work In Progress'
+        WHEN severity = 'Self-resolvable'
+            AND acknowledged_at IS NULL THEN 'Requires Acknowledgement'
+
+        -- Requires Intervention
+        WHEN severity = 'Requires Intervention'
+            AND acknowledged_at IS NOT NULL
+            AND resolved_at IS NOT NULL THEN 'Closed'
+        WHEN severity = 'Requires Intervention'
+            AND acknowledged_at IS NULL
+            AND resolved_at IS NULL THEN 'Outstanding'
+        WHEN severity = 'Requires Intervention'
+            AND acknowledged_at IS NOT NULL THEN 'Work In Progress'
+        WHEN severity = 'Requires Intervention'
+            AND resolved_at IS NOT NULL THEN 'Requires Acknowledgement'
+
+         -- should never see this
+        ELSE 'Invalid Status'
     END AS status
 
 FROM

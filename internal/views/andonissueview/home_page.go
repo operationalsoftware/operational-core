@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	g "maragu.dev/gomponents"
-	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
@@ -124,26 +123,18 @@ func HomePage(p *HomePageProps) g.Node {
 	content := g.Group([]g.Node{
 		h.Div(
 			h.Class("button-container"),
-			components.Button(&components.ButtonProps{
-				ButtonType: "primary",
-				Link:       "/andon-issues/add",
-				Classes: c.Classes{
-					"add-andon-issue-btn": true,
-				},
-			},
+			h.A(
+				h.Class("button primary"),
+				h.Href("/andon-issues/add"),
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
 				}),
 				g.Text("Andon Issue"),
 			),
 
-			components.Button(&components.ButtonProps{
-				ButtonType: "primary",
-				Link:       "/andon-issues/add-group",
-				Classes: c.Classes{
-					"add-andon-issue-btn": true,
-				},
-			},
+			h.A(
+				h.Class("button primary"),
+				h.Href("/andon-issues/add-group"),
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
 				}),
@@ -152,8 +143,7 @@ func HomePage(p *HomePageProps) g.Node {
 		),
 
 		// form container for table interaction
-		h.FormEl(
-			h.ID("andon-issues-table-form"),
+		h.Form(
 			g.Attr("method", "GET"),
 
 			components.Checkbox(
@@ -177,9 +167,7 @@ func HomePage(p *HomePageProps) g.Node {
 					CurrentPageQueryKey: "Page",
 					PageSizeQueryKey:    "PageSize",
 				},
-			},
-				h.ID("andonIssues-table"),
-			),
+			}),
 		),
 	})
 

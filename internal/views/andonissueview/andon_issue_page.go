@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	g "maragu.dev/gomponents"
-	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
@@ -28,33 +27,16 @@ func AndonIssuePage(p *AndonIssuePageProps) g.Node {
 	content := g.Group([]g.Node{
 		h.Div(
 			h.Class("button-container"),
-			g.If(
-				!andonIssue.IsGroup,
-				components.Button(&components.ButtonProps{
-					ButtonType: "primary",
-					Classes: c.Classes{
-						"edit-button": true,
-					},
-					Link: fmt.Sprintf("/andon-issues/%d/edit", andonIssue.AndonIssueID),
-				},
-					components.Icon(&components.IconProps{
-						Identifier: "pencil",
-					}),
+			h.A(
+				h.Class("button primary"),
+				g.If(!andonIssue.IsGroup,
+					h.Href(fmt.Sprintf("/andon-issues/%d/edit", andonIssue.AndonIssueID)),
 				),
-			),
-			g.If(
-				andonIssue.IsGroup,
-				components.Button(&components.ButtonProps{
-					ButtonType: "primary",
-					Classes: c.Classes{
-						"edit-button": true,
-					},
-					Link: fmt.Sprintf("/andon-issues/group/%d/edit", andonIssue.AndonIssueID),
-				},
-					components.Icon(&components.IconProps{
-						Identifier: "pencil",
-					}),
-				),
+				g.If(andonIssue.IsGroup,
+					h.Href(fmt.Sprintf("/andon-issues/group/%d/edit", andonIssue.AndonIssueID))),
+				components.Icon(&components.IconProps{
+					Identifier: "pencil",
+				}),
 			),
 		),
 		h.Div(

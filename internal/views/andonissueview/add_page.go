@@ -238,8 +238,8 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 			),
 		),
 
-		components.Button(
-			&components.ButtonProps{},
+		h.Button(
+			h.Class("button primary"),
 			h.Type("submit"),
 			g.Text("Submit"),
 		),

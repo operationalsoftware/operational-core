@@ -7,6 +7,7 @@ import (
 
 	g "maragu.dev/gomponents"
 	c "maragu.dev/gomponents/components"
+	h "maragu.dev/gomponents/html"
 )
 
 func severityBadge(severity model.AndonSeverity, size components.BadgeSize) g.Node {
@@ -32,7 +33,7 @@ func statusBadge(status model.AndonStatus, size components.BadgeSize) g.Node {
 	case model.AndonStatusClosed:
 		classes["resolved"] = true
 	case model.AndonStatusWorkInProgress:
-		classes["wip"] = true
+		classes["work-in-progress"] = true
 	case model.AndonStatusRequiresAcknowledgement:
 		classes["requires-acknowledgement"] = true
 	case model.AndonStatusOutstanding:
@@ -48,22 +49,26 @@ func statusBadge(status model.AndonStatus, size components.BadgeSize) g.Node {
 }
 
 type acknowledgeButtonProps struct {
-	andonID    int
-	showText   bool
-	buttonSize components.ButtonSize
-	ReturnTo   string
+	andonID  int
+	showText bool
+	returnTo string
+	isSmall  bool
 }
 
 func acknowledgeButton(p *acknowledgeButtonProps) g.Node {
-	return components.Button(&components.ButtonProps{
-		Classes: c.Classes{"acknowledge": true},
-		Size:    p.buttonSize,
-	},
+	classes := c.Classes{
+		"button":  true,
+		"acknowledge": true,
+		"small":   p.isSmall,
+	}
+
+	return h.Button(
+		classes,
 		g.Attr("onclick", "updateAndon(event)"),
-		g.Attr("data-id", strconv.Itoa(p.andonID)),
-		g.Attr("data-action", "acknowledge"),
-		g.Attr("title", "Acknowledge"),
-		g.Attr("data-return-to", p.ReturnTo),
+		h.Title("Acknowledge"),
+		h.Data("id", strconv.Itoa(p.andonID)),
+		h.Data("action", "acknowledge"),
+		g.If(p.returnTo != "", h.Data("return-to", p.returnTo)),
 
 		components.Icon(&components.IconProps{
 			Identifier: "gesture-tap-hold",
@@ -74,22 +79,26 @@ func acknowledgeButton(p *acknowledgeButtonProps) g.Node {
 }
 
 type resolveButtonProps struct {
-	andonID    int
-	showText   bool
-	buttonSize components.ButtonSize
-	ReturnTo   string
+	andonID  int
+	showText bool
+	returnTo string
+	isSmall  bool
 }
 
 func resolveButton(p *resolveButtonProps) g.Node {
-	return components.Button(&components.ButtonProps{
-		Classes: c.Classes{"resolve": true},
-		Size:    p.buttonSize,
-	},
+	classes := c.Classes{
+		"button":  true,
+		"resolve": true,
+		"small":   p.isSmall,
+	}
+
+	return h.Button(
+		classes,
 		g.Attr("onclick", "updateAndon(event)"),
-		g.Attr("data-id", strconv.Itoa(p.andonID)),
-		g.Attr("data-action", "resolve"),
-		g.Attr("title", "Resolve"),
-		g.Attr("data-return-to", p.ReturnTo),
+		h.Title("Resolve"),
+		h.Data("id", strconv.Itoa(p.andonID)),
+		h.Data("action", "resolve"),
+		g.If(p.returnTo != "", h.Data("return-to", p.returnTo)),
 
 		components.Icon(&components.IconProps{
 			Identifier: "check",
@@ -100,22 +109,26 @@ func resolveButton(p *resolveButtonProps) g.Node {
 }
 
 type cancelButtonProps struct {
-	andonID    int
-	showText   bool
-	buttonSize components.ButtonSize
-	ReturnTo   string
+	andonID  int
+	showText bool
+	returnTo string
+	isSmall  bool
 }
 
 func cancelButton(p *cancelButtonProps) g.Node {
-	return components.Button(&components.ButtonProps{
-		Classes: c.Classes{"danger": true},
-		Size:    p.buttonSize,
-	},
+	classes := c.Classes{
+		"button": true,
+		"danger": true,
+		"small":  p.isSmall,
+	}
+
+	return h.Button(
+		classes,
 		g.Attr("onclick", "updateAndon(event)"),
-		g.Attr("data-id", strconv.Itoa(p.andonID)),
-		g.Attr("data-action", "cancel"),
-		g.Attr("title", "Cancel"),
-		g.Attr("data-return-to", p.ReturnTo),
+		h.Title("Cancel"),
+		h.Data("id", strconv.Itoa(p.andonID)),
+		h.Data("action", "cancel"),
+		g.If(p.returnTo != "", h.Data("return-to", p.returnTo)),
 
 		components.Icon(&components.IconProps{
 			Identifier: "cancel",
@@ -126,19 +139,23 @@ func cancelButton(p *cancelButtonProps) g.Node {
 }
 
 type reopenButtonProps struct {
-	andonID    int
-	showText   bool
-	buttonSize components.ButtonSize
+	andonID  int
+	showText bool
+	isSmall  bool
 }
 
 func reopenButton(p *reopenButtonProps) g.Node {
-	return components.Button(&components.ButtonProps{
-		Size: p.buttonSize,
-	},
+	classes := c.Classes{
+		"button": true,
+		"small":  p.isSmall,
+	}
+
+	return h.Button(
+		classes,
 		g.Attr("onclick", "updateAndon(event)"),
-		g.Attr("data-id", strconv.Itoa(p.andonID)),
-		g.Attr("data-action", "reopen"),
-		g.Attr("title", "Reopen"),
+		h.Title("Reopen"),
+		h.Data("id", strconv.Itoa(p.andonID)),
+		h.Data("action", "reopen"),
 
 		components.Icon(&components.IconProps{
 			Identifier: "restore",

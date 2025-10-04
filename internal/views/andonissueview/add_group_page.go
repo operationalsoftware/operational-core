@@ -156,9 +156,8 @@ func addGroupForm(p *addGroupFormProps) g.Node {
 				})),
 		),
 
-		components.Button(
-			&components.ButtonProps{},
-
+		h.Button(
+			h.Class("button"),
 			h.Type("submit"),
 			g.Text("Add Issue Group"),
 		),

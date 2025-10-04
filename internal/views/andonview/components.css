@@ -17,8 +17,11 @@
   &.resolved {
     background-color: var(--green-3);
   }
-  &.wip {
+  &.work-in-progress {
     background-color: var(--yellow-3);
+  }
+  &.requires-acknowledgement {
+    background-color: var(--geekblue-3);
   }
   &.outstanding {
     background-color: var(--red-3);

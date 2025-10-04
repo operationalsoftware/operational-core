@@ -234,8 +234,8 @@ func editGroupForm(p *editGroupFormProps) g.Node {
 			),
 		),
 
-		components.Button(
-			&components.ButtonProps{},
+		h.Button(
+			h.Class("button primary"),
 			h.Type("submit"),
 			g.Text("Save"),
 		),

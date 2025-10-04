@@ -301,8 +301,8 @@ func editForm(p *editFormProps) g.Node {
 			),
 		),
 
-		components.Button(
-			&components.ButtonProps{},
+		h.Button(
+			h.Class("button primary"),
 			h.Type("submit"),
 			g.Text("Save"),
 		),

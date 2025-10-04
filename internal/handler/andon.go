@@ -75,8 +75,8 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	trueBool := true
 	falseBool := false
+	trueBool := true
 
 	outstandingAndons, outstandingAndonsCount, _, err := h.andonService.ListAndons(r.Context(),
 		model.ListAndonQuery{
@@ -113,7 +113,7 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Error listing acknowledged andons", http.StatusInternalServerError)
+		http.Error(w, "Error listing work-in-progress andons", http.StatusInternalServerError)
 		return
 	}
 
@@ -128,13 +128,13 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 
 	_ = andonview.HomePage(&andonview.HomePageProps{
 		Ctx:                     ctx,
-		OutstandingAndons:       outstandingAndons,
-		AcknowledgedAndons:      wipAndons,
-		OutstandingAndonsCount:  outstandingAndonsCount,
-		AcknowledgedAndonsCount: wipAndonsCount,
+		NewAndons:       outstandingAndons,
+		WIPAndons:      wipAndons,
+		NewAndonsCount:  outstandingAndonsCount,
+		WIPAndonsCount: wipAndonsCount,
 		Teams:                   teams,
 		SelectedTeams:           uv.AndonTeams,
-		OutstandingSort:         outstandingSort,
+		NewSort:         outstandingSort,
 		WIPSort:                 wipSort,
 		ReturnTo:                uv.ReturnTo,
 	}).Render(w)
