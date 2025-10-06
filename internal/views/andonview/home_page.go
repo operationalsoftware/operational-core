@@ -100,6 +100,7 @@ func HomePage(p *HomePageProps) g.Node {
 		},
 		AppendBody: []g.Node{
 			components.InlineScript("/internal/views/andonview/home_page.js"),
+			components.InlineScript("/internal/views/andonview/components.js"),
 		},
 	})
 }

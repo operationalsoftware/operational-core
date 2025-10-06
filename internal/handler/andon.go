@@ -141,12 +141,10 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 }
 
 type andonsHomePageUrlVals struct {
-	NewSort string
-	WIPSort string
-
-	ReturnTo string
-
+	NewSort    string
+	WIPSort    string
 	AndonTeams []string
+	ReturnTo   string
 }
 
 type allAndonsURLVals struct {
@@ -568,6 +566,35 @@ func (h *AndonHandler) UpdateAndon(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/andons", http.StatusSeeOther)
 }
 
+type addAndonFormData struct {
+	Description  string
+	IssueID      int
+	AssignedTeam string
+	Location     string
+}
+
+func (fd *addAndonFormData) normalise() {
+	fd.Description = strings.TrimSpace(fd.Description)
+}
+
+func (fd *addAndonFormData) validate() validate.ValidationErrors {
+	var ve validate.ValidationErrors = make(map[string][]string)
+
+	if fd.IssueID == 0 {
+		ve.Add("IssueID", "is required")
+	}
+
+	if fd.Location == "" {
+		ve.Add("Location", "is required")
+	}
+
+	if fd.AssignedTeam == "" {
+		ve.Add("AssignedTeam", "for the issue is not present")
+	}
+
+	return ve
+}
+
 func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 	if !ctx.User.Permissions.UserAdmin.Access {
@@ -576,6 +603,18 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	andonID, _ := strconv.Atoi(r.PathValue("andonID"))
+
+	type urlVals struct {
+		ReturnTo string
+	}
+
+	var uv urlVals
+	err := appurl.Unmarshal(r.URL.Query(), &uv)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error decoding query params", http.StatusInternalServerError)
+		return
+	}
 
 	andon, err := h.andonService.GetAndonByID(r.Context(), andonID, ctx.User.UserID)
 	if err != nil {
@@ -626,34 +665,6 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		AndonComments:    comments,
 		GalleryURL:       galleryURL,
 		GalleryImageURLs: galleryImgURLs,
+		ReturnTo:         uv.ReturnTo,
 	}).Render(w)
-}
-
-type addAndonFormData struct {
-	Description  string
-	IssueID      int
-	AssignedTeam string
-	Location     string
-}
-
-func (fd *addAndonFormData) normalise() {
-	fd.Description = strings.TrimSpace(fd.Description)
-}
-
-func (fd *addAndonFormData) validate() validate.ValidationErrors {
-	var ve validate.ValidationErrors = make(map[string][]string)
-
-	if fd.IssueID == 0 {
-		ve.Add("IssueID", "is required")
-	}
-
-	if fd.Location == "" {
-		ve.Add("Location", "is required")
-	}
-
-	if fd.AssignedTeam == "" {
-		ve.Add("AssignedTeam", "for the issue is not present")
-	}
-
-	return ve
 }

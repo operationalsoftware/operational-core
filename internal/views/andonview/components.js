@@ -3,6 +3,7 @@ function updateAndon(e) {
   const targetBtn = e.currentTarget;
   const andonId = targetBtn.dataset.id;
   const andonAction = targetBtn.dataset.action;
+  const returnTo = targetBtn.dataset.returnTo;
 
   confirmUpdate = confirm(
     `Are you sure you want to ${andonAction} this Andon?`
@@ -13,9 +14,13 @@ function updateAndon(e) {
       method: "POST",
     }).then((res) => {
       if (res.ok) {
-        window.location.href = `/andons/${andonId}`;
+        if (returnTo) {
+          window.location.href = returnTo;
+          return;
+        }
+        window.location.href = "/andons";
       } else {
-        alert("Failed to update Andon.");
+        alert("Failed to update Andon");
       }
     });
   }

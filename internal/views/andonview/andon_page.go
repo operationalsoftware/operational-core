@@ -26,15 +26,7 @@ type AndonPageProps struct {
 	GalleryImageURLs []string
 	AndonChangelog   []model.AndonChange
 	AndonComments    []model.Comment
-}
-
-var changelogFieldDefs = []components.ChangelogProperty{
-	{FieldKey: "Description", Label: g.Text("Description")},
-	{FieldKey: "RaisedByUsername", Label: g.Text("Raised By")},
-	{FieldKey: "AcknowledgedByUsername", Label: g.Text("Acknowledged By")},
-	{FieldKey: "ResolvedByUsername", Label: g.Text("Resolved By")},
-	{FieldKey: "CancelledByUsername", Label: g.Text("Cancelled By")},
-	{FieldKey: "ReopenedByUsername", Label: g.Text("Reopened By")},
+	ReturnTo         string
 }
 
 func AndonPage(p *AndonPageProps) g.Node {
@@ -42,23 +34,125 @@ func AndonPage(p *AndonPageProps) g.Node {
 	andon := p.Andon
 	namePathStr := strings.Join(andon.NamePath, " > ")
 
-	var changelogEntries []components.ChangelogEntry
-	for _, change := range p.AndonChangelog {
-		entry := components.ChangelogEntry{
-			ChangedAt:        change.ChangeAt,
-			ChangeByUsername: change.ChangeByUsername,
-			IsCreation:       change.IsCreation,
-			Changes: map[string]any{
-				"Description":            change.Description,
-				"RaisedByUsername":       change.RaisedByUsername,
-				"AcknowledgedByUsername": change.AcknowledgedByUsername,
-				"ResolvedByUsername":     change.ResolvedByUsername,
-				"CancelledByUsername":    change.CancelledByUsername,
-				"ReopenedByUsername":     change.ReopenedByUsername,
-			},
-		}
-		changelogEntries = append(changelogEntries, entry)
-	}
+	content := g.Group([]g.Node{
+
+		h.Div(
+			h.Class("header"),
+
+			h.Div(
+				h.Class("title"),
+				h.H3(g.Text(fmt.Sprintf("%s @ %s", namePathStr, andon.Location))),
+
+				severityBadge(andon.Severity, "large"),
+
+				statusBadge(andon.Status, "large"),
+			),
+
+			andonActions(&andonActionsProps{andon: andon, returnTo: p.ReturnTo}),
+		),
+
+		h.Div(
+			h.Class("description"),
+			h.Pre(g.Text(andon.Description)),
+		),
+
+		h.Div(
+			h.Class("two-column-flex"),
+
+			andonAttributesList(&andonAttributesListProps{
+				andon: p.Andon,
+			}),
+
+			h.Div(
+				h.Class("gallery-container"),
+
+				components.Gallery(p.GalleryImageURLs),
+
+				h.A(
+					h.Class("button primary"),
+					h.Href(p.GalleryURL),
+
+					g.Text("Gallery"),
+
+					components.Icon(&components.IconProps{
+						Identifier: "arrow-right-thin",
+					}),
+				),
+			),
+		),
+
+		h.Div(
+			h.Class("two-column-flex"),
+			components.CommentsThread(&components.CommentsThreadProps{
+				Comments: p.AndonComments,
+				Entity:   "Andon",
+				EntityID: p.AndonID,
+			}),
+			andonChangeLog(&andonChangeLogProps{
+				changeLog: p.AndonChangelog,
+			}),
+		),
+	})
+
+	return layout.Page(layout.PageProps{
+		Ctx:   p.Ctx,
+		Title: fmt.Sprintf("Andon: %s", andon.Description),
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			andonIssuesBreadCrumb,
+			{Title: "Details"},
+		},
+		Content: content,
+		AppendHead: []g.Node{
+			components.InlineStyle("/internal/views/andonview/components.css"),
+			components.InlineStyle("/internal/views/andonview/andon_page.css"),
+		},
+		AppendBody: []g.Node{
+			components.InlineScript("/internal/views/andonview/components.js"),
+		},
+	})
+}
+
+type andonActionsProps struct {
+	andon    model.Andon
+	returnTo string
+}
+
+func andonActions(p *andonActionsProps) g.Node {
+	andon := p.andon
+	return h.Div(
+		h.Class("actions"),
+
+		g.If(andon.CanUserAcknowledge, acknowledgeButton(&acknowledgeButtonProps{
+			andonID:  andon.AndonID,
+			showText: true,
+			returnTo: p.returnTo,
+		})),
+		g.If(andon.CanUserResolve, resolveButton(&resolveButtonProps{
+			andonID:  andon.AndonID,
+			showText: true,
+			returnTo: p.returnTo,
+		})),
+		g.If(andon.CanUserCancel, cancelButton(&cancelButtonProps{
+			andonID:  andon.AndonID,
+			showText: true,
+			returnTo: p.returnTo,
+		})),
+		g.If(andon.CanUserReopen, reopenButton(&reopenButtonProps{
+			andonID:  andon.AndonID,
+			showText: true,
+		})),
+	)
+}
+
+type andonAttributesListProps struct {
+	andon model.Andon
+}
+
+func andonAttributesList(p *andonAttributesListProps) g.Node {
+
+	andon := p.andon
+	namePathStr := strings.Join(andon.NamePath, " > ")
 
 	source := "\u2013"
 	if andon.Source != "" {
@@ -121,112 +215,54 @@ func AndonPage(p *AndonPageProps) g.Node {
 		)
 	}
 
-	content := g.Group([]g.Node{
+	return h.Div(
+		h.Class("attributes-list"),
 
-		h.Div(
-			h.Class("header"),
+		g.Group{g.Map(attributes, func(a attribute) g.Node {
+			return h.Li(
+				components.Icon(&components.IconProps{
+					Identifier: "arrow-right-thin",
+				}),
+				h.Strong(g.Textf("%s: ", a.label)),
+				h.Span(a.value),
+			)
+		})},
+	)
+}
 
-			h.Div(
-				h.Class("title"),
-				h.H3(g.Text(fmt.Sprintf("%s @ %s", namePathStr, andon.Location))),
+type andonChangeLogProps struct {
+	changeLog []model.AndonChange
+}
 
-				severityBadge(andon.Severity, "large"),
+func andonChangeLog(p *andonChangeLogProps) g.Node {
 
-				statusBadge(andon.Status, "large"),
-			),
+	var changelogFieldDefs = []components.ChangelogProperty{
+		{FieldKey: "Description", Label: g.Text("Description")},
+		{FieldKey: "RaisedByUsername", Label: g.Text("Raised By")},
+		{FieldKey: "AcknowledgedByUsername", Label: g.Text("Acknowledged By")},
+		{FieldKey: "ResolvedByUsername", Label: g.Text("Resolved By")},
+		{FieldKey: "CancelledByUsername", Label: g.Text("Cancelled By")},
+		{FieldKey: "ReopenedByUsername", Label: g.Text("Reopened By")},
+	}
 
-			h.Div(
-				h.Class("actions"),
+	var changelogEntries []components.ChangelogEntry
+	for _, change := range p.changeLog {
+		entry := components.ChangelogEntry{
+			ChangedAt:        change.ChangeAt,
+			ChangeByUsername: change.ChangeByUsername,
+			IsCreation:       change.IsCreation,
+			Changes: map[string]any{
+				"Description":            change.Description,
+				"RaisedByUsername":       change.RaisedByUsername,
+				"AcknowledgedByUsername": change.AcknowledgedByUsername,
+				"ResolvedByUsername":     change.ResolvedByUsername,
+				"CancelledByUsername":    change.CancelledByUsername,
+				"ReopenedByUsername":     change.ReopenedByUsername,
+			},
+		}
+		changelogEntries = append(changelogEntries, entry)
+	}
 
-				g.If(andon.CanUserAcknowledge, acknowledgeButton(&acknowledgeButtonProps{
-					andonID:  p.AndonID,
-					showText: true,
-				})),
-				g.If(andon.CanUserResolve, resolveButton(&resolveButtonProps{
-					andonID:  p.AndonID,
-					showText: true,
-				})),
-				g.If(andon.CanUserCancel, cancelButton(&cancelButtonProps{
-					andonID:  p.AndonID,
-					showText: true,
-				})),
-				g.If(andon.CanUserReopen, reopenButton(&reopenButtonProps{
-					andonID:  p.AndonID,
-					showText: true,
-				})),
-			),
-		),
+	return components.Changelog(changelogEntries, changelogFieldDefs)
 
-		h.Div(
-			h.Class("description"),
-			h.Pre(g.Text(andon.Description)),
-		),
-
-		h.Div(
-			h.Class("two-column-flex"),
-			h.Div(
-				h.Class("attributes-list"),
-
-				g.Group{g.Map(attributes, func(a attribute) g.Node {
-					return h.Li(
-						components.Icon(&components.IconProps{
-							Identifier: "arrow-right-thin",
-						}),
-						h.Strong(g.Textf("%s: ", a.label)),
-						h.Span(a.value),
-					)
-				})},
-			),
-
-			h.Div(
-				h.Class("gallery-container"),
-
-				components.Gallery(p.GalleryImageURLs),
-
-				h.A(
-					h.Class("button primary"),
-					h.Href(p.GalleryURL),
-
-					g.Text("Gallery"),
-
-					components.Icon(&components.IconProps{
-						Identifier: "arrow-right-thin",
-					}),
-				),
-			),
-		),
-
-		h.Div(
-			h.Class("two-column-flex"),
-
-			components.CommentsThread(&components.CommentsThreadProps{
-				Comments: p.AndonComments,
-				Entity:   "Andon",
-				EntityID: p.AndonID,
-			}),
-
-			h.Div(
-				h.Class("change-log"),
-				components.Changelog(changelogEntries, changelogFieldDefs),
-			),
-		),
-	})
-
-	return layout.Page(layout.PageProps{
-		Ctx:   p.Ctx,
-		Title: fmt.Sprintf("Andon: %s", andon.Description),
-		Breadcrumbs: []layout.Breadcrumb{
-			layout.HomeBreadcrumb,
-			andonIssuesBreadCrumb,
-			{Title: "Details"},
-		},
-		Content: content,
-		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/andonview/components.css"),
-			components.InlineStyle("/internal/views/andonview/andon_page.css"),
-		},
-		AppendBody: []g.Node{
-			components.InlineScript("/internal/views/andonview/andon_page.js"),
-		},
-	})
 }
