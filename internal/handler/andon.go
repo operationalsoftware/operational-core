@@ -567,11 +567,10 @@ func (h *AndonHandler) UpdateAndon(w http.ResponseWriter, r *http.Request) {
 }
 
 type addAndonFormData struct {
-	Description  string
-	IssueID      int
-	AssignedTeam string
-	Location     string
-	Source       string
+	Description string
+	IssueID     int
+	Location    string
+	Source      string
 }
 
 func (fd *addAndonFormData) normalise() {
@@ -587,10 +586,6 @@ func (fd *addAndonFormData) validate() validate.ValidationErrors {
 
 	if fd.Location == "" {
 		ve.Add("Location", "is required")
-	}
-
-	if fd.AssignedTeam == "" {
-		ve.Add("AssignedTeam", "for the issue is not present")
 	}
 
 	return ve

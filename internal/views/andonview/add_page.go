@@ -139,18 +139,6 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 		))
 	}
 
-	assignedTeamLabel := "Assigned Team"
-	assignedTeamKey := "AssignedTeam"
-	assignedTeamValue := p.values.Get(assignedTeamKey)
-	assignedTeamError := ""
-	if p.isSubmission || assignedTeamValue != "" {
-		assignedTeamError = p.validationErrors.GetError(assignedTeamKey, assignedTeamLabel)
-	}
-	assignedTeamHelperType := components.InputHelperTypeNone
-	if assignedTeamError != "" {
-		assignedTeamHelperType = components.InputHelperTypeError
-	}
-
 	sourceKey := "Source"
 	sourceValue := p.values.Get(sourceKey)
 
@@ -170,23 +158,6 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 	locationHelperType := components.InputHelperTypeNone
 	if locationError != "" {
 		locationHelperType = components.InputHelperTypeError
-	}
-
-	teamSelectOptions := []g.Node{
-		h.Option(
-			h.Value(""),
-			g.Text("\u2013"),
-		),
-	}
-	for _, team := range p.teams {
-		intVal, _ := strconv.Atoi(assignedTeamValue)
-		isSelected := team.TeamID == intVal
-
-		teamSelectOptions = append(teamSelectOptions, h.Option(
-			h.Value(fmt.Sprintf("%d", team.TeamID)),
-			g.If(isSelected, h.Selected()),
-			g.Text(team.TeamName),
-		))
 	}
 
 	var assignedTeam string
@@ -219,11 +190,6 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 				components.InputHelper(&components.InputHelperProps{
 					Label: issueIDError,
 					Type:  issueIDHelperType,
-				})),
-			g.If(assignedTeamError != "",
-				components.InputHelper(&components.InputHelperProps{
-					Label: assignedTeamError,
-					Type:  assignedTeamHelperType,
 				})),
 		),
 
@@ -265,12 +231,6 @@ func addAndonForm(p *addAndonFormProps) g.Node {
 					Type:  locationHelperType,
 				}),
 			),
-		),
-
-		h.Input(
-			h.Name(assignedTeamKey),
-			h.Value(assignedTeam),
-			h.Type("hidden"),
 		),
 
 		h.Input(
