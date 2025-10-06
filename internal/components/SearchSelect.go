@@ -1,9 +1,9 @@
 package components
 
 import (
-	"slices"
 	g "maragu.dev/gomponents"
 	h "maragu.dev/gomponents/html"
+	"slices"
 )
 
 type SearchSelectOption struct {
@@ -45,6 +45,11 @@ func SearchSelectOptions(options []SearchSelectOption) g.Node {
 }
 
 func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
+	for i := range p.Options {
+		if p.Options[i].Value == p.Selected {
+			p.Options[i].Selected = true
+		}
+	}
 
 	listOptions := SearchSelectOptions(p.Options)
 
