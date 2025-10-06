@@ -1486,7 +1486,6 @@ div.table {
       th,
       td {
         padding: 8px;
-        text-align: left;
         border: 1px solid #ccc;
         transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
       }
