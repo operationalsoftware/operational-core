@@ -429,7 +429,7 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 			Description: fd.Description,
 			IssueID:     fd.IssueID,
 			Location:    fd.Location,
-			Source:      uv.Source,
+			Source:      fd.Source,
 		},
 		ctx.User.UserID,
 	); err != nil {
@@ -571,6 +571,7 @@ type addAndonFormData struct {
 	IssueID      int
 	AssignedTeam string
 	Location     string
+	Source       string
 }
 
 func (fd *addAndonFormData) normalise() {
