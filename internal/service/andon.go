@@ -33,7 +33,7 @@ func NewAndonService(
 	}
 }
 
-func (s *AndonService) CreateAndonEvent(
+func (s *AndonService) CreateAndon(
 	ctx context.Context,
 	andon model.NewAndon,
 	userID int,
@@ -46,8 +46,7 @@ func (s *AndonService) CreateAndonEvent(
 	}
 	defer tx.Rollback(ctx)
 
-
-	galleryId, err:= s.galleryRepository.CreateGallery(
+	galleryId, err := s.galleryRepository.CreateGallery(
 		ctx,
 		tx,
 		userID,
@@ -190,13 +189,13 @@ func (s *AndonService) ListAndons(
 	}
 
 	availableFilters, err := s.andonRepository.GetAvailableFilters(ctx, tx, model.AndonFilters{
-		StartDate:              q.StartDate,
-		EndDate:                q.EndDate,
-		LocationIn:              q.LocationIn,
-		IssueIn:                 q.IssueIn,
-		TeamIn:                  q.TeamIn,
-		SeverityIn: q.SeverityIn,
-		StatusIn: q.StatusIn,
+		StartDate:                q.StartDate,
+		EndDate:                  q.EndDate,
+		LocationIn:               q.LocationIn,
+		IssueIn:                  q.IssueIn,
+		TeamIn:                   q.TeamIn,
+		SeverityIn:               q.SeverityIn,
+		StatusIn:                 q.StatusIn,
 		RaisedByUsernameIn:       q.RaisedByUsernameIn,
 		AcknowledgedByUsernameIn: q.AcknowledgedByUsernameIn,
 		ResolvedByUsernameIn:     q.ResolvedByUsernameIn,

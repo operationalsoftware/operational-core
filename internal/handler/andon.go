@@ -423,7 +423,7 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.andonService.CreateAndonEvent(
+	if err := h.andonService.CreateAndon(
 		r.Context(),
 		model.NewAndon{
 			Description: fd.Description,
