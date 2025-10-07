@@ -224,11 +224,13 @@ func newAndonsTable(p *newAndonsTableProps) g.Node {
 			},
 		}
 
-		colourClass := "outstanding"
-		if a.Severity == model.AndonSeverityInfo {
+		var colourClass string
+		if a.Status == model.AndonStatusRequiresAcknowledgement {
 			colourClass = "requires-acknowledgement"
 		} else if time.Since(a.RaisedAt) > 5*time.Minute {
 			colourClass = "five-minutes-passed"
+		} else {
+			colourClass = "outstanding"
 		}
 		for i := 0; i < len(cells)-1; i++ {
 			if cells[i].Classes == nil {
