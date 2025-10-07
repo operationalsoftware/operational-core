@@ -63,7 +63,10 @@ func HomePage(p *HomePageProps) g.Node {
 		h.Form(
 			g.Attr("method", "GET"),
 
-			h.H3(h.Class("table-title"), g.Text("New")),
+			h.H3(h.Class("table-title"),
+				h.Title("New andons - require actioning or acknowledgement"),
+				g.Text("New"),
+			),
 			h.Hr(),
 			newAndonsTable(&newAndonsTableProps{
 				andons:   p.NewAndons,
@@ -72,7 +75,10 @@ func HomePage(p *HomePageProps) g.Node {
 			}),
 			statusLegend(),
 
-			h.H3(h.Class("table-title wip-heading"), g.Text("WIP")),
+			h.H3(h.Class("table-title wip-heading"),
+				h.Title("Recently acknowledged and open andons"),
+				g.Text("Acknowledged"),
+			),
 			h.Hr(),
 			wipAndonsTable(&wipAndonsTableProps{
 				andons:   p.WIPAndons,
