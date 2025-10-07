@@ -50,3 +50,7 @@ input[type="search"]::-webkit-search-results-decoration {
 input:focus-visible, select:focus-visible {
   outline: none;
 }
+
+th {
+  text-align: unset;
+}
