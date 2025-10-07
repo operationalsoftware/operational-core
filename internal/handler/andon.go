@@ -67,11 +67,11 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error parsing outstanding sort: %v", err), http.StatusBadRequest)
 		return
 	}
-	wipSort := appsort.Sort{}
-	err = wipSort.ParseQueryParam(model.Andon{}, uv.WIPSort)
+	ackSort := appsort.Sort{}
+	err = ackSort.ParseQueryParam(model.Andon{}, uv.AckSort)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, fmt.Sprintf("Error parsing WIP sort: %v", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Error parsing acknowledged sort: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -96,10 +96,10 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wipAndons, wipAndonsCount, _, err := h.andonService.ListAndons(
+	ackAndons, ackAndonsCount, _, err := h.andonService.ListAndons(
 		r.Context(),
 		model.ListAndonQuery{
-			Sort:                 wipSort,
+			Sort:                 ackSort,
 			DefaultSortField:     "raised_at",
 			DefaultSortDirection: appsort.DirectionAsc,
 			Page:                 1,
@@ -129,20 +129,20 @@ func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	_ = andonview.HomePage(&andonview.HomePageProps{
 		Ctx:            ctx,
 		NewAndons:      newAndons,
-		WIPAndons:      wipAndons,
+		AckAndons:      ackAndons,
 		NewAndonsCount: newAndonsCount,
-		WIPAndonsCount: wipAndonsCount,
+		AckAndonsCount: ackAndonsCount,
 		Teams:          teams,
 		SelectedTeams:  uv.AndonTeams,
 		NewSort:        newSort,
-		WIPSort:        wipSort,
+		AckSort:        ackSort,
 		ReturnTo:       uv.ReturnTo,
 	}).Render(w)
 }
 
 type andonsHomePageUrlVals struct {
 	NewSort    string
-	WIPSort    string
+	AckSort    string
 	AndonTeams []string
 	ReturnTo   string
 }

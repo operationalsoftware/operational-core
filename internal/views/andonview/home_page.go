@@ -21,12 +21,12 @@ type HomePageProps struct {
 	Ctx            reqcontext.ReqContext
 	NewAndons      []model.Andon
 	NewAndonsCount int
-	WIPAndons      []model.Andon
-	WIPAndonsCount int
+	AckAndons      []model.Andon
+	AckAndonsCount int
 	Teams          []model.Team
 	SelectedTeams  []string
 	NewSort        appsort.Sort
-	WIPSort        appsort.Sort
+	AckSort        appsort.Sort
 	ReturnTo       string
 }
 
@@ -75,14 +75,14 @@ func HomePage(p *HomePageProps) g.Node {
 			}),
 			statusLegend(),
 
-			h.H3(h.Class("table-title wip-heading"),
+			h.H3(h.Class("table-title ack-heading"),
 				h.Title("Recently acknowledged and open andons"),
 				g.Text("Acknowledged"),
 			),
 			h.Hr(),
-			wipAndonsTable(&wipAndonsTableProps{
-				andons:   p.WIPAndons,
-				sort:     p.WIPSort,
+			ackAndonsTable(&ackAndonsTableProps{
+				andons:   p.AckAndons,
+				sort:     p.AckSort,
 				returnTo: p.ReturnTo,
 			}),
 		),
@@ -253,13 +253,13 @@ func newAndonsTable(p *newAndonsTableProps) g.Node {
 	})
 }
 
-type wipAndonsTableProps struct {
+type ackAndonsTableProps struct {
 	andons   []model.Andon
 	sort     appsort.Sort
 	returnTo string
 }
 
-func wipAndonsTable(p *wipAndonsTableProps) g.Node {
+func ackAndonsTable(p *ackAndonsTableProps) g.Node {
 	var columns = append(
 		commonColumns,
 		components.TableColumns{
@@ -308,7 +308,7 @@ func wipAndonsTable(p *wipAndonsTableProps) g.Node {
 
 	return components.Table(&components.TableProps{
 		Columns:      columns,
-		SortQueryKey: "WIPSort",
+		SortQueryKey: "AckSort",
 		Sort:         p.sort,
 		Rows:         rows,
 	})
