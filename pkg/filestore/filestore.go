@@ -2,12 +2,15 @@ package filestore
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/ncw/swift/v2"
 )
 
-func InitSwift(secretKey, swiftAPIUser, swiftAPIKey, swiftAuthURL, swiftTenantID string) (*swift.Connection, error) {
+func InitSwift(
+	secretKey, swiftAPIUser, swiftAPIKey, swiftAuthURL, swiftTenantID, siteAddress string,
+) (*swift.Connection, error) {
 	ctx := context.Background()
 	c := swift.Connection{
 		UserName: swiftAPIUser,
@@ -22,7 +25,7 @@ func InitSwift(secretKey, swiftAPIUser, swiftAPIKey, swiftAuthURL, swiftTenantID
 
 	headers := swift.Headers{
 		"X-Container-Meta-Temp-URL-Key":                secretKey,
-		"X-Container-Meta-Access-Control-Allow-Origin": "https://localhost:3000",
+		"X-Container-Meta-Access-Control-Allow-Origin": fmt.Sprintf("https://%s", siteAddress),
 	}
 	err := c.AccountUpdate(ctx, headers)
 	if err != nil {

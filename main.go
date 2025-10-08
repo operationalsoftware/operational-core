@@ -68,6 +68,7 @@ func main() {
 	swiftAPIKey := os.Getenv("SWIFT_API_KEY")
 	swiftAuthURL := os.Getenv("SWIFT_AUTH_URL")
 	swiftTenantID := os.Getenv("SWIFT_TENANT_ID")
+	siteAddress := os.Getenv("SITE_ADDRESS")
 	// Initialise some things for start up
 	swiftConn, err := filestore.InitSwift(
 		secretKey,
@@ -75,6 +76,7 @@ func main() {
 		swiftAPIKey,
 		swiftAuthURL,
 		swiftTenantID,
+		siteAddress,
 	)
 	if err != nil {
 		log.Fatalf("Error initialising swift sdk: %v\n", err)
