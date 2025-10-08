@@ -3,6 +3,11 @@
 # Exit if any command fails
 set -e
 
+# Allow override of git checks with SKIP_GIT_CHECKS=1
+if [ -n "$SKIP_GIT_CHECKS" ]; then
+  echo "⚠️  Git checks are being skipped (SKIP_GIT_CHECKS=$SKIP_GIT_CHECKS)"
+fi
+
 # Check if environment is provided
 if [ -z "$1" ]; then
   echo "Error: No deployment environment specified."
@@ -12,14 +17,14 @@ fi
 
 deployment_env="$1"
 
-# Check if there are uncommitted changes
-if [ -n "$(git status --porcelain)" ]; then
+# Check if there are uncommitted changes (unless overridden)
+if [ -z "$SKIP_GIT_CHECKS" ] && [ -n "$(git status --porcelain)" ]; then
   echo "Error: There are uncommitted changes. Please commit or stash your changes before deploying."
   exit 1
 fi
 
-# Check if there are any unpushed commits
-if [ -n "$(git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD)" ]; then
+# Check if there are any unpushed commits (unless overridden)
+if [ -z "$SKIP_GIT_CHECKS" ] && [ -n "$(git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD)" ]; then
   echo "Error: There are unpushed commits. Please push your changes before deploying."
   exit 1
 fi
