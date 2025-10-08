@@ -20,6 +20,18 @@ func NewCommentRepository(fileRepo *FileRepository) *CommentRepository {
 	}
 }
 
+// CreateCommentThread creates an empty comment thread and returns its id.
+// After migration 00000300 comment threads are decoupled from entities, so we
+// just insert default values.
+func (r *CommentRepository) CreateCommentThread(
+	ctx context.Context,
+	exec db.PGExecutor,
+) (int, error) {
+	var id int
+	err := exec.QueryRow(ctx, `INSERT INTO comment_thread DEFAULT VALUES RETURNING comment_thread_id`).Scan(&id)
+	return id, err
+}
+
 func (r *CommentRepository) AddComment(
 	ctx context.Context,
 	exec db.PGExecutor,
