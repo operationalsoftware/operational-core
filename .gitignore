@@ -9,6 +9,11 @@
 app-dev
 app
 
+# Docker files
+**/Dockerfile*
+**/docker-compose*.yml
+**/docker-compose*.yaml
+
 # built go assets
 assets/assets.go
 
