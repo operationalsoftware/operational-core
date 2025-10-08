@@ -84,9 +84,8 @@ func AndonPage(p *AndonPageProps) g.Node {
 		h.Div(
 			h.Class("two-column-flex"),
 			components.CommentsThread(&components.CommentsThreadProps{
-				Comments: p.AndonComments,
-				Entity:   "Andon",
-				EntityID: p.AndonID,
+				Comments:        p.AndonComments,
+				CommentThreadID: p.Andon.AndonID, // UI doesn't need thread id for posting currently
 			}),
 			andonChangeLog(&andonChangeLogProps{
 				changeLog: p.AndonChangelog,

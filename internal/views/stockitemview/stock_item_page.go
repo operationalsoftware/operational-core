@@ -67,9 +67,8 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 			h.Class("two-column-flex"),
 
 			components.CommentsThread(&components.CommentsThreadProps{
-				Comments: p.StockItemComments,
-				Entity:   "StockItem",
-				EntityID: p.StockItem.StockItemID,
+				Comments:        p.StockItemComments,
+				CommentThreadID: p.StockItem.StockItemID, // UI does not yet consume thread id
 			}),
 
 			stockItemChangeLog(p.StockItemChanges),

@@ -116,7 +116,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	comments, err := h.commentService.GetComments(r.Context(), "StockItem", stockItemID, ctx.User.UserID)
+	comments, err := h.commentService.GetComments(r.Context(), stockItem.CommentThreadID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching andon comments", http.StatusInternalServerError)
@@ -392,13 +392,17 @@ func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request)
 func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	hasPermission := ctx.User.Permissions.Stock.Admin
-	if !hasPermission {
+	if !ctx.User.Permissions.Stock.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
-	entityIDStr := r.PathValue("entityID")
+	stockItemIDStr := r.PathValue("entityID")
+	stockItemID, err := strconv.Atoi(stockItemIDStr)
+	if err != nil {
+		http.Error(w, "Invalid stock item id", http.StatusBadRequest)
+		return
+	}
 
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
@@ -414,18 +418,18 @@ func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 
 	fd.normalise()
 
-	entityID, err := strconv.Atoi(entityIDStr)
-	if err != nil {
-		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
+	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID, ctx.User)
+	if err != nil || stockItem == nil {
+		log.Println(err)
+		http.Error(w, "Stock item not found", http.StatusNotFound)
 		return
 	}
 
 	commentID, err := h.commentService.CreateComment(
 		r.Context(),
 		&model.NewComment{
-			Comment:  fd.Comment,
-			Entity:   "StockItem",
-			EntityID: entityID,
+			Comment:         fd.Comment,
+			CommentThreadID: stockItem.CommentThreadID,
 		},
 		ctx.User.UserID,
 	)

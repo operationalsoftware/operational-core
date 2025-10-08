@@ -447,8 +447,7 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entity := "Andon"
-	entityIDStr := r.PathValue("entityID")
+	andonIDStr := r.PathValue("entityID")
 
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
@@ -464,24 +463,30 @@ func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 
 	fd.normalise()
 
-	entityID, err := strconv.Atoi(entityIDStr)
+	andonID, err := strconv.Atoi(andonIDStr)
 	if err != nil {
-		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
+		http.Error(w, "Invalid andon id", http.StatusBadRequest)
+		return
+	}
+
+	andon, err := h.andonService.GetAndonByID(r.Context(), andonID, ctx.User.UserID)
+	if err != nil || andon == nil {
+		log.Println(err)
+		http.Error(w, "Andon not found", http.StatusNotFound)
 		return
 	}
 
 	commentID, err := h.commentService.CreateComment(
 		r.Context(),
 		&model.NewComment{
-			Comment:  fd.Comment,
-			Entity:   entity,
-			EntityID: entityID,
+			Comment:         fd.Comment,
+			CommentThreadID: andon.CommentThreadID,
 		},
 		ctx.User.UserID,
 	)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Error creating andon", http.StatusInternalServerError)
+		http.Error(w, "Error creating andon comment", http.StatusInternalServerError)
 		return
 	}
 
@@ -644,7 +649,7 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		galleryURL = h.galleryService.GenerateTempURL(andon.GalleryID, andon.CanUserEdit)
 	}
 
-	comments, err := h.commentService.GetComments(r.Context(), "Andon", andonID, ctx.User.UserID)
+	comments, err := h.commentService.GetComments(r.Context(), andon.CommentThreadID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching andon comments", http.StatusInternalServerError)

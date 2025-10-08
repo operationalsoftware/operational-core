@@ -41,16 +41,14 @@ func (r *CommentRepository) AddComment(
 
 	query := `
 INSERT INTO comment (
-	entity,
-	entity_id,
+	comment_thread_id,
 	comment,
 	commented_by
 )
 VALUES (
 	$1,
 	$2,
-	$3,
-	$4
+	$3
 )
 RETURNING comment_id
 `
@@ -58,8 +56,7 @@ RETURNING comment_id
 	err := exec.QueryRow(
 		ctx, query,
 
-		comment.Entity,
-		comment.EntityID,
+		comment.CommentThreadID,
 		comment.Comment,
 		userID,
 	).Scan(&commentID)
@@ -71,24 +68,22 @@ func (r *CommentRepository) GetComments(
 	ctx context.Context,
 	exec db.PGExecutor,
 	swiftConn *swift.Connection,
-	entity string,
-	entityID int,
+	commentThreadID int,
 ) ([]model.Comment, error) {
 
 	query := `
 SELECT
 	comment_id,
-	entity,
-	entity_id,
+	comment_thread_id,
 	comment,
 	commented_by_username,
 	commented_at,
 	attachments
 FROM comment_view
-WHERE entity = $1 AND entity_id = $2
+WHERE comment_thread_id = $1
 `
 
-	rows, err := exec.Query(ctx, query, entity, entityID)
+	rows, err := exec.Query(ctx, query, commentThreadID)
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +95,7 @@ WHERE entity = $1 AND entity_id = $2
 		var attachments []byte
 		if err := rows.Scan(
 			&comment.CommentID,
-			&comment.Entity,
-			&comment.EntityID,
+			&comment.CommentThreadID,
 			&comment.Comment,
 			&comment.CommentedByUsername,
 			&comment.CommentedAt,

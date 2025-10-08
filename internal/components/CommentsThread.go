@@ -2,7 +2,6 @@ package components
 
 import (
 	"app/internal/model"
-	"fmt"
 	"strings"
 
 	g "maragu.dev/gomponents"
@@ -11,10 +10,9 @@ import (
 )
 
 type CommentsThreadProps struct {
-	Title    g.Node
-	Comments []model.Comment
-	Entity   string
-	EntityID int
+	Title           g.Node
+	Comments        []model.Comment
+	CommentThreadID int
 }
 
 func CommentsThread(p *CommentsThreadProps) g.Node {
@@ -124,18 +122,7 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 					h.Placeholder("Enter Comment"),
 				),
 
-				h.Input(
-					h.Name("EntityID"),
-					h.Type("hidden"),
-					h.Value(fmt.Sprintf("%d", p.EntityID)),
-				),
-
-				h.Input(
-					h.Name("Entity"),
-					h.Type("hidden"),
-					h.Value(p.Entity),
-				),
-
+				// No longer need entity/entityID hidden fields after thread refactor
 				h.Div(
 					h.Class("file-upload-wrapper"),
 

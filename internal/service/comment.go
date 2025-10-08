@@ -30,8 +30,7 @@ func NewCommentService(
 
 func (s *CommentService) GetComments(
 	ctx context.Context,
-	entity string,
-	entityID int,
+	commentThreadID int,
 	userID int,
 ) ([]model.Comment, error) {
 	tx, err := s.db.Begin(ctx)
@@ -44,8 +43,7 @@ func (s *CommentService) GetComments(
 		ctx,
 		tx,
 		s.swiftConn,
-		entity,
-		entityID,
+		commentThreadID,
 	)
 
 	if err != nil {
