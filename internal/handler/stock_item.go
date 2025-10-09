@@ -5,16 +5,20 @@ import (
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/stockitemview"
+	"app/pkg/apphmac"
 	"app/pkg/appsort"
 	"app/pkg/appurl"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/skip2/go-qrcode"
 )
@@ -152,13 +156,24 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 
 	qrCodeURI := fmt.Sprintf("data:image/png;base64,%s", base64Image)
 
+	// Build a JSON envelope for adding a comment to this thread, valid for 5 minutes
+	commentPayload := apphmac.Payload{
+		Entity:      "comment",
+		EntityID:    fmt.Sprintf("%d", stockItem.CommentThreadID),
+		Permissions: []string{"add"},
+		Expires:     time.Now().Add(5 * time.Minute).Unix(),
+	}
+	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
+	commentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
+
 	_ = stockitemview.StockItemPage(&stockitemview.StockItemPageProps{
-		Ctx:               ctx,
-		StockItem:         *stockItem,
-		QRCode:            qrCodeURI,
-		GalleryURL:        galleryURL,
-		StockItemChanges:  stockItemChanges,
-		StockItemComments: comments,
+		Ctx:                  ctx,
+		StockItem:            *stockItem,
+		QRCode:               qrCodeURI,
+		GalleryURL:           galleryURL,
+		StockItemChanges:     stockItemChanges,
+		StockItemComments:    comments,
+		CommentsHMACEnvelope: string(commentEnvelopeJSON),
 	}).
 		Render(w)
 }

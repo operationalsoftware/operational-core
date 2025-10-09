@@ -3,12 +3,17 @@ package handler
 import (
 	"app/internal/model"
 	"app/internal/service"
+	"app/pkg/apphmac"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type CommentHandler struct {
@@ -26,16 +31,16 @@ func NewCommentHandler(
 	}
 }
 
-type addAndonCommentFormData struct {
+type addCommentFormData struct {
 	Comment     string
 	Attachments []model.File
 }
 
-func (fd *addAndonCommentFormData) normalise() {
+func (fd *addCommentFormData) normalise() {
 	fd.Comment = strings.TrimSpace(fd.Comment)
 }
 
-func (fd *addAndonCommentFormData) validate() validate.ValidationErrors {
+func (fd *addCommentFormData) validate() validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
 
 	if fd.Comment == "" {
@@ -54,24 +59,53 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 	threadIDStr := r.PathValue("threadID")
 	threadID, err := strconv.Atoi(threadIDStr)
-	if err != nil {
+	if err != nil || threadID <= 0 {
 		http.Error(w, "Invalid thread id", http.StatusBadRequest)
 		return
 	}
 
-	var fd addAndonCommentFormData
-	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
+	// Decode request body once into a struct that can carry the envelope
+	var reqBody struct {
+		Comment string            `json:"comment"`
+		HMAC    *apphmac.Envelope `json:"hmac,omitempty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
 	}
+
+	// Verify HMAC: prefer envelope
+	if reqBody.HMAC != nil && reqBody.HMAC.Signature != "" {
+		secret := os.Getenv("AES_256_ENCRYPTION_KEY")
+		payload, err := apphmac.VerifyEnvelope(*reqBody.HMAC, secret)
+		if err != nil {
+			http.Error(w, "Error validating", http.StatusUnauthorized)
+			return
+		}
+		if payload.Entity != "comment" || payload.EntityID != threadIDStr {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		if slices.Contains(payload.Permissions, "add") == false {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+	} else {
+		http.Error(w, "Missing HMAC", http.StatusUnauthorized)
+		return
+	}
+
+	// Validate comment content
+	fd := addCommentFormData{Comment: reqBody.Comment}
 	fd.normalise()
 	if ve := fd.validate(); len(ve) > 0 {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]any{"errors": ve})
+		_ = json.NewEncoder(w).Encode(map[string]any{"errors": ve})
 		return
 	}
 
+	// Create the comment
 	ctx := reqcontext.GetContext(r)
 	commentID, err := h.commentService.CreateComment(r.Context(), &model.NewComment{
 		CommentThreadID: threadID,
@@ -82,8 +116,21 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Also return an attachment envelope so the client can upload files for this new comment
+	secret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	attachPayload := apphmac.Payload{
+		Entity:      "comment",
+		EntityID:    fmt.Sprintf("%d", commentID),
+		Permissions: []string{"add"},
+		Expires:     time.Now().Add(5 * time.Minute).Unix(),
+	}
+	attachEnvelope := apphmac.SignEnvelope(attachPayload, secret)
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{"commentId": commentID})
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"commentId":      commentID,
+		"attachmentHmac": attachEnvelope,
+	})
 }
 
 // AddAttachment handles POST /comments/{commentID}/attachment
@@ -101,12 +148,28 @@ func (h *CommentHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var fd struct {
-		Filename    string
-		ContentType string
-		SizeBytes   int
+		Filename    string            `json:"filename"`
+		ContentType string            `json:"contentType"`
+		SizeBytes   int               `json:"sizeBytes"`
+		HMAC        *apphmac.Envelope `json:"hmac"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	if fd.HMAC == nil || fd.HMAC.Signature == "" {
+		http.Error(w, "Missing HMAC", http.StatusUnauthorized)
+		return
+	}
+	secret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	payload, err := apphmac.VerifyEnvelope(*fd.HMAC, secret)
+	if err != nil {
+		http.Error(w, "Error validating", http.StatusUnauthorized)
+		return
+	}
+	if payload.Entity != "comment" || payload.EntityID != fmt.Sprintf("%d", commentID) || slices.Contains(payload.Permissions, "add") == false {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 

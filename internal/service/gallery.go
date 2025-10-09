@@ -243,11 +243,11 @@ func (s *GalleryService) generateTempURL(
 	}
 	ops := strings.Join(allowedOperations, ",")
 
-	claims := apphmac.Claims{
-		Entity:            "gallery",
-		EntityID:          fmt.Sprintf("%d", galleryID),
-		AllowedOperations: allowedOperations,
-		Expires:           expires,
+	claims := apphmac.Payload{
+		Entity:      "gallery",
+		EntityID:    fmt.Sprintf("%d", galleryID),
+		Permissions: allowedOperations,
+		Expires:     expires,
 	}
 
 	hmac := apphmac.GenerateHMAC(claims, secretKey)

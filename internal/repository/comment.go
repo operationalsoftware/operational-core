@@ -128,3 +128,14 @@ WHERE comment_thread_id = $1
 
 	return comments, nil
 }
+
+// GetCommentThreadID returns the thread id for a given comment id
+func (r *CommentRepository) GetCommentThreadID(
+	ctx context.Context,
+	exec db.PGExecutor,
+	commentID int,
+) (int, error) {
+	var threadID int
+	err := exec.QueryRow(ctx, `SELECT comment_thread_id FROM comment WHERE comment_id = $1`, commentID).Scan(&threadID)
+	return threadID, err
+}

@@ -52,11 +52,11 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 	}
 	allowedOperations := strings.Split(uv.AllowedOperations, ",")
 
-	hmacClaims := apphmac.Claims{
-		Entity:            "gallery",
-		EntityID:          fmt.Sprintf("%d", galleryID),
-		AllowedOperations: allowedOperations,
-		Expires:           uv.Expires,
+	hmacClaims := apphmac.Payload{
+		Entity:      "gallery",
+		EntityID:    fmt.Sprintf("%d", galleryID),
+		Permissions: allowedOperations,
+		Expires:     uv.Expires,
 	}
 	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
 
@@ -107,11 +107,11 @@ func (h *GalleryHandler) AddGalleryItem(w http.ResponseWriter, r *http.Request) 
 	}
 	allowedOperations := strings.Split(uv.AllowedOperations, ",")
 
-	hmacClaims := apphmac.Claims{
-		Entity:            "gallery",
-		EntityID:          fmt.Sprintf("%d", galleryID),
-		AllowedOperations: allowedOperations,
-		Expires:           uv.Expires,
+	hmacClaims := apphmac.Payload{
+		Entity:      "gallery",
+		EntityID:    fmt.Sprintf("%d", galleryID),
+		Permissions: allowedOperations,
+		Expires:     uv.Expires,
 	}
 	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
 
@@ -193,11 +193,11 @@ func (h *GalleryHandler) DeleteGalleryItem(w http.ResponseWriter, r *http.Reques
 	}
 	allowedOperations := strings.Split(uv.AllowedOperations, ",")
 
-	hmacClaims := apphmac.Claims{
-		Entity:            "gallery",
-		EntityID:          fmt.Sprintf("%d", galleryID),
-		AllowedOperations: allowedOperations,
-		Expires:           uv.Expires,
+	hmacClaims := apphmac.Payload{
+		Entity:      "gallery",
+		EntityID:    fmt.Sprintf("%d", galleryID),
+		Permissions: allowedOperations,
+		Expires:     uv.Expires,
 	}
 	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
 
@@ -238,11 +238,11 @@ func (h *GalleryHandler) SetGalleryItemPosition(w http.ResponseWriter, r *http.R
 	}
 	allowedOperations := strings.Split(uv.AllowedOperations, ",")
 
-	hmacClaims := apphmac.Claims{
-		Entity:            "gallery",
-		EntityID:          fmt.Sprintf("%d", galleryID),
-		AllowedOperations: allowedOperations,
-		Expires:           uv.Expires,
+	hmacClaims := apphmac.Payload{
+		Entity:      "gallery",
+		EntityID:    fmt.Sprintf("%d", galleryID),
+		Permissions: allowedOperations,
+		Expires:     uv.Expires,
 	}
 	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
 
@@ -310,11 +310,11 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 	}
 	allowedOperations := strings.Split(uv.AllowedOperations, ",")
 
-	hmacClaims := apphmac.Claims{
-		Entity:            "gallery",
-		EntityID:          fmt.Sprintf("%d", galleryID),
-		AllowedOperations: allowedOperations,
-		Expires:           uv.Expires,
+	hmacClaims := apphmac.Payload{
+		Entity:      "gallery",
+		EntityID:    fmt.Sprintf("%d", galleryID),
+		Permissions: allowedOperations,
+		Expires:     uv.Expires,
 	}
 	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
 

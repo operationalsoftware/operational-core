@@ -14,6 +14,7 @@ type CommentsThreadProps struct {
 	Title           g.Node
 	Comments        []model.Comment
 	CommentThreadID int
+	HMACEnvelope    string
 }
 
 func CommentsThread(p *CommentsThreadProps) g.Node {
@@ -108,7 +109,8 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 
 		h.Form(
 			h.Class("comment-form"),
-			g.Attr("data-thread-id", fmt.Sprintf("%d", p.CommentThreadID)),
+			h.Data("thread-id", fmt.Sprintf("%d", p.CommentThreadID)),
+			h.Data("hmac-envelope", p.HMACEnvelope),
 			h.Name("comment-form"),
 			h.Method("POST"),
 			h.EncType("multipart/form-data"),
