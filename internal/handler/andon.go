@@ -554,7 +554,7 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 
 	// Build a JSON envelope for adding a comment to this andon's thread, valid for 5 minutes
 	commentPayload := apphmac.Payload{
-		Entity:      "comment",
+		Entity:      "comment_thread",
 		EntityID:    fmt.Sprintf("%d", andon.CommentThreadID),
 		Permissions: []string{"add"},
 		Expires:     time.Now().Add(24 * time.Hour).Unix(),

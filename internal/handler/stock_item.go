@@ -156,9 +156,9 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 
 	qrCodeURI := fmt.Sprintf("data:image/png;base64,%s", base64Image)
 
-	// Build a JSON envelope for adding a comment to this thread, valid for 5 minutes
+	// Build a JSON envelope for adding a comment to this thread
 	commentPayload := apphmac.Payload{
-		Entity:      "comment",
+		Entity:      "comment_thread",
 		EntityID:    fmt.Sprintf("%d", stockItem.CommentThreadID),
 		Permissions: []string{"add"},
 		Expires:     time.Now().Add(24 * time.Hour).Unix(), // 24 hours from now
