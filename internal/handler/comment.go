@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -50,7 +49,6 @@ func (fd *addCommentFormData) validate() validate.ValidationErrors {
 	return ve
 }
 
-// Add handles POST /comments/{threadID}/add
 func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -75,23 +73,10 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify HMAC: prefer envelope
-	if reqBody.HMAC != nil && reqBody.HMAC.Signature != "" {
-		secret := os.Getenv("AES_256_ENCRYPTION_KEY")
-		payload, err := apphmac.VerifyEnvelope(*reqBody.HMAC, secret)
-		if err != nil {
-			http.Error(w, "Error validating", http.StatusUnauthorized)
-			return
-		}
-		if payload.Entity != "comment" || payload.EntityID != threadIDStr {
-			http.Error(w, "Forbidden", http.StatusForbidden)
-			return
-		}
-		if slices.Contains(payload.Permissions, "add") == false {
-			http.Error(w, "Forbidden", http.StatusForbidden)
-			return
-		}
-	} else {
-		http.Error(w, "Missing HMAC", http.StatusUnauthorized)
+	secret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	isValid, err := apphmac.IsValidEnvelope(*reqBody.HMAC, secret, "comment_thread", fmt.Sprintf("%d", threadID), "add")
+	if err != nil || !isValid {
+		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
 
@@ -117,7 +102,6 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Also return an attachment envelope so the client can upload files for this new comment
-	secret := os.Getenv("AES_256_ENCRYPTION_KEY")
 	attachPayload := apphmac.Payload{
 		Entity:      "comment",
 		EntityID:    fmt.Sprintf("%d", commentID),
@@ -133,7 +117,6 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// AddAttachment handles POST /comments/{commentID}/attachment
 func (h *CommentHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -158,18 +141,10 @@ func (h *CommentHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fd.HMAC == nil || fd.HMAC.Signature == "" {
-		http.Error(w, "Missing HMAC", http.StatusUnauthorized)
-		return
-	}
 	secret := os.Getenv("AES_256_ENCRYPTION_KEY")
-	payload, err := apphmac.VerifyEnvelope(*fd.HMAC, secret)
-	if err != nil {
+	isValid, err := apphmac.IsValidEnvelope(*fd.HMAC, secret, "comment", fmt.Sprintf("%d", commentID), "add")
+	if err != nil || !isValid {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
-		return
-	}
-	if payload.Entity != "comment" || payload.EntityID != fmt.Sprintf("%d", commentID) || slices.Contains(payload.Permissions, "add") == false {
-		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 

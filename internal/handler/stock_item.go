@@ -161,7 +161,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		Entity:      "comment",
 		EntityID:    fmt.Sprintf("%d", stockItem.CommentThreadID),
 		Permissions: []string{"add"},
-		Expires:     time.Now().Add(5 * time.Minute).Unix(),
+		Expires:     time.Now().Add(24 * time.Hour).Unix(), // 24 hours from now
 	}
 	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
 	commentEnvelopeJSON, _ := json.Marshal(commentEnvelope)

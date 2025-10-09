@@ -4,13 +4,16 @@ import (
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/andonview"
+	"app/pkg/apphmac"
 	"app/pkg/appsort"
 	"app/pkg/appurl"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -549,16 +552,27 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Build a JSON envelope for adding a comment to this andon's thread, valid for 5 minutes
+	commentPayload := apphmac.Payload{
+		Entity:      "comment",
+		EntityID:    fmt.Sprintf("%d", andon.CommentThreadID),
+		Permissions: []string{"add"},
+		Expires:     time.Now().Add(24 * time.Hour).Unix(),
+	}
+	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
+	commentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
+
 	_ = andonview.AndonPage(&andonview.AndonPageProps{
-		Ctx:              ctx,
-		Values:           r.Form,
-		IsSubmission:     true,
-		AndonID:          andonID,
-		Andon:            *andon,
-		AndonChangelog:   changelog,
-		AndonComments:    comments,
-		GalleryURL:       galleryURL,
-		GalleryImageURLs: galleryImgURLs,
-		ReturnTo:         uv.ReturnTo,
+		Ctx:                  ctx,
+		Values:               r.Form,
+		IsSubmission:         true,
+		AndonID:              andonID,
+		Andon:                *andon,
+		AndonChangelog:       changelog,
+		AndonComments:        comments,
+		GalleryURL:           galleryURL,
+		GalleryImageURLs:     galleryImgURLs,
+		ReturnTo:             uv.ReturnTo,
+		CommentsHMACEnvelope: string(commentEnvelopeJSON),
 	}).Render(w)
 }

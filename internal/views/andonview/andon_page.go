@@ -16,17 +16,18 @@ import (
 )
 
 type AndonPageProps struct {
-	Ctx              reqcontext.ReqContext
-	Values           url.Values
-	ValidationErrors validate.ValidationErrors
-	IsSubmission     bool
-	AndonID          int
-	Andon            model.Andon
-	GalleryURL       string
-	GalleryImageURLs []string
-	AndonChangelog   []model.AndonChange
-	AndonComments    []model.Comment
-	ReturnTo         string
+	Ctx                  reqcontext.ReqContext
+	Values               url.Values
+	ValidationErrors     validate.ValidationErrors
+	IsSubmission         bool
+	AndonID              int
+	Andon                model.Andon
+	GalleryURL           string
+	GalleryImageURLs     []string
+	AndonChangelog       []model.AndonChange
+	AndonComments        []model.Comment
+	ReturnTo             string
+	CommentsHMACEnvelope string
 }
 
 func AndonPage(p *AndonPageProps) g.Node {
@@ -84,6 +85,7 @@ func AndonPage(p *AndonPageProps) g.Node {
 			components.CommentsThread(&components.CommentsThreadProps{
 				Comments:        p.AndonComments,
 				CommentThreadID: p.Andon.CommentThreadID,
+				HMACEnvelope:    p.CommentsHMACEnvelope,
 			}),
 			andonChangeLog(&andonChangeLogProps{
 				changeLog: p.AndonChangelog,

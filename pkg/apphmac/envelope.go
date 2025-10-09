@@ -2,6 +2,7 @@ package apphmac
 
 import (
 	"errors"
+	"slices"
 )
 
 // Payload represents the data to be signed and later verified.
@@ -28,7 +29,7 @@ type Envelope struct {
 }
 
 // SignEnvelope produces an Envelope by signing the given payload with the provided secret.
-// It uses the existing HMAC scheme by mapping the single Permission into AllowedOperations.
+// It uses the existing HMAC scheme to generate the signature.
 func SignEnvelope(p Payload, secret string) Envelope {
 	claims := Payload{
 		Entity:      p.Entity,
@@ -67,4 +68,24 @@ func VerifySignature(p Payload, signature, secret string) bool {
 		Expires:     p.Expires,
 	}
 	return VerifyHMAC(claims, signature, secret)
+}
+
+// IsValidEnvelope checks if the envelope is valid and contains the required entity, entity ID, and permission.
+func IsValidEnvelope(e Envelope, secret, requiredEntity, requiredEntityID, requiredPermission string) (bool, error) {
+	// Check if envelope is nil or signature is empty
+	if e.Signature == "" {
+		return false, errors.New("missing HMAC")
+	}
+	payload, err := VerifyEnvelope(e, secret)
+	// Check if verification failed
+	if err != nil {
+		return false, errors.New("error validating")
+	}
+	// Check if payload matches required entity, entity ID, and permission
+	if payload.Entity != "comment" || payload.EntityID != requiredEntityID || !slices.Contains(payload.Permissions, "add") {
+		return false, errors.New("forbidden")
+	}
+
+	// All checks passed
+	return true, nil
 }
