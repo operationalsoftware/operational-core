@@ -68,7 +68,7 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 
 			components.CommentsThread(&components.CommentsThreadProps{
 				Comments:        p.StockItemComments,
-				CommentThreadID: p.StockItem.StockItemID, // UI does not yet consume thread id
+				CommentThreadID: p.StockItem.CommentThreadID,
 			}),
 
 			stockItemChangeLog(p.StockItemChanges),

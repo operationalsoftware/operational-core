@@ -10,7 +10,6 @@ import (
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -389,110 +388,4 @@ func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request)
 
 }
 
-func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-
-	if !ctx.User.Permissions.Stock.Admin {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	stockItemIDStr := r.PathValue("entityID")
-	stockItemID, err := strconv.Atoi(stockItemIDStr)
-	if err != nil {
-		http.Error(w, "Invalid stock item id", http.StatusBadRequest)
-		return
-	}
-
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	var fd addAndonCommentFormData
-	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
-		log.Println(err)
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	fd.normalise()
-
-	stockItem, err := h.stockItemService.GetStockItem(r.Context(), stockItemID, ctx.User)
-	if err != nil || stockItem == nil {
-		log.Println(err)
-		http.Error(w, "Stock item not found", http.StatusNotFound)
-		return
-	}
-
-	commentID, err := h.commentService.CreateComment(
-		r.Context(),
-		&model.NewComment{
-			Comment:         fd.Comment,
-			CommentThreadID: stockItem.CommentThreadID,
-		},
-		ctx.User.UserID,
-	)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error adding comment", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"commentId": commentID,
-	})
-}
-
-func (h *StockItemHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-
-	hasPermission := ctx.User.Permissions.Stock.Admin
-	if !hasPermission {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	entityIDStr := r.PathValue("commentID")
-
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	entityID, err := strconv.Atoi(entityIDStr)
-	if err != nil {
-		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
-		return
-	}
-
-	var fd addFileFormData
-	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	file, signedURL, err := h.fileService.CreateFile(
-		r.Context(),
-		&model.File{
-			Filename:    fd.Filename,
-			ContentType: fd.ContentType,
-			SizeBytes:   fd.SizeBytes,
-			Entity:      "Comment",
-			EntityID:    entityID,
-		},
-		ctx.User.UserID,
-	)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error adding file", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"fileId":    file.FileID,
-		"signedUrl": signedURL,
-	})
-}
+// Removed deprecated comment endpoints; centralized comment routes are used instead.

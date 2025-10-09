@@ -2,6 +2,7 @@ package components
 
 import (
 	"app/internal/model"
+	"fmt"
 	"strings"
 
 	g "maragu.dev/gomponents"
@@ -107,6 +108,7 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 
 		h.Form(
 			h.Class("comment-form"),
+			g.Attr("data-thread-id", fmt.Sprintf("%d", p.CommentThreadID)),
 			h.Name("comment-form"),
 			h.Method("POST"),
 			h.EncType("multipart/form-data"),
@@ -122,7 +124,6 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 					h.Placeholder("Enter Comment"),
 				),
 
-				// No longer need entity/entityID hidden fields after thread refactor
 				h.Div(
 					h.Class("file-upload-wrapper"),
 

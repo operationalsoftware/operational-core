@@ -72,8 +72,6 @@ func AndonPage(p *AndonPageProps) g.Node {
 					h.Class("button primary"),
 					h.Href(p.GalleryURL),
 
-					g.Text("Gallery"),
-
 					components.Icon(&components.IconProps{
 						Identifier: "arrow-right-thin",
 					}),
@@ -85,7 +83,7 @@ func AndonPage(p *AndonPageProps) g.Node {
 			h.Class("two-column-flex"),
 			components.CommentsThread(&components.CommentsThreadProps{
 				Comments:        p.AndonComments,
-				CommentThreadID: p.Andon.AndonID, // UI doesn't need thread id for posting currently
+				CommentThreadID: p.Andon.CommentThreadID,
 			}),
 			andonChangeLog(&andonChangeLogProps{
 				changeLog: p.AndonChangelog,
