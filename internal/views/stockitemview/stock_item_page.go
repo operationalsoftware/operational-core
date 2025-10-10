@@ -43,37 +43,31 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 
 		h.Div(
 			h.Class("two-column-flex"),
-
-			stockItemProperties(p.StockItem),
-
+			// Left column: properties + comments stacked
 			h.Div(
-				h.Class("gallery-container"),
-
-				components.Gallery(p.GalleryImageURLs),
-
-				h.A(
-					h.Class("button primary"),
-					h.Href(p.GalleryURL),
-
-					g.Text("Gallery"),
-
-					components.Icon(&components.IconProps{
-						Identifier: "arrow-right-thin",
-					}),
-				),
+				h.Class("column"),
+				stockItemProperties(p.StockItem),
+				components.CommentsThread(&components.CommentsThreadProps{
+					Comments:        p.StockItemComments,
+					CommentThreadID: p.StockItem.CommentThreadID,
+					HMACEnvelope:    p.CommentsHMACEnvelope,
+				}),
 			),
-		),
-
-		h.Div(
-			h.Class("two-column-flex"),
-
-			components.CommentsThread(&components.CommentsThreadProps{
-				Comments:        p.StockItemComments,
-				CommentThreadID: p.StockItem.CommentThreadID,
-				HMACEnvelope:    p.CommentsHMACEnvelope,
-			}),
-
-			stockItemChangeLog(p.StockItemChanges),
+			// Right column: gallery + changelog stacked
+			h.Div(
+				h.Class("column"),
+				h.Div(
+					h.Class("gallery-container"),
+					components.Gallery(p.GalleryImageURLs),
+					h.A(
+						h.Class("button primary"),
+						h.Href(p.GalleryURL),
+						g.Text("Gallery"),
+						components.Icon(&components.IconProps{Identifier: "arrow-right-thin"}),
+					),
+				),
+				stockItemChangeLog(p.StockItemChanges),
+			),
 		),
 	})
 

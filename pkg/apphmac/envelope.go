@@ -17,17 +17,17 @@ import (
 //     Entity: "comment", EntityID: "1337", Permission: "add"
 //   - Notes can use: Entity: "notes", EntityID: "<notes-resource-id>", Permission: "add"
 type Payload struct {
-	Entity      string   `json:"entity"`
-	EntityID    string   `json:"entityId"`
-	Permissions []string `json:"permissions"`
-	Expires     int64    `json:"expires"`
+	Entity      string   `json:"Entity"`
+	EntityID    string   `json:"EntityID"`
+	Permissions []string `json:"Permissions"`
+	Expires     int64    `json:"Expires"`
 }
 
 // Envelope contains the payload alongside its HMAC signature.
 // Clients send this structure to the server, and the server verifies it.
 type Envelope struct {
-	Payload   Payload `json:"payload"`
-	Signature string  `json:"signature"`
+	Payload   Payload `json:"Payload"`
+	Signature string  `json:"Signature"`
 }
 
 // SignEnvelope produces an Envelope by signing the given payload with the provided secret.

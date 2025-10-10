@@ -156,11 +156,16 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 
 	qrCodeURI := fmt.Sprintf("data:image/png;base64,%s", base64Image)
 
+	permissions := []string{"view"}
+	if canUserEdit {
+		permissions = append(permissions, "add")
+	}
+
 	// Build a JSON envelope for adding a comment to this thread
 	commentPayload := apphmac.Payload{
 		Entity:      "comment_thread",
 		EntityID:    fmt.Sprintf("%d", stockItem.CommentThreadID),
-		Permissions: []string{"add"},
+		Permissions: permissions,
 		Expires:     time.Now().Add(24 * time.Hour).Unix(), // 24 hours from now
 	}
 	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
@@ -403,5 +408,3 @@ func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request)
 	_ = components.SearchSelectOptions(searchSelectOptions).Render(w)
 
 }
-
-// Removed deprecated comment endpoints; centralized comment routes are used instead.

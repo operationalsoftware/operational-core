@@ -106,7 +106,7 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 		Entity:      "comment",
 		EntityID:    fmt.Sprintf("%d", commentID),
 		Permissions: []string{"add"},
-		Expires:     time.Now().Add(5 * time.Minute).Unix(),
+		Expires:     time.Now().Add(24 * time.Hour).Unix(),
 	}
 	attachEnvelope := apphmac.SignEnvelope(attachPayload, secret)
 

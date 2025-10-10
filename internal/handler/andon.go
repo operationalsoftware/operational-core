@@ -48,10 +48,6 @@ func NewAndonHandler(
 
 func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	var uv andonsHomePageUrlVals
 
@@ -177,10 +173,6 @@ func (uv *allAndonsURLVals) normalise() {
 
 func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	var uv allAndonsURLVals
 
@@ -254,10 +246,6 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 
 func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	type urlVals struct {
 		IssueOrGroupID   int
@@ -345,10 +333,6 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 
 func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	type urlVals struct {
 		Source   string
@@ -444,13 +428,28 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 func (h *AndonHandler) UpdateAndon(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	andonEventID, _ := strconv.Atoi(r.PathValue("andonID"))
 	andonAction := r.PathValue("action")
+
+	{
+		andon, err := h.andonService.GetAndonByID(r.Context(), andonEventID, ctx.User.UserID)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Error fetching andon", http.StatusInternalServerError)
+			return
+		}
+
+		if andon == nil {
+			http.Error(w, "Andon not found", http.StatusNotFound)
+			return
+		}
+
+		if !andon.CanUserEdit {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+	}
 
 	err := h.andonService.UpdateAndon(
 		r.Context(),
@@ -494,10 +493,6 @@ func (fd *addAndonFormData) validate() validate.ValidationErrors {
 
 func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	andonID, _ := strconv.Atoi(r.PathValue("andonID"))
 
@@ -553,10 +548,14 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build a JSON envelope for adding a comment to this andon's thread, valid for 5 minutes
+	permissions := []string{"view"}
+	if andon.CanUserEdit {
+		permissions = append(permissions, "add")
+	}
 	commentPayload := apphmac.Payload{
 		Entity:      "comment_thread",
 		EntityID:    fmt.Sprintf("%d", andon.CommentThreadID),
-		Permissions: []string{"add"},
+		Permissions: permissions,
 		Expires:     time.Now().Add(24 * time.Hour).Unix(),
 	}
 	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))

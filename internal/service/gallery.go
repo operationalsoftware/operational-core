@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 	"os"
 	"time"
@@ -256,8 +255,6 @@ func (s *GalleryService) generateTempURL(
 	if err != nil {
 		return err.Error()
 	}
-
-	log.Println("Generated gallery envelope:", string(galleryEnvelopeJSON))
 
 	// encode to URL safe encoding
 	galleryEnvelope := url.QueryEscape(string(galleryEnvelopeJSON))
