@@ -38,9 +38,6 @@ var AppMenu = []components.GridMenuGroup{
 				Icon: "alert-octagon-outline",
 				Name: "Andons",
 				Link: "/andons",
-				Show: func(permissions model.UserPermissions) bool {
-					return permissions.UserAdmin.Access
-				},
 			},
 		},
 	},
