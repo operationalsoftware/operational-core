@@ -5,9 +5,11 @@ import (
 	"app/internal/repository"
 	"app/pkg/apphmac"
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
+	"net/url"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -217,7 +219,7 @@ func (s *GalleryService) GenerateTempURL(
 	galleryID int,
 	canEdit bool,
 ) string {
-	expires := time.Now().Add(12 * time.Hour).Unix()
+	expires := time.Now().Add(24 * time.Hour).Unix()
 	return s.generateTempURL(galleryID, expires, canEdit, "")
 }
 
@@ -225,7 +227,7 @@ func (s *GalleryService) GenerateEditTempURL(
 	galleryID int,
 	canEdit bool,
 ) string {
-	expires := time.Now().Add(12 * time.Hour).Unix()
+	expires := time.Now().Add(24 * time.Hour).Unix()
 	return s.generateTempURL(galleryID, expires, canEdit, "/edit")
 }
 
@@ -237,24 +239,33 @@ func (s *GalleryService) generateTempURL(
 ) string {
 	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 
-	allowedOperations := []string{"view"}
+	permissions := []string{"view"}
 	if canEdit {
-		allowedOperations = append(allowedOperations, "edit")
+		permissions = append(permissions, "edit")
 	}
-	ops := strings.Join(allowedOperations, ",")
 
-	claims := apphmac.Payload{
+	payload := apphmac.Payload{
 		Entity:      "gallery",
 		EntityID:    fmt.Sprintf("%d", galleryID),
-		Permissions: allowedOperations,
+		Permissions: permissions,
 		Expires:     expires,
 	}
 
-	hmac := apphmac.GenerateHMAC(claims, secretKey)
+	envelope := apphmac.SignEnvelope(payload, secretKey)
+	galleryEnvelopeJSON, err := json.Marshal(envelope)
+	if err != nil {
+		return err.Error()
+	}
 
+	log.Println("Generated gallery envelope:", string(galleryEnvelopeJSON))
+
+	// encode to URL safe encoding
+	galleryEnvelope := url.QueryEscape(string(galleryEnvelopeJSON))
+
+	// construct URL
 	galleryURL := fmt.Sprintf(
-		"/gallery/%d%s?HMAC=%s&AllowedOperations=%s&Expires=%d",
-		galleryID, pathSuffix, hmac, ops, expires)
+		"/gallery/%d%s?Envelope=%s",
+		galleryID, pathSuffix, galleryEnvelope)
 
 	return galleryURL
 }

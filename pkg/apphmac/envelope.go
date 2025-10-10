@@ -2,7 +2,9 @@ package apphmac
 
 import (
 	"errors"
+	"fmt"
 	"slices"
+	"time"
 )
 
 // Payload represents the data to be signed and later verified.
@@ -70,20 +72,26 @@ func VerifySignature(p Payload, signature, secret string) bool {
 	return VerifyHMAC(claims, signature, secret)
 }
 
-// IsValidEnvelope checks if the envelope is valid and contains the required entity, entity ID, and permission.
+// Checks if the envelope is valid and contains the required entity, entity ID, and permission.
 func IsValidEnvelope(e Envelope, secret, requiredEntity, requiredEntityID, requiredPermission string) (bool, error) {
 	// Check if envelope is nil or signature is empty
 	if e.Signature == "" {
-		return false, errors.New("missing HMAC")
+		return false, fmt.Errorf("missing HMAC")
 	}
 	payload, err := VerifyEnvelope(e, secret)
 	// Check if verification failed
 	if err != nil {
-		return false, errors.New("error validating")
+		return false, fmt.Errorf("error validating HMAC: %w", err)
 	}
-	// Check if payload matches required entity, entity ID, and permission
-	if payload.Entity != "comment" || payload.EntityID != requiredEntityID || !slices.Contains(payload.Permissions, "add") {
-		return false, errors.New("forbidden")
+	// Check if payload matches required entity, entity ID
+	if payload.Entity != requiredEntity || payload.EntityID != requiredEntityID ||
+		!slices.Contains(payload.Permissions, requiredPermission) {
+		return false, errors.New("envelope does not grant required permission")
+	}
+
+	// Check if payload is expired
+	if payload.Expires < (time.Now().Unix()) {
+		return false, errors.New("expired")
 	}
 
 	// All checks passed

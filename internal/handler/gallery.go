@@ -14,7 +14,6 @@ import (
 	"os"
 	"slices"
 	"strconv"
-	"strings"
 )
 
 type GalleryHandler struct {
@@ -37,31 +36,23 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 
-	type urlVals struct {
-		HMAC              string
-		AllowedOperations string
-		Expires           int64
-	}
-	var uv urlVals
-
-	err := appurl.Unmarshal(r.URL.Query(), &uv)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+	// Parse envelope from query as JSON string (e.g. ?envelope={...})
+	envStr := r.URL.Query().Get("Envelope")
+	if envStr == "" {
+		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	allowedOperations := strings.Split(uv.AllowedOperations, ",")
-
-	hmacClaims := apphmac.Payload{
-		Entity:      "gallery",
-		EntityID:    fmt.Sprintf("%d", galleryID),
-		Permissions: allowedOperations,
-		Expires:     uv.Expires,
+	var envelope apphmac.Envelope
+	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
+		log.Println("invalid envelope json:", err)
+		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
+		return
 	}
-	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	permissions := envelope.Payload.Permissions
+	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 
-	validHMAC := apphmac.VerifyHMAC(hmacClaims, uv.HMAC, hmacSecret)
-	if !validHMAC {
+	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "view")
+	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
@@ -74,7 +65,7 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	editURL := ""
-	if slices.Contains(allowedOperations, "edit") {
+	if slices.Contains(permissions, "edit") {
 		editURL = h.galleryService.GenerateEditTempURL(galleryID, true)
 	}
 
@@ -82,7 +73,7 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 		Ctx:               ctx,
 		Gallery:           gallery,
 		EditURL:           editURL,
-		AllowedOperations: allowedOperations,
+		AllowedOperations: permissions,
 	}).
 		Render(w)
 }
@@ -92,31 +83,22 @@ func (h *GalleryHandler) AddGalleryItem(w http.ResponseWriter, r *http.Request) 
 
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 
-	type urlVals struct {
-		HMAC              string
-		AllowedOperations string
-		Expires           int64
-	}
-	var uv urlVals
-
-	err := appurl.Unmarshal(r.URL.Query(), &uv)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+	// Parse and validate envelope (must have edit)
+	envStr := r.URL.Query().Get("Envelope")
+	if envStr == "" {
+		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	allowedOperations := strings.Split(uv.AllowedOperations, ",")
-
-	hmacClaims := apphmac.Payload{
-		Entity:      "gallery",
-		EntityID:    fmt.Sprintf("%d", galleryID),
-		Permissions: allowedOperations,
-		Expires:     uv.Expires,
+	var envelope apphmac.Envelope
+	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
+		log.Println("invalid envelope json:", err)
+		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
+		return
 	}
-	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 
-	validHMAC := apphmac.VerifyHMAC(hmacClaims, uv.HMAC, hmacSecret)
-	if !validHMAC {
+	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
@@ -178,31 +160,22 @@ func (h *GalleryHandler) DeleteGalleryItem(w http.ResponseWriter, r *http.Reques
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 	galleryItemID, _ := strconv.Atoi(r.PathValue("galleryItemID"))
 
-	type urlVals struct {
-		HMAC              string
-		AllowedOperations string
-		Expires           int64
-	}
-	var uv urlVals
-
-	err := appurl.Unmarshal(r.URL.Query(), &uv)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+	// Parse and validate envelope (must have edit)
+	envStr := r.URL.Query().Get("Envelope")
+	if envStr == "" {
+		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	allowedOperations := strings.Split(uv.AllowedOperations, ",")
-
-	hmacClaims := apphmac.Payload{
-		Entity:      "gallery",
-		EntityID:    fmt.Sprintf("%d", galleryID),
-		Permissions: allowedOperations,
-		Expires:     uv.Expires,
+	var envelope apphmac.Envelope
+	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
+		log.Println("invalid envelope json:", err)
+		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
+		return
 	}
-	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 
-	validHMAC := apphmac.VerifyHMAC(hmacClaims, uv.HMAC, hmacSecret)
-	if !validHMAC {
+	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
@@ -223,35 +196,27 @@ func (h *GalleryHandler) SetGalleryItemPosition(w http.ResponseWriter, r *http.R
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 	galleryItemID, _ := strconv.Atoi(r.PathValue("galleryItemID"))
 
-	type urlVals struct {
-		HMAC              string
-		AllowedOperations string
-		Expires           int64
-	}
-	var uv urlVals
-
-	err := appurl.Unmarshal(r.URL.Query(), &uv)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+	// Parse and validate envelope (must have edit)
+	envStr := r.URL.Query().Get("Envelope")
+	if envStr == "" {
+		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	allowedOperations := strings.Split(uv.AllowedOperations, ",")
-
-	hmacClaims := apphmac.Payload{
-		Entity:      "gallery",
-		EntityID:    fmt.Sprintf("%d", galleryID),
-		Permissions: allowedOperations,
-		Expires:     uv.Expires,
+	var envelope apphmac.Envelope
+	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
+		log.Println("invalid envelope json:", err)
+		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
+		return
 	}
-	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	permissions := envelope.Payload.Permissions
+	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 
-	validHMAC := apphmac.VerifyHMAC(hmacClaims, uv.HMAC, hmacSecret)
-	if !validHMAC {
+	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
-	isEditable := slices.Contains(allowedOperations, "edit")
+	isEditable := slices.Contains(permissions, "edit")
 	if !isEditable {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -295,37 +260,29 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 
 	queryPath := r.URL.Query().Encode()
 
-	type urlVals struct {
-		HMAC              string
-		AllowedOperations string
-		Expires           int64
-	}
-	var uv urlVals
-
-	err := appurl.Unmarshal(r.URL.Query(), &uv)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+	// Parse envelope and require edit
+	envStr := r.URL.Query().Get("Envelope")
+	if envStr == "" {
+		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	allowedOperations := strings.Split(uv.AllowedOperations, ",")
-
-	hmacClaims := apphmac.Payload{
-		Entity:      "gallery",
-		EntityID:    fmt.Sprintf("%d", galleryID),
-		Permissions: allowedOperations,
-		Expires:     uv.Expires,
+	var envelope apphmac.Envelope
+	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
+		log.Println("invalid envelope json:", err)
+		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
+		return
 	}
-	hmacSecret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	permissions := envelope.Payload.Permissions
+	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
 
-	validHMAC := apphmac.VerifyHMAC(hmacClaims, uv.HMAC, hmacSecret)
-	if !validHMAC {
+	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
 
-	isEditable := slices.Contains(allowedOperations, "edit")
-	if !isEditable {
+	// By construction we required 'edit' above; keep the slice check for UI behavior if needed
+	if !slices.Contains(permissions, "edit") {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}

@@ -108,11 +108,11 @@ ALTER TABLE comment
 ALTER TABLE andon
   ALTER COLUMN comment_thread_id SET NOT NULL,
   ADD CONSTRAINT fk_andon_comment_thread
-    FOREIGN KEY (comment_thread_id) REFERENCES comment_thread(comment_thread_id) ON DELETE RESTRICT;
+    FOREIGN KEY (comment_thread_id) REFERENCES comment_thread(comment_thread_id) ON DELETE CASCADE;
 ALTER TABLE stock_item
   ALTER COLUMN comment_thread_id SET NOT NULL,
   ADD CONSTRAINT fk_stock_item_comment_thread
-    FOREIGN KEY (comment_thread_id) REFERENCES comment_thread(comment_thread_id) ON DELETE RESTRICT;
+    FOREIGN KEY (comment_thread_id) REFERENCES comment_thread(comment_thread_id) ON DELETE CASCADE;
 
 -- 14. Helpful indexes
 CREATE INDEX IF NOT EXISTS idx_comment_thread ON comment(comment_thread_id);

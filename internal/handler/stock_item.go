@@ -171,6 +171,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		StockItem:            *stockItem,
 		QRCode:               qrCodeURI,
 		GalleryURL:           galleryURL,
+		GalleryImageURLs:     galleryImgURLs,
 		StockItemChanges:     stockItemChanges,
 		StockItemComments:    comments,
 		CommentsHMACEnvelope: string(commentEnvelopeJSON),
