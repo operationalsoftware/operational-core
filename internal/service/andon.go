@@ -57,6 +57,13 @@ func (s *AndonService) CreateAndon(
 
 	andon.GalleryID = galleryId
 
+	// Create a dedicated comment thread for this andon (post migration thread model)
+	threadID, err := s.commentRepository.CreateCommentThread(ctx, tx)
+	if err != nil {
+		return err
+	}
+	andon.CommentThreadID = threadID
+
 	err = s.andonRepository.CreateAndonEvent(
 		ctx,
 		tx,

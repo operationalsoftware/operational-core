@@ -11,10 +11,10 @@ import (
 )
 
 type CommentsThreadProps struct {
-	Title    g.Node
-	Comments []model.Comment
-	Entity   string
-	EntityID int
+	Title           g.Node
+	Comments        []model.Comment
+	CommentThreadID int
+	HMACEnvelope    string
 }
 
 func CommentsThread(p *CommentsThreadProps) g.Node {
@@ -109,6 +109,8 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 
 		h.Form(
 			h.Class("comment-form"),
+			h.Data("thread-id", fmt.Sprintf("%d", p.CommentThreadID)),
+			h.Data("hmac-envelope", p.HMACEnvelope),
 			h.Name("comment-form"),
 			h.Method("POST"),
 			h.EncType("multipart/form-data"),
@@ -122,18 +124,6 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 					h.Name("Comment"),
 
 					h.Placeholder("Enter Comment"),
-				),
-
-				h.Input(
-					h.Name("EntityID"),
-					h.Type("hidden"),
-					h.Value(fmt.Sprintf("%d", p.EntityID)),
-				),
-
-				h.Input(
-					h.Name("Entity"),
-					h.Type("hidden"),
-					h.Value(p.Entity),
 				),
 
 				h.Div(

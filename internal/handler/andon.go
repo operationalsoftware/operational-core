@@ -4,6 +4,7 @@ import (
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/andonview"
+	"app/pkg/apphmac"
 	"app/pkg/appsort"
 	"app/pkg/appurl"
 	"app/pkg/reqcontext"
@@ -12,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -46,10 +48,6 @@ func NewAndonHandler(
 
 func (h *AndonHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	var uv andonsHomePageUrlVals
 
@@ -175,10 +173,6 @@ func (uv *allAndonsURLVals) normalise() {
 
 func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	var uv allAndonsURLVals
 
@@ -252,10 +246,6 @@ func (h *AndonHandler) AllAndonsPage(w http.ResponseWriter, r *http.Request) {
 
 func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	type urlVals struct {
 		IssueOrGroupID   int
@@ -343,10 +333,6 @@ func (h *AndonHandler) AddPage(w http.ResponseWriter, r *http.Request) {
 
 func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	type urlVals struct {
 		Source   string
@@ -440,116 +426,30 @@ func (h *AndonHandler) Add(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/andons", http.StatusSeeOther)
 }
 
-func (h *AndonHandler) AddComment(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	entity := "Andon"
-	entityIDStr := r.PathValue("entityID")
-
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	var fd addAndonCommentFormData
-	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
-		log.Println(err)
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	fd.normalise()
-
-	entityID, err := strconv.Atoi(entityIDStr)
-	if err != nil {
-		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
-		return
-	}
-
-	commentID, err := h.commentService.CreateComment(
-		r.Context(),
-		&model.NewComment{
-			Comment:  fd.Comment,
-			Entity:   entity,
-			EntityID: entityID,
-		},
-		ctx.User.UserID,
-	)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error creating andon", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"commentId": commentID,
-	})
-}
-
-func (h *AndonHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	entityIDStr := r.PathValue("commentID")
-
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	entityID, err := strconv.Atoi(entityIDStr)
-	if err != nil {
-		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
-		return
-	}
-
-	var fd addFileFormData
-	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	file, signedURL, err := h.fileService.CreateFile(
-		r.Context(),
-		&model.File{
-			Filename:    fd.Filename,
-			ContentType: fd.ContentType,
-			SizeBytes:   fd.SizeBytes,
-			Entity:      "Comment",
-			EntityID:    entityID,
-		},
-		ctx.User.UserID,
-	)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error adding file", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"fileId":    file.FileID,
-		"signedUrl": signedURL,
-	})
-}
-
 func (h *AndonHandler) UpdateAndon(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	andonEventID, _ := strconv.Atoi(r.PathValue("andonID"))
 	andonAction := r.PathValue("action")
+
+	{
+		andon, err := h.andonService.GetAndonByID(r.Context(), andonEventID, ctx.User.UserID)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Error fetching andon", http.StatusInternalServerError)
+			return
+		}
+
+		if andon == nil {
+			http.Error(w, "Andon not found", http.StatusNotFound)
+			return
+		}
+
+		if !andon.CanUserEdit {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+	}
 
 	err := h.andonService.UpdateAndon(
 		r.Context(),
@@ -593,10 +493,6 @@ func (fd *addAndonFormData) validate() validate.ValidationErrors {
 
 func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	andonID, _ := strconv.Atoi(r.PathValue("andonID"))
 
@@ -644,23 +540,38 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		galleryURL = h.galleryService.GenerateTempURL(andon.GalleryID, andon.CanUserEdit)
 	}
 
-	comments, err := h.commentService.GetComments(r.Context(), "Andon", andonID, ctx.User.UserID)
+	comments, err := h.commentService.GetComments(r.Context(), andon.CommentThreadID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching andon comments", http.StatusInternalServerError)
 		return
 	}
 
+	// Build a JSON envelope for adding a comment to this andon's thread, valid for 5 minutes
+	permissions := []string{"view"}
+	if andon.CanUserEdit {
+		permissions = append(permissions, "add")
+	}
+	commentPayload := apphmac.Payload{
+		Entity:      "comment_thread",
+		EntityID:    fmt.Sprintf("%d", andon.CommentThreadID),
+		Permissions: permissions,
+		Expires:     time.Now().Add(24 * time.Hour).Unix(),
+	}
+	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
+	commentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
+
 	_ = andonview.AndonPage(&andonview.AndonPageProps{
-		Ctx:              ctx,
-		Values:           r.Form,
-		IsSubmission:     true,
-		AndonID:          andonID,
-		Andon:            *andon,
-		AndonChangelog:   changelog,
-		AndonComments:    comments,
-		GalleryURL:       galleryURL,
-		GalleryImageURLs: galleryImgURLs,
-		ReturnTo:         uv.ReturnTo,
+		Ctx:                  ctx,
+		Values:               r.Form,
+		IsSubmission:         true,
+		AndonID:              andonID,
+		Andon:                *andon,
+		AndonChangelog:       changelog,
+		AndonComments:        comments,
+		GalleryURL:           galleryURL,
+		GalleryImageURLs:     galleryImgURLs,
+		ReturnTo:             uv.ReturnTo,
+		CommentsHMACEnvelope: string(commentEnvelopeJSON),
 	}).Render(w)
 }

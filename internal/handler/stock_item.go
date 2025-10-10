@@ -5,6 +5,7 @@ import (
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/stockitemview"
+	"app/pkg/apphmac"
 	"app/pkg/appsort"
 	"app/pkg/appurl"
 	"app/pkg/reqcontext"
@@ -14,8 +15,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/skip2/go-qrcode"
 )
@@ -116,7 +119,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	comments, err := h.commentService.GetComments(r.Context(), "StockItem", stockItemID, ctx.User.UserID)
+	comments, err := h.commentService.GetComments(r.Context(), stockItem.CommentThreadID, ctx.User.UserID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching andon comments", http.StatusInternalServerError)
@@ -153,13 +156,30 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 
 	qrCodeURI := fmt.Sprintf("data:image/png;base64,%s", base64Image)
 
+	permissions := []string{"view"}
+	if canUserEdit {
+		permissions = append(permissions, "add")
+	}
+
+	// Build a JSON envelope for adding a comment to this thread
+	commentPayload := apphmac.Payload{
+		Entity:      "comment_thread",
+		EntityID:    fmt.Sprintf("%d", stockItem.CommentThreadID),
+		Permissions: permissions,
+		Expires:     time.Now().Add(24 * time.Hour).Unix(), // 24 hours from now
+	}
+	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
+	commentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
+
 	_ = stockitemview.StockItemPage(&stockitemview.StockItemPageProps{
-		Ctx:               ctx,
-		StockItem:         *stockItem,
-		QRCode:            qrCodeURI,
-		GalleryURL:        galleryURL,
-		StockItemChanges:  stockItemChanges,
-		StockItemComments: comments,
+		Ctx:                  ctx,
+		StockItem:            *stockItem,
+		QRCode:               qrCodeURI,
+		GalleryURL:           galleryURL,
+		GalleryImageURLs:     galleryImgURLs,
+		StockItemChanges:     stockItemChanges,
+		StockItemComments:    comments,
+		CommentsHMACEnvelope: string(commentEnvelopeJSON),
 	}).
 		Render(w)
 }
@@ -387,108 +407,4 @@ func (h *StockItemHandler) GetStockCodes(w http.ResponseWriter, r *http.Request)
 	}
 	_ = components.SearchSelectOptions(searchSelectOptions).Render(w)
 
-}
-
-func (h *StockItemHandler) AddComment(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-
-	hasPermission := ctx.User.Permissions.Stock.Admin
-	if !hasPermission {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	entityIDStr := r.PathValue("entityID")
-
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	var fd addAndonCommentFormData
-	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
-		log.Println(err)
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	fd.normalise()
-
-	entityID, err := strconv.Atoi(entityIDStr)
-	if err != nil {
-		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
-		return
-	}
-
-	commentID, err := h.commentService.CreateComment(
-		r.Context(),
-		&model.NewComment{
-			Comment:  fd.Comment,
-			Entity:   "StockItem",
-			EntityID: entityID,
-		},
-		ctx.User.UserID,
-	)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error adding comment", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"commentId": commentID,
-	})
-}
-
-func (h *StockItemHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-
-	hasPermission := ctx.User.Permissions.Stock.Admin
-	if !hasPermission {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	entityIDStr := r.PathValue("commentID")
-
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	entityID, err := strconv.Atoi(entityIDStr)
-	if err != nil {
-		http.Error(w, "Invalid entity Id", http.StatusBadRequest)
-		return
-	}
-
-	var fd addFileFormData
-	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	file, signedURL, err := h.fileService.CreateFile(
-		r.Context(),
-		&model.File{
-			Filename:    fd.Filename,
-			ContentType: fd.ContentType,
-			SizeBytes:   fd.SizeBytes,
-			Entity:      "Comment",
-			EntityID:    entityID,
-		},
-		ctx.User.UserID,
-	)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error adding file", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"fileId":    file.FileID,
-		"signedUrl": signedURL,
-	})
 }

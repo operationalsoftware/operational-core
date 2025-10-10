@@ -20,6 +20,7 @@ type Andon struct {
 	Description      string
 	AndonIssueID     int
 	GalleryID        int
+	CommentThreadID  int
 	IssueName        string        `sortable:"true"`
 	NamePath         []string      `sortable:"true"`
 	Severity         AndonSeverity `sortable:"true"`
@@ -54,12 +55,13 @@ type Andon struct {
 }
 
 type NewAndon struct {
-	Description string
-	IssueID     int
-	GalleryID   int
-	Source      string
-	Location    string
-	RaisedBy    string
+	Description     string
+	IssueID         int
+	GalleryID       int
+	CommentThreadID int
+	Source          string
+	Location        string
+	RaisedBy        string
 }
 
 type ListAndonQuery struct {

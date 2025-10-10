@@ -22,7 +22,7 @@ func addAndonRoutes(
 		fileService,
 		galleryService,
 		teamService,
-		)
+	)
 
 	mux.HandleFunc("GET /andons", andonHandler.HomePage)
 	mux.HandleFunc("GET /andons/all", andonHandler.AllAndonsPage)
@@ -31,9 +31,6 @@ func addAndonRoutes(
 	mux.HandleFunc("POST /andons/add", andonHandler.Add)
 
 	mux.HandleFunc("GET /andons/{andonID}", andonHandler.AndonPage)
-
-	mux.HandleFunc("POST /andons/{entityID}/comments", andonHandler.AddComment)
-	mux.HandleFunc("POST /andons/{entityID}/comments/{commentID}/attachment", andonHandler.AddAttachment)
 
 	mux.HandleFunc("POST /andons/{andonID}/{action}/update", andonHandler.UpdateAndon)
 

@@ -10,18 +10,11 @@ import (
 	"time"
 )
 
-type Claims struct {
-	Entity            string
-	EntityID          string
-	AllowedOperations []string
-	Expires           int64
-}
+func GenerateHMAC(payload Payload, secret string) string {
 
-func GenerateHMAC(payload Claims, secret string) string {
+	sort.Strings(payload.Permissions)
 
-	sort.Strings(payload.AllowedOperations)
-
-	message := generateMessage(payload.Entity, payload.EntityID, strings.Join(payload.AllowedOperations, ","), payload.Expires)
+	message := generateMessage(payload.Entity, payload.EntityID, strings.Join(payload.Permissions, ","), payload.Expires)
 
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write([]byte(message))
@@ -29,14 +22,14 @@ func GenerateHMAC(payload Claims, secret string) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func VerifyHMAC(claims Claims, providedHMAC, secret string) bool {
-	if time.Now().Unix() > claims.Expires {
+func VerifyHMAC(payload Payload, providedHMAC, secret string) bool {
+	if time.Now().Unix() > payload.Expires {
 		return false
 	}
 
-	sort.Strings(claims.AllowedOperations)
+	sort.Strings(payload.Permissions)
 
-	message := generateMessage(claims.Entity, claims.EntityID, strings.Join(claims.AllowedOperations, ","), claims.Expires)
+	message := generateMessage(payload.Entity, payload.EntityID, strings.Join(payload.Permissions, ","), payload.Expires)
 
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write([]byte(message))
@@ -45,12 +38,12 @@ func VerifyHMAC(claims Claims, providedHMAC, secret string) bool {
 	return hmac.Equal([]byte(providedHMAC), []byte(expectedHMAC))
 }
 
-func generateMessage(entity, entityID, allowedOperations string, expiry int64) string {
+func generateMessage(entity, entityID, permissions string, expiry int64) string {
 	return fmt.Sprintf(
 		"%s|%s|%v|%d",
 		entity,
 		entityID,
-		allowedOperations,
+		permissions,
 		expiry)
 
 }

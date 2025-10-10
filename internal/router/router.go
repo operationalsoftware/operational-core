@@ -65,6 +65,7 @@ func NewRouter(services *Services) http.Handler {
 	addGalleryRoutes(mux, services.FileService, services.GalleryService)
 	addPDFRoutes(mux, services.PDFService)
 	addSearchRoutes(mux, services.SearchService)
+	addCommentRoutes(mux, services.CommentService, services.FileService)
 	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.FileService, services.GalleryService)
 	addStockTransactionRoutes(mux, services.StockItemService, services.StockTransactionService)
 	addTeamRoutes(mux, services.TeamService, services.UserService)
@@ -93,7 +94,6 @@ func NewRouter(services *Services) http.Handler {
 
 		fmt.Fprintln(w, "404 Not Found")
 
-		return
 	})
 
 	return middlewareStack(mux)

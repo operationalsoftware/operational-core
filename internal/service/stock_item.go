@@ -134,6 +134,13 @@ func (s *StockItemService) CreateStockItem(
 
 	input.GalleryID = galleryID
 
+	// create a dedicated comment thread for this stock item (post-migration 00000300)
+	commentThreadID, err := s.commentRepository.CreateCommentThread(ctx, tx)
+	if err != nil {
+		return validate.ValidationErrors{}, err
+	}
+	input.CommentThreadID = commentThreadID
+
 	newStockItemID, err := s.stockItemRepository.CreateStockItem(ctx, tx, input)
 	if err != nil {
 		return validate.ValidationErrors{}, err

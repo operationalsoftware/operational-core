@@ -29,6 +29,7 @@ INSERT INTO andon (
 	description,
 	andon_issue_id,
 	gallery_id,
+	comment_thread_id,
 	source,
 	location,
 	raised_by
@@ -39,7 +40,8 @@ VALUES (
 	$3,
 	$4,
 	$5,
-	$6
+	$6,
+	$7
 )
 RETURNING andon_id
 `
@@ -62,6 +64,7 @@ VALUES ($1, $2, $3, $1)
 		andon.Description,
 		andon.IssueID,
 		andon.GalleryID,
+		andon.CommentThreadID,
 		andon.Source,
 		andon.Location,
 		userID,
@@ -94,6 +97,7 @@ SELECT
 	description,
 	andon_issue_id,
 	gallery_id,
+	comment_thread_id,
 	source,
 	location,
 	assigned_team,
@@ -207,6 +211,7 @@ WHERE
 		&andon.Description,
 		&andon.AndonIssueID,
 		&andon.GalleryID,
+		&andon.CommentThreadID,
 		&andon.Source,
 		&andon.Location,
 		&andon.AssignedTeam,
@@ -284,6 +289,7 @@ FROM andon_view
 			&andon.Description,
 			&andon.AndonIssueID,
 			&andon.GalleryID,
+			&andon.CommentThreadID,
 			&andon.Source,
 			&andon.Location,
 			&andon.AssignedTeam,

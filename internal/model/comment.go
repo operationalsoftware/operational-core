@@ -6,8 +6,7 @@ import (
 
 type Comment struct {
 	CommentID           int
-	EntityID            int
-	Entity              string
+	CommentThreadID     int
 	Comment             string
 	CommentedBy         string
 	CommentedByUsername string
@@ -16,7 +15,6 @@ type Comment struct {
 }
 
 type NewComment struct {
-	Entity   string
-	EntityID int
-	Comment  string
+	CommentThreadID int
+	Comment         string
 }

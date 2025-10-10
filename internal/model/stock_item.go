@@ -6,11 +6,12 @@ import (
 )
 
 type StockItem struct {
-	StockItemID int
-	StockCode   string `sortable:"true"`
-	Description string `sortable:"true"`
-	GalleryID   int
-	CreatedAt   time.Time `sortable:"true"`
+	StockItemID     int
+	StockCode       string `sortable:"true"`
+	Description     string `sortable:"true"`
+	GalleryID       int
+	CommentThreadID int
+	CreatedAt       time.Time `sortable:"true"`
 }
 
 type StockItemChange struct {
@@ -35,9 +36,10 @@ type LabelGenerator struct {
 }
 
 type PostStockItem struct {
-	StockCode   string
-	Description string
-	GalleryID   int
+	StockCode       string
+	Description     string
+	GalleryID       int
+	CommentThreadID int // populated by service when creating a new stock item
 }
 
 type GetStockItemsQuery struct {
