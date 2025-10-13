@@ -83,24 +83,3 @@ func (s *CommentService) CreateComment(
 
 	return commentID, nil
 }
-
-func (s *CommentService) GetCommentThreadID(
-	ctx context.Context,
-	commentID int,
-) (int, error) {
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return 0, err
-	}
-	defer tx.Rollback(ctx)
-
-	threadID, err := s.commentRepository.GetCommentThreadID(ctx, tx, commentID)
-	if err != nil {
-		return 0, err
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return 0, err
-	}
-	return threadID, nil
-}

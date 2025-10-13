@@ -36,7 +36,6 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 
-	// Parse envelope from query as JSON string (e.g. ?envelope={...})
 	envStr := r.URL.Query().Get("Envelope")
 	if envStr == "" {
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)

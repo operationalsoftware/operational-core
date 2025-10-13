@@ -559,19 +559,19 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		Expires:     time.Now().Add(24 * time.Hour).Unix(),
 	}
 	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
-	commentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
+	addCommentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
 
 	_ = andonview.AndonPage(&andonview.AndonPageProps{
-		Ctx:                  ctx,
-		Values:               r.Form,
-		IsSubmission:         true,
-		AndonID:              andonID,
-		Andon:                *andon,
-		AndonChangelog:       changelog,
-		AndonComments:        comments,
-		GalleryURL:           galleryURL,
-		GalleryImageURLs:     galleryImgURLs,
-		ReturnTo:             uv.ReturnTo,
-		CommentsHMACEnvelope: string(commentEnvelopeJSON),
+		Ctx:                    ctx,
+		Values:                 r.Form,
+		IsSubmission:           true,
+		AndonID:                andonID,
+		Andon:                  *andon,
+		AndonChangelog:         changelog,
+		AndonComments:          comments,
+		GalleryURL:             galleryURL,
+		GalleryImageURLs:       galleryImgURLs,
+		ReturnTo:               uv.ReturnTo,
+		AddCommentHMACEnvelope: string(addCommentEnvelopeJSON),
 	}).Render(w)
 }

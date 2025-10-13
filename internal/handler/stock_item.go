@@ -169,17 +169,17 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		Expires:     time.Now().Add(24 * time.Hour).Unix(), // 24 hours from now
 	}
 	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
-	commentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
+	addCommentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
 
 	_ = stockitemview.StockItemPage(&stockitemview.StockItemPageProps{
-		Ctx:                  ctx,
-		StockItem:            *stockItem,
-		QRCode:               qrCodeURI,
-		GalleryURL:           galleryURL,
-		GalleryImageURLs:     galleryImgURLs,
-		StockItemChanges:     stockItemChanges,
-		StockItemComments:    comments,
-		CommentsHMACEnvelope: string(commentEnvelopeJSON),
+		Ctx:                     ctx,
+		StockItem:               *stockItem,
+		QRCode:                  qrCodeURI,
+		GalleryURL:              galleryURL,
+		GalleryImageURLs:        galleryImgURLs,
+		StockItemChanges:        stockItemChanges,
+		StockItemComments:       comments,
+		AddCommentsHMACEnvelope: string(addCommentEnvelopeJSON),
 	}).
 		Render(w)
 }

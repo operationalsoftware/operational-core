@@ -23,7 +23,6 @@ CREATE TABLE comment_thread (
   comment_thread_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   entity TEXT NOT NULL,
   entity_id INT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   UNIQUE(entity, entity_id)
 );
 
@@ -42,16 +41,16 @@ BEGIN
 END $$;
 
 -- 4. Insert one thread per existing Andon referenced by comments
-INSERT INTO comment_thread (entity, entity_id, created_at)
-SELECT 'Andon', a.andon_id, COALESCE(MIN(c.commented_at), NOW())
+INSERT INTO comment_thread (entity, entity_id)
+SELECT 'Andon', a.andon_id
 FROM andon a
 LEFT JOIN comment c ON c.entity = 'Andon' AND c.entity_id = a.andon_id
 GROUP BY a.andon_id
 ON CONFLICT (entity, entity_id) DO NOTHING;
 
 -- 5. Insert one thread per existing StockItem referenced by comments
-INSERT INTO comment_thread (entity, entity_id, created_at)
-SELECT 'StockItem', s.stock_item_id, COALESCE(MIN(c.commented_at), NOW())
+INSERT INTO comment_thread (entity, entity_id)
+SELECT 'StockItem', s.stock_item_id
 FROM stock_item s
 LEFT JOIN comment c ON c.entity = 'StockItem' AND c.entity_id = s.stock_item_id
 GROUP BY s.stock_item_id

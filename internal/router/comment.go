@@ -15,5 +15,5 @@ func addCommentRoutes(
 
 	// Centralized comment endpoints using comment_thread_id
 	mux.HandleFunc("POST /comments/{threadID}/add", commentHandler.Add)
-	mux.HandleFunc("POST /comments/{commentID}/attachment", commentHandler.AddAttachment)
+	mux.HandleFunc("POST /comments/{threadID}/{commentID}/attachment", commentHandler.AddAttachment)
 }

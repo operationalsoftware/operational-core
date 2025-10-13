@@ -13,18 +13,18 @@ import (
 )
 
 type StockItemPageProps struct {
-	Id                   int
-	Ctx                  reqcontext.ReqContext
-	StockItem            model.StockItem
-	QRCode               string
-	GalleryImageURLs     []string
-	GalleryURL           string
-	StockItemChanges     []model.StockItemChange
-	StockItemComments    []model.Comment
-	CommentsHMACEnvelope string
-	Sort                 appsort.Sort
-	Page                 int
-	PageSize             int
+	Id                      int
+	Ctx                     reqcontext.ReqContext
+	StockItem               model.StockItem
+	QRCode                  string
+	GalleryImageURLs        []string
+	GalleryURL              string
+	StockItemChanges        []model.StockItemChange
+	StockItemComments       []model.Comment
+	AddCommentsHMACEnvelope string
+	Sort                    appsort.Sort
+	Page                    int
+	PageSize                int
 }
 
 func StockItemPage(p *StockItemPageProps) g.Node {
@@ -43,31 +43,37 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 
 		h.Div(
 			h.Class("two-column-flex"),
-			// Left column: properties + comments stacked
+
+			stockItemProperties(p.StockItem),
+
 			h.Div(
-				h.Class("column"),
-				stockItemProperties(p.StockItem),
-				components.CommentsThread(&components.CommentsThreadProps{
-					Comments:        p.StockItemComments,
-					CommentThreadID: p.StockItem.CommentThreadID,
-					HMACEnvelope:    p.CommentsHMACEnvelope,
-				}),
-			),
-			// Right column: gallery + changelog stacked
-			h.Div(
-				h.Class("column"),
-				h.Div(
-					h.Class("gallery-container"),
-					components.Gallery(p.GalleryImageURLs),
-					h.A(
-						h.Class("button primary"),
-						h.Href(p.GalleryURL),
-						g.Text("Gallery"),
-						components.Icon(&components.IconProps{Identifier: "arrow-right-thin"}),
-					),
+				h.Class("gallery-container"),
+
+				components.Gallery(p.GalleryImageURLs),
+
+				h.A(
+					h.Class("button primary"),
+					h.Href(p.GalleryURL),
+
+					g.Text("Gallery"),
+
+					components.Icon(&components.IconProps{
+						Identifier: "arrow-right-thin",
+					}),
 				),
-				stockItemChangeLog(p.StockItemChanges),
 			),
+		),
+
+		h.Div(
+			h.Class("two-column-flex"),
+
+			components.CommentsThread(&components.CommentsThreadProps{
+				Comments:        p.StockItemComments,
+				CommentThreadID: p.StockItem.CommentThreadID,
+				HMACEnvelope:    p.AddCommentsHMACEnvelope,
+			}),
+
+			stockItemChangeLog(p.StockItemChanges),
 		),
 	})
 
