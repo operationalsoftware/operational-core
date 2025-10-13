@@ -46,20 +46,13 @@ async function submitComment(e) {
 
   const comment = formData.get("Comment");
   const threadId = form.dataset.threadId;
-  const envelopeAttr = form.dataset.hmacEnvelope;
+  const hmacEnvelope = form.dataset.hmacEnvelope;
   if (!threadId) {
     console.error("Missing comment thread id on form");
     return;
   }
-  if (!envelopeAttr) {
+  if (!hmacEnvelope) {
     console.error("Missing HMAC envelope on form");
-    return;
-  }
-  let commentHmac;
-  try {
-    commentHmac = JSON.parse(envelopeAttr);
-  } catch (e) {
-    console.error("Invalid HMAC envelope JSON", e);
     return;
   }
 
@@ -72,7 +65,10 @@ async function submitComment(e) {
   const commentRes = await fetch(`/comments/${threadId}/add`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ comment, hmac: commentHmac }),
+    body: JSON.stringify({
+      comment,
+      hmac: hmacEnvelope,
+    }),
   });
   if (!commentRes.ok) {
     submitBtn.classList.remove("loading");
@@ -91,16 +87,19 @@ async function submitComment(e) {
   const { commentId, attachmentHmac } = await commentRes.json();
 
   for (const file of files) {
-    const metaRes = await fetch(`/comments/${commentId}/attachment`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        filename: file.name,
-        contentType: file.type,
-        sizeBytes: file.size,
-        hmac: attachmentHmac,
-      }),
-    });
+    const metaRes = await fetch(
+      `/comments/${threadId}/${commentId}/attachment`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hmac: attachmentHmac,
+          filename: file.name,
+          contentType: file.type,
+          sizeBytes: file.size,
+        }),
+      }
+    );
     const { fileId, signedUrl } = await metaRes.json();
 
     // Upload with retry

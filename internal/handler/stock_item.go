@@ -170,7 +170,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		Permissions: permissions,
 		Expires:     time.Now().Add(24 * time.Hour).Unix(), // 24 hours from now
 	}
-	commentEnvelope := apphmac.SignEnvelope(commentPayload, h.hmacService.Secret())
+	commentEnvelope := apphmac.CreateEnvelope(commentPayload, h.hmacService.Secret())
 	addCommentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
 
 	_ = stockitemview.StockItemPage(&stockitemview.StockItemPageProps{

@@ -560,7 +560,7 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		Permissions: permissions,
 		Expires:     time.Now().Add(24 * time.Hour).Unix(),
 	}
-	commentEnvelope := apphmac.SignEnvelope(commentPayload, h.hmacService.Secret())
+	commentEnvelope := apphmac.CreateEnvelope(commentPayload, h.hmacService.Secret())
 	addCommentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
 
 	_ = andonview.AndonPage(&andonview.AndonPageProps{

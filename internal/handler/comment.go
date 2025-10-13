@@ -66,8 +66,8 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 	// Decode request body once into a struct that can carry the envelope
 	var reqBody struct {
-		Comment string            `json:"comment"`
-		HMAC    *apphmac.Envelope `json:"hmac,omitempty"`
+		Comment string `json:"comment"`
+		HMAC    string `json:"hmac,omitempty"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
@@ -76,7 +76,7 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 	// Verify HMAC: prefer envelope
 	secret := h.hmacService.Secret()
-	isValid, err := apphmac.IsValidEnvelope(*reqBody.HMAC, secret, "comment_thread", fmt.Sprintf("%d", threadID), "add")
+	isValid, err := apphmac.CheckEnvelope(reqBody.HMAC, secret, "comment_thread", fmt.Sprintf("%d", threadID), "add")
 	if err != nil || !isValid {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
@@ -110,12 +110,13 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 		Permissions: []string{"add"},
 		Expires:     time.Now().Add(24 * time.Hour).Unix(),
 	}
-	attachEnvelope := apphmac.SignEnvelope(attachPayload, secret)
+	attachEnvelope := apphmac.CreateEnvelope(attachPayload, secret)
+	attachEnvelopeJSON, _ := json.Marshal(attachEnvelope)
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{
 		"commentId":      commentID,
-		"attachmentHmac": attachEnvelope,
+		"attachmentHmac": string(attachEnvelopeJSON),
 	})
 }
 
@@ -133,10 +134,10 @@ func (h *CommentHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var fd struct {
-		Filename    string            `json:"filename"`
-		ContentType string            `json:"contentType"`
-		SizeBytes   int               `json:"sizeBytes"`
-		HMAC        *apphmac.Envelope `json:"hmac"`
+		Filename    string `json:"filename"`
+		ContentType string `json:"contentType"`
+		SizeBytes   int    `json:"sizeBytes"`
+		HMAC        string `json:"hmac"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&fd); err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
@@ -144,7 +145,7 @@ func (h *CommentHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	secret := h.hmacService.Secret()
-	isValid, err := apphmac.IsValidEnvelope(*fd.HMAC, secret, "comment", fmt.Sprintf("%d", commentID), "add")
+	isValid, err := apphmac.CheckEnvelope(fd.HMAC, secret, "comment", fmt.Sprintf("%d", commentID), "add")
 	if err != nil || !isValid {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return

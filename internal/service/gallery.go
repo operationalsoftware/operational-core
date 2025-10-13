@@ -250,7 +250,7 @@ func (s *GalleryService) generateTempURL(
 		Expires:     expires,
 	}
 
-	envelope := apphmac.SignEnvelope(payload, secretKey)
+	envelope := apphmac.CreateEnvelope(payload, secretKey)
 	galleryEnvelopeJSON, err := json.Marshal(envelope)
 	if err != nil {
 		return err.Error()

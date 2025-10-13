@@ -43,16 +43,10 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	var envelope apphmac.Envelope
-	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
-		log.Println("invalid envelope json:", err)
-		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
-		return
-	}
-	permissions := envelope.Payload.Permissions
+	envelope := envStr
 	secretKey := h.hmacService.Secret()
 
-	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "view")
+	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "view")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
@@ -66,6 +60,12 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	editURL := ""
+	permissions, err := apphmac.GetEnvelopePermissions(envelope, secretKey)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error fetching permissions", http.StatusInternalServerError)
+		return
+	}
 	if slices.Contains(permissions, "edit") {
 		editURL = h.galleryService.GenerateEditTempURL(galleryID, true)
 	}
@@ -84,21 +84,15 @@ func (h *GalleryHandler) AddGalleryItem(w http.ResponseWriter, r *http.Request) 
 
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 
-	// Parse and validate envelope (must have edit)
 	envStr := r.URL.Query().Get("Envelope")
 	if envStr == "" {
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	var envelope apphmac.Envelope
-	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
-		log.Println("invalid envelope json:", err)
-		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
-		return
-	}
+	envelope := envStr
 	secretKey := h.hmacService.Secret()
 
-	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
@@ -167,15 +161,10 @@ func (h *GalleryHandler) DeleteGalleryItem(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	var envelope apphmac.Envelope
-	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
-		log.Println("invalid envelope json:", err)
-		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
-		return
-	}
+	envelope := envStr
 	secretKey := h.hmacService.Secret()
 
-	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
@@ -203,22 +192,16 @@ func (h *GalleryHandler) SetGalleryItemPosition(w http.ResponseWriter, r *http.R
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	var envelope apphmac.Envelope
-	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
-		log.Println("invalid envelope json:", err)
-		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
-		return
-	}
-	permissions := envelope.Payload.Permissions
+	envelope := envStr
 	secretKey := h.hmacService.Secret()
 
-	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
-	isEditable := slices.Contains(permissions, "edit")
-	if !isEditable {
+	permissions, err := apphmac.GetEnvelopePermissions(envelope, secretKey)
+	if err != nil || !slices.Contains(permissions, "edit") {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -267,23 +250,17 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	var envelope apphmac.Envelope
-	if err := json.Unmarshal([]byte(envStr), &envelope); err != nil {
-		log.Println("invalid envelope json:", err)
-		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
-		return
-	}
-	permissions := envelope.Payload.Permissions
+	envelope := envStr
 	secretKey := h.hmacService.Secret()
 
-	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
 
-	// By construction we required 'edit' above; keep the slice check for UI behavior if needed
-	if !slices.Contains(permissions, "edit") {
+	permissions, err := apphmac.GetEnvelopePermissions(envelope, secretKey)
+	if err != nil || !slices.Contains(permissions, "edit") {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
