@@ -12,8 +12,9 @@ func addStockItemRoutes(
 	commentService service.CommentService,
 	fileService service.FileService,
 	galleryService service.GalleryService,
+	hmacService service.HMACService,
 ) {
-	stockItemHandler := handler.NewStockItemHandler(stockItemService, commentService, fileService, galleryService)
+	stockItemHandler := handler.NewStockItemHandler(stockItemService, commentService, fileService, galleryService, hmacService)
 
 	mux.HandleFunc("GET /stock-items", stockItemHandler.StockItemsPage)
 

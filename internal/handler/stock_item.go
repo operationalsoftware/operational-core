@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -28,6 +27,7 @@ type StockItemHandler struct {
 	commentService   service.CommentService
 	fileService      service.FileService
 	galleryService   service.GalleryService
+	hmacService      service.HMACService
 }
 
 func NewStockItemHandler(
@@ -35,12 +35,14 @@ func NewStockItemHandler(
 	commentService service.CommentService,
 	fileService service.FileService,
 	galleryService service.GalleryService,
+	hmacService service.HMACService,
 ) *StockItemHandler {
 	return &StockItemHandler{
 		stockItemService: stockItemService,
 		commentService:   commentService,
 		fileService:      fileService,
 		galleryService:   galleryService,
+		hmacService:      hmacService,
 	}
 }
 
@@ -168,7 +170,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		Permissions: permissions,
 		Expires:     time.Now().Add(24 * time.Hour).Unix(), // 24 hours from now
 	}
-	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
+	commentEnvelope := apphmac.SignEnvelope(commentPayload, h.hmacService.Secret())
 	addCommentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
 
 	_ = stockitemview.StockItemPage(&stockitemview.StockItemPageProps{

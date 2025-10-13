@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -18,15 +17,18 @@ import (
 type CommentHandler struct {
 	commentService service.CommentService
 	fileService    service.FileService
+	hmacService    service.HMACService
 }
 
 func NewCommentHandler(
 	commentService service.CommentService,
 	fileService service.FileService,
+	hmacService service.HMACService,
 ) *CommentHandler {
 	return &CommentHandler{
 		commentService: commentService,
 		fileService:    fileService,
+		hmacService:    hmacService,
 	}
 }
 
@@ -73,7 +75,7 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify HMAC: prefer envelope
-	secret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	secret := h.hmacService.Secret()
 	isValid, err := apphmac.IsValidEnvelope(*reqBody.HMAC, secret, "comment_thread", fmt.Sprintf("%d", threadID), "add")
 	if err != nil || !isValid {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
@@ -141,7 +143,7 @@ func (h *CommentHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	secret := os.Getenv("AES_256_ENCRYPTION_KEY")
+	secret := h.hmacService.Secret()
 	isValid, err := apphmac.IsValidEnvelope(*fd.HMAC, secret, "comment", fmt.Sprintf("%d", commentID), "add")
 	if err != nil || !isValid {
 		http.Error(w, "Error validating", http.StatusUnauthorized)

@@ -14,6 +14,7 @@ func addAndonRoutes(
 	fileService service.FileService,
 	galleryService service.GalleryService,
 	teamService service.TeamService,
+	hmacService service.HMACService,
 ) {
 	andonHandler := handler.NewAndonHandler(
 		andonService,
@@ -22,6 +23,7 @@ func addAndonRoutes(
 		fileService,
 		galleryService,
 		teamService,
+		hmacService,
 	)
 
 	mux.HandleFunc("GET /andons", andonHandler.HomePage)

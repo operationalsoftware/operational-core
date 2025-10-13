@@ -10,8 +10,9 @@ func addGalleryRoutes(
 	mux *http.ServeMux,
 	fileService service.FileService,
 	galleryService service.GalleryService,
+	hmacService service.HMACService,
 ) {
-	galleryHandler := handler.NewGalleryHandler(fileService, galleryService)
+	galleryHandler := handler.NewGalleryHandler(fileService, galleryService, hmacService)
 
 	mux.HandleFunc("GET /gallery/{galleryID}", galleryHandler.GalleryPage)
 	mux.HandleFunc("GET /gallery/{galleryID}/edit", galleryHandler.EditPage)

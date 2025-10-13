@@ -24,6 +24,7 @@ type Services struct {
 	StockItemService        service.StockItemService
 	TeamService             service.TeamService
 	UserService             service.UserService
+	HMACService             service.HMACService
 }
 
 func NewRouter(services *Services) http.Handler {
@@ -58,15 +59,16 @@ func NewRouter(services *Services) http.Handler {
 		services.FileService,
 		services.GalleryService,
 		services.TeamService,
+		services.HMACService,
 	)
 	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
 	addCameraScannerRoutes(mux)
 	addFileRoutes(mux, services.FileService)
-	addGalleryRoutes(mux, services.FileService, services.GalleryService)
+	addGalleryRoutes(mux, services.FileService, services.GalleryService, services.HMACService)
 	addPDFRoutes(mux, services.PDFService)
 	addSearchRoutes(mux, services.SearchService)
-	addCommentRoutes(mux, services.CommentService, services.FileService)
-	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.FileService, services.GalleryService)
+	addCommentRoutes(mux, services.CommentService, services.FileService, services.HMACService)
+	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.FileService, services.GalleryService, services.HMACService)
 	addStockTransactionRoutes(mux, services.StockItemService, services.StockTransactionService)
 	addTeamRoutes(mux, services.TeamService, services.UserService)
 	addUserRoutes(mux, services.UserService)

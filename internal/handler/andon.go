@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +25,7 @@ type AndonHandler struct {
 	fileService       service.FileService
 	galleryService    service.GalleryService
 	teamService       service.TeamService
+	hmacService       service.HMACService
 }
 
 func NewAndonHandler(
@@ -35,6 +35,7 @@ func NewAndonHandler(
 	fileService service.FileService,
 	galleryService service.GalleryService,
 	teamService service.TeamService,
+	hmacService service.HMACService,
 ) *AndonHandler {
 	return &AndonHandler{
 		andonService:      andonService,
@@ -43,6 +44,7 @@ func NewAndonHandler(
 		fileService:       fileService,
 		galleryService:    galleryService,
 		teamService:       teamService,
+		hmacService:       hmacService,
 	}
 }
 
@@ -558,7 +560,7 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		Permissions: permissions,
 		Expires:     time.Now().Add(24 * time.Hour).Unix(),
 	}
-	commentEnvelope := apphmac.SignEnvelope(commentPayload, os.Getenv("AES_256_ENCRYPTION_KEY"))
+	commentEnvelope := apphmac.SignEnvelope(commentPayload, h.hmacService.Secret())
 	addCommentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
 
 	_ = andonview.AndonPage(&andonview.AndonPageProps{

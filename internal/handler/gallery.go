@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"slices"
 	"strconv"
 )
@@ -19,15 +18,18 @@ import (
 type GalleryHandler struct {
 	fileService    service.FileService
 	galleryService service.GalleryService
+	hmacService    service.HMACService
 }
 
 func NewGalleryHandler(
 	fileService service.FileService,
 	galleryService service.GalleryService,
+	hmacService service.HMACService,
 ) *GalleryHandler {
 	return &GalleryHandler{
 		fileService:    fileService,
 		galleryService: galleryService,
+		hmacService:    hmacService,
 	}
 }
 
@@ -48,7 +50,7 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	permissions := envelope.Payload.Permissions
-	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
+	secretKey := h.hmacService.Secret()
 
 	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "view")
 	if err != nil || !ok {
@@ -94,7 +96,7 @@ func (h *GalleryHandler) AddGalleryItem(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
 		return
 	}
-	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
+	secretKey := h.hmacService.Secret()
 
 	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
@@ -171,7 +173,7 @@ func (h *GalleryHandler) DeleteGalleryItem(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Invalid envelope", http.StatusUnauthorized)
 		return
 	}
-	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
+	secretKey := h.hmacService.Secret()
 
 	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
@@ -208,7 +210,7 @@ func (h *GalleryHandler) SetGalleryItemPosition(w http.ResponseWriter, r *http.R
 		return
 	}
 	permissions := envelope.Payload.Permissions
-	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
+	secretKey := h.hmacService.Secret()
 
 	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
@@ -272,7 +274,7 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	permissions := envelope.Payload.Permissions
-	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
+	secretKey := h.hmacService.Secret()
 
 	ok, err := apphmac.IsValidEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {

@@ -108,6 +108,7 @@ func main() {
 		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),
 		TeamService:             *service.NewTeamService(pgPool, teamRepository, userRepository),
 		UserService:             *service.NewUserService(pgPool, userRepository),
+		HMACService:             *service.NewHMACService(secretKey),
 	}
 
 	// define server
