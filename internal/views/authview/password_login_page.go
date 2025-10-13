@@ -124,6 +124,22 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 		components.InlineScript("/static/js/app_nfc.js"),
 		components.InlineScript("/internal/views/authview/password_login_page.js"),
 
+		g.El("div",
+			h.Class("or-divider"),
+			g.El("hr"),
+			g.El("span", g.Text("OR")),
+			g.El("hr"),
+		),
+
+		h.A(
+			h.Href("/auth/microsoft/login"),
+			h.Button(
+				h.Class("button"),
+				h.Type("button"),
+				g.Text("Login with Microsoft"),
+			),
+		),
+
 		g.If(
 			decoded.Username != "" && decoded.Password != "",
 			h.Script(g.Raw(`

@@ -1,7 +1,13 @@
 package handler
 
 import (
+	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	"app/internal/model"
@@ -11,14 +17,37 @@ import (
 	"app/pkg/cookie"
 	"app/pkg/encryptcredentials"
 	"app/pkg/reqcontext"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/microsoft"
 )
 
 type AuthHandler struct {
-	authService service.AuthService
+	authService   service.AuthService
+	msOauthConfig *oauth2.Config
 }
 
 func NewAuthHandler(authService service.AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+	h := &AuthHandler{authService: authService}
+
+	// Initialize Microsoft OAuth config from environment if available
+	clientID := os.Getenv("MICROSOFT_CLIENT_ID")
+	clientSecret := os.Getenv("MICROSOFT_CLIENT_SECRET")
+	tenantID := os.Getenv("MICROSOFT_TENANT_ID")
+	redirectURL := os.Getenv("MICROSOFT_REDIRECT_URL")
+
+	if clientID != "" && clientSecret != "" && tenantID != "" && redirectURL != "" {
+		h.msOauthConfig = &oauth2.Config{
+			ClientID:     clientID,
+			ClientSecret: clientSecret,
+			RedirectURL:  redirectURL,
+			// Request Graph permissions to read the signed-in user's profile
+			Scopes:   []string{"openid", "profile", "email", "https://graph.microsoft.com/User.Read"},
+			Endpoint: microsoft.AzureADEndpoint(tenantID),
+		}
+	}
+
+	return h
 }
 
 func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) {
@@ -195,6 +224,186 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, cookie)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+// Microsoft OAuth login: redirect to Microsoft
+func (h *AuthHandler) MicrosoftLogin(w http.ResponseWriter, r *http.Request) {
+	if h.msOauthConfig == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Generate a random state and set as short-lived cookie for CSRF protection
+	var stateBytes [32]byte
+	if _, err := rand.Read(stateBytes[:]); err != nil {
+		http.Error(w, "failed to start login", http.StatusInternalServerError)
+		return
+	}
+	state := base64.RawURLEncoding.EncodeToString(stateBytes[:])
+
+	// Save state in a secure, short-lived cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "oauth-state",
+		Value:    state,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Expires:  time.Now().Add(10 * time.Minute),
+	})
+
+	// PKCE: generate code_verifier and send S256 code_challenge
+	var verifierBytes [32]byte
+	if _, err := rand.Read(verifierBytes[:]); err != nil {
+		http.Error(w, "failed to start login", http.StatusInternalServerError)
+		return
+	}
+	codeVerifier := base64.RawURLEncoding.EncodeToString(verifierBytes[:])
+	sum := sha256.Sum256([]byte(codeVerifier))
+	codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+	// Save verifier in a secure cookie to use on callback
+	http.SetCookie(w, &http.Cookie{
+		Name:     "oauth-pkce",
+		Value:    codeVerifier,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Expires:  time.Now().Add(10 * time.Minute),
+	})
+
+	url := h.msOauthConfig.AuthCodeURL(
+		state,
+		oauth2.AccessTypeOffline,
+		oauth2.SetAuthURLParam("code_challenge_method", "S256"),
+		oauth2.SetAuthURLParam("code_challenge", codeChallenge),
+	)
+	http.Redirect(w, r, url, http.StatusFound)
+}
+
+// Microsoft OAuth callback: exchange code, fetch profile, find user by email, create session
+func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) {
+	if h.msOauthConfig == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	ctx := context.Background()
+
+	if errParam := r.URL.Query().Get("error"); errParam != "" {
+		http.Error(w, "Microsoft sign-in failed: "+errParam, http.StatusBadRequest)
+		return
+	}
+
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		http.Error(w, "missing authorization code", http.StatusBadRequest)
+		return
+	}
+
+	// Verify state from cookie for CSRF protection
+	stateQuery := r.URL.Query().Get("state")
+	stateCookie, err := r.Cookie("oauth-state")
+	if err != nil || stateCookie.Value == "" || stateCookie.Value != stateQuery {
+		http.Error(w, "invalid OAuth state", http.StatusBadRequest)
+		return
+	}
+	// Invalidate the state cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "oauth-state",
+		Value:    "",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+	})
+
+	// Read PKCE verifier from cookie
+	pkceCookie, _ := r.Cookie("oauth-pkce")
+	var tokenOpts []oauth2.AuthCodeOption
+	if pkceCookie != nil && pkceCookie.Value != "" {
+		tokenOpts = append(tokenOpts, oauth2.SetAuthURLParam("code_verifier", pkceCookie.Value))
+		// Invalidate pkce cookie
+		http.SetCookie(w, &http.Cookie{
+			Name:     "oauth-pkce",
+			Value:    "",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteLaxMode,
+			Path:     "/",
+			Expires:  time.Unix(0, 0),
+		})
+	}
+
+	token, err := h.msOauthConfig.Exchange(ctx, code, tokenOpts...)
+	if err != nil {
+		http.Error(w, "failed to exchange token", http.StatusInternalServerError)
+		return
+	}
+
+	client := h.msOauthConfig.Client(ctx, token)
+	resp, err := client.Get("https://graph.microsoft.com/v1.0/me")
+	if err != nil {
+		http.Error(w, "failed to fetch user profile", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		http.Error(w, "failed to fetch user profile from Microsoft Graph", http.StatusBadGateway)
+		return
+	}
+
+	var profile struct {
+		ID                string `json:"id"`
+		Mail              string `json:"mail"`
+		UserPrincipalName string `json:"userPrincipalName"`
+		GivenName         string `json:"givenName"`
+		Surname           string `json:"surname"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
+		http.Error(w, "failed to decode user profile", http.StatusInternalServerError)
+		return
+	}
+
+	email := profile.Mail
+	if email == "" {
+		email = profile.UserPrincipalName
+	}
+	if email == "" {
+		http.Error(w, "no email found on Microsoft account", http.StatusForbidden)
+		return
+	}
+
+	// Find app user by email. Users are not auto-created; an admin must pre-create them.
+	authUser, err := h.authService.AuthenticateByEmail(r.Context(), email)
+	if err != nil {
+		http.Error(w, "server error", http.StatusInternalServerError)
+		return
+	}
+	if authUser == nil {
+		http.Error(w, "No account is configured for this Microsoft user. Please contact an administrator.", http.StatusForbidden)
+		return
+	}
+
+	// Optionally link the external account ID to your user record if your schema supports it.
+	// Skipped here to avoid runtime errors when the column doesn't exist.
+
+	// Create session cookie using same logic as password login
+	duration := cookie.DefaultSessionDurationMinutes
+	if authUser.SessionDurationMinutes != nil {
+		duration = time.Duration(*authUser.SessionDurationMinutes) * time.Minute
+	}
+
+	if err := cookie.SetSessionCookie(w, authUser.UserID, duration); err != nil {
+		http.Error(w, "failed to set session", http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

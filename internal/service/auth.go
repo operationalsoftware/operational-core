@@ -59,7 +59,12 @@ func (s *AuthService) VerifyPasswordLogin(
 	}
 
 	// Check password
-	passwordErr := bcrypt.CompareHashAndPassword([]byte(authUser.HashedPassword), []byte(input.Password))
+	var passwordErr error
+	if authUser.HashedPassword == "" {
+		passwordErr = bcrypt.ErrMismatchedHashAndPassword
+	} else {
+		passwordErr = bcrypt.CompareHashAndPassword([]byte(authUser.HashedPassword), []byte(input.Password))
+	}
 
 	if passwordErr == bcrypt.ErrMismatchedHashAndPassword {
 
@@ -118,3 +123,34 @@ func (s *AuthService) VerifyPasswordLogin(
 
 const INVALID_USERNAME_PASSWORD_MSG = "Invalid username or password. Please try again"
 const LOGIN_BLOCKED_MSG = "Login temporarily blocked, please wait and try again"
+
+func (s *AuthService) AuthenticateByEmail(
+	ctx context.Context,
+	email string,
+) (*model.AuthUser, error) {
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	authUser, err := s.authRepository.GetAuthUserByEmail(ctx, tx, email)
+	if err != nil {
+		return nil, err
+	}
+	if authUser == nil {
+		return nil, nil
+	}
+
+	// Update last_login for visibility
+	if err := s.authRepository.UpdateLastLogin(ctx, tx, authUser.UserID); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return authUser, nil
+}

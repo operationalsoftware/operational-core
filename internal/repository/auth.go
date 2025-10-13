@@ -70,6 +70,61 @@ WHERE
 	return &authUser, nil
 }
 
+func (r *AuthRepository) GetAuthUserByEmail(
+	ctx context.Context,
+	tx pgx.Tx,
+	email string,
+) (*model.AuthUser, error) {
+
+	var authUserDB model.AuthUserDB
+	var authUser model.AuthUser
+
+	err := tx.QueryRow(
+		ctx,
+		`
+SELECT
+	user_id,
+	is_api_user,
+	username,
+	email,
+	first_name,
+	last_name,
+	created,
+	last_login,
+	hashed_password,
+	failed_login_attempts,
+	login_blocked_until,
+	session_duration_minutes
+FROM
+	app_user
+WHERE
+	email = $1
+	`, email).Scan(
+		&authUserDB.UserID,
+		&authUserDB.IsAPIUser,
+		&authUserDB.Username,
+		&authUserDB.Email,
+		&authUserDB.FirstName,
+		&authUserDB.LastName,
+		&authUserDB.Created,
+		&authUserDB.LastLogin,
+		&authUserDB.HashedPassword,
+		&authUserDB.FailedLoginAttempts,
+		&authUserDB.LoginBlockedUntil,
+		&authUserDB.SessionDurationMinutes,
+	)
+
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return &authUser, err
+	}
+
+	authUser = authUserDB.ToDomain()
+
+	return &authUser, nil
+}
+
 func (r *AuthRepository) IncrementFailedLoginAttempts(
 	ctx context.Context,
 	tx pgx.Tx,
