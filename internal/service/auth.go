@@ -156,10 +156,10 @@ func (s *AuthService) AuthenticateByEmail(
 	return authUser, nil
 }
 
-// AuthenticateUserByEmail links an existing user by email; no auto-creation.
+// AuthenticateUserByEmail finds an existing user by email; no auto-creation.
 func (s *AuthService) AuthenticateUserByEmail(
 	ctx context.Context,
-	email, externalID string,
+	email,
 	firstName, lastName string,
 ) (*model.AuthUser, error) {
 	tx, err := s.db.Begin(ctx)
@@ -175,24 +175,6 @@ func (s *AuthService) AuthenticateUserByEmail(
 	if authUser == nil {
 		// Do not auto-create; enforce pre-created users only.
 		return nil, errors.New("microsoft login allowed only for pre-created users")
-	}
-
-	if externalID == "" {
-		return nil, errors.New("missing microsoft external id")
-	}
-
-	// If already linked, ensure it's the same Microsoft account.
-	if authUser.ExternalID != nil && *authUser.ExternalID != "" && *authUser.ExternalID != externalID {
-		return nil, errors.New("account already linked to a different microsoft id")
-	}
-
-	// Link external ID if not already set.
-	if authUser.ExternalID == nil || *authUser.ExternalID == "" {
-		if err := s.authRepository.SetExternalID(ctx, tx, authUser.UserID, externalID); err != nil {
-			return nil, err
-		}
-		// Reflect change in the returned struct.
-		authUser.ExternalID = &externalID
 	}
 
 	// Update last login

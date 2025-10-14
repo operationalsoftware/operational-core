@@ -36,9 +36,7 @@ SELECT
 	last_name,
 	created,
 	last_login,
-	COALESCE(hashed_password, '') as hashed_password,
-	auth_provider,
-	external_id,
+	hashed_password,
 	failed_login_attempts,
 	login_blocked_until,
 	session_duration_minutes
@@ -56,8 +54,6 @@ WHERE
 		&authUserDB.Created,
 		&authUserDB.LastLogin,
 		&authUserDB.HashedPassword,
-		&authUserDB.AuthProvider,
-		&authUserDB.ExternalID,
 		&authUserDB.FailedLoginAttempts,
 		&authUserDB.LoginBlockedUntil,
 		&authUserDB.SessionDurationMinutes,
@@ -95,9 +91,7 @@ SELECT
 	last_name,
 	created,
 	last_login,
-	COALESCE(hashed_password, '') as hashed_password,
-	auth_provider,
-	external_id,
+	hashed_password,
 	failed_login_attempts,
 	login_blocked_until,
 	session_duration_minutes
@@ -115,8 +109,6 @@ WHERE
 		&authUserDB.Created,
 		&authUserDB.LastLogin,
 		&authUserDB.HashedPassword,
-		&authUserDB.AuthProvider,
-		&authUserDB.ExternalID,
 		&authUserDB.FailedLoginAttempts,
 		&authUserDB.LoginBlockedUntil,
 		&authUserDB.SessionDurationMinutes,
@@ -209,20 +201,4 @@ WHERE
 	}
 
 	return nil
-}
-
-// SetExternalID links a third-party external ID to an existing user
-func (r *AuthRepository) SetExternalID(
-	ctx context.Context,
-	tx pgx.Tx,
-	userID int,
-	externalID string,
-) error {
-	query := `
-UPDATE app_user
-SET external_id = $1
-WHERE user_id = $2
-	`
-	_, err := tx.Exec(ctx, query, externalID, userID)
-	return err
 }

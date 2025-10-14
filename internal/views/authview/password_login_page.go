@@ -74,13 +74,26 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 					g.El("hr"),
 				),
 
+				h.A(
+					h.Class("button microsoft-login-link"),
+					h.Href("/auth/microsoft/login"),
+					g.Text("Log In with Microsoft"),
+				),
+
+				h.Div(
+					h.Class("or-divider"),
+					g.El("hr"),
+					g.El("span", g.Text("OR")),
+					g.El("hr"),
+				),
+
 				h.Button(
 					h.Class("button nfc-login-button"),
 					h.Type("button"),
 					components.Icon(&components.IconProps{
 						Identifier: "nfc-variant",
 					}),
-					g.Text("Login with NFC"),
+					g.Text("Log In with NFC"),
 				),
 
 				h.Div(
@@ -98,7 +111,7 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 						components.Icon(&components.IconProps{
 							Identifier: "qrcode",
 						}),
-						g.Text("Login with QR Code"),
+						g.Text("Log In with QR Code"),
 					),
 				),
 			),
@@ -123,22 +136,6 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 		components.InlineStyle("/internal/views/authview/password_login_page.css"),
 		components.InlineScript("/static/js/app_nfc.js"),
 		components.InlineScript("/internal/views/authview/password_login_page.js"),
-
-		g.El("div",
-			h.Class("or-divider"),
-			g.El("hr"),
-			g.El("span", g.Text("OR")),
-			g.El("hr"),
-		),
-
-		h.A(
-			h.Href("/auth/microsoft/login"),
-			h.Button(
-				h.Class("button"),
-				h.Type("button"),
-				g.Text("Login with Microsoft"),
-			),
-		),
 
 		g.If(
 			decoded.Username != "" && decoded.Password != "",

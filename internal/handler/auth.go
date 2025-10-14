@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -41,9 +42,8 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
 			RedirectURL:  redirectURL,
-			// Request Graph permissions to read the signed-in user's profile
-			Scopes:   []string{"openid", "profile", "email", "https://graph.microsoft.com/User.Read"},
-			Endpoint: microsoft.AzureADEndpoint(tenantID),
+			Scopes:       []string{"openid", "profile", "email", "User.Read"},
+			Endpoint:     microsoft.AzureADEndpoint(tenantID),
 		}
 	}
 
@@ -198,7 +198,7 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 
 	duration := cookie.DefaultSessionDurationMinutes
 	if out.AuthUser.SessionDurationMinutes != nil {
-		duration = time.Duration(*out.AuthUser.SessionDurationMinutes)
+		duration = time.Duration(*out.AuthUser.SessionDurationMinutes) * time.Minute
 	}
 
 	err = cookie.SetSessionCookie(w, out.AuthUser.UserID, time.Duration(duration))
@@ -341,6 +341,7 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 
 	token, err := h.msOauthConfig.Exchange(ctx, code, tokenOpts...)
 	if err != nil {
+		log.Printf("Microsoft OAuth: token exchange failed: %v", err)
 		http.Error(w, "failed to exchange token", http.StatusInternalServerError)
 		return
 	}
@@ -380,10 +381,11 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Authenticate or create a user sourced from Microsoft
-	authUser, err := h.authService.AuthenticateUserByEmail(r.Context(), email, profile.ID, profile.GivenName, profile.Surname)
+	// Authenticate user if email matches existing user; no auto-creation
+	authUser, err := h.authService.AuthenticateUserByEmail(r.Context(), email, profile.ID, profile.GivenName)
 	if err != nil {
-		http.Error(w, "server error", http.StatusInternalServerError)
+		log.Printf("Microsoft OAuth: AuthenticateUserByEmail failed: %v", err)
+		http.Error(w, "server error "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if authUser == nil {
