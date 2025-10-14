@@ -52,19 +52,22 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	_ = authview.PasswordLoginPage(authview.PasswordLoginPageProps{
-		Ctx: ctx,
-	}).
-		Render(w)
+	props := authview.PasswordLoginPageProps{Ctx: ctx}
+
+	// Map error query param to user-facing message
+	switch r.URL.Query().Get("Error") {
+	case "NotFound":
+		props.LogInFailedError = "Microsoft login allowed only for existing users"
+	}
+
+	_ = authview.PasswordLoginPage(props).Render(w)
 }
 
 func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	var err error
-	retryPageProps := authview.PasswordLoginPageProps{
-		Ctx: ctx,
-	}
+	retryPageProps := authview.PasswordLoginPageProps{Ctx: ctx}
 
 	err = r.ParseForm()
 	if err != nil {
@@ -290,8 +293,6 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	ctx := reqcontext.GetContext(r)
-
 	if errParam := r.URL.Query().Get("error"); errParam != "" {
 		http.Error(w, "Microsoft sign-in failed: "+errParam, http.StatusBadRequest)
 		return
@@ -386,10 +387,8 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if authUser == nil {
-		_ = authview.PasswordLoginPage(authview.PasswordLoginPageProps{
-			Ctx:              ctx,
-			LogInFailedError: "Microsoft login allowed only for existing users",
-		}).Render(w)
+		// Redirect to standard password page with query flag Error
+		http.Redirect(w, r, "/auth/password?Error=NotFound", http.StatusSeeOther)
 		return
 	}
 
