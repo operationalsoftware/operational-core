@@ -2,7 +2,6 @@ package handler
 
 import (
 	"app/internal/service"
-	"app/pkg/reqcontext"
 	"log"
 	"net/http"
 )
@@ -24,12 +23,6 @@ type addFileFormData struct {
 }
 
 func (h *FileHandler) CompleteFileUpload(w http.ResponseWriter, r *http.Request) {
-	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
 	fileID := r.PathValue("fileID")
 
 	if err := r.ParseForm(); err != nil {
