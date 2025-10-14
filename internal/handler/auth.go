@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -35,9 +34,9 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	clientID := os.Getenv("MS_OAUTH_CLIENT_ID")
 	clientSecret := os.Getenv("MS_OAUTH_SECRET")
 	tenantID := os.Getenv("MS_OAUTH_TENANT_ID")
-	redirectURL := os.Getenv("MS_OAUTH_REDIRECT_URL")
+	redirectURL := "https://" + os.Getenv("SITE_ADDRESS") + "/auth/microsoft/callback"
 
-	if clientID != "" && clientSecret != "" && tenantID != "" && redirectURL != "" {
+	if clientID != "" && clientSecret != "" && tenantID != "" {
 		h.msOauthConfig = &oauth2.Config{
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
@@ -251,7 +250,7 @@ func (h *AuthHandler) MicrosoftLogin(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
-		Expires:  time.Now().Add(10 * time.Minute),
+		Expires:  time.Now().Add(1 * time.Hour),
 	})
 
 	// PKCE: generate code_verifier and send S256 code_challenge
@@ -272,7 +271,7 @@ func (h *AuthHandler) MicrosoftLogin(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
-		Expires:  time.Now().Add(10 * time.Minute),
+		Expires:  time.Now().Add(1 * time.Hour),
 	})
 
 	url := h.msOauthConfig.AuthCodeURL(
@@ -291,7 +290,7 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	ctx := context.Background()
+	ctx := reqcontext.GetContext(r)
 
 	if errParam := r.URL.Query().Get("error"); errParam != "" {
 		http.Error(w, "Microsoft sign-in failed: "+errParam, http.StatusBadRequest)
@@ -339,14 +338,14 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		})
 	}
 
-	token, err := h.msOauthConfig.Exchange(ctx, code, tokenOpts...)
+	token, err := h.msOauthConfig.Exchange(r.Context(), code, tokenOpts...)
 	if err != nil {
 		log.Printf("Microsoft OAuth: token exchange failed: %v", err)
 		http.Error(w, "failed to exchange token", http.StatusInternalServerError)
 		return
 	}
 
-	client := h.msOauthConfig.Client(ctx, token)
+	client := h.msOauthConfig.Client(r.Context(), token)
 	resp, err := client.Get("https://graph.microsoft.com/v1.0/me")
 	if err != nil {
 		http.Error(w, "failed to fetch user profile", http.StatusInternalServerError)
@@ -360,11 +359,8 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 	}
 
 	var profile struct {
-		ID                string `json:"id"`
 		Mail              string `json:"mail"`
 		UserPrincipalName string `json:"userPrincipalName"`
-		GivenName         string `json:"givenName"`
-		Surname           string `json:"surname"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
@@ -382,14 +378,18 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Authenticate user if email matches existing user; no auto-creation
-	authUser, err := h.authService.AuthenticateUserByEmail(r.Context(), email, profile.ID, profile.GivenName)
+	authUser, err := h.authService.AuthenticateUserByEmail(r.Context(), email)
 	if err != nil {
 		log.Printf("Microsoft OAuth: AuthenticateUserByEmail failed: %v", err)
-		http.Error(w, "server error "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}
+
 	if authUser == nil {
-		http.Error(w, "No account is configured for this Microsoft user. Please contact an administrator.", http.StatusForbidden)
+		_ = authview.PasswordLoginPage(authview.PasswordLoginPageProps{
+			Ctx:              ctx,
+			LogInFailedError: "Microsoft login allowed only for existing users",
+		}).Render(w)
 		return
 	}
 

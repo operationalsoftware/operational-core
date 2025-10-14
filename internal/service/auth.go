@@ -4,7 +4,7 @@ import (
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
-	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -159,31 +159,30 @@ func (s *AuthService) AuthenticateByEmail(
 // AuthenticateUserByEmail finds an existing user by email; no auto-creation.
 func (s *AuthService) AuthenticateUserByEmail(
 	ctx context.Context,
-	email,
-	firstName, lastName string,
+	email string,
 ) (*model.AuthUser, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("begin transaction failed: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
 	authUser, err := s.authRepository.GetAuthUserByEmail(ctx, tx, email)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAuthUserByEmail failed: %w", err)
 	}
 	if authUser == nil {
 		// Do not auto-create; enforce pre-created users only.
-		return nil, errors.New("microsoft login allowed only for pre-created users")
+		return nil, nil
 	}
 
 	// Update last login
 	if err := s.authRepository.UpdateLastLogin(ctx, tx, authUser.UserID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("UpdateLastLogin failed: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("tx.Commit failed: %w", err)
 	}
 	return authUser, nil
 }
