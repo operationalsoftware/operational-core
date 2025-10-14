@@ -31,10 +31,10 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	h := &AuthHandler{authService: authService}
 
 	// Initialize Microsoft OAuth config from environment if available
-	clientID := os.Getenv("MICROSOFT_CLIENT_ID")
-	clientSecret := os.Getenv("MICROSOFT_CLIENT_SECRET")
-	tenantID := os.Getenv("MICROSOFT_TENANT_ID")
-	redirectURL := os.Getenv("MICROSOFT_REDIRECT_URL")
+	clientID := os.Getenv("MS_OAUTH_CLIENT_ID")
+	clientSecret := os.Getenv("MS_OAUTH_SECRET")
+	tenantID := os.Getenv("MS_OAUTH_TENANT_ID")
+	redirectURL := os.Getenv("MS_OAUTH_REDIRECT_URL")
 
 	if clientID != "" && clientSecret != "" && tenantID != "" && redirectURL != "" {
 		h.msOauthConfig = &oauth2.Config{
@@ -380,8 +380,8 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Find app user by email. Users are not auto-created; an admin must pre-create them.
-	authUser, err := h.authService.AuthenticateByEmail(r.Context(), email)
+	// Authenticate or create a user sourced from Microsoft
+	authUser, err := h.authService.AuthenticateUserByEmail(r.Context(), email, profile.ID, profile.GivenName, profile.Surname)
 	if err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
@@ -390,9 +390,6 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "No account is configured for this Microsoft user. Please contact an administrator.", http.StatusForbidden)
 		return
 	}
-
-	// Optionally link the external account ID to your user record if your schema supports it.
-	// Skipped here to avoid runtime errors when the column doesn't exist.
 
 	// Create session cookie using same logic as password login
 	duration := cookie.DefaultSessionDurationMinutes
