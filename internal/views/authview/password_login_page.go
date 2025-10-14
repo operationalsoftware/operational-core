@@ -77,6 +77,9 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 				h.A(
 					h.Class("button microsoft-login-link"),
 					h.Href("/auth/microsoft/login"),
+					components.Icon(&components.IconProps{
+						Identifier: "microsoft-logo",
+					}),
 					g.Text("Log In with Microsoft"),
 				),
 
