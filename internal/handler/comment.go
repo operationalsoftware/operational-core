@@ -66,7 +66,7 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 	// Decode request body once into a struct that can carry the envelope
 	var reqBody struct {
 		Comment string `json:"comment"`
-		HMAC    string `json:"hmac,omitempty"`
+		HMAC    string `json:"hmac"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
