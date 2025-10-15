@@ -33,8 +33,7 @@ func NewCommentHandler(
 }
 
 type addCommentFormData struct {
-	Comment     string
-	Attachments []model.File
+	Comment string
 }
 
 func (fd *addCommentFormData) normalise() {

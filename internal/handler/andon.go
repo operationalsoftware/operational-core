@@ -21,7 +21,6 @@ type AndonHandler struct {
 	andonService      service.AndonService
 	andonIssueService service.AndonIssueService
 	commentService    service.CommentService
-	fileService       service.FileService
 	galleryService    service.GalleryService
 	teamService       service.TeamService
 	appHMAC           apphmac.AppHMAC
@@ -31,7 +30,6 @@ func NewAndonHandler(
 	andonService service.AndonService,
 	andonIssueService service.AndonIssueService,
 	commentService service.CommentService,
-	fileService service.FileService,
 	galleryService service.GalleryService,
 	teamService service.TeamService,
 	appHMAC apphmac.AppHMAC,
@@ -40,7 +38,6 @@ func NewAndonHandler(
 		andonService:      andonService,
 		andonIssueService: andonIssueService,
 		commentService:    commentService,
-		fileService:       fileService,
 		galleryService:    galleryService,
 		teamService:       teamService,
 		appHMAC:           appHMAC,
