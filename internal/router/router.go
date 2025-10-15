@@ -56,7 +56,6 @@ func NewRouter(services *Services, appHMAC apphmac.AppHMAC) http.Handler {
 		services.AndonService,
 		services.AndonIssueService,
 		services.CommentService,
-		services.FileService,
 		services.GalleryService,
 		services.TeamService,
 		appHMAC,
