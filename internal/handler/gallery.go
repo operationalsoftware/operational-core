@@ -35,12 +35,11 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 
-	envStr := r.URL.Query().Get("Envelope")
-	if envStr == "" {
+	envelope := r.URL.Query().Get("Envelope")
+	if envelope == "" {
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	envelope := envStr
 	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "view")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
@@ -79,12 +78,11 @@ func (h *GalleryHandler) AddGalleryItem(w http.ResponseWriter, r *http.Request) 
 
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 
-	envStr := r.URL.Query().Get("Envelope")
-	if envStr == "" {
+	envelope := r.URL.Query().Get("Envelope")
+	if envelope == "" {
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	envelope := envStr
 
 	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
@@ -150,12 +148,11 @@ func (h *GalleryHandler) DeleteGalleryItem(w http.ResponseWriter, r *http.Reques
 	galleryItemID, _ := strconv.Atoi(r.PathValue("galleryItemID"))
 
 	// Parse and validate envelope (must have edit)
-	envStr := r.URL.Query().Get("Envelope")
-	if envStr == "" {
+	envelope := r.URL.Query().Get("Envelope")
+	if envelope == "" {
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	envelope := envStr
 
 	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
@@ -180,12 +177,11 @@ func (h *GalleryHandler) SetGalleryItemPosition(w http.ResponseWriter, r *http.R
 	galleryItemID, _ := strconv.Atoi(r.PathValue("galleryItemID"))
 
 	// Parse and validate envelope (must have edit)
-	envStr := r.URL.Query().Get("Envelope")
-	if envStr == "" {
+	envelope := r.URL.Query().Get("Envelope")
+	if envelope == "" {
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	envelope := envStr
 
 	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
@@ -237,12 +233,11 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 	queryPath := r.URL.Query().Encode()
 
 	// Parse envelope and require edit
-	envStr := r.URL.Query().Get("Envelope")
-	if envStr == "" {
+	envelope := r.URL.Query().Get("Envelope")
+	if envelope == "" {
 		http.Error(w, "Missing envelope", http.StatusUnauthorized)
 		return
 	}
-	envelope := envStr
 
 	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
