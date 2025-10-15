@@ -23,7 +23,8 @@
 .two-column-flex {
   display: flex;
   gap: var(--spacing-md);
-  
+  align-items: flex-start;
+
   & > * {
     flex: 1 1;
   }

@@ -1,7 +1,11 @@
 (function () {
-  // Selected files display
-  document.querySelector('[name="Files"]').addEventListener("change", (e) => {
+  // Selected files display (guard if element not present)
+  const fileInput = document.querySelector('[name="Files"]');
+  if (!fileInput) return;
+
+  fileInput.addEventListener("change", (e) => {
     const container = document.getElementById("selected-files");
+    if (!container) return;
     container.innerHTML = "";
     const maxFiles = parseInt(e.target.dataset.maxFiles || "10", 10);
     let files = Array.from(e.target.files);
@@ -9,7 +13,7 @@
     if (files.length > maxFiles) {
       alert(`You can only upload up to ${maxFiles} files.`);
 
-      // keep only first 10 files
+      // keep only first allowed files
       files = files.slice(0, maxFiles);
 
       // reset input to only hold allowed files
@@ -40,32 +44,56 @@ async function submitComment(e) {
   submitBtn.classList.add("loading");
   submitBtn.disabled = true;
 
-  const entity = formData.get("Entity");
-  const entityId = formData.get("EntityID");
   const comment = formData.get("Comment");
+  const threadId = form.dataset.threadId;
+  const hmacEnvelope = form.dataset.hmacEnvelope;
+  if (!threadId) {
+    console.error("Missing comment thread id on form");
+    return;
+  }
+  if (!hmacEnvelope) {
+    console.error("Missing HMAC envelope on form");
+    return;
+  }
 
   // Filter empty file entries and 0 byte files
   const files = formData
     .getAll("Files")
     .filter((file) => file instanceof File && file.name && file.size > 0);
 
-  const baseEndpoint = window.location.pathname;
-
-  // Add comment
-  const commentRes = await fetch(`${baseEndpoint}/comments`, {
+  // Add comment to centralized endpoint using thread id
+  const commentRes = await fetch(`/comments/${threadId}/add`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ comment }),
+    body: JSON.stringify({
+      comment,
+      hmac: hmacEnvelope,
+    }),
   });
-  const { commentId } = await commentRes.json();
+  if (!commentRes.ok) {
+    submitBtn.classList.remove("loading");
+    submitBtn.disabled = false;
+    try {
+      const err = await commentRes.json();
+      alert(
+        "Failed to add comment: " +
+          (err?.errors ? JSON.stringify(err.errors) : commentRes.statusText)
+      );
+    } catch (_) {
+      alert("Failed to add comment");
+    }
+    return;
+  }
+  const { commentId, attachmentHmac } = await commentRes.json();
 
   for (const file of files) {
     const metaRes = await fetch(
-      `${baseEndpoint}/comments/${commentId}/attachment`,
+      `/comments/${threadId}/${commentId}/attachment`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          hmac: attachmentHmac,
           filename: file.name,
           contentType: file.type,
           sizeBytes: file.size,

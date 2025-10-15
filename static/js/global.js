@@ -14,6 +14,16 @@ function getTheme() {
   }
 }
 
+(function () {
+  // Calculate the delay in milliseconds for 24 hours
+  const twentyFourHoursInMilliseconds = 24 * 60 * 60 * 1000;
+
+  // Set a timeout to reload the page after 24 hours
+  setTimeout(function () {
+    window.location.reload();
+  }, twentyFourHoursInMilliseconds);
+})();
+
 /*
  * setTheme sets the theme in local storage and updates the data-theme
  * attribute on the html element if the theme is "dark". If the theme is

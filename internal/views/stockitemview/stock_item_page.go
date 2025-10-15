@@ -13,17 +13,18 @@ import (
 )
 
 type StockItemPageProps struct {
-	Id                int
-	Ctx               reqcontext.ReqContext
-	StockItem         model.StockItem
-	QRCode            string
-	GalleryImageURLs  []string
-	GalleryURL        string
-	StockItemChanges  []model.StockItemChange
-	StockItemComments []model.Comment
-	Sort              appsort.Sort
-	Page              int
-	PageSize          int
+	Id                      int
+	Ctx                     reqcontext.ReqContext
+	StockItem               model.StockItem
+	QRCode                  string
+	GalleryImageURLs        []string
+	GalleryURL              string
+	StockItemChanges        []model.StockItemChange
+	StockItemComments       []model.Comment
+	AddCommentsHMACEnvelope string
+	Sort                    appsort.Sort
+	Page                    int
+	PageSize                int
 }
 
 func StockItemPage(p *StockItemPageProps) g.Node {
@@ -67,9 +68,9 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 			h.Class("two-column-flex"),
 
 			components.CommentsThread(&components.CommentsThreadProps{
-				Comments: p.StockItemComments,
-				Entity:   "StockItem",
-				EntityID: p.StockItem.StockItemID,
+				Comments:        p.StockItemComments,
+				CommentThreadID: p.StockItem.CommentThreadID,
+				HMACEnvelope:    p.AddCommentsHMACEnvelope,
 			}),
 
 			stockItemChangeLog(p.StockItemChanges),
