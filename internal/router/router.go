@@ -5,6 +5,7 @@ import (
 	"app/internal/service"
 	"app/internal/views/homeview"
 	"app/internal/views/notfoundview"
+	"app/pkg/apphmac"
 	"app/pkg/middleware"
 	"app/pkg/reqcontext"
 	"fmt"
@@ -26,7 +27,7 @@ type Services struct {
 	UserService             service.UserService
 }
 
-func NewRouter(services *Services) http.Handler {
+func NewRouter(services *Services, appHMAC apphmac.AppHMAC) http.Handler {
 
 	// create the Authentication middleware with dependency injection
 	authenticationMiddleware := middleware.NewAuthenticationMiddleware(
@@ -55,17 +56,18 @@ func NewRouter(services *Services) http.Handler {
 		services.AndonService,
 		services.AndonIssueService,
 		services.CommentService,
-		services.FileService,
 		services.GalleryService,
 		services.TeamService,
+		appHMAC,
 	)
 	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
 	addCameraScannerRoutes(mux)
 	addFileRoutes(mux, services.FileService)
-	addGalleryRoutes(mux, services.FileService, services.GalleryService)
+	addGalleryRoutes(mux, services.GalleryService, appHMAC)
 	addPDFRoutes(mux, services.PDFService)
 	addSearchRoutes(mux, services.SearchService)
-	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.FileService, services.GalleryService)
+	addCommentRoutes(mux, services.CommentService, services.FileService, appHMAC)
+	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.GalleryService, appHMAC)
 	addStockTransactionRoutes(mux, services.StockItemService, services.StockTransactionService)
 	addTeamRoutes(mux, services.TeamService, services.UserService)
 	addUserRoutes(mux, services.UserService)
@@ -93,7 +95,6 @@ func NewRouter(services *Services) http.Handler {
 
 		fmt.Fprintln(w, "404 Not Found")
 
-		return
 	})
 
 	return middlewareStack(mux)

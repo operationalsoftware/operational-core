@@ -14,14 +14,6 @@ func NewFileHandler(fileService service.FileService) *FileHandler {
 	return &FileHandler{fileService: fileService}
 }
 
-type addFileFormData struct {
-	Filename    string
-	ContentType string
-	SizeBytes   int
-	Entity      string
-	EntityID    int
-}
-
 func (h *FileHandler) CompleteFileUpload(w http.ResponseWriter, r *http.Request) {
 	fileID := r.PathValue("fileID")
 

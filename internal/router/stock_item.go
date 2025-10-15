@@ -3,6 +3,7 @@ package router
 import (
 	"app/internal/handler"
 	"app/internal/service"
+	"app/pkg/apphmac"
 	"net/http"
 )
 
@@ -10,10 +11,10 @@ func addStockItemRoutes(
 	mux *http.ServeMux,
 	stockItemService service.StockItemService,
 	commentService service.CommentService,
-	fileService service.FileService,
 	galleryService service.GalleryService,
+	appHMAC apphmac.AppHMAC,
 ) {
-	stockItemHandler := handler.NewStockItemHandler(stockItemService, commentService, fileService, galleryService)
+	stockItemHandler := handler.NewStockItemHandler(stockItemService, commentService, galleryService, appHMAC)
 
 	mux.HandleFunc("GET /stock-items", stockItemHandler.StockItemsPage)
 
@@ -21,9 +22,6 @@ func addStockItemRoutes(
 	mux.HandleFunc("POST /stock-items/add", stockItemHandler.AddStockItem)
 
 	mux.HandleFunc("GET /stock-items/{id}", stockItemHandler.StockItemPage)
-
-	mux.HandleFunc("POST /stock-items/{entityID}/comments", stockItemHandler.AddComment)
-	mux.HandleFunc("POST /stock-items/{entityID}/comments/{commentID}/attachment", stockItemHandler.AddAttachment)
 
 	mux.HandleFunc("GET /stock-items/{id}/edit", stockItemHandler.EditStockItemPage)
 	mux.HandleFunc("POST /stock-items/{id}/edit", stockItemHandler.EditStockItem)

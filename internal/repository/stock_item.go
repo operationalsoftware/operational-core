@@ -27,9 +27,10 @@ func (r *StockItemRepository) CreateStockItem(
 INSERT INTO stock_item (
 	stock_code,
 	description,
-	gallery_id
+	gallery_id,
+	comment_thread_id
 )
-VALUES ($1, $2, $3)
+VALUES ($1, $2, $3, $4)
 RETURNING stock_item_id
 	`
 	var newStockItemID int
@@ -39,6 +40,7 @@ RETURNING stock_item_id
 		stockItem.StockCode,
 		stockItem.Description,
 		stockItem.GalleryID,
+		stockItem.CommentThreadID,
 	).Scan(&newStockItemID)
 
 	if err != nil {
@@ -99,13 +101,14 @@ func (r *StockItemRepository) GetStockItem(
 ) (*model.StockItem, error) {
 	query := `
 SELECT
-    stock_item_id,
-    stock_code,
-    description,
-    gallery_id,
-    created_at
+	stock_item_id,
+	stock_code,
+	description,
+	gallery_id,
+	comment_thread_id,
+	created_at
 FROM
-    stock_item
+	stock_item
 WHERE
     stock_item_id = $1
 	`
@@ -116,6 +119,7 @@ WHERE
 		&stockItem.StockCode,
 		&stockItem.Description,
 		&stockItem.GalleryID,
+		&stockItem.CommentThreadID,
 		&stockItem.CreatedAt,
 	)
 
@@ -135,12 +139,13 @@ func (r *StockItemRepository) GetStockItemByStockCode(
 ) (*model.StockItem, error) {
 	query := `
 SELECT
-    stock_item_id,
-    stock_code,
-    description,
-    created_at
+	stock_item_id,
+	stock_code,
+	description,
+	comment_thread_id,
+	created_at
 FROM
-    stock_item
+	stock_item
 WHERE
     stock_code = $1
 	`
@@ -150,6 +155,7 @@ WHERE
 		&stockItem.StockItemID,
 		&stockItem.StockCode,
 		&stockItem.Description,
+		&stockItem.CommentThreadID,
 		&stockItem.CreatedAt,
 	)
 
@@ -181,6 +187,7 @@ SELECT
     stock_item_id,
     stock_code,
     description,
+		comment_thread_id,
     created_at
 FROM
     stock_item
@@ -206,6 +213,7 @@ LIMIT $1 OFFSET $2
 			&stockItem.StockItemID,
 			&stockItem.StockCode,
 			&stockItem.Description,
+			&stockItem.CommentThreadID,
 			&stockItem.CreatedAt,
 		)
 		if err != nil {
