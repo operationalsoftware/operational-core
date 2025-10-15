@@ -3,6 +3,7 @@ package router
 import (
 	"app/internal/handler"
 	"app/internal/service"
+	"app/pkg/apphmac"
 	"net/http"
 )
 
@@ -14,7 +15,7 @@ func addAndonRoutes(
 	fileService service.FileService,
 	galleryService service.GalleryService,
 	teamService service.TeamService,
-	hmacService service.HMACService,
+	appHMAC apphmac.AppHMAC,
 ) {
 	andonHandler := handler.NewAndonHandler(
 		andonService,
@@ -23,7 +24,7 @@ func addAndonRoutes(
 		fileService,
 		galleryService,
 		teamService,
-		hmacService,
+		appHMAC,
 	)
 
 	mux.HandleFunc("GET /andons", andonHandler.HomePage)

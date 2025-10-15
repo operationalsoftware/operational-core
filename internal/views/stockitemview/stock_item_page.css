@@ -23,7 +23,6 @@
 .two-column-flex {
   display: flex;
   gap: var(--spacing-md);
-  /* Do not stretch children to the tallest column; let each keep its own height */
   align-items: flex-start;
 
   & > * {

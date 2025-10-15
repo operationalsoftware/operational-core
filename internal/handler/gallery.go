@@ -18,18 +18,18 @@ import (
 type GalleryHandler struct {
 	fileService    service.FileService
 	galleryService service.GalleryService
-	hmacService    service.HMACService
+	appHMAC        apphmac.AppHMAC
 }
 
 func NewGalleryHandler(
 	fileService service.FileService,
 	galleryService service.GalleryService,
-	hmacService service.HMACService,
+	appHMAC apphmac.AppHMAC,
 ) *GalleryHandler {
 	return &GalleryHandler{
 		fileService:    fileService,
 		galleryService: galleryService,
-		hmacService:    hmacService,
+		appHMAC:        appHMAC,
 	}
 }
 
@@ -44,9 +44,7 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	envelope := envStr
-	secretKey := h.hmacService.Secret()
-
-	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "view")
+	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "view")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
@@ -60,7 +58,7 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	editURL := ""
-	permissions, err := apphmac.GetEnvelopePermissions(envelope, secretKey)
+	permissions, err := h.appHMAC.GetEnvelopePermissions(envelope)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error fetching permissions", http.StatusInternalServerError)
@@ -90,9 +88,8 @@ func (h *GalleryHandler) AddGalleryItem(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	envelope := envStr
-	secretKey := h.hmacService.Secret()
 
-	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
@@ -162,9 +159,8 @@ func (h *GalleryHandler) DeleteGalleryItem(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	envelope := envStr
-	secretKey := h.hmacService.Secret()
 
-	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
@@ -193,14 +189,13 @@ func (h *GalleryHandler) SetGalleryItemPosition(w http.ResponseWriter, r *http.R
 		return
 	}
 	envelope := envStr
-	secretKey := h.hmacService.Secret()
 
-	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
-	permissions, err := apphmac.GetEnvelopePermissions(envelope, secretKey)
+	permissions, err := h.appHMAC.GetEnvelopePermissions(envelope)
 	if err != nil || !slices.Contains(permissions, "edit") {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -251,15 +246,14 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	envelope := envStr
-	secretKey := h.hmacService.Secret()
 
-	ok, err := apphmac.CheckEnvelope(envelope, secretKey, "gallery", fmt.Sprintf("%d", galleryID), "edit")
+	ok, err := h.appHMAC.CheckEnvelope(envelope, "gallery", fmt.Sprintf("%d", galleryID), "edit")
 	if err != nil || !ok {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
 	}
 
-	permissions, err := apphmac.GetEnvelopePermissions(envelope, secretKey)
+	permissions, err := h.appHMAC.GetEnvelopePermissions(envelope)
 	if err != nil || !slices.Contains(permissions, "edit") {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return

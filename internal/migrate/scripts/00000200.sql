@@ -1,4 +1,4 @@
--- Migration 00000300
+-- Migration 00000200
 -- Goal:
 --   * Introduce dedicated comment threads decoupled from (entity, entity_id) pairs
 --   * Persist a comment_thread_id on domain tables: andon, stock_item
@@ -11,8 +11,6 @@
 -- Safety:
 --   * All work done in a transaction.
 --   * Validation blocks ensure no null thread ids remain.
-
-BEGIN;
 
 -- 1. Drop dependent views so we can modify underlying tables
 DROP VIEW IF EXISTS comment_view;
@@ -224,5 +222,3 @@ FROM
   LEFT JOIN app_user ru ON a.resolved_by = ru.user_id
   LEFT JOIN app_user cu ON a.cancelled_by = cu.user_id
   INNER JOIN andon_issue_view aiv ON a.andon_issue_id = aiv.andon_issue_id;
-
-COMMIT;

@@ -11,6 +11,7 @@ import (
 	"app/internal/repository"
 	"app/internal/router"
 	"app/internal/service"
+	"app/pkg/apphmac"
 	"app/pkg/cookie"
 	"app/pkg/db"
 	"app/pkg/env"
@@ -82,6 +83,8 @@ func main() {
 		log.Fatalf("Error initialising swift sdk: %v\n", err)
 	}
 
+	appHMAC := apphmac.NewAppHMAC(secretKey)
+
 	// Instantiate repositories
 	andonRepository := repository.NewAndonRepository()
 	andonIssueRepository := repository.NewAndonIssueRepository()
@@ -101,20 +104,19 @@ func main() {
 		AuthService:             *service.NewAuthService(pgPool, authRepository),
 		CommentService:          *service.NewCommentService(pgPool, swiftConn, commentRepository),
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
-		GalleryService:          *service.NewGalleryService(pgPool, swiftConn, fileRepository, galleryRepository),
+		GalleryService:          *service.NewGalleryService(pgPool, swiftConn, appHMAC, fileRepository, galleryRepository),
 		PDFService:              *service.NewPDFService(),
 		SearchService:           *service.NewSearchService(pgPool, userRepository),
 		StockItemService:        *service.NewStockItemService(pgPool, swiftConn, galleryRepository, stockItemRepository, commentRepository),
 		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),
 		TeamService:             *service.NewTeamService(pgPool, teamRepository, userRepository),
 		UserService:             *service.NewUserService(pgPool, userRepository),
-		HMACService:             *service.NewHMACService(secretKey),
 	}
 
 	// define server
 	server := http.Server{
 		Addr:    ":3000",
-		Handler: router.NewRouter(services),
+		Handler: router.NewRouter(services, *appHMAC),
 	}
 
 	// Initialising chromium instance for pdf generations

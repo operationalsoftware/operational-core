@@ -17,18 +17,18 @@ import (
 type CommentHandler struct {
 	commentService service.CommentService
 	fileService    service.FileService
-	hmacService    service.HMACService
+	appHMAC        apphmac.AppHMAC
 }
 
 func NewCommentHandler(
 	commentService service.CommentService,
 	fileService service.FileService,
-	hmacService service.HMACService,
+	appHMAC apphmac.AppHMAC,
 ) *CommentHandler {
 	return &CommentHandler{
 		commentService: commentService,
 		fileService:    fileService,
-		hmacService:    hmacService,
+		appHMAC:        appHMAC,
 	}
 }
 
@@ -75,8 +75,7 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify HMAC: prefer envelope
-	secret := h.hmacService.Secret()
-	isValid, err := apphmac.CheckEnvelope(reqBody.HMAC, secret, "comment_thread", fmt.Sprintf("%d", threadID), "add")
+	isValid, err := h.appHMAC.CheckEnvelope(reqBody.HMAC, "comment_thread", fmt.Sprintf("%d", threadID), "add")
 	if err != nil || !isValid {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return
@@ -110,13 +109,14 @@ func (h *CommentHandler) Add(w http.ResponseWriter, r *http.Request) {
 		Permissions: []string{"add"},
 		Expires:     time.Now().Add(24 * time.Hour).Unix(),
 	}
-	attachEnvelope := apphmac.CreateEnvelope(attachPayload, secret)
-	attachEnvelopeJSON, _ := json.Marshal(attachEnvelope)
+	attachEnvelope := h.appHMAC.CreateEnvelope(
+		attachPayload,
+	)
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{
 		"commentId":      commentID,
-		"attachmentHmac": string(attachEnvelopeJSON),
+		"attachmentHmac": attachEnvelope,
 	})
 }
 
@@ -144,8 +144,7 @@ func (h *CommentHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	secret := h.hmacService.Secret()
-	isValid, err := apphmac.CheckEnvelope(fd.HMAC, secret, "comment", fmt.Sprintf("%d", commentID), "add")
+	isValid, err := h.appHMAC.CheckEnvelope(fd.HMAC, "comment", fmt.Sprintf("%d", commentID), "add")
 	if err != nil || !isValid {
 		http.Error(w, "Error validating", http.StatusUnauthorized)
 		return

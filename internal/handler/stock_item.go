@@ -11,7 +11,6 @@ import (
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -27,7 +26,7 @@ type StockItemHandler struct {
 	commentService   service.CommentService
 	fileService      service.FileService
 	galleryService   service.GalleryService
-	hmacService      service.HMACService
+	appHMAC          apphmac.AppHMAC
 }
 
 func NewStockItemHandler(
@@ -35,14 +34,14 @@ func NewStockItemHandler(
 	commentService service.CommentService,
 	fileService service.FileService,
 	galleryService service.GalleryService,
-	hmacService service.HMACService,
+	appHMAC apphmac.AppHMAC,
 ) *StockItemHandler {
 	return &StockItemHandler{
 		stockItemService: stockItemService,
 		commentService:   commentService,
 		fileService:      fileService,
 		galleryService:   galleryService,
-		hmacService:      hmacService,
+		appHMAC:          appHMAC,
 	}
 }
 
@@ -168,11 +167,11 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		Entity:      "comment_thread",
 		EntityID:    fmt.Sprintf("%d", stockItem.CommentThreadID),
 		Permissions: permissions,
-		Expires:     time.Now().Add(24 * time.Hour).Unix(), // 24 hours from now
+		Expires:     time.Now().Add(24 * time.Hour).Unix(),
 	}
-	commentEnvelope := apphmac.CreateEnvelope(commentPayload, h.hmacService.Secret())
-	addCommentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
-
+	commentEnvelope := h.appHMAC.CreateEnvelope(
+		commentPayload,
+	)
 	_ = stockitemview.StockItemPage(&stockitemview.StockItemPageProps{
 		Ctx:                     ctx,
 		StockItem:               *stockItem,
@@ -181,7 +180,7 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		GalleryImageURLs:        galleryImgURLs,
 		StockItemChanges:        stockItemChanges,
 		StockItemComments:       comments,
-		AddCommentsHMACEnvelope: string(addCommentEnvelopeJSON),
+		AddCommentsHMACEnvelope: commentEnvelope,
 	}).
 		Render(w)
 }

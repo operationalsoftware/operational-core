@@ -73,37 +73,49 @@ func verifyEnvelope(e envelope, secret string) (Payload, error) {
 //
 // Examples:
 //   - Add a comment to thread 42:
-//     Entity: "comment", EntityID: "42", Permission: "add"
+//     entity: "comment", entity_id: "42", permissions: "add"
 //   - Add an attachment to comment 1337:
-//     Entity: "comment", EntityID: "1337", Permission: "add"
-//   - Notes can use: Entity: "notes", EntityID: "<notes-resource-id>", Permission: "add"
+//     entity: "comment", entity_id: "1337", permissions: "add"
+//   - Notes can use: entity: "notes", entity_id: "<notes-resource-id>", permissions: "add"
 type Payload struct {
-	Entity      string   `json:"Entity"`
-	EntityID    string   `json:"EntityID"`
-	Permissions []string `json:"Permissions"`
-	Expires     int64    `json:"Expires"`
+	Entity      string   `json:"entity"`
+	EntityID    string   `json:"entity_id"`
+	Permissions []string `json:"permissions"`
+	Expires     int64    `json:"expires"`
 }
 
 // Envelope contains the payload alongside its HMAC signature.
 // Clients send this structure to the server, and the server verifies it.
 type envelope struct {
-	Payload   Payload `json:"Payload"`
-	Signature string  `json:"Signature"`
+	Payload   Payload `json:"payload"`
+	Signature string  `json:"signature"`
 }
 
-func CreateEnvelope(p Payload, secret string) envelope {
+// AppHMAC provides access to the HMAC functionality.
+type AppHMAC struct {
+	secret string
+}
+
+// NewAppHMAC constructs a new HMACService with the provided secret.
+func NewAppHMAC(secret string) *AppHMAC {
+	return &AppHMAC{secret: secret}
+}
+
+func (s *AppHMAC) CreateEnvelope(p Payload) string {
 	claims := Payload{
 		Entity:      p.Entity,
 		EntityID:    p.EntityID,
 		Permissions: p.Permissions,
 		Expires:     p.Expires,
 	}
-	sig := generateHMAC(claims, secret)
-	return envelope{Payload: p, Signature: sig}
+	sig := generateHMAC(claims, s.secret)
+	env := envelope{Payload: p, Signature: sig}
+	jsonEnv, _ := json.Marshal(env)
+	return string(jsonEnv)
 }
 
 // extract permissions from envelope
-func GetEnvelopePermissions(envelopeStr, secret string) ([]string, error) {
+func (s *AppHMAC) GetEnvelopePermissions(envelopeStr string) ([]string, error) {
 	var e envelope
 	if err := json.Unmarshal([]byte(envelopeStr), &e); err != nil {
 		return nil, fmt.Errorf("invalid envelope json: %w", err)
@@ -111,14 +123,14 @@ func GetEnvelopePermissions(envelopeStr, secret string) ([]string, error) {
 	if e.Signature == "" {
 		return nil, fmt.Errorf("missing HMAC")
 	}
-	claims, err := verifyEnvelope(e, secret)
+	claims, err := verifyEnvelope(e, s.secret)
 	if err != nil {
 		return nil, fmt.Errorf("error validating HMAC: %w", err)
 	}
 	return claims.Permissions, nil
 }
 
-func CheckEnvelope(envelopeStr string, secret, requiredEntity, requiredEntityID, requiredPermission string) (bool, error) {
+func (s *AppHMAC) CheckEnvelope(envelopeStr string, requiredEntity, requiredEntityID, requiredPermission string) (bool, error) {
 	// Check if envelope is nil or signature is empty
 	// decode envelope JSON
 	var e envelope
@@ -128,7 +140,7 @@ func CheckEnvelope(envelopeStr string, secret, requiredEntity, requiredEntityID,
 	if e.Signature == "" {
 		return false, fmt.Errorf("missing HMAC")
 	}
-	payload, err := verifyEnvelope(e, secret)
+	payload, err := verifyEnvelope(e, s.secret)
 	// Check if verification failed
 	if err != nil {
 		return false, fmt.Errorf("error validating HMAC: %w", err)

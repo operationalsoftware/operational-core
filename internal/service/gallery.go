@@ -5,10 +5,8 @@ import (
 	"app/internal/repository"
 	"app/pkg/apphmac"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,6 +16,7 @@ import (
 type GalleryService struct {
 	db                *pgxpool.Pool
 	swiftConn         *swift.Connection
+	appHMAC           *apphmac.AppHMAC
 	fileRepository    *repository.FileRepository
 	galleryRepository *repository.GalleryRepository
 }
@@ -25,12 +24,14 @@ type GalleryService struct {
 func NewGalleryService(
 	db *pgxpool.Pool,
 	swiftConn *swift.Connection,
+	appHMAC *apphmac.AppHMAC,
 	fileRepository *repository.FileRepository,
 	galleryRepository *repository.GalleryRepository,
 ) *GalleryService {
 	return &GalleryService{
 		db:                db,
 		swiftConn:         swiftConn,
+		appHMAC:           appHMAC,
 		fileRepository:    fileRepository,
 		galleryRepository: galleryRepository,
 	}
@@ -236,8 +237,6 @@ func (s *GalleryService) generateTempURL(
 	canEdit bool,
 	pathSuffix string,
 ) string {
-	secretKey := os.Getenv("AES_256_ENCRYPTION_KEY")
-
 	permissions := []string{"view"}
 	if canEdit {
 		permissions = append(permissions, "edit")
@@ -250,14 +249,10 @@ func (s *GalleryService) generateTempURL(
 		Expires:     expires,
 	}
 
-	envelope := apphmac.CreateEnvelope(payload, secretKey)
-	galleryEnvelopeJSON, err := json.Marshal(envelope)
-	if err != nil {
-		return err.Error()
-	}
+	envelope := s.appHMAC.CreateEnvelope(payload)
 
 	// encode to URL safe encoding
-	galleryEnvelope := url.QueryEscape(string(galleryEnvelopeJSON))
+	galleryEnvelope := url.QueryEscape(envelope)
 
 	// construct URL
 	galleryURL := fmt.Sprintf(

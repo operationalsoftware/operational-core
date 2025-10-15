@@ -21,7 +21,7 @@ func NewCommentRepository(fileRepo *FileRepository) *CommentRepository {
 }
 
 // CreateCommentThread creates an empty comment thread and returns its id.
-// After migration 00000300 comment threads are decoupled from entities, so we
+// After migration 00000200 comment threads are decoupled from entities, so we
 // just insert default values.
 func (r *CommentRepository) CreateCommentThread(
 	ctx context.Context,

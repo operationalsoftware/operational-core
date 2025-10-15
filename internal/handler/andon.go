@@ -9,7 +9,6 @@ import (
 	"app/pkg/appurl"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,7 +24,7 @@ type AndonHandler struct {
 	fileService       service.FileService
 	galleryService    service.GalleryService
 	teamService       service.TeamService
-	hmacService       service.HMACService
+	appHMAC           apphmac.AppHMAC
 }
 
 func NewAndonHandler(
@@ -35,7 +34,7 @@ func NewAndonHandler(
 	fileService service.FileService,
 	galleryService service.GalleryService,
 	teamService service.TeamService,
-	hmacService service.HMACService,
+	appHMAC apphmac.AppHMAC,
 ) *AndonHandler {
 	return &AndonHandler{
 		andonService:      andonService,
@@ -44,7 +43,7 @@ func NewAndonHandler(
 		fileService:       fileService,
 		galleryService:    galleryService,
 		teamService:       teamService,
-		hmacService:       hmacService,
+		appHMAC:           appHMAC,
 	}
 }
 
@@ -554,14 +553,16 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	if andon.CanUserEdit {
 		permissions = append(permissions, "add")
 	}
+
 	commentPayload := apphmac.Payload{
 		Entity:      "comment_thread",
 		EntityID:    fmt.Sprintf("%d", andon.CommentThreadID),
 		Permissions: permissions,
 		Expires:     time.Now().Add(24 * time.Hour).Unix(),
 	}
-	commentEnvelope := apphmac.CreateEnvelope(commentPayload, h.hmacService.Secret())
-	addCommentEnvelopeJSON, _ := json.Marshal(commentEnvelope)
+	commentEnvelope := h.appHMAC.CreateEnvelope(
+		commentPayload,
+	)
 
 	_ = andonview.AndonPage(&andonview.AndonPageProps{
 		Ctx:                    ctx,
@@ -574,6 +575,6 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		GalleryURL:             galleryURL,
 		GalleryImageURLs:       galleryImgURLs,
 		ReturnTo:               uv.ReturnTo,
-		AddCommentHMACEnvelope: string(addCommentEnvelopeJSON),
+		AddCommentHMACEnvelope: commentEnvelope,
 	}).Render(w)
 }

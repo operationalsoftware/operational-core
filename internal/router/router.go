@@ -5,6 +5,7 @@ import (
 	"app/internal/service"
 	"app/internal/views/homeview"
 	"app/internal/views/notfoundview"
+	"app/pkg/apphmac"
 	"app/pkg/middleware"
 	"app/pkg/reqcontext"
 	"fmt"
@@ -24,10 +25,9 @@ type Services struct {
 	StockItemService        service.StockItemService
 	TeamService             service.TeamService
 	UserService             service.UserService
-	HMACService             service.HMACService
 }
 
-func NewRouter(services *Services) http.Handler {
+func NewRouter(services *Services, appHMAC apphmac.AppHMAC) http.Handler {
 
 	// create the Authentication middleware with dependency injection
 	authenticationMiddleware := middleware.NewAuthenticationMiddleware(
@@ -59,16 +59,16 @@ func NewRouter(services *Services) http.Handler {
 		services.FileService,
 		services.GalleryService,
 		services.TeamService,
-		services.HMACService,
+		appHMAC,
 	)
 	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
 	addCameraScannerRoutes(mux)
 	addFileRoutes(mux, services.FileService)
-	addGalleryRoutes(mux, services.FileService, services.GalleryService, services.HMACService)
+	addGalleryRoutes(mux, services.FileService, services.GalleryService, appHMAC)
 	addPDFRoutes(mux, services.PDFService)
 	addSearchRoutes(mux, services.SearchService)
-	addCommentRoutes(mux, services.CommentService, services.FileService, services.HMACService)
-	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.FileService, services.GalleryService, services.HMACService)
+	addCommentRoutes(mux, services.CommentService, services.FileService, appHMAC)
+	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.FileService, services.GalleryService, appHMAC)
 	addStockTransactionRoutes(mux, services.StockItemService, services.StockTransactionService)
 	addTeamRoutes(mux, services.TeamService, services.UserService)
 	addUserRoutes(mux, services.UserService)
