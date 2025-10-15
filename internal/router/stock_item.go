@@ -11,11 +11,10 @@ func addStockItemRoutes(
 	mux *http.ServeMux,
 	stockItemService service.StockItemService,
 	commentService service.CommentService,
-	fileService service.FileService,
 	galleryService service.GalleryService,
 	appHMAC apphmac.AppHMAC,
 ) {
-	stockItemHandler := handler.NewStockItemHandler(stockItemService, commentService, fileService, galleryService, appHMAC)
+	stockItemHandler := handler.NewStockItemHandler(stockItemService, commentService, galleryService, appHMAC)
 
 	mux.HandleFunc("GET /stock-items", stockItemHandler.StockItemsPage)
 

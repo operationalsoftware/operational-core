@@ -16,18 +16,15 @@ import (
 )
 
 type GalleryHandler struct {
-	fileService    service.FileService
 	galleryService service.GalleryService
 	appHMAC        apphmac.AppHMAC
 }
 
 func NewGalleryHandler(
-	fileService service.FileService,
 	galleryService service.GalleryService,
 	appHMAC apphmac.AppHMAC,
 ) *GalleryHandler {
 	return &GalleryHandler{
-		fileService:    fileService,
 		galleryService: galleryService,
 		appHMAC:        appHMAC,
 	}

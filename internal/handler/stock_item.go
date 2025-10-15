@@ -24,7 +24,6 @@ import (
 type StockItemHandler struct {
 	stockItemService service.StockItemService
 	commentService   service.CommentService
-	fileService      service.FileService
 	galleryService   service.GalleryService
 	appHMAC          apphmac.AppHMAC
 }
@@ -32,14 +31,12 @@ type StockItemHandler struct {
 func NewStockItemHandler(
 	stockItemService service.StockItemService,
 	commentService service.CommentService,
-	fileService service.FileService,
 	galleryService service.GalleryService,
 	appHMAC apphmac.AppHMAC,
 ) *StockItemHandler {
 	return &StockItemHandler{
 		stockItemService: stockItemService,
 		commentService:   commentService,
-		fileService:      fileService,
 		galleryService:   galleryService,
 		appHMAC:          appHMAC,
 	}
