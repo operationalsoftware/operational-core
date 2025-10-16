@@ -15,18 +15,7 @@ func NewAuthRepository() *AuthRepository {
 	return &AuthRepository{}
 }
 
-func (r *AuthRepository) GetAuthUserByUsername(
-	ctx context.Context,
-	tx pgx.Tx,
-	username string,
-) (*model.AuthUser, error) {
-
-	var authUserDB model.AuthUserDB
-	var authUser model.AuthUser
-
-	err := tx.QueryRow(
-		ctx,
-		`
+const authUserSelectClause = `
 SELECT
 	user_id,
 	is_api_user,
@@ -40,11 +29,67 @@ SELECT
 	failed_login_attempts,
 	login_blocked_until,
 	session_duration_minutes
+	`
+
+func (r *AuthRepository) GetAuthUserByUsername(
+	ctx context.Context,
+	tx pgx.Tx,
+	username string,
+) (*model.AuthUser, error) {
+
+	var authUserDB model.AuthUserDB
+	var authUser model.AuthUser
+
+	query := authUserSelectClause + `
 FROM
 	app_user
 WHERE
 	username = $1
-	`, username).Scan(
+	`
+
+	err := tx.QueryRow(ctx, query, username).Scan(
+		&authUserDB.UserID,
+		&authUserDB.IsAPIUser,
+		&authUserDB.Username,
+		&authUserDB.Email,
+		&authUserDB.FirstName,
+		&authUserDB.LastName,
+		&authUserDB.Created,
+		&authUserDB.LastLogin,
+		&authUserDB.HashedPassword,
+		&authUserDB.FailedLoginAttempts,
+		&authUserDB.LoginBlockedUntil,
+		&authUserDB.SessionDurationMinutes,
+	)
+
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return &authUser, err
+	}
+
+	authUser = authUserDB.ToDomain()
+
+	return &authUser, nil
+}
+
+func (r *AuthRepository) GetAuthUserByEmail(
+	ctx context.Context,
+	tx pgx.Tx,
+	email string,
+) (*model.AuthUser, error) {
+
+	var authUserDB model.AuthUserDB
+	var authUser model.AuthUser
+
+	query := authUserSelectClause + `
+FROM
+	app_user
+WHERE
+	email = $1
+	`
+
+	err := tx.QueryRow(ctx, query, email).Scan(
 		&authUserDB.UserID,
 		&authUserDB.IsAPIUser,
 		&authUserDB.Username,
