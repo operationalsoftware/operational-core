@@ -15,7 +15,7 @@ func NewAuthRepository() *AuthRepository {
 	return &AuthRepository{}
 }
 
-const AuthUserSelectClause = `
+const authUserSelectClause = `
 SELECT
 	user_id,
 	is_api_user,
@@ -40,7 +40,7 @@ func (r *AuthRepository) GetAuthUserByUsername(
 	var authUserDB model.AuthUserDB
 	var authUser model.AuthUser
 
-	query := AuthUserSelectClause + `
+	query := authUserSelectClause + `
 FROM
 	app_user
 WHERE
@@ -82,7 +82,7 @@ func (r *AuthRepository) GetAuthUserByEmail(
 	var authUserDB model.AuthUserDB
 	var authUser model.AuthUser
 
-	query := AuthUserSelectClause + `
+	query := authUserSelectClause + `
 FROM
 	app_user
 WHERE
