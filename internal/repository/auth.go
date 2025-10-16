@@ -15,18 +15,8 @@ func NewAuthRepository() *AuthRepository {
 	return &AuthRepository{}
 }
 
-func (r *AuthRepository) GetAuthUserByUsername(
-	ctx context.Context,
-	tx pgx.Tx,
-	username string,
-) (*model.AuthUser, error) {
-
-	var authUserDB model.AuthUserDB
-	var authUser model.AuthUser
-
-	err := tx.QueryRow(
-		ctx,
-		`
+func AuthUserSelectClause() string {
+	return `
 SELECT
 	user_id,
 	is_api_user,
@@ -40,11 +30,26 @@ SELECT
 	failed_login_attempts,
 	login_blocked_until,
 	session_duration_minutes
+	`
+}
+
+func (r *AuthRepository) GetAuthUserByUsername(
+	ctx context.Context,
+	tx pgx.Tx,
+	username string,
+) (*model.AuthUser, error) {
+
+	var authUserDB model.AuthUserDB
+	var authUser model.AuthUser
+
+	query := AuthUserSelectClause() + `
 FROM
 	app_user
 WHERE
 	username = $1
-	`, username).Scan(
+	`
+
+	err := tx.QueryRow(ctx, query, username).Scan(
 		&authUserDB.UserID,
 		&authUserDB.IsAPIUser,
 		&authUserDB.Username,
@@ -79,27 +84,14 @@ func (r *AuthRepository) GetAuthUserByEmail(
 	var authUserDB model.AuthUserDB
 	var authUser model.AuthUser
 
-	err := tx.QueryRow(
-		ctx,
-		`
-SELECT
-	user_id,
-	is_api_user,
-	username,
-	email,
-	first_name,
-	last_name,
-	created,
-	last_login,
-	hashed_password,
-	failed_login_attempts,
-	login_blocked_until,
-	session_duration_minutes
+	query := AuthUserSelectClause() + `
 FROM
 	app_user
 WHERE
 	email = $1
-	`, email).Scan(
+	`
+
+	err := tx.QueryRow(ctx, query, email).Scan(
 		&authUserDB.UserID,
 		&authUserDB.IsAPIUser,
 		&authUserDB.Username,

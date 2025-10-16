@@ -5,8 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -54,10 +56,9 @@ func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) 
 
 	props := authview.PasswordLoginPageProps{Ctx: ctx}
 
-	// Map error query param to user-facing message
-	switch r.URL.Query().Get("Error") {
-	case "NotFound":
-		props.LogInFailedError = "Microsoft login allowed only for existing users"
+	error := r.URL.Query().Get("Error")
+	if error != "" {
+		props.LogInFailedError = error
 	}
 
 	_ = authview.PasswordLoginPage(props).Render(w)
@@ -378,7 +379,6 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Authenticate user if email matches existing user; no auto-creation
 	authUser, err := h.authService.AuthenticateUserByEmail(r.Context(), email)
 	if err != nil {
 		log.Printf("Microsoft OAuth: AuthenticateUserByEmail failed: %v", err)
@@ -387,8 +387,8 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if authUser == nil {
-		// Redirect to standard password page with query flag Error
-		http.Redirect(w, r, "/auth/password?Error=NotFound", http.StatusSeeOther)
+		error := url.QueryEscape("Microsoft login allowed only for existing users")
+		http.Redirect(w, r, fmt.Sprintf("/auth/password?Error=%s", error), http.StatusSeeOther)
 		return
 	}
 
