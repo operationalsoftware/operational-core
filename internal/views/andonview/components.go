@@ -3,7 +3,6 @@ package andonview
 import (
 	"app/internal/components"
 	"app/internal/model"
-	"fmt"
 	"strconv"
 
 	g "maragu.dev/gomponents"
@@ -47,48 +46,6 @@ func statusBadge(status model.AndonStatus, size components.BadgeSize) g.Node {
 	},
 		g.Text(string(status)),
 	)
-}
-
-func humanizeDuration(seconds int) string {
-	// Clamp negatives and provide a path for zero
-	if seconds <= 0 {
-		return "0s"
-	}
-
-	const (
-		day    = 24 * 60 * 60
-		hour   = 60 * 60
-		minute = 60
-	)
-
-	// Break down into units
-	d := seconds / day
-	seconds %= day
-	h := seconds / hour
-	seconds %= hour
-	m := seconds / minute
-	s := seconds % minute
-
-	// Show at most two largest units to keep it compact
-	if d > 0 {
-		if h > 0 {
-			return fmt.Sprintf("%dd %dh", d, h)
-		}
-		return fmt.Sprintf("%dd", d)
-	}
-	if h > 0 {
-		if m > 0 {
-			return fmt.Sprintf("%dh %dm", h, m)
-		}
-		return fmt.Sprintf("%dh", h)
-	}
-	if m > 0 {
-		if s > 0 {
-			return fmt.Sprintf("%dm %ds", m, s)
-		}
-		return fmt.Sprintf("%dm", m)
-	}
-	return fmt.Sprintf("%ds", s)
 }
 
 type acknowledgeButtonProps struct {

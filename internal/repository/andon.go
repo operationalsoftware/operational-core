@@ -105,7 +105,7 @@ SELECT
 	raised_by_username,
 	raised_at,
 	closed_at,
-	COALESCE(EXTRACT(EPOCH FROM (COALESCE(closed_at, NOW()) - raised_at)), 0)::bigint AS open_duration_seconds,
+	open_duration_seconds,
 	is_acknowledged,
 	acknowledged_by_username,
 	acknowledged_at,
@@ -203,17 +203,7 @@ WHERE
 	}
 
 	query := andonSelectClause(2) + `
-FROM (
-	SELECT
-		av.*,
-		CASE
-			WHEN av.cancelled_at IS NOT NULL THEN av.cancelled_at
-			WHEN av.severity = 'Info' AND av.acknowledged_at IS NOT NULL THEN av.acknowledged_at
-			WHEN av.severity IN ('Self-resolvable', 'Requires Intervention') AND av.acknowledged_at IS NOT NULL AND av.resolved_at IS NOT NULL THEN GREATEST(av.acknowledged_at, av.resolved_at)
-			ELSE NULL
-		END AS closed_at
-	FROM andon_view av
-) base
+FROM andon_view
 WHERE
 	andon_id = $1
 `
@@ -276,17 +266,7 @@ func (r *AndonRepository) ListAndons(
 	offsetPlaceholder := fmt.Sprintf("$%d", len(args)+3)
 
 	query := andonSelectClause(currentUserIDPlaceholder) + `
-FROM (
-	SELECT
-		av.*,
-		CASE
-			WHEN av.cancelled_at IS NOT NULL THEN av.cancelled_at
-			WHEN av.severity = 'Info' AND av.acknowledged_at IS NOT NULL THEN av.acknowledged_at
-			WHEN av.severity IN ('Self-resolvable', 'Requires Intervention') AND av.acknowledged_at IS NOT NULL AND av.resolved_at IS NOT NULL THEN GREATEST(av.acknowledged_at, av.resolved_at)
-			ELSE NULL
-		END AS closed_at
-	FROM andon_view av
-) base
+FROM andon_view
 `
 
 	limit := q.PageSize
@@ -347,7 +327,6 @@ FROM (
 		); err != nil {
 			return nil, err
 		}
-
 		andons = append(andons, andon)
 	}
 	if err := rows.Err(); err != nil {
@@ -773,28 +752,15 @@ func (r *AndonRepository) ReopenAndon(
 	var closedAt *time.Time
 	var severity string
 	err := exec.QueryRow(ctx, `
-SELECT
-	CASE
-		WHEN cancelled_at IS NOT NULL THEN cancelled_at
-		WHEN sev IN ('Self-resolvable','Requires Intervention') AND acknowledged_at IS NOT NULL AND resolved_at IS NOT NULL THEN GREATEST(acknowledged_at, resolved_at)
-		WHEN sev = 'Info' AND acknowledged_at IS NOT NULL THEN acknowledged_at
-		ELSE NULL
-	END AS closed_at,
-	sev AS severity
-FROM (
-	SELECT
-		a.*,
-		(SELECT severity FROM andon_issue ai WHERE ai.andon_issue_id = a.andon_issue_id) AS sev
-	FROM andon a
-	WHERE andon_id = $1
-) a
+SELECT closed_at, severity
+FROM andon_view
+WHERE andon_id = $1
 `, andonID).Scan(&closedAt, &severity)
 	if err != nil {
 		return err
 	}
 
 	if closedAt == nil {
-		// Not closed; nothing to reopen or already open
 		return fmt.Errorf("andon %d is not in a closed state", andonID)
 	}
 

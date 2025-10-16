@@ -5,6 +5,7 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/appsort"
+	"app/pkg/format"
 	"app/pkg/reqcontext"
 	"fmt"
 	"strings"
@@ -242,8 +243,6 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 			lastUpdated = a.LastUpdated.Format("2006-01-02 15:04:05")
 		}
 
-		openDuration := humanizeDuration(a.OpenDurationSeconds)
-
 		cells := []components.TableCell{
 			{Contents: g.Text(a.Location)},
 			{Contents: g.Text(a.Description)},
@@ -253,7 +252,7 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 			{Contents: statusBadge(a.Status, "small")},
 			{Contents: g.Text(a.RaisedByUsername)},
 			{Contents: g.Text(a.RaisedAt.Format("2006-01-02 15:04:05"))},
-			{Contents: g.Text(openDuration)},
+			{Contents: g.Text(format.FormatSecondsIntoDuration(a.OpenDurationSeconds))},
 			{Contents: g.Text(acknowledgedBy)},
 			{Contents: g.Text(acknowledgedAt)},
 			{Contents: g.Text(resolvedBy)},
