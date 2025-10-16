@@ -5,6 +5,7 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/appsort"
+	"app/pkg/format"
 	"app/pkg/reqcontext"
 	"fmt"
 	"strings"
@@ -210,6 +211,7 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 		{TitleContents: g.Text("Status"), SortKey: "Status"},
 		{TitleContents: g.Text("Raised By"), SortKey: "RaisedByUsername"},
 		{TitleContents: g.Text("Raised At"), SortKey: "RaisedAt"},
+		{TitleContents: g.Text("Open Duration"), SortKey: "OpenDurationSeconds"},
 		{TitleContents: g.Text("Acknowledged By"), SortKey: "AcknowledgedByUsername"},
 		{TitleContents: g.Text("Acknowledged At"), SortKey: "AcknowledgedAt"},
 		{TitleContents: g.Text("Resolved By"), SortKey: "ResolvedByUsername"},
@@ -250,6 +252,7 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 			{Contents: statusBadge(a.Status, "small")},
 			{Contents: g.Text(a.RaisedByUsername)},
 			{Contents: g.Text(a.RaisedAt.Format("2006-01-02 15:04:05"))},
+			{Contents: g.Text(format.FormatSecondsIntoDuration(a.OpenDurationSeconds))},
 			{Contents: g.Text(acknowledgedBy)},
 			{Contents: g.Text(acknowledgedAt)},
 			{Contents: g.Text(resolvedBy)},

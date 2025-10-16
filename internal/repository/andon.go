@@ -104,6 +104,8 @@ SELECT
 	assigned_team_name,
 	raised_by_username,
 	raised_at,
+	closed_at,
+	open_duration_seconds,
 	is_acknowledged,
 	acknowledged_by_username,
 	acknowledged_at,
@@ -125,7 +127,7 @@ SELECT
 	) AS can_user_edit,
 	(
 		is_cancelled = false
-	    AND
+		AND
 		is_acknowledged = false
 		AND
 		assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholderStr + `)
@@ -162,6 +164,10 @@ SELECT
 	) AS can_user_cancel,
 	(
 		is_open = false
+		AND (
+			-- allow reopen only within 5 minutes of closing
+			closed_at > NOW() - INTERVAL '5 minutes'
+		)
 		AND
 		(
 			(
@@ -197,8 +203,7 @@ WHERE
 	}
 
 	query := andonSelectClause(2) + `
-FROM
-	andon_view
+FROM andon_view
 WHERE
 	andon_id = $1
 `
@@ -218,6 +223,8 @@ WHERE
 		&andon.AssignedTeamName,
 		&andon.RaisedByUsername,
 		&andon.RaisedAt,
+		&andon.ClosedAt,
+		&andon.OpenDurationSeconds,
 		&andon.IsAcknowledged,
 		&andon.AcknowledgedByUsername,
 		&andon.AcknowledgedAt,
@@ -296,6 +303,8 @@ FROM andon_view
 			&andon.AssignedTeamName,
 			&andon.RaisedByUsername,
 			&andon.RaisedAt,
+			&andon.ClosedAt,
+			&andon.OpenDurationSeconds,
 			&andon.IsAcknowledged,
 			&andon.AcknowledgedByUsername,
 			&andon.AcknowledgedAt,
@@ -318,7 +327,6 @@ FROM andon_view
 		); err != nil {
 			return nil, err
 		}
-
 		andons = append(andons, andon)
 	}
 	if err := rows.Err(); err != nil {
@@ -739,6 +747,26 @@ func (r *AndonRepository) ReopenAndon(
 ) error {
 
 	now := time.Now()
+
+	// Guard: only allow reopen within 5 minutes of closing
+	var closedAt *time.Time
+	var severity string
+	err := exec.QueryRow(ctx, `
+SELECT closed_at, severity
+FROM andon_view
+WHERE andon_id = $1
+`, andonID).Scan(&closedAt, &severity)
+	if err != nil {
+		return err
+	}
+
+	if closedAt == nil {
+		return fmt.Errorf("andon %d is not in a closed state", andonID)
+	}
+
+	if closedAt.Add(5 * time.Minute).Before(now) {
+		return fmt.Errorf("andon %d can only be reopened within 5 minutes of closing", andonID)
+	}
 
 	namedParams := map[string]any{
 		"andon_id": andonID,

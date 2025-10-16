@@ -4,6 +4,7 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
+	"app/pkg/format"
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
@@ -185,6 +186,9 @@ func andonAttributesList(p *andonAttributesListProps) g.Node {
 		{label: "Assigned Team", value: g.Text(andon.AssignedTeamName)},
 		{label: "Raised By", value: g.Text(andon.RaisedByUsername)},
 		{label: "Raised At", value: g.Text(andon.RaisedAt.Format("2006-01-02 15:04:05"))},
+		{label: "Open Duration", value: g.Text(
+			format.FormatSecondsIntoDuration(andon.OpenDurationSeconds),
+		)},
 		{label: "Acknowledged By", value: g.Text(acknowledgedByUsername)},
 		{label: "Acknowledged At", value: g.Text(acknowledgedAtStr)},
 	}

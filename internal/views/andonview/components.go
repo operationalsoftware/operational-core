@@ -57,9 +57,9 @@ type acknowledgeButtonProps struct {
 
 func acknowledgeButton(p *acknowledgeButtonProps) g.Node {
 	classes := c.Classes{
-		"button":  true,
+		"button":      true,
 		"acknowledge": true,
-		"small":   p.isSmall,
+		"small":       p.isSmall,
 	}
 
 	return h.Button(
