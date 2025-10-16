@@ -210,6 +210,7 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 		{TitleContents: g.Text("Status"), SortKey: "Status"},
 		{TitleContents: g.Text("Raised By"), SortKey: "RaisedByUsername"},
 		{TitleContents: g.Text("Raised At"), SortKey: "RaisedAt"},
+		{TitleContents: g.Text("Open Duration"), SortKey: "OpenDurationSeconds"},
 		{TitleContents: g.Text("Acknowledged By"), SortKey: "AcknowledgedByUsername"},
 		{TitleContents: g.Text("Acknowledged At"), SortKey: "AcknowledgedAt"},
 		{TitleContents: g.Text("Resolved By"), SortKey: "ResolvedByUsername"},
@@ -241,6 +242,8 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 			lastUpdated = a.LastUpdated.Format("2006-01-02 15:04:05")
 		}
 
+		openDuration := humanizeDuration(a.OpenDurationSeconds)
+
 		cells := []components.TableCell{
 			{Contents: g.Text(a.Location)},
 			{Contents: g.Text(a.Description)},
@@ -250,6 +253,7 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 			{Contents: statusBadge(a.Status, "small")},
 			{Contents: g.Text(a.RaisedByUsername)},
 			{Contents: g.Text(a.RaisedAt.Format("2006-01-02 15:04:05"))},
+			{Contents: g.Text(openDuration)},
 			{Contents: g.Text(acknowledgedBy)},
 			{Contents: g.Text(acknowledgedAt)},
 			{Contents: g.Text(resolvedBy)},

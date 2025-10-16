@@ -173,6 +173,7 @@ func andonAttributesList(p *andonAttributesListProps) g.Node {
 	if andon.ResolvedAt != nil {
 		resolvedAtStr = andon.ResolvedAt.Format("2006-01-02 15:04:05")
 	}
+	openDuration := humanizeDuration(andon.OpenDurationSeconds)
 
 	type attribute struct {
 		label string
@@ -185,6 +186,7 @@ func andonAttributesList(p *andonAttributesListProps) g.Node {
 		{label: "Assigned Team", value: g.Text(andon.AssignedTeamName)},
 		{label: "Raised By", value: g.Text(andon.RaisedByUsername)},
 		{label: "Raised At", value: g.Text(andon.RaisedAt.Format("2006-01-02 15:04:05"))},
+		{label: "Open Duration", value: g.Text(openDuration)},
 		{label: "Acknowledged By", value: g.Text(acknowledgedByUsername)},
 		{label: "Acknowledged At", value: g.Text(acknowledgedAtStr)},
 	}
