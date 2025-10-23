@@ -1,6 +1,6 @@
 module app
 
-go 1.23.0
+go 1.24.0
 
 // toolchain go1.23.2
 
@@ -19,7 +19,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/snabb/isoweek v1.0.3
 	golang.org/x/crypto v0.38.0
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.32.0
 	golang.org/x/text v0.25.0
 	maragu.dev/gomponents v1.1.0
 )
