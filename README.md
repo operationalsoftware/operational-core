@@ -62,16 +62,6 @@ Required for SSL/HTTPS in development (required for the [Web NFC API](https://w3
 
 ### Secrets and environment
 
-You have two options for providing configuration during development:
-
-Option A — Local .env file (requires adding a dependency and enabling loading in code):
-- Create a local `.env` file with the required variables listed below.
-- Add the dependency: `go get github.com/joho/godotenv`
-- Ensure your code loads `.env` during development (e.g., in `pkg/env/env.go` call `godotenv.Load()` when not in production/staging).
-
-Option B — Phase CLI (no SDK required):
-- Install Phase CLI, authenticate, then run the dev server via Phase so it injects secrets into the process when launching the command.
-
 Required environment variables (for either option):
 
 - APP_ENV, GO_ENV, SITE_ADDRESS
@@ -93,25 +83,7 @@ To start the development server, follow the steps below:
    ```
 
 2. **Start the development server**  
-    Choose one of the following options:
-
-    - Option A — Local .env:
-       - Add `github.com/joho/godotenv` and enable loading in `pkg/env/env.go`.
-       - Create a `.env` file with the required variables.
-       - Run:
-          ```
-          ./start-dev.sh
-          ```
-
-    - Option B — Phase CLI:
-       - Install and authenticate:
-          ```
-          phase auth
-          ```
-       - Run the dev server via Phase (injects secrets for this process):
-          ```
-          phase run ./start-dev.sh
-          ```
-
+   ```bash
+   ./start-dev.sh
+   ```
 ---
-
