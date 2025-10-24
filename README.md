@@ -13,7 +13,6 @@ OperationalCore is designed to be forked and customised at the code-level rather
 \* _Also suitable for other goods-centric businesses such as e-commerce and wholesale distribution since the operational challenges faced by these companies are mostly a subset of manufacturing._
 
 ---
-
 ## Motivation
 
 Until now, without the budget to develop 100% bespoke software, small and mid-size manufacturers have been constrained to off-the-shelf software and multi-tenant SaaS solutions. These systems force businesses to mould their processes to the software.
@@ -61,6 +60,27 @@ Required for SSL/HTTPS in development (required for the [Web NFC API](https://w3
 ./gen-dev-certs.sh
 ```
 
+### Secrets and environment
+
+You have two options for providing configuration during development:
+
+Option A — Local .env file (requires adding a dependency and enabling loading in code):
+- Create a local `.env` file with the required variables listed below.
+- Add the dependency: `go get github.com/joho/godotenv`
+- Ensure your code loads `.env` during development (e.g., in `pkg/env/env.go` call `godotenv.Load()` when not in production/staging).
+
+Option B — Phase CLI (no SDK required):
+- Install Phase CLI, authenticate, then run the dev server via Phase so it injects secrets into the process when launching the command.
+
+Required environment variables (for either option):
+
+- APP_ENV, GO_ENV, SITE_ADDRESS
+- PG_USER, PG_PASSWORD, PG_HOST, PG_PORT, PG_DATABASE
+- SWIFT_API_USER, SWIFT_API_KEY, SWIFT_AUTH_URL, SWIFT_TENANT_ID, SWIFT_CONTAINER
+- SECURE_COOKIE_HASH_KEY, SECURE_COOKIE_BLOCK_KEY, AES_256_ENCRYPTION_KEY
+- SYSTEM_USER_PASSWORD
+- DUMP_PREFIX, ORBIT_BACKUP_CONTAINER (for backups)
+
 ### Run Development Server
 
 To start the development server, follow the steps below:
@@ -70,12 +90,28 @@ To start the development server, follow the steps below:
 
    ```
    chmod +x start-dev.sh
+   ```
 
 2. **Start the development server**  
-   Execute the script to launch the development environment:
+    Choose one of the following options:
 
-   ```
-   ./start-dev.sh
+    - Option A — Local .env:
+       - Add `github.com/joho/godotenv` and enable loading in `pkg/env/env.go`.
+       - Create a `.env` file with the required variables.
+       - Run:
+          ```
+          ./start-dev.sh
+          ```
+
+    - Option B — Phase CLI:
+       - Install and authenticate:
+          ```
+          phase auth
+          ```
+       - Run the dev server via Phase (injects secrets for this process):
+          ```
+          phase run ./start-dev.sh
+          ```
 
 ---
 
