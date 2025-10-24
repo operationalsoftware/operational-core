@@ -9,7 +9,7 @@ RestartSec=5s
 StartLimitIntervalSec=0
 User=app
 Group=app
-EnvironmentFile=/opt/app/.env
+EnvironmentFile=/opt/app/app.env
 WorkingDirectory=/opt/app
 TimeoutStopSec=5s
 

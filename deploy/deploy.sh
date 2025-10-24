@@ -60,7 +60,32 @@ cd "$deploy_dir/.."
 
 # Copy built app to server
 scp $DEPLOY_SSH_KEY_FLAG ./app "$DEPLOY_HOST:~"
-scp $DEPLOY_SSH_KEY_FLAG "./deploy/$deployment_env.env" "$DEPLOY_HOST:~/.env"
+
+# Prepare an environment snapshot from current shell (expected to be injected via Phase or other means)
+# We only include variables used by the app for safety.
+allowed_vars=(
+  "APP_ENV" "GO_ENV" "SITE_ADDRESS"
+  "PG_USER" "PG_PASSWORD" "PG_HOST" "PG_PORT" "PG_DATABASE"
+  "MS_OAUTH_CLIENT_ID" "MS_OAUTH_SECRET" "MS_OAUTH_TENANT_ID"
+  "SWIFT_API_USER" "SWIFT_API_KEY" "SWIFT_AUTH_URL" "SWIFT_TENANT_ID" "SWIFT_CONTAINER"
+  "SECURE_COOKIE_HASH_KEY" "SECURE_COOKIE_BLOCK_KEY" "AES_256_ENCRYPTION_KEY"
+  "SYSTEM_USER_PASSWORD"
+  "DUMP_PREFIX" "ORBIT_BACKUP_CONTAINER"
+)
+
+tmp_env_file="/tmp/app.env"
+rm -f "$tmp_env_file"
+for key in "${allowed_vars[@]}"; do
+  val=$(printenv "$key" || true)
+  if [ -n "$val" ]; then
+    # NOTE: values are written as-is; multiline values are not supported here
+    printf '%s=%s\n' "$key" "$val" >> "$tmp_env_file"
+  fi
+done
+
+# Upload environment snapshot to server home; the server step will move it into place
+scp $DEPLOY_SSH_KEY_FLAG "$tmp_env_file" "$DEPLOY_HOST:~/app.env"
+rm -f "$tmp_env_file"
 
 # Remove the local binary
 rm ./app
@@ -93,12 +118,15 @@ ssh $DEPLOY_SSH_KEY_FLAG "$DEPLOY_HOST" <<EOF
     sudo mv ./db-backup.timer /etc/systemd/system/db-backup.timer
     sudo mv ./rclone.conf /home/app/.config/rclone/rclone.conf
     sudo mv ./app /opt/app/app.new
-    sudo mv ./.env /opt/app/.env
+    # Put environment in place for systemd units
+    if [ -f ./app.env ]; then
+      sudo mv ./app.env /opt/app/app.env
+    fi
     sudo mv ./db-backup.sh /opt/app/db-backup.sh
 
     echo "📦 Setting ownership..."
     sudo chown caddy:caddy /etc/caddy/Caddyfile
-    sudo chown -R app:app /opt/app
+  sudo chown -R app:app /opt/app
     sudo chown -R app:app /home/app/.config/rclone
 
     echo "📦 Changing file permissions..."

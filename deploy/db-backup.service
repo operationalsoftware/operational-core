@@ -6,6 +6,6 @@ Type=oneshot
 User=app
 WorkingDirectory=/opt/app
 ExecStart=/opt/app/db-backup.sh
-EnvironmentFile=/opt/app/.env
+EnvironmentFile=/opt/app/app.env
 StandardOutput=journal
 StandardError=journal
