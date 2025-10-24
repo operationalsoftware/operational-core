@@ -9,6 +9,9 @@
 app-dev
 app
 
+# Phase CLI
+.phase.json
+
 # Docker files
 **/Dockerfile*
 **/docker-compose*.yml
