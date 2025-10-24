@@ -23,14 +23,8 @@ import (
 )
 
 func main() {
-	// Load environment (if not in production or staging)
-	err := env.Load()
-	if err != nil {
-		log.Fatalf("Error loading environment: %v\n", err)
-	}
-
 	// Verify environment variables
-	err = env.Verify()
+	err := env.Verify()
 	if err != nil {
 		log.Fatalf("Error verifying environment: %v\n", err)
 	}
