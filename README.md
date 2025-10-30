@@ -62,7 +62,7 @@ Required for SSL/HTTPS in development (required for the [Web NFC API](https://w3
 
 ### Secrets and environment
 
-Required environment variables (for either option):
+Required environment variables 
 
 - APP_ENV, GO_ENV, SITE_ADDRESS
 - PG_USER, PG_PASSWORD, PG_HOST, PG_PORT, PG_DATABASE
