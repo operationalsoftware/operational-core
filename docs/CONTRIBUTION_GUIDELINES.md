@@ -1,6 +1,6 @@
   # Git Flow & Contribution Standards
 
-This document defines how we name branches, write commits, and create pull requests across all repositories — including client forks — to ensure consistency and to **avoid unintended issue closures** when syncing code between repos.
+This document defines how we name branches, write commits, and create pull requests across all repositories — to ensure consistency and to **avoid unintended issue closures** when syncing code between repos.
 
 ---
 
@@ -60,7 +60,7 @@ task: update CI workflow to Node 20
 ```
 
 ### Notes
-- Use (ref core#123) instead of Fixes #123 to prevent auto-closing issues in client repos.
+- Use (ref ```<full-issue-url>```) instead of Fixes #123 to prevent auto-closing issues in client repos.
 - Keep the subject line under 72 characters.
 - Write commit bodies if needed to explain why, not what.
 
@@ -106,5 +106,5 @@ Fixes operationalsoftware/operational-core#<issue-id>
 
 **Important:**  
 - Only include `Fixes operationalsoftware/operational-core#123` in **main repo PRs**, not in commits.  
-- This ensures that client repositories syncing from `operationalsoftware/operational-core` do **not auto-close their own issues**.
+- This ensures that repositories syncing from `operationalsoftware/operational-core` do **not auto-close their own issues**.
 
