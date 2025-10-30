@@ -71,7 +71,7 @@ task: update CI workflow to Node 20
 When opening a PR:
 
 🔖 **PR Title**  
-Prefix the title with `wip:` if the PR is still in progress (to prevent automatic merging).
+Prefix the title with `wip:` if the PR is still in progress.
 
 Format:  
 `<type>: <short summary>`  
