@@ -13,7 +13,6 @@ OperationalCore is designed to be forked and customised at the code-level rather
 \* _Also suitable for other goods-centric businesses such as e-commerce and wholesale distribution since the operational challenges faced by these companies are mostly a subset of manufacturing._
 
 ---
-
 ## Motivation
 
 Until now, without the budget to develop 100% bespoke software, small and mid-size manufacturers have been constrained to off-the-shelf software and multi-tenant SaaS solutions. These systems force businesses to mould their processes to the software.
@@ -61,6 +60,17 @@ Required for SSL/HTTPS in development (required for the [Web NFC API](https://w3
 ./gen-dev-certs.sh
 ```
 
+### Secrets and environment
+
+Required environment variables 
+
+- APP_ENV, GO_ENV, SITE_ADDRESS
+- PG_USER, PG_PASSWORD, PG_HOST, PG_PORT, PG_DATABASE
+- SWIFT_API_USER, SWIFT_API_KEY, SWIFT_AUTH_URL, SWIFT_TENANT_ID, SWIFT_CONTAINER
+- SECURE_COOKIE_HASH_KEY, SECURE_COOKIE_BLOCK_KEY, AES_256_ENCRYPTION_KEY
+- SYSTEM_USER_PASSWORD
+- DUMP_PREFIX, ORBIT_BACKUP_CONTAINER (for backups)
+
 ### Run Development Server
 
 To start the development server, follow the steps below:
@@ -70,12 +80,10 @@ To start the development server, follow the steps below:
 
    ```
    chmod +x start-dev.sh
+   ```
 
 2. **Start the development server**  
-   Execute the script to launch the development environment:
-
-   ```
+   ```bash
    ./start-dev.sh
-
+   ```
 ---
-

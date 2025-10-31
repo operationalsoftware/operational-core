@@ -7,11 +7,11 @@ go 1.24.0
 require (
 	github.com/chromedp/cdproto v0.0.0-20250403032234-65de8f5d025b
 	github.com/chromedp/chromedp v0.13.6
+	github.com/dromara/carbon/v2 v2.6.13
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/securecookie v1.1.2
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
-	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/ncw/swift/v2 v2.0.4
 	github.com/pdfcpu/pdfcpu v0.11.0
@@ -26,7 +26,6 @@ require (
 
 require (
 	github.com/chromedp/sysutil v1.1.0 // indirect
-	github.com/dromara/carbon/v2 v2.6.13 // indirect
 	github.com/go-json-experiment/json v0.0.0-20250211171154-1ae217ad3535 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
