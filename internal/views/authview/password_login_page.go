@@ -145,7 +145,7 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 							h.Button(
 								h.Class("button show-all-login-button"),
 								h.Type("button"),
-								g.Text("Show all login options"),
+								g.Text("Show all log in options"),
 							),
 						),
 					}),
