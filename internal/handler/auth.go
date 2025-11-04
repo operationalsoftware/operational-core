@@ -29,6 +29,8 @@ type AuthHandler struct {
 	msOauthConfig *oauth2.Config
 }
 
+const showAllLoginOptionsQueryParam = "SHOW_ALL"
+
 func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	h := &AuthHandler{authService: authService}
 
@@ -55,11 +57,21 @@ func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) 
 	ctx := reqcontext.GetContext(r)
 
 	props := authview.PasswordLoginPageProps{Ctx: ctx}
+	props.LastLoginMethod = cookie.GetLastLoginMethod(r)
+
+	showAll := r.URL.Query().Has(showAllLoginOptionsQueryParam)
 
 	error := r.URL.Query().Get("Error")
 	if error != "" {
 		props.LogInFailedError = error
+		showAll = true
 	}
+
+	if props.LastLoginMethod == "" {
+		showAll = true
+	}
+
+	props.ShowAllLoginOptions = showAll
 
 	_ = authview.PasswordLoginPage(props).Render(w)
 }
@@ -69,6 +81,9 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	retryPageProps := authview.PasswordLoginPageProps{Ctx: ctx}
+	retryPageProps.ShowAllLoginOptions = true
+	// Clear last login method
+	cookie.ClearLastLoginCookie(w)
 
 	err = r.ParseForm()
 	if err != nil {
@@ -131,6 +146,12 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
 		return
 	}
+
+	method := "password"
+	if formData.EncryptedCredentials != "" && formData.Username == "" && formData.Password == "" {
+		method = "nfc"
+	}
+	cookie.SetLastLoginCookie(w, method)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -210,6 +231,8 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 		_ = authview.QRcodeLoginPage(retryPageProps).Render(w)
 		return
 	}
+
+	cookie.SetLastLoginCookie(w, "qrcode")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -402,6 +425,8 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "failed to set session", http.StatusInternalServerError)
 		return
 	}
+
+	cookie.SetLastLoginCookie(w, "microsoft")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

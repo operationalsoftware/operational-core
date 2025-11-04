@@ -79,3 +79,44 @@ func SetSessionCookie(w http.ResponseWriter, userID int, duration time.Duration)
 
 	return nil
 }
+
+func SetLastLoginCookie(w http.ResponseWriter, method string) {
+	cookie := &http.Cookie{
+		Name:     "last-login-method",
+		Value:    method,
+		HttpOnly: true,
+		Secure:   true,
+		Expires:  time.Now().Add(30 * 24 * time.Hour),
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w, cookie)
+}
+
+func ClearLastLoginCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "last-login-method",
+		Value:    "",
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+	})
+}
+
+func GetLastLoginMethod(r *http.Request) string {
+	cookie, err := r.Cookie("last-login-method")
+	if err != nil {
+		return ""
+	}
+
+	switch cookie.Value {
+	case "password", "qrcode", "microsoft", "nfc":
+		return cookie.Value
+	default:
+		return ""
+	}
+}

@@ -11,16 +11,23 @@ import (
 )
 
 type PasswordLoginPageProps struct {
-	Ctx              reqcontext.ReqContext
-	Username         string
-	LogInFailedError string
-	HasServerError   bool
+	Ctx                 reqcontext.ReqContext
+	Username            string
+	LogInFailedError    string
+	HasServerError      bool
+	LastLoginMethod     string
+	ShowAllLoginOptions bool
 }
 
 func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 	encryptedCredentials := p.Ctx.Req.URL.Query().Get("EncryptedCredentials")
 
 	decoded, _ := encryptcredentials.Decrypt(encryptedCredentials)
+
+	showAll := p.ShowAllLoginOptions
+	if p.LastLoginMethod == "" {
+		showAll = true
+	}
 
 	content := g.Group([]g.Node{
 		components.Card(
@@ -67,55 +74,81 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 					g.Text("Log In"),
 				),
 
-				h.Div(
-					h.Class("or-divider"),
-					g.El("hr"),
-					g.El("span", g.Text("OR")),
-					g.El("hr"),
-				),
+				g.If(
+					showAll,
+					g.Group([]g.Node{
+						h.Div(
+							h.Class("or-divider"),
+							g.El("hr"),
+							g.El("span", g.Text("OR")),
+							g.El("hr"),
+						),
 
-				h.A(
-					h.Class("button microsoft-login-link"),
-					h.Href("/auth/microsoft/login"),
-					components.Icon(&components.IconProps{
-						Identifier: "microsoft-logo",
+						h.A(
+							h.Class("button microsoft-login-link"),
+							h.Href("/auth/microsoft/login"),
+							components.Icon(&components.IconProps{
+								Identifier: "microsoft-logo",
+							}),
+							g.Text("Log In with Microsoft"),
+						),
+
+						h.Div(
+							h.Class("or-divider"),
+							g.El("hr"),
+							g.El("span", g.Text("OR")),
+							g.El("hr"),
+						),
+
+						h.Button(
+							h.Class("button nfc-login-button"),
+							h.Type("button"),
+							components.Icon(&components.IconProps{
+								Identifier: "nfc-variant",
+							}),
+							g.Text("Log In with NFC"),
+						),
+
+						h.Div(
+							h.Class("or-divider"),
+							g.El("hr"),
+							g.El("span", g.Text("OR")),
+							g.El("hr"),
+						),
+
+						h.A(
+							h.Href("/auth/password/qrcode"),
+							h.Button(
+								h.Class("button qr-button"),
+								h.Type("button"),
+								components.Icon(&components.IconProps{
+									Identifier: "qrcode",
+								}),
+								g.Text("Log In with QR Code"),
+							),
+						),
 					}),
-					g.Text("Log In with Microsoft"),
 				),
 
-				h.Div(
-					h.Class("or-divider"),
-					g.El("hr"),
-					g.El("span", g.Text("OR")),
-					g.El("hr"),
-				),
+				g.If(
+					!showAll,
+					g.Group([]g.Node{
+						h.Div(
+							h.Class("or-divider"),
+							g.El("hr"),
+							g.El("span", g.Text("OR")),
+							g.El("hr"),
+						),
 
-				h.Button(
-					h.Class("button nfc-login-button"),
-					h.Type("button"),
-					components.Icon(&components.IconProps{
-						Identifier: "nfc-variant",
+						h.A(
+							h.Href("/auth/password?SHOW_ALL=1"),
+							h.Button(
+								h.Class("button show-all-login-button"),
+								h.Type("button"),
+								g.Text("Show all login options"),
+							),
+						),
 					}),
-					g.Text("Log In with NFC"),
-				),
-
-				h.Div(
-					h.Class("or-divider"),
-					g.El("hr"),
-					g.El("span", g.Text("OR")),
-					g.El("hr"),
-				),
-
-				h.A(
-					h.Href("/auth/password/qrcode"),
-					h.Button(
-						h.Class("button qr-button"),
-						h.Type("button"),
-						components.Icon(&components.IconProps{
-							Identifier: "qrcode",
-						}),
-						g.Text("Log In with QR Code"),
-					),
 				),
 			),
 
@@ -137,8 +170,13 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 		),
 
 		components.InlineStyle("/internal/views/authview/password_login_page.css"),
-		components.InlineScript("/static/js/app_nfc.js"),
-		components.InlineScript("/internal/views/authview/password_login_page.js"),
+		g.If(
+			showAll,
+			g.Group([]g.Node{
+				components.InlineScript("/static/js/app_nfc.js"),
+				components.InlineScript("/internal/views/authview/password_login_page.js"),
+			}),
+		),
 
 		g.If(
 			decoded.Username != "" && decoded.Password != "",
