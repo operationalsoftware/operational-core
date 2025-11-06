@@ -3,6 +3,7 @@ package authview
 import (
 	"app/internal/components"
 	"app/internal/layout"
+	"app/pkg/cookie"
 	"app/pkg/encryptcredentials"
 	"app/pkg/reqcontext"
 
@@ -15,12 +16,139 @@ type PasswordLoginPageProps struct {
 	Username         string
 	LogInFailedError string
 	HasServerError   bool
+	LastLoginMethod  string
 }
 
 func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 	encryptedCredentials := p.Ctx.Req.URL.Query().Get("EncryptedCredentials")
 
 	decoded, _ := encryptcredentials.Decrypt(encryptedCredentials)
+
+	usernameAndPassword := g.Group([]g.Node{
+		components.Input(&components.InputProps{
+			Label:       "Username",
+			Name:        "Username",
+			Placeholder: "Enter username",
+			InputProps: []g.Node{
+				h.Value(decoded.Username),
+			},
+		}),
+
+		components.Input(&components.InputProps{
+			Label:       "Password",
+			Name:        "Password",
+			InputType:   "password",
+			Placeholder: "Enter password",
+			InputProps: []g.Node{
+				h.Value(decoded.Password),
+			},
+		}),
+
+		h.Input(
+			h.Type("hidden"),
+			h.Name("EncryptedCredentials"),
+			h.Value(encryptedCredentials),
+		),
+
+		h.Button(
+			h.Class("button"),
+			h.Type("submit"),
+			g.Text("Log In"),
+		),
+	})
+
+	nfc := h.Button(
+		h.Class("button nfc-login-button"),
+		h.Type("button"),
+		components.Icon(&components.IconProps{
+			Identifier: "nfc-variant",
+		}),
+		g.Text("Log In with NFC"),
+	)
+
+	microsoft := h.A(
+		h.Class("button microsoft-login-link"),
+		h.Href("/auth/microsoft/login"),
+		components.Icon(&components.IconProps{
+			Identifier: "microsoft-logo",
+		}),
+		g.Text("Log In with Microsoft"),
+	)
+
+	qrcode := h.A(
+		h.Href("/auth/password/qrcode"),
+		h.Button(
+			h.Class("button qr-button"),
+			h.Type("button"),
+			components.Icon(&components.IconProps{
+				Identifier: "qrcode",
+			}),
+			g.Text("Log In with QR Code"),
+		),
+	)
+
+	showAllLoginOptionBtn := g.Group([]g.Node{
+		components.Divider(
+			h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
+			g.Text("OR"),
+		),
+		h.A(
+			h.Href("/auth/password?ShowAll=true"),
+			h.Button(
+				h.Class("button show-all-login-button"),
+				h.Type("button"),
+				g.Text("Show all log in options"),
+			),
+		),
+	})
+
+	allLoginOptions := func() g.Node {
+		return g.Group([]g.Node{
+			components.Form(
+				h.Method("POST"),
+				h.ID("login-form"),
+				usernameAndPassword,
+			),
+			components.Divider(
+				h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
+				g.Text("OR"),
+			),
+			microsoft,
+			components.Divider(
+				h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
+				g.Text("OR"),
+			),
+			nfc,
+			components.Divider(
+				h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
+				g.Text("OR"),
+			),
+			qrcode,
+		})
+	}
+
+	singleLoginOption := func(lastLoginMethod string) g.Node {
+		var loginNode g.Node
+		switch lastLoginMethod {
+		case cookie.LoginMethodMicrosoft:
+			loginNode = microsoft
+		case cookie.LoginMethodNFC:
+			loginNode = nfc
+		case cookie.LoginMethodQRCODE:
+			loginNode = qrcode
+		default:
+			loginNode = components.Form(
+				h.Method("POST"),
+				h.ID("login-form"),
+				usernameAndPassword,
+			)
+		}
+
+		return g.Group([]g.Node{
+			loginNode,
+			showAllLoginOptionBtn,
+		})
+	}
 
 	content := g.Group([]g.Node{
 		components.Card(
@@ -31,92 +159,19 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 			),
 
 			h.H1(g.Text("Welcome")),
-			h.P(g.Text("Please login to begin")),
+			h.P(
+				h.Style("margin-bottom: 1.5rem;"),
+				g.Text("Please login to begin"),
+			),
 
-			components.Form(
-				h.Method("POST"),
-				h.ID("login-form"),
+			g.If(
+				p.LastLoginMethod == "",
+				allLoginOptions(),
+			),
 
-				components.Input(&components.InputProps{
-					Label:       "Username",
-					Name:        "Username",
-					Placeholder: "Enter username",
-					InputProps: []g.Node{
-						h.Value(decoded.Username),
-					},
-				}),
-
-				components.Input(&components.InputProps{
-					Label:       "Password",
-					Name:        "Password",
-					InputType:   "password",
-					Placeholder: "Enter password",
-					InputProps: []g.Node{
-						h.Value(decoded.Password),
-					},
-				}),
-
-				h.Input(
-					h.Type("hidden"),
-					h.Name("EncryptedCredentials"),
-				),
-
-				h.Button(
-					h.Class("button"),
-					h.Type("submit"),
-					g.Text("Log In"),
-				),
-
-				h.Div(
-					h.Class("or-divider"),
-					g.El("hr"),
-					g.El("span", g.Text("OR")),
-					g.El("hr"),
-				),
-
-				h.A(
-					h.Class("button microsoft-login-link"),
-					h.Href("/auth/microsoft/login"),
-					components.Icon(&components.IconProps{
-						Identifier: "microsoft-logo",
-					}),
-					g.Text("Log In with Microsoft"),
-				),
-
-				h.Div(
-					h.Class("or-divider"),
-					g.El("hr"),
-					g.El("span", g.Text("OR")),
-					g.El("hr"),
-				),
-
-				h.Button(
-					h.Class("button nfc-login-button"),
-					h.Type("button"),
-					components.Icon(&components.IconProps{
-						Identifier: "nfc-variant",
-					}),
-					g.Text("Log In with NFC"),
-				),
-
-				h.Div(
-					h.Class("or-divider"),
-					g.El("hr"),
-					g.El("span", g.Text("OR")),
-					g.El("hr"),
-				),
-
-				h.A(
-					h.Href("/auth/password/qrcode"),
-					h.Button(
-						h.Class("button qr-button"),
-						h.Type("button"),
-						components.Icon(&components.IconProps{
-							Identifier: "qrcode",
-						}),
-						g.Text("Log In with QR Code"),
-					),
-				),
+			g.If(
+				p.LastLoginMethod != "",
+				singleLoginOption(p.LastLoginMethod),
 			),
 
 			g.If(

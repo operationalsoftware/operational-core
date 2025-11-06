@@ -51,14 +51,34 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	return h
 }
 
+type LoginPageURLVals struct {
+	ShowAll bool
+	Error   string
+}
+
 func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	props := authview.PasswordLoginPageProps{Ctx: ctx}
+	lastLoginMethod := cookie.GetLastLoginMethod(r)
 
-	error := r.URL.Query().Get("Error")
-	if error != "" {
-		props.LogInFailedError = error
+	var loginPageURLVals LoginPageURLVals
+	err := appurl.Unmarshal(r.URL.Query(), &loginPageURLVals)
+	if err != nil {
+		props.HasServerError = true
+		_ = authview.PasswordLoginPage(props).Render(w)
+		return
+	}
+
+	if loginPageURLVals.ShowAll {
+		cookie.ClearLastLoginCookie(w)
+		lastLoginMethod = ""
+	}
+
+	props.LastLoginMethod = lastLoginMethod
+
+	if loginPageURLVals.Error != "" {
+		props.LogInFailedError = loginPageURLVals.Error
 	}
 
 	_ = authview.PasswordLoginPage(props).Render(w)
@@ -69,6 +89,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	retryPageProps := authview.PasswordLoginPageProps{Ctx: ctx}
+	retryPageProps.LastLoginMethod = cookie.GetLastLoginMethod(r)
 
 	err = r.ParseForm()
 	if err != nil {
@@ -79,6 +100,12 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	var formData passwordLoginFormData
 	err = appurl.Unmarshal(r.PostForm, &formData)
+
+	attemptedMethod := cookie.LoginMethodPassword
+	if formData.EncryptedCredentials != "" && formData.Username == "" && formData.Password == "" {
+		attemptedMethod = cookie.LoginMethodNFC
+	}
+
 	if err != nil {
 		retryPageProps.HasServerError = true
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
@@ -131,6 +158,8 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
 		return
 	}
+
+	cookie.SetLastLoginCookie(w, attemptedMethod)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -210,6 +239,8 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 		_ = authview.QRcodeLoginPage(retryPageProps).Render(w)
 		return
 	}
+
+	cookie.SetLastLoginCookie(w, cookie.LoginMethodQRCODE)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -402,6 +433,8 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "failed to set session", http.StatusInternalServerError)
 		return
 	}
+
+	cookie.SetLastLoginCookie(w, cookie.LoginMethodMicrosoft)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
