@@ -16,6 +16,13 @@ var (
 	err            error
 )
 
+const (
+	LOGIN_METHOD_PASSWORD  = "password"
+	LOGIN_METHOD_MICROSOFT = "microsoft"
+	LOGIN_METHOD_NFC       = "nfc"
+	LOGIN_METHOD_QRCODE    = "qrcode"
+)
+
 const DefaultSessionDurationMinutes = time.Hour * 24 * 30
 
 type SessionData struct {
@@ -114,7 +121,7 @@ func GetLastLoginMethod(r *http.Request) string {
 	}
 
 	switch cookie.Value {
-	case "password", "qrcode", "microsoft", "nfc":
+	case LOGIN_METHOD_PASSWORD, LOGIN_METHOD_MICROSOFT, LOGIN_METHOD_NFC, LOGIN_METHOD_QRCODE:
 		return cookie.Value
 	default:
 		return ""

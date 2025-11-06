@@ -29,7 +29,7 @@ type AuthHandler struct {
 	msOauthConfig *oauth2.Config
 }
 
-const showAllLoginOptionsQueryParam = "SHOW_ALL"
+const showAllLoginOptionsQueryParam = "ShowAll"
 
 func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	h := &AuthHandler{authService: authService}
@@ -57,21 +57,19 @@ func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) 
 	ctx := reqcontext.GetContext(r)
 
 	props := authview.PasswordLoginPageProps{Ctx: ctx}
-	props.LastLoginMethod = cookie.GetLastLoginMethod(r)
+	lastLoginMethod := cookie.GetLastLoginMethod(r)
 
-	showAll := r.URL.Query().Has(showAllLoginOptionsQueryParam)
+	if r.URL.Query().Get(showAllLoginOptionsQueryParam) == "1" {
+		cookie.ClearLastLoginCookie(w)
+		lastLoginMethod = ""
+	}
+
+	props.LastLoginMethod = lastLoginMethod
 
 	error := r.URL.Query().Get("Error")
 	if error != "" {
 		props.LogInFailedError = error
-		showAll = true
 	}
-
-	if props.LastLoginMethod == "" {
-		showAll = true
-	}
-
-	props.ShowAllLoginOptions = showAll
 
 	_ = authview.PasswordLoginPage(props).Render(w)
 }
@@ -81,9 +79,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	retryPageProps := authview.PasswordLoginPageProps{Ctx: ctx}
-	retryPageProps.ShowAllLoginOptions = true
-	// Clear last login method
-	cookie.ClearLastLoginCookie(w)
+	retryPageProps.LastLoginMethod = cookie.GetLastLoginMethod(r)
 
 	err = r.ParseForm()
 	if err != nil {
@@ -94,6 +90,14 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 
 	var formData passwordLoginFormData
 	err = appurl.Unmarshal(r.PostForm, &formData)
+
+	// We will do this here so on server error, we can show the correct last login method
+	attemptedMethod := cookie.LOGIN_METHOD_PASSWORD
+	if formData.EncryptedCredentials != "" && formData.Username == "" && formData.Password == "" {
+		attemptedMethod = cookie.LOGIN_METHOD_NFC
+	}
+	retryPageProps.LastLoginMethod = attemptedMethod
+
 	if err != nil {
 		retryPageProps.HasServerError = true
 		_ = authview.PasswordLoginPage(retryPageProps).Render(w)
@@ -147,11 +151,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	method := "password"
-	if formData.EncryptedCredentials != "" && formData.Username == "" && formData.Password == "" {
-		method = "nfc"
-	}
-	cookie.SetLastLoginCookie(w, method)
+	cookie.SetLastLoginCookie(w, attemptedMethod)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -232,7 +232,7 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie.SetLastLoginCookie(w, "qrcode")
+	cookie.SetLastLoginCookie(w, cookie.LOGIN_METHOD_QRCODE)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -426,7 +426,7 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	cookie.SetLastLoginCookie(w, "microsoft")
+	cookie.SetLastLoginCookie(w, cookie.LOGIN_METHOD_MICROSOFT)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
