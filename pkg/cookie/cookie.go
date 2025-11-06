@@ -17,10 +17,10 @@ var (
 )
 
 const (
-	LOGIN_METHOD_PASSWORD  = "password"
-	LOGIN_METHOD_MICROSOFT = "microsoft"
-	LOGIN_METHOD_NFC       = "nfc"
-	LOGIN_METHOD_QRCODE    = "qrcode"
+	LoginMethodPassword  = "password"
+	LoginMethodMicrosoft = "microsoft"
+	LoginMethodNFC       = "nfc"
+	LoginMethodQRCODE    = "qrcode"
 )
 
 const DefaultSessionDurationMinutes = time.Hour * 24 * 30
@@ -121,7 +121,7 @@ func GetLastLoginMethod(r *http.Request) string {
 	}
 
 	switch cookie.Value {
-	case LOGIN_METHOD_PASSWORD, LOGIN_METHOD_MICROSOFT, LOGIN_METHOD_NFC, LOGIN_METHOD_QRCODE:
+	case LoginMethodPassword, LoginMethodMicrosoft, LoginMethodNFC, LoginMethodQRCODE:
 		return cookie.Value
 	default:
 		return ""

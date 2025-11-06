@@ -87,63 +87,67 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 		),
 	)
 
-	baseForm := g.Group([]g.Node{
-		components.Form(
-			h.Method("POST"),
-			h.ID("login-form"),
-			usernameAndPassword,
-		),
-
+	showAllLoginOptionBtn := g.Group([]g.Node{
 		components.Divider(
 			h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
 			g.Text("OR"),
 		),
-		microsoft,
-		components.Divider(
-			h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
-			g.Text("OR"),
+		h.A(
+			h.Href("/auth/password?ShowAll=true"),
+			h.Button(
+				h.Class("button show-all-login-button"),
+				h.Type("button"),
+				g.Text("Show all log in options"),
+			),
 		),
-		nfc,
-		components.Divider(
-			h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
-			g.Text("OR"),
-		),
-		qrcode,
 	})
 
-	lastLoginForm := []g.Node{}
-	switch p.LastLoginMethod {
-	case cookie.LOGIN_METHOD_PASSWORD:
-		lastLoginForm = append(lastLoginForm, g.Group([]g.Node{
+	allLoginOptions := func() g.Node {
+		return g.Group([]g.Node{
 			components.Form(
 				h.Method("POST"),
 				h.ID("login-form"),
 				usernameAndPassword,
 			),
-		}))
-	case cookie.LOGIN_METHOD_MICROSOFT:
-		lastLoginForm = append(lastLoginForm, microsoft)
-	case cookie.LOGIN_METHOD_NFC:
-		lastLoginForm = append(lastLoginForm, nfc)
-	case cookie.LOGIN_METHOD_QRCODE:
-		lastLoginForm = append(lastLoginForm, qrcode)
-	}
-
-	if p.LastLoginMethod != "" {
-		lastLoginForm = append(lastLoginForm,
 			components.Divider(
 				h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
 				g.Text("OR"),
 			),
-			h.A(
-				h.Href("/auth/password?ShowAll=1"),
-				h.Button(
-					h.Class("button show-all-login-button"),
-					h.Type("button"),
-					g.Text("Show all log in options"),
-				),
+			microsoft,
+			components.Divider(
+				h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
+				g.Text("OR"),
 			),
-		)
+			nfc,
+			components.Divider(
+				h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
+				g.Text("OR"),
+			),
+			qrcode,
+		})
+	}
+
+	singleLoginOption := func(lastLoginMethod string) g.Node {
+		var loginNode g.Node
+		switch lastLoginMethod {
+		case cookie.LoginMethodMicrosoft:
+			loginNode = microsoft
+		case cookie.LoginMethodNFC:
+			loginNode = nfc
+		case cookie.LoginMethodQRCODE:
+			loginNode = qrcode
+		default:
+			loginNode = components.Form(
+				h.Method("POST"),
+				h.ID("login-form"),
+				usernameAndPassword,
+			)
+		}
+
+		return g.Group([]g.Node{
+			loginNode,
+			showAllLoginOptionBtn,
+		})
 	}
 
 	content := g.Group([]g.Node{
@@ -162,12 +166,12 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 
 			g.If(
 				p.LastLoginMethod == "",
-				baseForm,
+				allLoginOptions(),
 			),
 
 			g.If(
 				p.LastLoginMethod != "",
-				g.Group(lastLoginForm),
+				singleLoginOption(p.LastLoginMethod),
 			),
 
 			g.If(
@@ -188,14 +192,8 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 		),
 
 		components.InlineStyle("/internal/views/authview/password_login_page.css"),
-		g.If(
-			// Script will be injected only on base form or when last login is nfc
-			p.LastLoginMethod == "" || p.LastLoginMethod == cookie.LOGIN_METHOD_NFC,
-			g.Group([]g.Node{
-				components.InlineScript("/static/js/app_nfc.js"),
-				components.InlineScript("/internal/views/authview/password_login_page.js"),
-			}),
-		),
+		components.InlineScript("/static/js/app_nfc.js"),
+		components.InlineScript("/internal/views/authview/password_login_page.js"),
 
 		g.If(
 			decoded.Username != "" && decoded.Password != "",

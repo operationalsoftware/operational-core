@@ -29,8 +29,6 @@ type AuthHandler struct {
 	msOauthConfig *oauth2.Config
 }
 
-const showAllLoginOptionsQueryParam = "ShowAll"
-
 func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	h := &AuthHandler{authService: authService}
 
@@ -53,22 +51,34 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	return h
 }
 
+type LoginPageURLVals struct {
+	ShowAll bool
+	Error   string
+}
+
 func (h *AuthHandler) PasswordLogInPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	props := authview.PasswordLoginPageProps{Ctx: ctx}
 	lastLoginMethod := cookie.GetLastLoginMethod(r)
 
-	if r.URL.Query().Get(showAllLoginOptionsQueryParam) == "1" {
+	var loginPageURLVals LoginPageURLVals
+	err := appurl.Unmarshal(r.URL.Query(), &loginPageURLVals)
+	if err != nil {
+		props.HasServerError = true
+		_ = authview.PasswordLoginPage(props).Render(w)
+		return
+	}
+
+	if loginPageURLVals.ShowAll {
 		cookie.ClearLastLoginCookie(w)
 		lastLoginMethod = ""
 	}
 
 	props.LastLoginMethod = lastLoginMethod
 
-	error := r.URL.Query().Get("Error")
-	if error != "" {
-		props.LogInFailedError = error
+	if loginPageURLVals.Error != "" {
+		props.LogInFailedError = loginPageURLVals.Error
 	}
 
 	_ = authview.PasswordLoginPage(props).Render(w)
@@ -91,9 +101,9 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	var formData passwordLoginFormData
 	err = appurl.Unmarshal(r.PostForm, &formData)
 
-	attemptedMethod := cookie.LOGIN_METHOD_PASSWORD
+	attemptedMethod := cookie.LoginMethodPassword
 	if formData.EncryptedCredentials != "" && formData.Username == "" && formData.Password == "" {
-		attemptedMethod = cookie.LOGIN_METHOD_NFC
+		attemptedMethod = cookie.LoginMethodNFC
 	}
 
 	if err != nil {
@@ -230,7 +240,7 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie.SetLastLoginCookie(w, cookie.LOGIN_METHOD_QRCODE)
+	cookie.SetLastLoginCookie(w, cookie.LoginMethodQRCODE)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -424,7 +434,7 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	cookie.SetLastLoginCookie(w, cookie.LOGIN_METHOD_MICROSOFT)
+	cookie.SetLastLoginCookie(w, cookie.LoginMethodMicrosoft)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
