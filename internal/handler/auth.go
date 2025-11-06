@@ -91,12 +91,10 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	var formData passwordLoginFormData
 	err = appurl.Unmarshal(r.PostForm, &formData)
 
-	// We will do this here so on server error, we can show the correct last login method
 	attemptedMethod := cookie.LOGIN_METHOD_PASSWORD
 	if formData.EncryptedCredentials != "" && formData.Username == "" && formData.Password == "" {
 		attemptedMethod = cookie.LOGIN_METHOD_NFC
 	}
-	retryPageProps.LastLoginMethod = attemptedMethod
 
 	if err != nil {
 		retryPageProps.HasServerError = true
