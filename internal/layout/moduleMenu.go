@@ -62,6 +62,21 @@ var AppMenu = []components.GridMenuGroup{
 			},
 		},
 	},
+	{
+		GroupName: "Resource Management",
+		Items: []components.GridMenuItem{
+			{
+				Icon: "cube-scan",
+				Name: "Resources",
+				Link: "/resources",
+			},
+			{
+				Icon: "account-wrench",
+				Name: "Servicing",
+				Link: "/services",
+			},
+		},
+	},
 }
 
 type moduleMenuProps struct {

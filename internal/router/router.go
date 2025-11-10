@@ -19,7 +19,9 @@ type Services struct {
 	CommentService          service.CommentService
 	FileService             service.FileService
 	GalleryService          service.GalleryService
+	ResourceService         service.ResourceService
 	SearchService           service.SearchService
+	ServicesService         service.ServicesService
 	StockTransactionService service.StockTransactionService
 	PDFService              service.PDFService
 	StockItemService        service.StockItemService
@@ -65,8 +67,26 @@ func NewRouter(services *Services, appHMAC apphmac.AppHMAC) http.Handler {
 	addFileRoutes(mux, services.FileService)
 	addGalleryRoutes(mux, services.GalleryService, appHMAC)
 	addPDFRoutes(mux, services.PDFService)
+	addResourceRoutes(
+		mux,
+		services.GalleryService,
+		services.ResourceService,
+		services.ServicesService,
+		services.CommentService,
+		services.TeamService,
+		appHMAC,
+	)
 	addSearchRoutes(mux, services.SearchService)
 	addCommentRoutes(mux, services.CommentService, services.FileService, appHMAC)
+	addServiceRoutes(
+		mux,
+		services.GalleryService,
+		services.ResourceService,
+		services.ServicesService,
+		services.CommentService,
+		services.TeamService,
+		appHMAC,
+	)
 	addStockItemRoutes(mux, services.StockItemService, services.CommentService, services.GalleryService, appHMAC)
 	addStockTransactionRoutes(mux, services.StockItemService, services.StockTransactionService)
 	addTeamRoutes(mux, services.TeamService, services.UserService)

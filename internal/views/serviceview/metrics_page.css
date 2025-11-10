@@ -1,0 +1,34 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    align-items: start;
+    justify-content: start;
+    gap: var(--spacing-sm);
+
+    & > * {
+      flex: 1 1 auto;
+    }
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+  }
+
+  .actions {
+    display: flex;
+    gap: var(--spacing-md);
+  }
+}
+
+.metrics-nav {
+  text-align: right;
+  a {
+    margin-right: var(--spacing-lg);
+  }
+}

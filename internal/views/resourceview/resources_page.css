@@ -1,0 +1,36 @@
+.resources-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.resources-nav {
+  text-align: right;
+  a {
+    margin-left: var(--spacing-lg);
+  }
+}
+
+.resources-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: start;
+  gap: var(--spacing-lg);
+  margin: var(--spacing-md) auto;
+
+  & > * {
+    width: 300px;
+  }
+}
+
+.table-head,
+.table-row {
+  white-space: nowrap;
+}

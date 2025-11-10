@@ -1,0 +1,69 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    align-items: start;
+    justify-content: start;
+    gap: var(--spacing-sm);
+
+    & > * {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+.resource-nav {
+  text-align: right;
+  a {
+    margin-right: var(--spacing-lg);
+  }
+}
+
+.attributes-list {
+  margin-top: var(--spacing-lg);
+
+  list-style: inside;
+
+  li {
+    list-style: none;
+
+    svg {
+      fill: var(--primary-color);
+      margin-right: var(--spacing-md);
+      width: 22px;
+      height: 22px;
+    }
+  }
+}
+
+.table-head,
+.table-row {
+  white-space: nowrap;
+}
+
+.service-schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-sm);
+}
+
+.service-schedule-filter {
+  display: flex;
+  align-items: center;
+}
+
+.metric-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.muted-text {
+  color: var(--muted-text-color);
+}

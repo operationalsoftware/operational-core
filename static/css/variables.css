@@ -14,6 +14,7 @@
   --text-color: #202020;
   --text-color-light: #5f5f5f;
   --text-color-contrast: #ffffff;
+  --muted-text-color: var(--grey-5);
 
   --border-color: #e0e0e0;
   --select-border-color: #caced1;
@@ -96,6 +97,7 @@
 
   --text-color: #ffffff;
   --text-color-light: #b9b9b9;
+  --muted-text-color: var(--grey-8);
 
   --border-color: #2f2f2f;
 

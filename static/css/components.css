@@ -126,6 +126,11 @@ hr {
     background-color: var(--red-5);
     color: white;
   }
+
+  &.secondary {
+    background-color: var(--background-color-grey);
+    color: var(--text-color);
+  }
 }
 /* End Badge */
 

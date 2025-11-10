@@ -86,6 +86,8 @@ func main() {
 	fileRepository := repository.NewFileRepository(swiftContainer, secretKey)
 	galleryRepository := repository.NewGalleryRepository(secretKey, fileRepository)
 	commentRepository := repository.NewCommentRepository(fileRepository)
+	resourceRepository := repository.NewResourceRepository()
+	serviceRepository := repository.NewServiceRepository()
 	stockTrxRepository := repository.NewStockTransactionRepository()
 	teamRepository := repository.NewTeamRepository()
 	stockItemRepository := repository.NewStockItemRepository()
@@ -100,7 +102,9 @@ func main() {
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		GalleryService:          *service.NewGalleryService(pgPool, swiftConn, appHMAC, fileRepository, galleryRepository),
 		PDFService:              *service.NewPDFService(),
+		ResourceService:         *service.NewResourceService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),
 		SearchService:           *service.NewSearchService(pgPool, userRepository),
+		ServicesService:         *service.NewServicesService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),
 		StockItemService:        *service.NewStockItemService(pgPool, swiftConn, galleryRepository, stockItemRepository, commentRepository),
 		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),
 		TeamService:             *service.NewTeamService(pgPool, teamRepository, userRepository),
