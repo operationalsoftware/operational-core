@@ -4,10 +4,12 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
+	serviceview "app/internal/views/serviceview"
 	"app/pkg/appsort"
 	"app/pkg/reqcontext"
 	"fmt"
 
+	"github.com/shopspring/decimal"
 	g "maragu.dev/gomponents"
 	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
@@ -122,6 +124,7 @@ func ResourcePage(p *ResourcePageProps) g.Node {
 				resourceID:         p.Resource.ResourceID,
 				canManageSchedules: p.CanManageSchedules,
 			}),
+			serviceview.StatusLegend(),
 
 			h.H3(g.Text("Service History")),
 
@@ -152,6 +155,7 @@ func ResourcePage(p *ResourcePageProps) g.Node {
 		},
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/resourceview/resource_page.css"),
+			components.InlineStyle("/internal/views/serviceview/components.css"),
 			components.InlineScript("/internal/views/resourceview/resource_page.js"),
 		},
 	})
@@ -176,7 +180,7 @@ func resourceNav(p *resourceNavProps) g.Node {
 	if !p.isArchived {
 		actions = append(actions,
 			h.A(
-				h.Class("button primary small"),
+				h.Class("button primary"),
 				h.Href(fmt.Sprintf("/services/resource/%d/schedules/add", p.resourceID)),
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
@@ -185,7 +189,7 @@ func resourceNav(p *resourceNavProps) g.Node {
 			),
 
 			h.A(
-				h.Class("button primary small"),
+				h.Class("button primary"),
 				h.Href(fmt.Sprintf("/resources/%d/usage/add", p.resourceID)),
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
@@ -198,7 +202,7 @@ func resourceNav(p *resourceNavProps) g.Node {
 	if p.canEdit {
 		actions = append(actions,
 			h.A(
-				h.Class("button primary small"),
+				h.Class("button primary"),
 				h.Href(fmt.Sprintf("/resources/%d/edit", p.resourceID)),
 				components.Icon(&components.IconProps{
 					Identifier: "pencil",
@@ -228,8 +232,10 @@ type currentMetricsTableProps struct {
 func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 	var columns = components.TableColumns{
 		{TitleContents: g.Text("Metric")},
+		{TitleContents: g.Text("Service Ownership Team")},
 		{TitleContents: g.Text("Current Value")},
 		{TitleContents: g.Text("Threshold")},
+		{TitleContents: g.Text("Threshold Utilisation (%)")},
 		{TitleContents: g.Text("Is Due?")},
 		{TitleContents: g.Text("Last Recorded At")},
 	}
@@ -273,8 +279,10 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 				h.Class("metric-cell"),
 				g.Group(metricNameContents),
 			)},
+			{Contents: g.Text(serviceOwnershipTeamLabel(r.ServiceOwnershipTeamName))},
 			{Contents: g.Text(r.CurrentValue.String())},
 			{Contents: g.Text(r.Threshold.String())},
+			{Contents: g.Text(r.NormalisedPercentage.String())},
 			{Contents: isDue},
 			{Contents: g.Text(lastRecordedAt)},
 		}
@@ -300,6 +308,32 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 			cells = append(cells, components.TableCell{
 				Contents: actionContent,
 			})
+		}
+
+		one := decimal.NewFromInt(1)
+		nineTenths := decimal.NewFromFloat(0.9)
+		eightTenths := decimal.NewFromFloat(0.8)
+		var colourClass string
+		if r.NormalisedValue.GreaterThanOrEqual(one) {
+			colourClass = "is-due"
+		} else if r.NormalisedValue.GreaterThanOrEqual(nineTenths) {
+			colourClass = "threshold-90"
+		} else if r.NormalisedValue.GreaterThanOrEqual(eightTenths) {
+			colourClass = "threshold-80"
+		}
+
+		endIdx := len(cells)
+		if p.canManageSchedules {
+			endIdx--
+		}
+
+		if colourClass != "" {
+			for i := 0; i < endIdx; i++ {
+				if cells[i].Classes == nil {
+					cells[i].Classes = c.Classes{}
+				}
+				cells[i].Classes[colourClass] = true
+			}
 		}
 
 		tableRows = append(tableRows, components.TableRow{

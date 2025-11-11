@@ -95,7 +95,7 @@ func resourcesHomeNav() g.Node {
 		h.Class("resources-nav"),
 
 		h.A(
-			h.Class("button primary small"),
+			h.Class("button primary"),
 			h.Href("/resources/add"),
 			components.Icon(&components.IconProps{
 				Identifier: "plus",

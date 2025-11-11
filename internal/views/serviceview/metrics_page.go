@@ -89,7 +89,7 @@ func metricsNav() g.Node {
 		h.Class("metrics-nav"),
 
 		h.A(
-			h.Class("button primary small"),
+			h.Class("button primary"),
 			h.Href("/services/metrics/add"),
 			components.Icon(&components.IconProps{
 				Identifier: "plus",

@@ -42,13 +42,13 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 			h.Div(
 				h.Class("actions"),
 				h.A(
-					h.Class("link small"),
+					h.Class("link"),
 					h.Href("/services/metrics"),
 					g.Text("Manage Metrics"),
 				),
 
 				h.A(
-					h.Class("link small"),
+					h.Class("link"),
 					h.Href("/services/all"),
 					g.Text("All Services"),
 				),
@@ -80,21 +80,7 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 				pageSize:  p.PageSize,
 				page:      p.Page,
 			}),
-			h.Div(
-				h.Class("status-legend"),
-				h.Div(
-					h.Span(h.Class("status-dot threshold-80")),
-					g.Text("> 80%"),
-				),
-				h.Div(
-					h.Span(h.Class("status-dot threshold-90")),
-					g.Text("> 90%"),
-				),
-				h.Div(
-					h.Span(h.Class("status-dot is-due")),
-					g.Text("Is Due"),
-				),
-			),
+			StatusLegend(),
 		),
 	})
 
@@ -112,6 +98,7 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 		},
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/serviceview/servicing_page.css"),
+			components.InlineStyle("/internal/views/serviceview/components.css"),
 		},
 		AppendBody: []g.Node{
 			components.InlineScript("/internal/views/serviceview/servicing_page.js"),
