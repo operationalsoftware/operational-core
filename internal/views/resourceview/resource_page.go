@@ -6,6 +6,7 @@ import (
 	"app/internal/model"
 	serviceview "app/internal/views/serviceview"
 	"app/pkg/appsort"
+	"app/pkg/format"
 	"app/pkg/reqcontext"
 	"fmt"
 
@@ -181,6 +182,14 @@ func resourceNav(p *resourceNavProps) g.Node {
 		actions = append(actions,
 			h.A(
 				h.Class("button primary"),
+				h.Href(fmt.Sprintf("/resources/%d/services/new", p.resourceID)),
+				components.Icon(&components.IconProps{
+					Identifier: "plus",
+				}),
+				g.Text("Start Service"),
+			),
+			h.A(
+				h.Class("button primary"),
 				h.Href(fmt.Sprintf("/services/resource/%d/schedules/add", p.resourceID)),
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
@@ -233,9 +242,9 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 	var columns = components.TableColumns{
 		{TitleContents: g.Text("Metric")},
 		{TitleContents: g.Text("Service Ownership Team")},
-		{TitleContents: g.Text("Current Value")},
-		{TitleContents: g.Text("Threshold")},
-		{TitleContents: g.Text("Threshold Utilisation (%)")},
+		{TitleContents: g.Text("Current Value"), Classes: c.Classes{"text-right": true}},
+		{TitleContents: g.Text("Threshold"), Classes: c.Classes{"text-right": true}},
+		{TitleContents: g.Text("Threshold Utilisation (%)"), Classes: c.Classes{"text-right": true}},
 		{TitleContents: g.Text("Is Due?")},
 		{TitleContents: g.Text("Last Recorded At")},
 	}
@@ -280,9 +289,9 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 				g.Group(metricNameContents),
 			)},
 			{Contents: g.Text(serviceOwnershipTeamLabel(r.ServiceOwnershipTeamName))},
-			{Contents: g.Text(r.CurrentValue.String())},
-			{Contents: g.Text(r.Threshold.String())},
-			{Contents: g.Text(r.NormalisedPercentage.String())},
+			{Contents: g.Text(format.DecimalWithCommas(r.CurrentValue.String())), Classes: c.Classes{"text-right": true}},
+			{Contents: g.Text(format.DecimalWithCommas(r.Threshold.String())), Classes: c.Classes{"text-right": true}},
+			{Contents: g.Text(format.DecimalWithCommas(r.NormalisedPercentage.String())), Classes: c.Classes{"text-right": true}},
 			{Contents: isDue},
 			{Contents: g.Text(lastRecordedAt)},
 		}

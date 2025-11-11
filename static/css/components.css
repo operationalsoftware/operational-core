@@ -1773,3 +1773,6 @@ div.table-pagination {
   font-weight: bold;
 }
 /* End Upload Button */
+.text-right {
+  text-align: right;
+}
