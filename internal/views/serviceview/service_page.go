@@ -24,6 +24,7 @@ type ResourceServicePageProps struct {
 	ServiceChangelog        []model.ResourceServiceChange
 	CommentHMACEnvelope     string
 	ReturnTo                string
+	GalleryImageURLs        []string
 }
 
 func ResourceServicePage(p *ResourceServicePageProps) g.Node {
@@ -133,6 +134,11 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 
 			h.Div(
 				h.Class("gallery-container"),
+
+				g.If(
+					len(p.GalleryImageURLs) > 0,
+					components.Gallery(p.GalleryImageURLs),
+				),
 
 				h.A(
 					h.Class("button primary"),

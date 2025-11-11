@@ -607,6 +607,13 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 		resourceService.GalleryURL = h.galleryService.GenerateTempURL(resourceService.GalleryID, canUserEdit)
 	}
 
+	galleryImgURLs, err := h.galleryService.GetGalleryImgURLs(r.Context(), resourceService.GalleryID)
+	if err != nil {
+		log.Println("error fetching service gallery:", err)
+		http.Error(w, "Error fetching service gallery", http.StatusInternalServerError)
+		return
+	}
+
 	serviceComments, err := h.commentService.GetComments(r.Context(), resourceService.CommentThreadID, userID)
 	if err != nil {
 		log.Println("error fetching service comments:", err)
@@ -633,6 +640,7 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 	_ = serviceview.ResourceServicePage(&serviceview.ResourceServicePageProps{
 		Ctx:                     ctx,
 		ResourceService:         *resourceService,
+		GalleryImageURLs:        galleryImgURLs,
 		ResourceServiceComments: serviceComments,
 		ServiceChangelog:        changelog,
 		CommentHMACEnvelope:     commentEnvelope,
