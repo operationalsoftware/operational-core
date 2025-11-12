@@ -280,11 +280,14 @@ func (r *ResourceRepository) ListResources(
 		orderByClause = "ORDER BY resource_id ASC"
 	}
 
-	whereClause := ""
-	if !q.IsArchived {
-		whereClause = `
+	whereClause := `
 WHERE
 	is_archived = FALSE
+`
+	if q.IsArchived {
+		whereClause = `
+WHERE
+	is_archived = TRUE
 `
 	}
 
@@ -340,11 +343,14 @@ func (r *ResourceRepository) Count(
 	q model.GetResourcesQuery,
 ) (int, error) {
 
-	whereClause := ""
-	if !q.IsArchived {
-		whereClause = `
+	whereClause := `
 WHERE
 	is_archived = FALSE
+`
+	if q.IsArchived {
+		whereClause = `
+WHERE
+	is_archived = TRUE
 `
 	}
 

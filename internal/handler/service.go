@@ -692,7 +692,7 @@ func (h *ServiceHandler) UpdateResourceService(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/resources/%d/services/%d", resourceID, serviceID), http.StatusSeeOther)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ServiceHandler) AddServiceSchedulePage(
