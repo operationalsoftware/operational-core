@@ -43,13 +43,6 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 				h.Value(decoded.Password),
 			},
 		}),
-
-		h.Input(
-			h.Type("hidden"),
-			h.Name("EncryptedCredentials"),
-			h.Value(encryptedCredentials),
-		),
-
 		h.Button(
 			h.Class("button"),
 			h.Type("submit"),
@@ -57,7 +50,7 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 		),
 	})
 
-	nfc := h.Button(
+	nfcButton := h.Button(
 		h.Class("button nfc-login-button"),
 		h.Type("button"),
 		components.Icon(&components.IconProps{
@@ -65,6 +58,19 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 		}),
 		g.Text("Log In with NFC"),
 	)
+
+	loginForm := func(content g.Node) g.Node {
+		return components.Form(
+			h.Method("POST"),
+			h.ID("login-form"),
+			h.Input(
+				h.Type("hidden"),
+				h.Name("EncryptedCredentials"),
+				h.Value(encryptedCredentials),
+			),
+			content,
+		)
+	}
 
 	microsoft := h.A(
 		h.Class("button microsoft-login-link"),
@@ -104,11 +110,7 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 
 	allLoginOptions := func() g.Node {
 		return g.Group([]g.Node{
-			components.Form(
-				h.Method("POST"),
-				h.ID("login-form"),
-				usernameAndPassword,
-			),
+			loginForm(usernameAndPassword),
 			components.Divider(
 				h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
 				g.Text("OR"),
@@ -118,7 +120,7 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 				h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
 				g.Text("OR"),
 			),
-			nfc,
+			nfcButton,
 			components.Divider(
 				h.Style("margin-top: 1.5rem; margin-bottom: 1.5rem;"),
 				g.Text("OR"),
@@ -133,15 +135,11 @@ func PasswordLoginPage(p PasswordLoginPageProps) g.Node {
 		case cookie.LoginMethodMicrosoft:
 			loginNode = microsoft
 		case cookie.LoginMethodNFC:
-			loginNode = nfc
+			loginNode = loginForm(nfcButton)
 		case cookie.LoginMethodQRCODE:
 			loginNode = qrcode
 		default:
-			loginNode = components.Form(
-				h.Method("POST"),
-				h.ID("login-form"),
-				usernameAndPassword,
-			)
+			loginNode = loginForm(usernameAndPassword)
 		}
 
 		return g.Group([]g.Node{
