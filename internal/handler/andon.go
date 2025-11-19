@@ -442,11 +442,6 @@ func (h *AndonHandler) UpdateAndon(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Andon not found", http.StatusNotFound)
 			return
 		}
-
-		if !andon.CanUserEdit {
-			http.Error(w, "Forbidden", http.StatusForbidden)
-			return
-		}
 	}
 
 	err := h.andonService.UpdateAndon(
@@ -532,10 +527,10 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var galleryURL string
-	if len(galleryImgURLs) == 0 && andon.CanUserEdit {
+	if len(galleryImgURLs) == 0 {
 		galleryURL = h.galleryService.GenerateEditTempURL(andon.GalleryID, true)
 	} else {
-		galleryURL = h.galleryService.GenerateTempURL(andon.GalleryID, andon.CanUserEdit)
+		galleryURL = h.galleryService.GenerateTempURL(andon.GalleryID, true)
 	}
 
 	comments, err := h.commentService.GetComments(r.Context(), andon.CommentThreadID, ctx.User.UserID)
@@ -546,10 +541,7 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build a JSON envelope for adding a comment to this andon's thread, valid for 5 minutes
-	permissions := []string{"view"}
-	if andon.CanUserEdit {
-		permissions = append(permissions, "add")
-	}
+	permissions := []string{"view", "add"}
 
 	commentPayload := apphmac.Payload{
 		Entity:      "comment_thread",

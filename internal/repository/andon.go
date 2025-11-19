@@ -121,11 +121,6 @@ SELECT
 	is_open,
 	status,
 	(
-		raised_by = ` + currentUserIDPlaceholderStr + `
-		OR
-		assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholderStr + `)
-	) AS can_user_edit,
-	(
 		is_cancelled = false
 		AND
 		is_acknowledged = false
@@ -140,11 +135,7 @@ SELECT
 		is_resolved = false
 		AND
 		(
-			(
-				severity = 'Self-resolvable'
-				AND
-				raised_by = ` + currentUserIDPlaceholderStr + `
-			)
+			severity = 'Self-resolvable'
 			OR
 			assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholderStr + `)
 		)
@@ -152,12 +143,10 @@ SELECT
 	(
 		is_open = true
 		AND
+		severity <> 'Info'
+		AND
 		(
-			(
-				severity = 'Self-resolvable'
-				AND
-				raised_by = ` + currentUserIDPlaceholderStr + `
-			)
+			severity = 'Self-resolvable'
 			OR
 			assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholderStr + `)
 		)
@@ -169,12 +158,10 @@ SELECT
 			closed_at > NOW() - INTERVAL '5 minutes'
 		)
 		AND
+		severity <> 'Info'
+		AND
 		(
-			(
-				severity = 'Self-resolvable'
-				AND
-				raised_by = ` + currentUserIDPlaceholderStr + `
-			)
+			severity = 'Self-resolvable'
 			OR
 			assigned_team IN (SELECT team_id FROM user_team WHERE user_id = ` + currentUserIDPlaceholderStr + `)
 		)
@@ -239,7 +226,6 @@ WHERE
 		&andon.Severity,
 		&andon.IsOpen,
 		&andon.Status,
-		&andon.CanUserEdit,
 		&andon.CanUserAcknowledge,
 		&andon.CanUserResolve,
 		&andon.CanUserCancel,
@@ -319,7 +305,6 @@ FROM andon_view
 			&andon.Severity,
 			&andon.IsOpen,
 			&andon.Status,
-			&andon.CanUserEdit,
 			&andon.CanUserAcknowledge,
 			&andon.CanUserResolve,
 			&andon.CanUserCancel,

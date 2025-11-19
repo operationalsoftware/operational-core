@@ -49,7 +49,6 @@ type Andon struct {
 	CancelledByUsername    *string    `sortable:"true"`
 	CancelledAt            *time.Time `sortable:"true"`
 	LastUpdated            *time.Time `sortable:"true"`
-	CanUserEdit            bool
 	CanUserAcknowledge     bool
 	CanUserResolve         bool
 	CanUserCancel          bool
