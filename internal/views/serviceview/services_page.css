@@ -27,38 +27,3 @@
 .table-row {
   white-space: nowrap;
 }
-
-.status-legend {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  margin-top: 20px;
-  font-size: 14px;
-  color: #333;
-
-  & > div {
-    display: flex;
-    align-items: center;
-  }
-}
-
-/* Status colors */
-.status-dot {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.threshold-80 {
-  background-color: var(--gold-5);
-}
-
-.threshold-90 {
-  background-color: var(--red-2);
-}
-
-.is-due {
-  background-color: var(--red-5);
-}

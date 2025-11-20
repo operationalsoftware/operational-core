@@ -66,6 +66,7 @@ func ServicesPage(p *ServicesPageProps) g.Node {
 		},
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/serviceview/services_page.css"),
+			components.InlineStyle("/internal/views/serviceview/components.css"),
 		},
 	})
 }
