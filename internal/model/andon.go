@@ -16,25 +16,26 @@ const (
 )
 
 type Andon struct {
-	AndonID             int
-	Description         string
-	AndonIssueID        int
-	GalleryID           int
-	CommentThreadID     int
-	IssueName           string        `sortable:"true"`
-	NamePath            []string      `sortable:"true"`
-	Severity            AndonSeverity `sortable:"true"`
-	Source              string        `sortable:"true"`
-	Location            string        `sortable:"true"`
-	IsOpen              bool          `sortable:"true"`
-	Status              AndonStatus   `sortable:"true"`
-	RaisedBy            int
-	RaisedByUsername    string     `sortable:"true"`
-	RaisedAt            time.Time  `sortable:"true"`
-	ClosedAt            *time.Time `sortable:"true"`
-	OpenDurationSeconds int        `sortable:"true"`
-	AssignedTeam        int
-	AssignedTeamName    string `sortable:"true"`
+	AndonID                 int
+	Description             string
+	AndonIssueID            int
+	GalleryID               int
+	CommentThreadID         int
+	IssueName               string        `sortable:"true"`
+	NamePath                []string      `sortable:"true"`
+	Severity                AndonSeverity `sortable:"true"`
+	Source                  string        `sortable:"true"`
+	Location                string        `sortable:"true"`
+	IsOpen                  bool          `sortable:"true"`
+	Status                  AndonStatus   `sortable:"true"`
+	RaisedBy                int
+	RaisedByUsername        string     `sortable:"true"`
+	RaisedAt                time.Time  `sortable:"true"`
+	ClosedAt                *time.Time `sortable:"true"`
+	DowntimeDurationSeconds *int       `sortable:"true"`
+	OpenDurationSeconds     int        `sortable:"true"`
+	AssignedTeam            int
+	AssignedTeamName        string `sortable:"true"`
 
 	IsAcknowledged         bool
 	AcknowledgedBy         *int
