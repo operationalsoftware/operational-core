@@ -175,6 +175,20 @@ func andonAttributesList(p *andonAttributesListProps) g.Node {
 		resolvedAtStr = andon.ResolvedAt.Format("2006-01-02 15:04:05")
 	}
 
+	renderDuration := func(display, tooltip string) g.Node {
+		if tooltip == "" {
+			return g.Text(display)
+		}
+
+		return h.Span(
+			g.Attr("title", tooltip),
+			g.Text(display),
+		)
+	}
+
+	downtimeDisplay, downtimeTooltip := format.FormatOptionalSecondsIntoMinutes(andon.DowntimeDurationSeconds)
+	openDurationDisplay, openDurationTooltip := format.FormatOptionalSecondsIntoMinutes(&andon.OpenDurationSeconds)
+
 	type attribute struct {
 		label string
 		value g.Node
@@ -186,9 +200,8 @@ func andonAttributesList(p *andonAttributesListProps) g.Node {
 		{label: "Assigned Team", value: g.Text(andon.AssignedTeamName)},
 		{label: "Raised By", value: g.Text(andon.RaisedByUsername)},
 		{label: "Raised At", value: g.Text(andon.RaisedAt.Format("2006-01-02 15:04:05"))},
-		{label: "Open Duration", value: g.Text(
-			format.FormatSecondsIntoDuration(andon.OpenDurationSeconds),
-		)},
+		{label: "Open Duration (m)", value: renderDuration(openDurationDisplay, openDurationTooltip)},
+		{label: "Downtime (m)", value: renderDuration(downtimeDisplay, downtimeTooltip)},
 		{label: "Acknowledged By", value: g.Text(acknowledgedByUsername)},
 		{label: "Acknowledged At", value: g.Text(acknowledgedAtStr)},
 	}

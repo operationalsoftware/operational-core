@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	g "maragu.dev/gomponents"
+	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
@@ -211,12 +212,24 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 		{TitleContents: g.Text("Status"), SortKey: "Status"},
 		{TitleContents: g.Text("Raised By"), SortKey: "RaisedByUsername"},
 		{TitleContents: g.Text("Raised At"), SortKey: "RaisedAt"},
-		{TitleContents: g.Text("Open Duration"), SortKey: "OpenDurationSeconds"},
+		{TitleContents: g.Text("Open Duration (m)"), SortKey: "OpenDurationSeconds", Classes: c.Classes{"text-right": true}},
+		{TitleContents: g.Text("Downtime (m)"), SortKey: "DowntimeDurationSeconds", Classes: c.Classes{"text-right": true}},
 		{TitleContents: g.Text("Acknowledged By"), SortKey: "AcknowledgedByUsername"},
 		{TitleContents: g.Text("Acknowledged At"), SortKey: "AcknowledgedAt"},
 		{TitleContents: g.Text("Resolved By"), SortKey: "ResolvedByUsername"},
 		{TitleContents: g.Text("Resolved At"), SortKey: "ResolvedAt"},
 		{TitleContents: g.Text("Updated At"), SortKey: "LastUpdated"},
+	}
+
+	renderDuration := func(display, tooltip string) g.Node {
+		if tooltip == "" {
+			return g.Text(display)
+		}
+
+		return h.Span(
+			g.Attr("title", tooltip),
+			g.Text(display),
+		)
 	}
 
 	var tableRows components.TableRows
@@ -243,6 +256,9 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 			lastUpdated = a.LastUpdated.Format("2006-01-02 15:04:05")
 		}
 
+		downtimeDisplay, downtimeTooltip := format.FormatOptionalSecondsIntoMinutes(a.DowntimeDurationSeconds)
+		openDurationDisplay, openDurationTooltip := format.FormatOptionalSecondsIntoMinutes(&a.OpenDurationSeconds)
+
 		cells := []components.TableCell{
 			{Contents: g.Text(a.Location)},
 			{Contents: g.Text(a.Description)},
@@ -252,7 +268,8 @@ func allAndonsTable(p *allAndonsTableProps) g.Node {
 			{Contents: statusBadge(a.Status, "small")},
 			{Contents: g.Text(a.RaisedByUsername)},
 			{Contents: g.Text(a.RaisedAt.Format("2006-01-02 15:04:05"))},
-			{Contents: g.Text(format.FormatSecondsIntoDuration(a.OpenDurationSeconds))},
+			{Contents: renderDuration(openDurationDisplay, openDurationTooltip), Classes: c.Classes{"text-right": true}},
+			{Contents: renderDuration(downtimeDisplay, downtimeTooltip), Classes: c.Classes{"text-right": true}},
 			{Contents: g.Text(acknowledgedBy)},
 			{Contents: g.Text(acknowledgedAt)},
 			{Contents: g.Text(resolvedBy)},
