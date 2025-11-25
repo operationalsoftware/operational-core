@@ -391,6 +391,8 @@ func (r *AndonRepository) GetAvailableFilters(
 			queryFilters.TeamIn = nil
 		case "LocationIn":
 			queryFilters.LocationIn = nil
+		case "RaisedByUsernameIn":
+			queryFilters.RaisedByUsernameIn = nil
 		case "AcknowledgedByUsernameIn":
 			queryFilters.AcknowledgedByUsernameIn = nil
 		case "ResolvedByUsernameIn":
