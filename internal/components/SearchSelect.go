@@ -1,9 +1,10 @@
 package components
 
 import (
+	"slices"
+
 	g "maragu.dev/gomponents"
 	h "maragu.dev/gomponents/html"
-	"slices"
 )
 
 type SearchSelectOption struct {
@@ -53,6 +54,11 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 
 	listOptions := SearchSelectOptions(p.Options)
 
+	searchQueryParamName := p.SearchQueryParamName
+	if searchQueryParamName == "" && p.OptionsEndpoint != "" {
+		searchQueryParamName = "SearchText"
+	}
+
 	var inputText string
 	if p.Selected != "" {
 		for _, o := range p.Options {
@@ -70,12 +76,12 @@ func SearchSelect(p *SearchSelectProps, children ...g.Node) g.Node {
 		h.Data("mode", p.Mode),
 		h.Data("name", p.Name),
 		g.If(
-			p.SearchQueryParamName != "",
+			p.OptionsEndpoint != "",
 			g.Attr("data-options-endpoint", p.OptionsEndpoint),
 		),
 		g.If(
-			p.SearchQueryParamName != "",
-			h.Data("search-query-param", p.SearchQueryParamName),
+			searchQueryParamName != "",
+			h.Data("search-query-param", searchQueryParamName),
 		),
 
 		h.Div(

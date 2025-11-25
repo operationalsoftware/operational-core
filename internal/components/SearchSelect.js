@@ -9,18 +9,38 @@
   const dropdown = selectEl.querySelector(".select-dropdown");
   const optionsList = selectEl.querySelector(".select-options");
 
-  const selectedOptionEls = optionsList.querySelectorAll(
-    ".select-option.selected"
+  const reorderOptionsBySelection = () => {
+    const options = Array.from(optionsList.querySelectorAll(".select-option"));
+    if (!options.length) return;
+
+    const selectedOptions = options.filter((opt) =>
+      opt.classList.contains("selected")
+    );
+    const unselectedOptions = options.filter(
+      (opt) => !opt.classList.contains("selected")
+    );
+
+    const fragment = document.createDocumentFragment();
+    selectedOptions.forEach((opt) => fragment.appendChild(opt));
+    unselectedOptions.forEach((opt) => fragment.appendChild(opt));
+
+    optionsList.prepend(fragment);
+  };
+
+  const selectedOptionEls = Array.from(
+    optionsList.querySelectorAll(".select-option.selected")
   );
+
+  if (selectedOptionEls.length) {
+    reorderOptionsBySelection();
+  }
 
   let selected;
 
   if (mode === "multi") {
-    selected = Array.from(selectedOptionEls).map((el) => el.dataset.value);
+    selected = selectedOptionEls.map((el) => el.dataset.value);
     inputSpan.textContent = selectedOptionEls.length
-      ? Array.from(selectedOptionEls)
-          .map((el) => el.textContent)
-          .join(", ")
+      ? selectedOptionEls.map((el) => el.textContent).join(", ")
       : inputSpan.textContent;
   } else {
     const selectedOption = selectedOptionEls[0];
@@ -46,6 +66,11 @@
       dropdown.classList.add("open");
       search.focus();
     }
+  });
+
+  // This prevents triggering onchange handlers too early
+  search.addEventListener("change", (e) => {
+    e.stopPropagation();
   });
 
   search.addEventListener("input", async () => {
@@ -114,6 +139,7 @@
   });
 
   optionsList.addEventListener("click", (e) => {
+    e.stopPropagation();
     const option = e.target.closest(".select-option");
     if (!option) return;
 
@@ -121,6 +147,11 @@
 
     if (mode === "single") {
       selected = value;
+      // Clear previous visual selection and apply to clicked
+      optionsList
+        .querySelectorAll(".select-option.selected")
+        .forEach((el) => el.classList.remove("selected"));
+      option.classList.add("selected");
       inputSpan.textContent = option.textContent;
       dropdown.classList.remove("open");
     } else {
@@ -135,8 +166,14 @@
       inputSpan.textContent = selected.join(", ");
     }
 
+    reorderOptionsBySelection();
+    activeIndex = -1;
     updateHiddenInputs(selectEl, selected, name);
-    selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+    // Debounce synthetic change to avoid rapid reloads or handlers firing twice
+    clearTimeout(selectEl._changeTimeout);
+    selectEl._changeTimeout = setTimeout(() => {
+      selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+    }, 0);
   });
 
   let activeIndex = -1;
@@ -175,7 +212,9 @@
       e.preventDefault();
       updateActiveOption(activeIndex - 1);
     } else if (e.key === "Enter") {
+      // Use Enter to select without submitting the outer form
       e.preventDefault();
+      e.stopPropagation();
       const option = options[activeIndex];
       if (option) option.click();
     } else if (e.key === "Escape") {
