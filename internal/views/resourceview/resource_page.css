@@ -67,7 +67,3 @@
 .muted-text {
   color: var(--muted-text-color);
 }
-
-td.is-due {
-  color: var(--text-color-contrast);
-}
