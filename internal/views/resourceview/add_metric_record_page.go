@@ -82,7 +82,7 @@ func addResourceMetricRecordForm(p *addResourceMetricRecordFormProps) g.Node {
 		serviceMetricHelperType = components.InputHelperTypeError
 	}
 
-	valueLabel := "Recorded Value"
+	valueLabel := "Recording Value"
 	valuePlaceholder := "Enter value"
 	valueKey := "Value"
 	valueValue := p.values.Get(valueKey)
@@ -105,17 +105,8 @@ func addResourceMetricRecordForm(p *addResourceMetricRecordFormProps) g.Node {
 		intVal, _ := strconv.Atoi(serviceMetricValue)
 		isSelected := metric.ServiceMetricID == intVal
 
-		if isSelected {
-			if metric.IsCumulative {
-				valueLabel = "Value Since Last Service"
-			} else {
-				valueLabel = "Current Value"
-			}
-		}
-
 		metricSelectOptions = append(metricSelectOptions, h.Option(
 			h.Value(fmt.Sprintf("%d", metric.ServiceMetricID)),
-			h.Data("is-cumulative", fmt.Sprintf("%t", metric.IsCumulative)),
 			g.If(isSelected, h.Selected()),
 			g.Text(metric.Name),
 		))
@@ -133,7 +124,6 @@ func addResourceMetricRecordForm(p *addResourceMetricRecordFormProps) g.Node {
 					h.ID("service-metric-select"),
 					h.Name(serviceMetricKey),
 					g.Group(metricSelectOptions),
-					g.Attr("onchange", "handleMetricChange(event)"),
 				),
 			),
 			g.If(serviceMetricError != "",
