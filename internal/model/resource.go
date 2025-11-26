@@ -23,18 +23,18 @@ type NewResource struct {
 	ServiceOwnershipTeamID *int
 }
 
-type NewResourceUsageRecord struct {
-	ResourceID              int
-	ResourceServiceMetricID int
-	Value                   decimal.Decimal
-	ClosedByServiceID       *int
-}
-
 type ResourceUpdate struct {
 	Type                   string
 	Reference              string
 	IsArchived             bool
 	ServiceOwnershipTeamID *int
+}
+
+type NewResourceServiceMetricRecord struct {
+	ResourceID              int
+	ResourceServiceMetricID int
+	Value                   decimal.Decimal
+	ClosedByServiceID       *int
 }
 
 type GetResourcesQuery struct {

@@ -257,7 +257,7 @@ func (s *ServicesService) UpdateService(
 			userID,
 		)
 		if err == nil {
-			err = s.resourceRepository.ReopenClosedUsageRecords(
+			err = s.resourceRepository.ReopenClosedMetricRecords(
 				ctx,
 				tx,
 				resourceID,

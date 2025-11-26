@@ -14,7 +14,7 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
-type AddResourceUsagePageProps struct {
+type AddResourceMetricRecordPageProps struct {
 	Ctx              reqcontext.ReqContext
 	Values           url.Values
 	ValidationErrors validate.ValidationErrors
@@ -23,11 +23,11 @@ type AddResourceUsagePageProps struct {
 	ServiceMetrics   []model.ServiceMetric
 }
 
-func AddResourceUsagePage(p *AddResourceUsagePageProps) g.Node {
+func AddResourceMetricRecordPage(p *AddResourceMetricRecordPageProps) g.Node {
 
 	content := g.Group([]g.Node{
 
-		addResourceUsageRecordForm(&addResourceUsageRecordFormProps{
+		addResourceMetricRecordForm(&addResourceMetricRecordFormProps{
 			values:           p.Values,
 			validationErrors: p.ValidationErrors,
 			isSubmission:     p.IsSubmission,
@@ -37,7 +37,7 @@ func AddResourceUsagePage(p *AddResourceUsagePageProps) g.Node {
 
 	return layout.Page(layout.PageProps{
 		Ctx:     p.Ctx,
-		Title:   "Add Resource Usage Record",
+		Title:   "Add Resource Recording",
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
@@ -52,23 +52,23 @@ func AddResourceUsagePage(p *AddResourceUsagePageProps) g.Node {
 			},
 			{
 				IconIdentifier: "plus",
-				Title:          "Usage Record",
+				Title:          "Resource Recording",
 			},
 		},
 		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/resourceview/add_usage_record_page.css"),
+			components.InlineStyle("/internal/views/resourceview/add_metric_record_page.css"),
 		},
 	})
 }
 
-type addResourceUsageRecordFormProps struct {
+type addResourceMetricRecordFormProps struct {
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
 	serviceMetrics   []model.ServiceMetric
 }
 
-func addResourceUsageRecordForm(p *addResourceUsageRecordFormProps) g.Node {
+func addResourceMetricRecordForm(p *addResourceMetricRecordFormProps) g.Node {
 
 	serviceMetricLabel := "Select service metric"
 	serviceMetricKey := "ServiceMetricID"
@@ -82,17 +82,17 @@ func addResourceUsageRecordForm(p *addResourceUsageRecordFormProps) g.Node {
 		serviceMetricHelperType = components.InputHelperTypeError
 	}
 
-	usageLabel := "Value"
-	usagePlaceholder := "Enter value"
-	usageKey := "Value"
-	usageValue := p.values.Get(usageKey)
-	usageError := ""
-	if p.isSubmission || usageValue != "" {
-		usageError = p.validationErrors.GetError(usageKey, usageLabel)
+	valueLabel := "Recording Value"
+	valuePlaceholder := "Enter value"
+	valueKey := "Value"
+	valueValue := p.values.Get(valueKey)
+	valueError := ""
+	if p.isSubmission || valueValue != "" {
+		valueError = p.validationErrors.GetError(valueKey, valueLabel)
 	}
-	usageHelperType := components.InputHelperTypeNone
-	if usageError != "" {
-		usageHelperType = components.InputHelperTypeError
+	valueHelperType := components.InputHelperTypeNone
+	if valueError != "" {
+		valueHelperType = components.InputHelperTypeError
 	}
 
 	metricSelectOptions := []g.Node{
@@ -105,17 +105,8 @@ func addResourceUsageRecordForm(p *addResourceUsageRecordFormProps) g.Node {
 		intVal, _ := strconv.Atoi(serviceMetricValue)
 		isSelected := metric.ServiceMetricID == intVal
 
-		if isSelected {
-			if metric.IsCumulative {
-				usageLabel = "Usage Since Last Service"
-			} else {
-				usageLabel = "Current Reading"
-			}
-		}
-
 		metricSelectOptions = append(metricSelectOptions, h.Option(
 			h.Value(fmt.Sprintf("%d", metric.ServiceMetricID)),
-			h.Data("is-cumulative", fmt.Sprintf("%t", metric.IsCumulative)),
 			g.If(isSelected, h.Selected()),
 			g.Text(metric.Name),
 		))
@@ -133,7 +124,6 @@ func addResourceUsageRecordForm(p *addResourceUsageRecordFormProps) g.Node {
 					h.ID("service-metric-select"),
 					h.Name(serviceMetricKey),
 					g.Group(metricSelectOptions),
-					g.Attr("onchange", "handleMetricChange(event)"),
 				),
 			),
 			g.If(serviceMetricError != "",
@@ -145,21 +135,21 @@ func addResourceUsageRecordForm(p *addResourceUsageRecordFormProps) g.Node {
 
 		h.Div(
 			h.Label(
-				g.Text(usageLabel),
+				g.Text(valueLabel),
 
 				h.Input(
-					h.Name(usageKey),
+					h.Name(valueKey),
 					h.Type("number"),
-					h.Placeholder(usagePlaceholder),
-					h.Value(usageValue),
+					h.Placeholder(valuePlaceholder),
+					h.Value(valueValue),
 					h.AutoComplete("off"),
 				),
 			),
 			g.If(
-				usageError != "",
+				valueError != "",
 				components.InputHelper(&components.InputHelperProps{
-					Label: usageError,
-					Type:  usageHelperType,
+					Label: valueError,
+					Type:  valueHelperType,
 				}),
 			),
 		),
@@ -167,7 +157,7 @@ func addResourceUsageRecordForm(p *addResourceUsageRecordFormProps) g.Node {
 		h.Button(
 			h.Class("button primary"),
 			h.Type("submit"),
-			g.Text("Add Usage Record"),
+			g.Text("Add Recording"),
 		),
 	)
 }

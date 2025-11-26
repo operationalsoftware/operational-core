@@ -199,11 +199,11 @@ func resourceNav(p *resourceNavProps) g.Node {
 
 			h.A(
 				h.Class("button primary"),
-				h.Href(fmt.Sprintf("/resources/%d/usage/add", p.resourceID)),
+				h.Href(fmt.Sprintf("/resources/%d/metric-recording/add", p.resourceID)),
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
 				}),
-				g.Text("Usage Record"),
+				g.Text("Recording"),
 			),
 		)
 	}

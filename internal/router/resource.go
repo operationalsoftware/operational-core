@@ -38,6 +38,6 @@ func addResourceRoutes(
 	mux.HandleFunc("GET /resources/{id}/services/new", resourceHandler.AddResourceServicePage)
 	mux.HandleFunc("POST /resources/{id}/services/new", resourceHandler.AddResourceService)
 
-	mux.HandleFunc("GET /resources/{id}/usage/add", resourceHandler.AddResourceUsagePage)
-	mux.HandleFunc("POST /resources/{id}/usage/add", resourceHandler.AddResourceUsage)
+	mux.HandleFunc("GET /resources/{id}/metric-recording/add", resourceHandler.AddResourceMetricRecordPage)
+	mux.HandleFunc("POST /resources/{id}/metric-recording/add", resourceHandler.AddResourceMetricRecord)
 }
