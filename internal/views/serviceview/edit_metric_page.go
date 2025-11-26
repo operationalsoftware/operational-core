@@ -184,7 +184,7 @@ func editServiceMetricForm(p *editServiceMetricFormProps) g.Node {
 			),
 			h.P(
 				h.Class("note"),
-				g.Textf("Note: Cumulative metrics sum all usage records to calculate current usage. Non-cumulative metrics only use the latest usage record."),
+				g.Textf("Note: Cumulative metrics sum all metric recordings to calculate the current value. Non-cumulative metrics only use the latest metric recording."),
 			),
 		),
 

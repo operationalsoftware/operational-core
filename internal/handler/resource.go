@@ -587,7 +587,7 @@ func (fd *addResourceServiceFormData) validate() validate.ValidationErrors {
 	return ve
 }
 
-func (h *ResourceHandler) AddResourceUsagePage(
+func (h *ResourceHandler) AddResourceMetricRecordPage(
 	w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
@@ -616,7 +616,7 @@ func (h *ResourceHandler) AddResourceUsagePage(
 		return
 	}
 
-	_ = resourceview.AddResourceUsagePage(&resourceview.AddResourceUsagePageProps{
+	_ = resourceview.AddResourceMetricRecordPage(&resourceview.AddResourceMetricRecordPageProps{
 		Ctx:            ctx,
 		Values:         r.URL.Query(),
 		Resource:       *resource,
@@ -624,7 +624,7 @@ func (h *ResourceHandler) AddResourceUsagePage(
 	}).Render(w)
 }
 
-func (h *ResourceHandler) AddResourceUsage(w http.ResponseWriter, r *http.Request) {
+func (h *ResourceHandler) AddResourceMetricRecord(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	resourceID, err := strconv.Atoi(r.PathValue("id"))
@@ -658,7 +658,7 @@ func (h *ResourceHandler) AddResourceUsage(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var fd addResourceUsageRecordFormData
+	var fd addResourceMetricRecordFormData
 	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
 		log.Println("error decoding form:", err)
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
@@ -670,8 +670,8 @@ func (h *ResourceHandler) AddResourceUsage(w http.ResponseWriter, r *http.Reques
 	validationErrors := fd.validate()
 
 	if len(validationErrors) > 0 {
-		_ = resourceview.AddResourceUsagePage(
-			&resourceview.AddResourceUsagePageProps{
+		_ = resourceview.AddResourceMetricRecordPage(
+			&resourceview.AddResourceMetricRecordPageProps{
 				Ctx:              ctx,
 				Values:           r.Form,
 				ValidationErrors: validationErrors,
@@ -682,31 +682,31 @@ func (h *ResourceHandler) AddResourceUsage(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = h.resourceService.CreateResourceUsageRecord(
+	err = h.resourceService.CreateResourceMetricRecord(
 		r.Context(),
-		model.NewResourceUsageRecord{
+		model.NewResourceServiceMetricRecord{
 			ResourceID:              resourceID,
 			ResourceServiceMetricID: fd.ServiceMetricID,
 			Value:                   fd.Value,
 		})
 	if err != nil {
-		log.Println("error creating resource usage record:", err)
-		http.Error(w, "Error creating resource usage record", http.StatusInternalServerError)
+		log.Println("error creating resource recording:", err)
+		http.Error(w, "Error creating resource recording", http.StatusInternalServerError)
 		return
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/resources/%d", resourceID), http.StatusSeeOther)
 }
 
-type addResourceUsageRecordFormData struct {
+type addResourceMetricRecordFormData struct {
 	ServiceMetricID int
 	Value           decimal.Decimal
 }
 
-func (fd *addResourceUsageRecordFormData) normalise() {
+func (fd *addResourceMetricRecordFormData) normalise() {
 }
 
-func (fd *addResourceUsageRecordFormData) validate() validate.ValidationErrors {
+func (fd *addResourceMetricRecordFormData) validate() validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
 
 	if fd.ServiceMetricID == 0 {

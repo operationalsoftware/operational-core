@@ -47,14 +47,14 @@ RETURNING resource_id;
 	return newID, nil
 }
 
-func (r *ResourceRepository) CreateResourceUsageRecord(
+func (r *ResourceRepository) CreateResourceMetricRecord(
 	ctx context.Context,
 	exec db.PGExecutor,
-	record model.NewResourceUsageRecord,
+	record model.NewResourceServiceMetricRecord,
 ) error {
 
 	query := `
-INSERT INTO resource_usage_record (
+INSERT INTO resource_metric_recording (
 	resource_id,
 	resource_service_metric_id,
 	value
@@ -121,7 +121,7 @@ WHERE
 	return nil
 }
 
-func (r *ResourceRepository) CloseOpenUsageRecords(
+func (r *ResourceRepository) CloseOpenMetricRecords(
 	ctx context.Context,
 	exec db.PGExecutor,
 	resourceID int,
@@ -138,7 +138,7 @@ func (r *ResourceRepository) CloseOpenUsageRecords(
 
 	query := `
 UPDATE
-	resource_usage_record
+	resource_metric_recording
 
 SET
 	closed_by_resource_service_id = $2
@@ -164,7 +164,7 @@ WHERE
 	return nil
 }
 
-func (r *ResourceRepository) ReopenClosedUsageRecords(
+func (r *ResourceRepository) ReopenClosedMetricRecords(
 	ctx context.Context,
 	exec db.PGExecutor,
 	resourceID int,
@@ -181,7 +181,7 @@ func (r *ResourceRepository) ReopenClosedUsageRecords(
 
 	query := `
 UPDATE
-	resource_usage_record
+	resource_metric_recording
 SET
 	closed_by_resource_service_id = NULL
 WHERE
@@ -442,6 +442,7 @@ SELECT
     current_value,
 	threshold,
 	normalised_value,
+	normalised_percentage,
 	is_due,
 	last_recorded_at,
 	schedule_is_archived,
@@ -481,6 +482,7 @@ ORDER BY metric_name ASC
 			&metric.CurrentValue,
 			&metric.Threshold,
 			&metric.NormalisedValue,
+			&metric.NormalisedPercentage,
 			&metric.IsDue,
 			&metric.LastRecordedAt,
 			&metric.ScheduleIsArchived,

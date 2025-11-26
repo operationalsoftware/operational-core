@@ -58,9 +58,9 @@ func (s *ResourceService) CreateResource(
 	return nil
 }
 
-func (s *ResourceService) CreateResourceUsageRecord(
+func (s *ResourceService) CreateResourceMetricRecord(
 	ctx context.Context,
-	record model.NewResourceUsageRecord,
+	record model.NewResourceServiceMetricRecord,
 ) error {
 
 	tx, err := s.db.Begin(ctx)
@@ -69,7 +69,7 @@ func (s *ResourceService) CreateResourceUsageRecord(
 	}
 	defer tx.Rollback(ctx) // Ensures rollback on error
 
-	err = s.resourceRepository.CreateResourceUsageRecord(ctx, tx, record)
+	err = s.resourceRepository.CreateResourceMetricRecord(ctx, tx, record)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (s *ResourceService) CreateResourceService(
 		return 0, err
 	}
 
-	err = s.resourceRepository.CloseOpenUsageRecords(
+	err = s.resourceRepository.CloseOpenMetricRecords(
 		ctx,
 		tx,
 		service.ResourceID,
