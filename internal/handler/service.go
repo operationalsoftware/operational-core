@@ -591,6 +591,17 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	lastService, err := h.servicesService.GetLastServiceForResource(
+		r.Context(),
+		resourceService.ResourceID,
+		resourceService.ResourceServiceID,
+	)
+	if err != nil {
+		log.Println("error fetching last service for resource:", err)
+		http.Error(w, "Error fetching last service for resource", http.StatusInternalServerError)
+		return
+	}
+
 	changelog, err := h.servicesService.GetServiceChangelog(
 		r.Context(),
 		serviceID,
@@ -640,6 +651,7 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 	_ = serviceview.ResourceServicePage(&serviceview.ResourceServicePageProps{
 		Ctx:                     ctx,
 		ResourceService:         *resourceService,
+		LastResourceService:     lastService,
 		GalleryImageURLs:        galleryImgURLs,
 		ResourceServiceComments: serviceComments,
 		ServiceChangelog:        changelog,

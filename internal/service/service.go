@@ -308,6 +308,29 @@ func (s *ServicesService) GetResourceServiceByID(
 	return service, nil
 }
 
+func (s *ServicesService) GetLastServiceForResource(
+	ctx context.Context,
+	resourceID int,
+	excludeServiceID int,
+) (*model.ResourceService, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	service, err := s.servicesRepository.GetLastServiceForResource(ctx, tx, resourceID, excludeServiceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return service, nil
+}
+
 func (s *ServicesService) GetServiceChangelog(
 	ctx context.Context,
 	serviceID int,
