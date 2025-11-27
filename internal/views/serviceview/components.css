@@ -2,7 +2,7 @@
   display: flex;
   gap: 20px;
   justify-content: center;
-  margin-top: var(--spacing-md);
+  margin: var(--spacing-md) 0;
   font-size: var(--font-size-sm);
   color: var(--text-color);
   flex-wrap: wrap;
