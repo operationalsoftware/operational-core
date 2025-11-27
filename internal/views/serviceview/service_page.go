@@ -34,12 +34,6 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 	service := p.ResourceService
 	isWIPService := p.ResourceService.Status == model.ServiceStatusWorkInProgress
 
-	pageTitle := fmt.Sprintf(
-		"Service Details • %s (%s)",
-		service.ResourceReference,
-		service.ResourceType,
-	)
-
 	content := g.Group([]g.Node{
 
 		h.Div(
@@ -47,7 +41,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 
 			h.Div(
 				h.Class("title"),
-				h.H3(g.Textf("Service for %s", service.ResourceReference)),
+				h.H3(g.Textf("Service of %s", service.ResourceReference)),
 			),
 
 			h.Div(
@@ -175,6 +169,12 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 		),
 	})
 
+	pageTitle := fmt.Sprintf(
+		"Service Details • %s (%s)",
+		service.ResourceReference,
+		service.ResourceType,
+	)
+
 	return layout.Page(layout.PageProps{
 		Ctx:   p.Ctx,
 		Title: pageTitle,
@@ -185,7 +185,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 				Title:          "Services",
 				URLPart:        "services",
 			},
-			{Title: fmt.Sprintf("Service for %s", service.ResourceReference)},
+			{Title: fmt.Sprintf("Service of %s", service.ResourceReference)},
 		},
 		Content: content,
 		AppendHead: []g.Node{
@@ -231,7 +231,7 @@ func serviceAttributesList(p *serviceAttributesListProps) g.Node {
 	}
 
 	lastServiceValue := g.Text("\u2013")
-	if lastService != nil {
+	if lastService != nil && lastService.Status != model.ServiceStatusCancelled {
 		lastServiceValue = h.A(
 			h.Href(fmt.Sprintf("/services/%d", lastService.ResourceServiceID)),
 			h.Class("resource-link"),

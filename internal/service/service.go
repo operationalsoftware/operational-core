@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
@@ -312,6 +313,7 @@ func (s *ServicesService) GetLastServiceForResource(
 	ctx context.Context,
 	resourceID int,
 	excludeServiceID int,
+	beforeStartedAt time.Time,
 ) (*model.ResourceService, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -319,7 +321,13 @@ func (s *ServicesService) GetLastServiceForResource(
 	}
 	defer tx.Rollback(ctx)
 
-	service, err := s.servicesRepository.GetLastServiceForResource(ctx, tx, resourceID, excludeServiceID)
+	service, err := s.servicesRepository.GetLastServiceForResource(
+		ctx,
+		tx,
+		resourceID,
+		excludeServiceID,
+		beforeStartedAt,
+	)
 	if err != nil {
 		return nil, err
 	}

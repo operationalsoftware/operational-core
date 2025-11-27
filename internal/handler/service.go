@@ -595,6 +595,7 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 		r.Context(),
 		resourceService.ResourceID,
 		resourceService.ResourceServiceID,
+		resourceService.StartedAt,
 	)
 	if err != nil {
 		log.Println("error fetching last service for resource:", err)

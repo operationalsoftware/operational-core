@@ -582,6 +582,7 @@ func (r *ServiceRepository) GetLastServiceForResource(
 	exec db.PGExecutor,
 	resourceID int,
 	excludeServiceID int,
+	beforeStartedAt time.Time,
 ) (*model.ResourceService, error) {
 	query := `
 SELECT
@@ -605,13 +606,14 @@ FROM
 WHERE
     resource_id = $1
 	AND resource_service_id <> $2
+	AND started_at < $3
 ORDER BY
 	started_at DESC
 LIMIT 1
 `
 
 	var service model.ResourceService
-	err := exec.QueryRow(ctx, query, resourceID, excludeServiceID).Scan(
+	err := exec.QueryRow(ctx, query, resourceID, excludeServiceID, beforeStartedAt).Scan(
 		&service.ResourceID,
 		&service.ResourceServiceID,
 		&service.ResourceType,

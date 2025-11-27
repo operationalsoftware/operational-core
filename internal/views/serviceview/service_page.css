@@ -30,10 +30,10 @@
   font-weight: 600;
   color: var(--primary-color);
   text-decoration: none;
-}
 
-.resource-link:hover {
-  text-decoration: underline;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .description {
