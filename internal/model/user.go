@@ -18,6 +18,7 @@ type UserDB struct {
 	LastName               pgtype.Text
 	Created                time.Time
 	LastLogin              pgtype.Timestamptz
+	LastActive             pgtype.Timestamptz
 	Permissions            json.RawMessage
 	SessionDurationMinutes *int
 }
@@ -31,6 +32,7 @@ type User struct {
 	LastName               *string    `sortable:"true"`
 	Created                time.Time  `sortable:"true"`
 	LastLogin              *time.Time `sortable:"true"`
+	LastActive             *time.Time `sortable:"true"`
 	Permissions            UserPermissions
 	SessionDurationMinutes *int
 	Teams                  []UserTeam `json:"teams"`
@@ -55,6 +57,7 @@ func (u UserDB) ToDomain() User {
 		LastName:               pgconv.PGTextToStringPtr(u.LastName),
 		Created:                u.Created,
 		LastLogin:              pgconv.PGTimestamptzToTimePtr(u.LastLogin),
+		LastActive:             pgconv.PGTimestamptzToTimePtr(u.LastActive),
 		Permissions:            permissions,
 		SessionDurationMinutes: u.SessionDurationMinutes,
 	}
@@ -103,6 +106,7 @@ var GetUsersSortableKeys = []string{
 	"LastName",
 	"Created",
 	"LastLogin",
+	"LastActive",
 }
 
 type UserTeam struct {

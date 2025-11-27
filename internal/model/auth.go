@@ -16,6 +16,7 @@ type AuthUserDB struct {
 	LastName               pgtype.Text        `db:"last_name"`
 	Created                time.Time          `db:"created"`
 	LastLogin              pgtype.Timestamptz `db:"last_login"`
+	LastActive             pgtype.Timestamptz `db:"last_active"`
 	HashedPassword         string             `db:"hashed_password"`
 	FailedLoginAttempts    int                `db:"failed_login_attempts"`
 	LoginBlockedUntil      pgtype.Timestamptz `db:"login_blocked_until"`
@@ -31,6 +32,7 @@ type AuthUser struct {
 	LastName               *string
 	Created                time.Time
 	LastLogin              *time.Time
+	LastActive             *time.Time
 	HashedPassword         string
 	FailedLoginAttempts    int
 	LoginBlockedUntil      *time.Time
@@ -47,6 +49,7 @@ func (a AuthUserDB) ToDomain() AuthUser {
 		LastName:               pgconv.PGTextToStringPtr(a.LastName),
 		Created:                a.Created,
 		LastLogin:              pgconv.PGTimestamptzToTimePtr(a.LastLogin),
+		LastActive:             pgconv.PGTimestamptzToTimePtr(a.LastActive),
 		HashedPassword:         a.HashedPassword,
 		FailedLoginAttempts:    a.FailedLoginAttempts,
 		LoginBlockedUntil:      pgconv.PGTimestamptzToTimePtr(a.LoginBlockedUntil),

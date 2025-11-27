@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+const minActivityUpdateInterval = time.Minute
+
 type AuthenticationMiddleware struct {
 	authService service.AuthService
 	userService service.UserService
@@ -98,6 +100,15 @@ func (m *AuthenticationMiddleware) Authentication(next http.Handler) http.Handle
 			log.Println("user wth id", cookieData.UserID, "not found")
 			next.ServeHTTP(w, r)
 			return
+		}
+
+		now := time.Now()
+		if user.LastActive == nil || now.Sub(*user.LastActive) >= minActivityUpdateInterval {
+			if err := m.userService.UpdateLastActive(r.Context(), user.UserID, now); err != nil {
+				log.Println("failed to update last_active:", err)
+			} else {
+				user.LastActive = &now
+			}
 		}
 
 		// Refreshing cookie if elapsed time more than 1 minute than set time

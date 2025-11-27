@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -190,6 +191,22 @@ func (s *UserService) GetUserByUsername(
 	}
 
 	return user, nil
+}
+
+func (s *UserService) UpdateLastActive(
+	ctx context.Context,
+	userID int,
+	lastActive time.Time,
+) error {
+	_, err := s.db.Exec(ctx, `
+UPDATE
+	app_user
+SET
+	last_active = $1
+WHERE
+	user_id = $2
+	`, lastActive, userID)
+	return err
 }
 
 func (s *UserService) GetUsers(

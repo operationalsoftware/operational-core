@@ -181,6 +181,23 @@ WHERE
 	return nil
 }
 
+func (r *UserRepository) UpdateLastActive(
+	ctx context.Context,
+	exec db.PGExecutor,
+	userID int,
+	lastActive time.Time,
+) error {
+	_, err := exec.Exec(ctx, `
+UPDATE
+	app_user
+SET
+	last_active = $1
+WHERE
+	user_id = $2
+	`, lastActive, userID)
+	return err
+}
+
 func (r *UserRepository) ResetPassword(
 	ctx context.Context,
 	exec db.PGExecutor,
@@ -225,6 +242,7 @@ SELECT
     last_name,
     created,
     last_login,
+    last_active,
 	session_duration_minutes,
     permissions,
 	teams
@@ -246,6 +264,7 @@ WHERE
 		&user.LastName,
 		&user.Created,
 		&user.LastLogin,
+		&user.LastActive,
 		&user.SessionDurationMinutes,
 		&permissions,
 		&teamsJSON,
@@ -284,6 +303,7 @@ SELECT
     last_name,
     created,
     last_login,
+    last_active,
 	session_duration_minutes,
     permissions,
 	teams
@@ -305,6 +325,7 @@ WHERE
 		&user.LastName,
 		&user.Created,
 		&user.LastLogin,
+		&user.LastActive,
 		&user.SessionDurationMinutes,
 		&permissions,
 		&teamsJSON,
@@ -355,6 +376,7 @@ SELECT
     last_name,
     created,
     last_login,
+    last_active,
 	session_duration_minutes,
     permissions,
 	teams
@@ -388,6 +410,7 @@ LIMIT $1 OFFSET $2
 			&user.LastName,
 			&user.Created,
 			&user.LastLogin,
+			&user.LastActive,
 			&user.SessionDurationMinutes,
 			&permissions,
 			&teamsJSON,
