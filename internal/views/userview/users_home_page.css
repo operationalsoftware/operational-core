@@ -11,3 +11,8 @@
 #users-table-container {
   margin-top: var(--spacing-lg);
 }
+
+.user-stats {
+  color: var(--muted-text-color);
+  margin-top: var(--spacing-md);
+}

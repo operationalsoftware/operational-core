@@ -238,6 +238,10 @@ func (s *UserService) GetUsers(
 	return users, count, nil
 }
 
+func (s *UserService) GetActiveUserCountSince(ctx context.Context, since time.Time) (int, error) {
+	return s.userRepository.GetActiveUserCountSince(ctx, s.db, since)
+}
+
 func (s *UserService) validateNewUser(
 	ctx context.Context,
 	tx pgx.Tx,

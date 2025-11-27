@@ -13,6 +13,7 @@
 ## Coding Style & Naming Conventions
 - Go code must be formatted with `gofmt` before committing. Follow existing naming: long-form nouns such as `ResourceServiceMetric`, and exported structs live in `internal/model`.
 - Keep HTML/CSS/JS assets in ASCII; prefer gomponents for server-rendered views under `internal/views`. Use descriptive CSS class names scoped per page file.
+- Repository layer owns SQL; services should call repository methods instead of issuing raw queries directly.
 
 ## Testing Guidelines
 - Go’s standard `testing` package is used; place tests alongside source files. Name tests `TestXxx` reflecting the function/behavior.

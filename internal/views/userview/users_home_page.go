@@ -15,13 +15,14 @@ import (
 )
 
 type UsersHomePageProps struct {
-	Ctx       reqcontext.ReqContext
-	Users     []model.User
-	UserCount int
-	Sort      appsort.Sort
-	Page      int
-	PageSize  int
-	MyFilter  string
+	Ctx                 reqcontext.ReqContext
+	Users               []model.User
+	UserCount           int
+	ActiveUserCountLast int
+	Sort                appsort.Sort
+	Page                int
+	PageSize            int
+	MyFilter            string
 }
 
 func UsersHomePage(p *UsersHomePageProps) g.Node {
@@ -131,6 +132,15 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 				}),
 				g.Text("API User"),
 			),
+		),
+
+		h.P(
+			h.Class("user-stats"),
+			g.Text(fmt.Sprintf(
+				"Total users: %d, Active in last 30 days: %d",
+				p.UserCount,
+				p.ActiveUserCountLast,
+			)),
 		),
 
 		// form container for table interaction

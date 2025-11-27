@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type UserHandler struct {
@@ -58,13 +59,24 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	activeUserCount30d, err := h.userService.GetActiveUserCountSince(
+		r.Context(),
+		time.Now().AddDate(0, 0, -30),
+	)
+	if err != nil {
+		log.Panicln(err)
+		http.Error(w, "Error listing users", http.StatusInternalServerError)
+		return
+	}
+
 	_ = userview.UsersHomePage(&userview.UsersHomePageProps{
-		Ctx:       ctx,
-		Users:     users,
-		UserCount: count,
-		Sort:      sort,
-		Page:      uv.Page,
-		PageSize:  uv.PageSize,
+		Ctx:                 ctx,
+		Users:               users,
+		UserCount:           count,
+		ActiveUserCountLast: activeUserCount30d,
+		Sort:                sort,
+		Page:                uv.Page,
+		PageSize:            uv.PageSize,
 	}).Render(w)
 }
 
@@ -109,8 +121,8 @@ func (h *UserHandler) UserPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = userview.UserPage(&userview.UserPageProps{
-		Ctx:      ctx,
-		User:     *user,
+		Ctx:  ctx,
+		User: *user,
 	}).Render(w)
 }
 

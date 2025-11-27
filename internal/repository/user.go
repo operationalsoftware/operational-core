@@ -455,6 +455,24 @@ FROM
 	return count, nil
 }
 
+func (r *UserRepository) GetActiveUserCountSince(
+	ctx context.Context,
+	exec db.PGExecutor,
+	since time.Time,
+) (int, error) {
+	var count int
+	err := exec.QueryRow(ctx, `
+SELECT COUNT(*)
+FROM app_user
+WHERE last_active IS NOT NULL
+  AND last_active >= $1
+`, since).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func generateRandomPassword(length int) (string, error) {
 	if length < 8 {
 		return "", fmt.Errorf("password length must be at least 8 characters")
