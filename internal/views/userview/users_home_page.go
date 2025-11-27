@@ -50,6 +50,10 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 			TitleContents: g.Text("Last Login"),
 			SortKey:       "LastLogin",
 		},
+		{
+			TitleContents: g.Text("Last Active"),
+			SortKey:       "LastActive",
+		},
 	}
 
 	var tableRows components.TableRows
@@ -87,6 +91,12 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 					Contents: g.Group([]g.Node{
 						g.If(u.LastLogin == nil, g.Text("\u2013")),
 						g.If(u.LastLogin != nil, g.Text(nilsafe.Time(u.LastLogin).Format("2006-01-02 15:04:05"))),
+					}),
+				},
+				{
+					Contents: g.Group([]g.Node{
+						g.If(u.LastActive == nil, g.Text("\u2013")),
+						g.If(u.LastActive != nil, g.Text(nilsafe.Time(u.LastActive).Format("2006-01-02 15:04:05"))),
 					}),
 				},
 			},
