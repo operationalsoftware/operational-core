@@ -6,6 +6,7 @@ import (
 	"app/internal/model"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
+	"fmt"
 	"net/url"
 	"strconv"
 
@@ -20,6 +21,7 @@ type ResourceServicePageProps struct {
 	ValidationErrors        validate.ValidationErrors
 	IsSubmission            bool
 	ResourceService         model.ResourceService
+	LastResourceService     *model.ResourceService
 	ResourceServiceComments []model.Comment
 	ServiceChangelog        []model.ResourceServiceChange
 	CommentHMACEnvelope     string
@@ -39,7 +41,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 
 			h.Div(
 				h.Class("title"),
-				h.H3(g.Text("Service Details")),
+				h.H3(g.Textf("Service of %s", service.ResourceReference)),
 			),
 
 			h.Div(
@@ -107,7 +109,8 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 
 			h.Div(
 				serviceAttributesList(&serviceAttributesListProps{
-					service: p.ResourceService,
+					service:             p.ResourceService,
+					lastResourceService: p.LastResourceService,
 				}),
 
 				h.Form(
@@ -166,9 +169,15 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 		),
 	})
 
+	pageTitle := fmt.Sprintf(
+		"Service Details • %s (%s)",
+		service.ResourceReference,
+		service.ResourceType,
+	)
+
 	return layout.Page(layout.PageProps{
 		Ctx:   p.Ctx,
-		Title: "Service Details",
+		Title: pageTitle,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
 			{
@@ -176,7 +185,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 				Title:          "Services",
 				URLPart:        "services",
 			},
-			{Title: "Service Details"},
+			{Title: fmt.Sprintf("Service of %s", service.ResourceReference)},
 		},
 		Content: content,
 		AppendHead: []g.Node{
@@ -189,12 +198,14 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 }
 
 type serviceAttributesListProps struct {
-	service model.ResourceService
+	service             model.ResourceService
+	lastResourceService *model.ResourceService
 }
 
 func serviceAttributesList(p *serviceAttributesListProps) g.Node {
 
 	service := p.service
+	lastService := p.lastResourceService
 
 	raisedByUsername := "\u2013"
 	if service.StartedByUsername != "" {
@@ -206,9 +217,36 @@ func serviceAttributesList(p *serviceAttributesListProps) g.Node {
 		value g.Node
 	}
 	attributes := []attribute{
+		{
+			label: "Resource",
+			value: h.A(
+				h.Href(fmt.Sprintf("/resources/%d", service.ResourceID)),
+				h.Class("resource-link"),
+				g.Text(service.ResourceReference),
+			),
+		},
+		{label: "Resource Type", value: g.Text(service.ResourceType)},
 		{label: "Raised By", value: g.Text(raisedByUsername)},
 		{label: "Raised At", value: g.Text(service.StartedAt.Format("2006-01-02 15:04:05"))},
 	}
+
+	lastServiceValue := g.Text("\u2013")
+	if lastService != nil {
+		lastServiceValue = h.A(
+			h.Href(fmt.Sprintf("/services/%d", lastService.ResourceServiceID)),
+			h.Class("resource-link"),
+			g.Textf(
+				"%s (%s)",
+				lastService.StartedAt.Format("2006-01-02 15:04:05"),
+				lastService.Status,
+			),
+		)
+	}
+
+	attributes = append(attributes, attribute{
+		label: "Last Service",
+		value: lastServiceValue,
+	})
 
 	return h.Div(
 		h.Class("attributes-list"),

@@ -539,6 +539,8 @@ func (r *ServiceRepository) GetResourceServiceByID(
 SELECT
     rs.resource_service_id,
     rs.resource_id,
+    r.type,
+    r.reference,
     rs.status,
     au.username AS started_by_username,
     rs.started_at,
@@ -548,6 +550,7 @@ SELECT
 FROM
     resource_service rs
 INNER JOIN app_user au ON rs.started_by = au.user_id
+INNER JOIN resource r ON rs.resource_id = r.resource_id
 WHERE
     resource_service_id = $1
 	`
@@ -556,6 +559,8 @@ WHERE
 	err := exec.QueryRow(ctx, query, serviceID).Scan(
 		&sm.ResourceServiceID,
 		&sm.ResourceID,
+		&sm.ResourceType,
+		&sm.ResourceReference,
 		&sm.Status,
 		&sm.StartedByUsername,
 		&sm.StartedAt,
@@ -570,6 +575,70 @@ WHERE
 	}
 
 	return &sm, nil
+}
+
+func (r *ServiceRepository) GetLastServiceForResource(
+	ctx context.Context,
+	exec db.PGExecutor,
+	resourceID int,
+	excludeServiceID int,
+	beforeStartedAt time.Time,
+) (*model.ResourceService, error) {
+	query := `
+SELECT
+    resource_id,
+    resource_service_id,
+    type,
+    reference,
+    status,
+    started_at,
+    started_by,
+    started_by_username,
+    completed_at,
+    completed_by_username,
+    cancelled_at,
+    cancelled_by_username,
+	notes,
+	gallery_id,
+	comment_thread_id
+FROM
+    resource_service_view
+WHERE
+    resource_id = $1
+	AND resource_service_id <> $2
+	AND started_at < $3
+	AND cancelled_at IS NULL
+ORDER BY
+	started_at DESC
+LIMIT 1
+`
+
+	var service model.ResourceService
+	err := exec.QueryRow(ctx, query, resourceID, excludeServiceID, beforeStartedAt).Scan(
+		&service.ResourceID,
+		&service.ResourceServiceID,
+		&service.ResourceType,
+		&service.ResourceReference,
+		&service.Status,
+		&service.StartedAt,
+		&service.StartedBy,
+		&service.StartedByUsername,
+		&service.CompletedAt,
+		&service.CompletedByUsername,
+		&service.CancelledAt,
+		&service.CancelledByUsername,
+		&service.Notes,
+		&service.GalleryID,
+		&service.CommentThreadID,
+	)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &service, nil
 }
 
 func (r *ServiceRepository) GetServiceChangelog(
