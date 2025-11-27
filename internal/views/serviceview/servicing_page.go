@@ -64,6 +64,7 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 			teams:           p.Teams,
 			selectedTeamIDs: p.SelectedTeamIDs,
 		}),
+		StatusLegend(),
 
 		h.Form(
 			h.Method("GET"),
