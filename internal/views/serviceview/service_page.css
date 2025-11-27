@@ -26,16 +26,6 @@
   }
 }
 
-.resource-link {
-  font-weight: 600;
-  color: var(--primary-color);
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .description {
   font-size: var(--font-size-lg);
 }

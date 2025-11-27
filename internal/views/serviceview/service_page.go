@@ -231,7 +231,7 @@ func serviceAttributesList(p *serviceAttributesListProps) g.Node {
 	}
 
 	lastServiceValue := g.Text("\u2013")
-	if lastService != nil && lastService.Status != model.ServiceStatusCancelled {
+	if lastService != nil {
 		lastServiceValue = h.A(
 			h.Href(fmt.Sprintf("/services/%d", lastService.ResourceServiceID)),
 			h.Class("resource-link"),

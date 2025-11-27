@@ -607,6 +607,7 @@ WHERE
     resource_id = $1
 	AND resource_service_id <> $2
 	AND started_at < $3
+	AND cancelled_at IS NULL
 ORDER BY
 	started_at DESC
 LIMIT 1
