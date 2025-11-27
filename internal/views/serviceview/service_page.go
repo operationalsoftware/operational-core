@@ -34,6 +34,11 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 	service := p.ResourceService
 	isWIPService := p.ResourceService.Status == model.ServiceStatusWorkInProgress
 
+	galleryButtonText := "View Service Images"
+	if len(p.GalleryImageURLs) == 0 {
+		galleryButtonText = "Add Service Images"
+	}
+
 	content := g.Group([]g.Node{
 
 		h.Div(
@@ -147,7 +152,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 					h.Class("button primary"),
 					h.Href(p.ResourceService.GalleryURL),
 
-					g.Text("View Service Images"),
+					g.Text(galleryButtonText),
 
 					components.Icon(&components.IconProps{
 						Identifier: "arrow-right-thin",
