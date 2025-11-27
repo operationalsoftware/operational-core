@@ -1,4 +1,4 @@
--- 00000600.sql: Rename metric records to resource recordings and refresh dependent views
+-- 00000600.sql: Rename metric records to resource recordings and refresh dependent views, Allow multiple service schedules per metric/resource by dropping the unique constraint
 
 DROP VIEW IF EXISTS resource_service_metric_status_view;
 DROP VIEW IF EXISTS resource_service_current_metric_view;
@@ -104,3 +104,9 @@ WHERE
 	r.is_archived = FALSE
 	AND ss.is_archived = FALSE
 	AND m.is_archived = FALSE;
+
+ALTER TABLE resource_service_schedule
+    DROP CONSTRAINT IF EXISTS resource_service_schedule_resource_id_resource_service_metr_key;
+
+CREATE INDEX IF NOT EXISTS idx_resource_service_schedule_resource_metric
+    ON resource_service_schedule (resource_id, resource_service_metric_id);
