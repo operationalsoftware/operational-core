@@ -392,7 +392,7 @@ func lifetimeTotalsTable(p *lifetimeTotalsTableProps) g.Node {
 			Cells: []components.TableCell{
 				{Contents: g.Text(fmt.Sprintf("%d", r.ResourceID))},
 				{Contents: g.Text(r.ResourceType)},
-				{Contents: g.Text(r.Reference)},
+				{Contents: g.Text(r.ResourceReference)},
 				{Contents: g.Text(r.MetricName)},
 				{Contents: g.Text(lifetime), Classes: c.Classes{"text-right": true}},
 			},

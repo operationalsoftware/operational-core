@@ -111,11 +111,11 @@ type ResourceServiceMetricStatus struct {
 }
 
 type ServiceMetricLifetimeTotal struct {
-	ResourceID    int
-	ResourceType  string
-	Reference     string
-	MetricName    string
-	LifetimeTotal decimal.Decimal
+	ResourceID        int
+	ResourceType      string
+	ResourceReference string
+	MetricName        string
+	LifetimeTotal     decimal.Decimal
 }
 
 type ResourceServiceMetricStatusesQuery struct {

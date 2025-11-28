@@ -460,7 +460,7 @@ ORDER BY metric_name ASC
 		err := rows.Scan(
 			&total.ResourceID,
 			&total.ResourceType,
-			&total.Reference,
+			&total.ResourceReference,
 			&total.MetricName,
 			&total.LifetimeTotal,
 		)
