@@ -95,7 +95,7 @@ func addServiceScheduleForm(p *addServiceScheduleFormProps) g.Node {
 		teamSelectOptions = append(teamSelectOptions, h.Option(
 			h.Value(fmt.Sprintf("%d", schedule.ServiceScheduleID)),
 			g.If(isSelected, h.Selected()),
-			g.Text(fmt.Sprintf("%s (%s \u2014 %s)", schedule.Name, schedule.MetricName, schedule.Threshold.String())),
+			g.Text(schedule.Name),
 		))
 	}
 

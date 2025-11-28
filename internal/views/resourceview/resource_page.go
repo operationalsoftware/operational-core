@@ -194,7 +194,7 @@ func resourceNav(p *resourceNavProps) g.Node {
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
 				}),
-				g.Text("Service Schedule"),
+				g.Text("Assign Service Schedule"),
 			),
 
 			h.A(
