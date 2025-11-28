@@ -163,6 +163,16 @@ func (h *ResourceHandler) ResourcePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	lifetimeTotals, err := h.resourceService.GetServiceMetricLifetimeTotals(
+		r.Context(),
+		resourceID,
+	)
+	if err != nil {
+		log.Println("error fetching lifetime totals:", err)
+		http.Error(w, "Error fetching lifetime totals", http.StatusInternalServerError)
+		return
+	}
+
 	for i, service := range services {
 		if canUserEdit {
 			services[i].GalleryURL = h.galleryService.GenerateEditTempURL(service.GalleryID, true)
@@ -178,6 +188,7 @@ func (h *ResourceHandler) ResourcePage(w http.ResponseWriter, r *http.Request) {
 		Resource:              *resource,
 		Services:              services,
 		CurrentMetrics:        currentMetrics,
+		LifetimeTotals:        lifetimeTotals,
 		ServiceCount:          serviceCount,
 		Sort:                  serviceHistoryQuery.Sort,
 		Page:                  serviceHistoryQuery.Page,

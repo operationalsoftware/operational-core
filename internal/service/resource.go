@@ -181,6 +181,27 @@ func (s *ResourceService) GetResourceServiceMetricSchedules(
 	return currentMetrics, nil
 }
 
+func (s *ResourceService) GetServiceMetricLifetimeTotals(
+	ctx context.Context,
+	resourceID int,
+) (
+	[]model.ServiceMetricLifetimeTotal,
+	error,
+) {
+
+	totals, err := s.resourceRepository.ListMetricLifetimeTotals(
+		ctx,
+		s.db,
+		resourceID,
+	)
+	if err != nil {
+		return []model.ServiceMetricLifetimeTotal{},
+			err
+	}
+
+	return totals, nil
+}
+
 func (s *ResourceService) GetResources(
 	ctx context.Context,
 	q model.GetResourcesQuery,
