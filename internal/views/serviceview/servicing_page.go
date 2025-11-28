@@ -49,6 +49,12 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 
 				h.A(
 					h.Class("link"),
+					h.Href("/services/schedules"),
+					g.Text("Manage Schedules"),
+				),
+
+				h.A(
+					h.Class("link"),
 					h.Href("/services/all"),
 					g.Text("All Services"),
 				),

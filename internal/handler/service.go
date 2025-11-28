@@ -103,6 +103,63 @@ func (uv *serviceMetricsPageURLVals) normalise() {
 	}
 }
 
+func (h *ServiceHandler) ServiceSchedulesPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	var uv serviceSchedulesPageURLVals
+
+	err := appurl.Unmarshal(r.URL.Query(), &uv)
+	if err != nil {
+		log.Println("error decoding url values:", err)
+		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+		return
+	}
+
+	uv.normalise()
+
+	sort := appsort.Sort{}
+	err = sort.ParseQueryParam(model.ServiceSchedule{}, uv.Sort)
+	if err != nil {
+		log.Println("error parsing resource sort:", err)
+		http.Error(w, "Error parsing sort", http.StatusBadRequest)
+		return
+	}
+
+	schedules, count, err := h.servicesService.GetServiceSchedules(r.Context(), uv.ShowArchived)
+	if err != nil {
+		log.Println("error listing service schedules:", err)
+		http.Error(w, "Error listing service schedules", http.StatusInternalServerError)
+		return
+	}
+
+	_ = serviceview.ServiceSchedulesPage(&serviceview.ServiceSchedulesPageProps{
+		Ctx:          ctx,
+		ShowArchived: uv.ShowArchived,
+		Schedules:    schedules,
+		Count:        count,
+		Sort:         sort,
+		Page:         uv.Page,
+		PageSize:     uv.PageSize,
+	}).Render(w)
+}
+
+type serviceSchedulesPageURLVals struct {
+	Sort     string
+	Page     int
+	PageSize int
+
+	ShowArchived bool
+}
+
+func (uv *serviceSchedulesPageURLVals) normalise() {
+	if uv.Page == 0 {
+		uv.Page = 1
+	}
+	if uv.PageSize == 0 {
+		uv.PageSize = 50
+	}
+}
+
 func (h *ServiceHandler) ResourceServicingPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
@@ -477,6 +534,59 @@ func (fd *editResourceServiceMetricFormData) validate() validate.ValidationError
 	return ve
 }
 
+type addServiceScheduleFormData struct {
+	Name            string
+	ServiceMetricID int
+	Threshold       decimal.Decimal
+}
+
+func (fd *addServiceScheduleFormData) normalise() {
+	fd.Name = strings.TrimSpace(fd.Name)
+}
+
+func (fd *addServiceScheduleFormData) validate() validate.ValidationErrors {
+	var ve validate.ValidationErrors = make(map[string][]string)
+
+	if fd.Name == "" {
+		ve.Add("Name", "is required")
+	}
+
+	if fd.ServiceMetricID == 0 {
+		ve.Add("ServiceMetricID", "must be selected")
+	}
+
+	validate.DecimalGT(&ve, "Threshold", fd.Threshold, decimal.Zero)
+
+	return ve
+}
+
+type editServiceScheduleFormData struct {
+	Name            string
+	ServiceMetricID int
+	Threshold       decimal.Decimal
+	IsArchived      bool
+}
+
+func (fd *editServiceScheduleFormData) normalise() {
+	fd.Name = strings.TrimSpace(fd.Name)
+}
+
+func (fd *editServiceScheduleFormData) validate() validate.ValidationErrors {
+	var ve validate.ValidationErrors = make(map[string][]string)
+
+	if fd.Name == "" {
+		ve.Add("Name", "is required")
+	}
+
+	if fd.ServiceMetricID == 0 {
+		ve.Add("ServiceMetricID", "must be selected")
+	}
+
+	validate.DecimalGT(&ve, "Threshold", fd.Threshold, decimal.Zero)
+
+	return ve
+}
+
 func (h *ServiceHandler) DeleteResourceServiceMetric(w http.ResponseWriter, r *http.Request) {
 
 	metricID, err := strconv.Atoi(r.PathValue("id"))
@@ -494,6 +604,193 @@ func (h *ServiceHandler) DeleteResourceServiceMetric(w http.ResponseWriter, r *h
 	}
 
 	http.Redirect(w, r, "/services/metrics", http.StatusSeeOther)
+}
+
+func (h *ServiceHandler) AddServiceSchedulePage(
+	w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), false)
+	if err != nil {
+		log.Println("error fetching service metrics:", err)
+		http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
+		return
+	}
+
+	_ = serviceview.AddSchedulePage(&serviceview.AddSchedulePageProps{
+		Ctx:            ctx,
+		Values:         r.URL.Query(),
+		ServiceMetrics: metrics,
+	}).Render(w)
+}
+
+func (h *ServiceHandler) AddServiceSchedule(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	if err := r.ParseForm(); err != nil {
+		log.Println("error parsing form:", err)
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var fd addServiceScheduleFormData
+	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
+		log.Println("error decoding form:", err)
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	fd.normalise()
+
+	validationErrors := fd.validate()
+
+	if len(validationErrors) > 0 {
+		metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), false)
+		if err != nil {
+			log.Println("error fetching service metrics:", err)
+			http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
+			return
+		}
+
+		_ = serviceview.AddSchedulePage(
+			&serviceview.AddSchedulePageProps{
+				Ctx:              ctx,
+				Values:           r.Form,
+				ValidationErrors: validationErrors,
+				IsSubmission:     true,
+				ServiceMetrics:   metrics,
+			}).Render(w)
+		return
+	}
+
+	err := h.servicesService.CreateServiceSchedule(
+		r.Context(),
+		model.NewServiceSchedule{
+			Name:                    fd.Name,
+			ResourceServiceMetricID: fd.ServiceMetricID,
+			Threshold:               fd.Threshold,
+		})
+	if err != nil {
+		log.Println("error creating service schedule:", err)
+		http.Error(w, "Error creating service schedule", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/services/schedules", http.StatusSeeOther)
+}
+
+func (h *ServiceHandler) EditServiceSchedulePage(
+	w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	scheduleID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		log.Println("invalid schedule id:", err)
+		http.Error(w, "Invalid schedule id", http.StatusBadRequest)
+		return
+	}
+
+	schedule, err := h.servicesService.GetServiceScheduleByID(r.Context(), scheduleID)
+	if err != nil {
+		log.Println("error fetching service schedule:", err)
+		http.Error(w, "Error fetching service schedule", http.StatusInternalServerError)
+		return
+	}
+	if schedule == nil {
+		http.Error(w, "Schedule not found", http.StatusNotFound)
+		return
+	}
+
+	metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), true)
+	if err != nil {
+		log.Println("error fetching service metrics:", err)
+		http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
+		return
+	}
+
+	_ = serviceview.EditSchedulePage(&serviceview.EditSchedulePageProps{
+		Ctx:            ctx,
+		Schedule:       *schedule,
+		ServiceMetrics: metrics,
+		Values:         r.URL.Query(),
+	}).Render(w)
+}
+
+func (h *ServiceHandler) EditServiceSchedule(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	scheduleID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		log.Println("invalid schedule id:", err)
+		http.Error(w, "Invalid schedule id", http.StatusBadRequest)
+		return
+	}
+
+	schedule, err := h.servicesService.GetServiceScheduleByID(r.Context(), scheduleID)
+	if err != nil {
+		log.Println("error fetching service schedule:", err)
+		http.Error(w, "Error fetching service schedule", http.StatusInternalServerError)
+		return
+	}
+	if schedule == nil {
+		http.Error(w, "Schedule not found", http.StatusNotFound)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		log.Println("error parsing form:", err)
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var fd editServiceScheduleFormData
+	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
+		log.Println("error decoding form:", err)
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	fd.normalise()
+
+	validationErrors := fd.validate()
+
+	if len(validationErrors) > 0 {
+		metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), true)
+		if err != nil {
+			log.Println("error fetching service metrics:", err)
+			http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
+			return
+		}
+
+		_ = serviceview.EditSchedulePage(
+			&serviceview.EditSchedulePageProps{
+				Ctx:              ctx,
+				Schedule:         *schedule,
+				ServiceMetrics:   metrics,
+				Values:           r.Form,
+				ValidationErrors: validationErrors,
+				IsSubmission:     true,
+			}).Render(w)
+		return
+	}
+
+	err = h.servicesService.UpdateServiceSchedule(
+		r.Context(),
+		model.UpdateServiceSchedule{
+			ServiceScheduleID:       scheduleID,
+			Name:                    fd.Name,
+			ResourceServiceMetricID: fd.ServiceMetricID,
+			Threshold:               fd.Threshold,
+			IsArchived:              fd.IsArchived,
+		},
+	)
+	if err != nil {
+		log.Println("error updating service schedule:", err)
+		http.Error(w, "Error updating service schedule", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/services/schedules", http.StatusSeeOther)
 }
 
 type editResourceServiceFormData struct {
@@ -708,7 +1005,7 @@ func (h *ServiceHandler) UpdateResourceService(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *ServiceHandler) AddServiceSchedulePage(
+func (h *ServiceHandler) AddResourceServiceSchedulePage(
 	w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
@@ -730,22 +1027,29 @@ func (h *ServiceHandler) AddServiceSchedulePage(
 		return
 	}
 
-	metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), false)
+	schedules, _, err := h.servicesService.GetServiceSchedules(r.Context(), false)
 	if err != nil {
-		log.Println("error fetching service metrics:", err)
-		http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
+		log.Println("error fetching service schedules:", err)
+		http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
+		return
+	}
+
+	assignedSchedules, err := h.resourceService.GetResourceServiceMetricSchedules(r.Context(), resourceID, false)
+	if err != nil {
+		log.Println("error fetching assigned service schedules:", err)
+		http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
 		return
 	}
 
 	_ = serviceview.AddServiceSchedulePage(&serviceview.AddResourceServiceSchedulePageProps{
-		Ctx:            ctx,
-		Values:         r.URL.Query(),
-		Resource:       *resource,
-		ServiceMetrics: metrics,
+		Ctx:              ctx,
+		Values:           r.URL.Query(),
+		Resource:         *resource,
+		ServiceSchedules: filterAssignedSchedules(schedules, assignedSchedules),
 	}).Render(w)
 }
 
-func (h *ServiceHandler) AddServiceSchedule(w http.ResponseWriter, r *http.Request) {
+func (h *ServiceHandler) AddResourceServiceSchedule(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	resourceID, err := strconv.Atoi(r.PathValue("id"))
@@ -772,7 +1076,7 @@ func (h *ServiceHandler) AddServiceSchedule(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var fd addServiceScheduleFormData
+	var fd addResourceServiceScheduleFormData
 	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
 		log.Println("error decoding form:", err)
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
@@ -784,10 +1088,17 @@ func (h *ServiceHandler) AddServiceSchedule(w http.ResponseWriter, r *http.Reque
 	validationErrors := fd.validate()
 
 	if len(validationErrors) > 0 {
-		metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), false)
+		schedules, _, err := h.servicesService.GetServiceSchedules(r.Context(), false)
 		if err != nil {
-			log.Println("error fetching service metrics:", err)
-			http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
+			log.Println("error fetching service schedules:", err)
+			http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
+			return
+		}
+
+		assignedSchedules, err := h.resourceService.GetResourceServiceMetricSchedules(r.Context(), resourceID, false)
+		if err != nil {
+			log.Println("error fetching assigned service schedules:", err)
+			http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
 			return
 		}
 
@@ -798,7 +1109,7 @@ func (h *ServiceHandler) AddServiceSchedule(w http.ResponseWriter, r *http.Reque
 				ValidationErrors: validationErrors,
 				IsSubmission:     true,
 				Resource:         *resource,
-				ServiceMetrics:   metrics,
+				ServiceSchedules: filterAssignedSchedules(schedules, assignedSchedules),
 			}).Render(w)
 		return
 	}
@@ -806,9 +1117,8 @@ func (h *ServiceHandler) AddServiceSchedule(w http.ResponseWriter, r *http.Reque
 	err = h.servicesService.CreateResourceServiceSchedule(
 		r.Context(),
 		model.NewResourceServiceSchedule{
-			ResourceID:              resourceID,
-			ResourceServiceMetricID: fd.ServiceMetricID,
-			Threshold:               fd.Threshold,
+			ResourceID:        resourceID,
+			ServiceScheduleID: fd.ServiceScheduleID,
 		})
 	if err != nil {
 		log.Println("error creating resource service schedule:", err)
@@ -819,7 +1129,7 @@ func (h *ServiceHandler) AddServiceSchedule(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, fmt.Sprintf("/resources/%d", resourceID), http.StatusSeeOther)
 }
 
-func (h *ServiceHandler) ArchiveServiceSchedule(w http.ResponseWriter, r *http.Request) {
+func (h *ServiceHandler) ArchiveResourceServiceSchedule(w http.ResponseWriter, r *http.Request) {
 
 	resourceID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -845,21 +1155,39 @@ func (h *ServiceHandler) ArchiveServiceSchedule(w http.ResponseWriter, r *http.R
 	http.Redirect(w, r, fmt.Sprintf("/resources/%d", resourceID), http.StatusSeeOther)
 }
 
-type addServiceScheduleFormData struct {
-	ServiceMetricID int
-	Threshold       decimal.Decimal
+func filterAssignedSchedules(
+	schedules []model.ServiceSchedule,
+	assigned []model.ResourceServiceMetricStatus,
+) []model.ServiceSchedule {
+	assignedSet := make(map[int]struct{}, len(assigned))
+	for _, schedule := range assigned {
+		assignedSet[schedule.ServiceScheduleID] = struct{}{}
+	}
+
+	filtered := make([]model.ServiceSchedule, 0, len(schedules))
+	for _, schedule := range schedules {
+		if _, exists := assignedSet[schedule.ServiceScheduleID]; exists {
+			continue
+		}
+		filtered = append(filtered, schedule)
+	}
+
+	return filtered
 }
 
-func (fd *addServiceScheduleFormData) normalise() {
+type addResourceServiceScheduleFormData struct {
+	ServiceScheduleID int
 }
 
-func (fd *addServiceScheduleFormData) validate() validate.ValidationErrors {
+func (fd *addResourceServiceScheduleFormData) normalise() {
+}
+
+func (fd *addResourceServiceScheduleFormData) validate() validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
 
-	if fd.ServiceMetricID == 0 {
-		ve.Add("ServiceMetricID", "must be selected")
+	if fd.ServiceScheduleID == 0 {
+		ve.Add("ServiceScheduleID", "must be selected")
 	}
-	validate.DecimalGT(&ve, "Threshold", fd.Threshold, decimal.Zero)
 
 	return ve
 }

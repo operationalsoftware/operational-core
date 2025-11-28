@@ -22,6 +22,15 @@ type ServiceMetric struct {
 	IsArchived      bool
 }
 
+type ServiceSchedule struct {
+	ServiceScheduleID       int
+	Name                    string
+	ResourceServiceMetricID int
+	MetricName              string
+	Threshold               decimal.Decimal
+	IsArchived              bool
+}
+
 type ResourceService struct {
 	ResourceServiceID   int
 	ResourceID          int
@@ -76,38 +85,51 @@ type UpdateResourceService struct {
 type ResourceServiceSchedule struct {
 	ResourceServiceScheduleID int
 	ResourceID                int
-	ResourceServiceMetricID   int
+	ServiceScheduleID         int
 	MetricName                string
 	Threshold                 decimal.Decimal
 	CreatedAt                 time.Time
 }
 
 type NewResourceServiceSchedule struct {
-	ResourceID              int
+	ResourceID        int
+	ServiceScheduleID int
+}
+
+type NewServiceSchedule struct {
+	Name                    string
 	ResourceServiceMetricID int
 	Threshold               decimal.Decimal
 }
 
+type UpdateServiceSchedule struct {
+	ServiceScheduleID       int
+	Name                    string
+	ResourceServiceMetricID int
+	Threshold               decimal.Decimal
+	IsArchived              bool
+}
+
 type ResourceServiceMetricStatus struct {
-	ResourceServiceScheduleID int
-	ResourceID                int
-	Type                      string
-	Reference                 string
-	ServiceOwnershipTeamID    *int
-	ServiceOwnershipTeamName  *string
-	ResourceServiceMetricID   int
-	MetricName                string
-	CurrentValue              decimal.Decimal
-	Threshold                 decimal.Decimal
-	NormalisedValue           decimal.Decimal
-	NormalisedPercentage      decimal.Decimal
-	IsDue                     bool
-	WIPServiceID              *int
-	HasWIPService             bool
-	LastRecordedAt            *time.Time
-	LastServicedAt            *time.Time
-	ScheduleIsArchived        bool
-	MetricIsArchived          bool
+	ServiceScheduleID        int
+	ResourceID               int
+	Type                     string
+	Reference                string
+	ServiceOwnershipTeamID   *int
+	ServiceOwnershipTeamName *string
+	ResourceServiceMetricID  int
+	MetricName               string
+	CurrentValue             decimal.Decimal
+	Threshold                decimal.Decimal
+	NormalisedValue          decimal.Decimal
+	NormalisedPercentage     decimal.Decimal
+	IsDue                    bool
+	WIPServiceID             *int
+	HasWIPService            bool
+	LastRecordedAt           *time.Time
+	LastServicedAt           *time.Time
+	ScheduleIsArchived       bool
+	MetricIsArchived         bool
 }
 
 type ResourceServiceMetricStatusesQuery struct {

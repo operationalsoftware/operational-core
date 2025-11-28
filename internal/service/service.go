@@ -62,6 +62,37 @@ func (s *ServicesService) CreateResourceServiceMetric(
 	return nil
 }
 
+func (s *ServicesService) CreateServiceSchedule(
+	ctx context.Context,
+	schedule model.NewServiceSchedule,
+) error {
+
+	if !schedule.Threshold.GreaterThan(decimal.Zero) {
+		return fmt.Errorf("threshold must be greater than zero")
+	}
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	metric, err := s.servicesRepository.GetResourceServiceMetricByID(ctx, tx, schedule.ResourceServiceMetricID)
+	if err != nil {
+		return err
+	}
+	if metric == nil || metric.IsArchived {
+		return fmt.Errorf("service metric not found or archived")
+	}
+
+	_, err = s.servicesRepository.CreateServiceSchedule(ctx, tx, schedule)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+}
+
 func (s *ServicesService) DeleteResourceServiceMetric(
 	ctx context.Context,
 	metricID int,
@@ -156,11 +187,15 @@ func (s *ServicesService) CreateResourceServiceSchedule(
 	}
 	defer tx.Rollback(ctx) // Ensures rollback on error
 
-	if !serviceSchedule.Threshold.GreaterThan(decimal.Zero) {
-		return fmt.Errorf("threshold must be greater than zero")
+	schedule, err := s.servicesRepository.GetServiceScheduleByID(ctx, tx, serviceSchedule.ServiceScheduleID)
+	if err != nil {
+		return err
+	}
+	if schedule == nil || schedule.IsArchived {
+		return fmt.Errorf("service schedule not found or archived")
 	}
 
-	metric, err := s.servicesRepository.GetResourceServiceMetricByID(ctx, tx, serviceSchedule.ResourceServiceMetricID)
+	metric, err := s.servicesRepository.GetResourceServiceMetricByID(ctx, tx, schedule.ResourceServiceMetricID)
 	if err != nil {
 		return err
 	}
@@ -168,11 +203,7 @@ func (s *ServicesService) CreateResourceServiceSchedule(
 		return fmt.Errorf("service metric not found or archived")
 	}
 
-	_, err = s.servicesRepository.CreateServiceSchedule(ctx, tx, model.NewResourceServiceSchedule{
-		ResourceID:              serviceSchedule.ResourceID,
-		ResourceServiceMetricID: serviceSchedule.ResourceServiceMetricID,
-		Threshold:               serviceSchedule.Threshold,
-	})
+	_, err = s.servicesRepository.CreateResourceServiceSchedule(ctx, tx, serviceSchedule)
 	if err != nil {
 		return err
 	}
@@ -197,7 +228,7 @@ func (s *ServicesService) ArchiveResourceServiceSchedule(
 	}
 	defer tx.Rollback(ctx)
 
-	err = s.servicesRepository.ArchiveServiceSchedule(ctx, tx, resourceID, scheduleID)
+	err = s.servicesRepository.ArchiveResourceServiceSchedule(ctx, tx, resourceID, scheduleID)
 	if err != nil {
 		return err
 	}
@@ -394,6 +425,35 @@ func (s *ServicesService) GetServiceMetrics(
 	return metrics, count, nil
 }
 
+func (s *ServicesService) GetServiceSchedules(
+	ctx context.Context,
+	includeArchived bool,
+) ([]model.ServiceSchedule, int, error) {
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return []model.ServiceSchedule{}, 0, err
+	}
+	defer tx.Rollback(ctx)
+
+	schedules, err := s.servicesRepository.ListServiceSchedules(ctx, tx, includeArchived)
+	if err != nil {
+		return []model.ServiceSchedule{}, 0, err
+	}
+
+	count, err := s.servicesRepository.GetServiceSchedulesCount(ctx, tx, includeArchived)
+	if err != nil {
+		return []model.ServiceSchedule{}, 0, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return []model.ServiceSchedule{}, 0, err
+	}
+
+	return schedules, count, nil
+}
+
 func (s *ServicesService) GetResourceServiceMetricByID(
 	ctx context.Context,
 	metricID int,
@@ -417,6 +477,28 @@ func (s *ServicesService) GetResourceServiceMetricByID(
 	return metric, nil
 }
 
+func (s *ServicesService) GetServiceScheduleByID(
+	ctx context.Context,
+	scheduleID int,
+) (*model.ServiceSchedule, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	schedule, err := s.servicesRepository.GetServiceScheduleByID(ctx, tx, scheduleID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return schedule, nil
+}
+
 func (s *ServicesService) UpdateResourceServiceMetric(
 	ctx context.Context,
 	update model.UpdateResourceServiceMetric,
@@ -429,6 +511,37 @@ func (s *ServicesService) UpdateResourceServiceMetric(
 	defer tx.Rollback(ctx)
 
 	err = s.servicesRepository.UpdateResourceServiceMetric(ctx, tx, update)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+}
+
+func (s *ServicesService) UpdateServiceSchedule(
+	ctx context.Context,
+	update model.UpdateServiceSchedule,
+) error {
+
+	if !update.Threshold.GreaterThan(decimal.Zero) {
+		return fmt.Errorf("threshold must be greater than zero")
+	}
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	metric, err := s.servicesRepository.GetResourceServiceMetricByID(ctx, tx, update.ResourceServiceMetricID)
+	if err != nil {
+		return err
+	}
+	if metric == nil || metric.IsArchived {
+		return fmt.Errorf("service metric not found or archived")
+	}
+
+	err = s.servicesRepository.UpdateServiceSchedule(ctx, tx, update)
 	if err != nil {
 		return err
 	}
