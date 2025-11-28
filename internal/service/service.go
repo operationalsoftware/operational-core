@@ -3,6 +3,7 @@ package service
 import (
 	"app/internal/model"
 	"app/internal/repository"
+	"app/pkg/appsort"
 	"context"
 	"errors"
 	"fmt"
@@ -399,6 +400,7 @@ func (s *ServicesService) GetServiceChangelog(
 func (s *ServicesService) GetServiceMetrics(
 	ctx context.Context,
 	includeArchived bool,
+	sort appsort.Sort,
 ) ([]model.ServiceMetric, int, error) {
 
 	tx, err := s.db.Begin(ctx)
@@ -407,7 +409,7 @@ func (s *ServicesService) GetServiceMetrics(
 	}
 	defer tx.Rollback(ctx)
 
-	metrics, err := s.servicesRepository.ListServiceMetrics(ctx, tx, includeArchived)
+	metrics, err := s.servicesRepository.ListServiceMetrics(ctx, tx, includeArchived, sort)
 	if err != nil {
 		return []model.ServiceMetric{}, 0, err
 	}
@@ -428,6 +430,7 @@ func (s *ServicesService) GetServiceMetrics(
 func (s *ServicesService) GetServiceSchedules(
 	ctx context.Context,
 	includeArchived bool,
+	sort appsort.Sort,
 ) ([]model.ServiceSchedule, int, error) {
 
 	tx, err := s.db.Begin(ctx)
@@ -436,7 +439,7 @@ func (s *ServicesService) GetServiceSchedules(
 	}
 	defer tx.Rollback(ctx)
 
-	schedules, err := s.servicesRepository.ListServiceSchedules(ctx, tx, includeArchived)
+	schedules, err := s.servicesRepository.ListServiceSchedules(ctx, tx, includeArchived, sort)
 	if err != nil {
 		return []model.ServiceSchedule{}, 0, err
 	}

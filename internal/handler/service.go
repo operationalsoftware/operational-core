@@ -68,7 +68,7 @@ func (h *ServiceHandler) ServiceMetricsPage(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	metrics, count, err := h.servicesService.GetServiceMetrics(r.Context(), uv.ShowArchived)
+	metrics, count, err := h.servicesService.GetServiceMetrics(r.Context(), uv.ShowArchived, sort)
 	if err != nil {
 		log.Println("error listing service metrics:", err)
 		http.Error(w, "Error listing service metrics", http.StatusInternalServerError)
@@ -125,7 +125,7 @@ func (h *ServiceHandler) ServiceSchedulesPage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	schedules, count, err := h.servicesService.GetServiceSchedules(r.Context(), uv.ShowArchived)
+	schedules, count, err := h.servicesService.GetServiceSchedules(r.Context(), uv.ShowArchived, sort)
 	if err != nil {
 		log.Println("error listing service schedules:", err)
 		http.Error(w, "Error listing service schedules", http.StatusInternalServerError)
@@ -610,7 +610,7 @@ func (h *ServiceHandler) AddServiceSchedulePage(
 	w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), false)
+	metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), false, appsort.Sort{})
 	if err != nil {
 		log.Println("error fetching service metrics:", err)
 		http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
@@ -645,7 +645,7 @@ func (h *ServiceHandler) AddServiceSchedule(w http.ResponseWriter, r *http.Reque
 	validationErrors := fd.validate()
 
 	if len(validationErrors) > 0 {
-		metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), false)
+		metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), false, appsort.Sort{})
 		if err != nil {
 			log.Println("error fetching service metrics:", err)
 			http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
@@ -701,7 +701,7 @@ func (h *ServiceHandler) EditServiceSchedulePage(
 		return
 	}
 
-	metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), true)
+	metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), true, appsort.Sort{})
 	if err != nil {
 		log.Println("error fetching service metrics:", err)
 		http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
@@ -755,7 +755,7 @@ func (h *ServiceHandler) EditServiceSchedule(w http.ResponseWriter, r *http.Requ
 	validationErrors := fd.validate()
 
 	if len(validationErrors) > 0 {
-		metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), true)
+		metrics, _, err := h.servicesService.GetServiceMetrics(r.Context(), true, appsort.Sort{})
 		if err != nil {
 			log.Println("error fetching service metrics:", err)
 			http.Error(w, "Error fetching service metrics", http.StatusInternalServerError)
@@ -1027,14 +1027,14 @@ func (h *ServiceHandler) AddResourceServiceSchedulePage(
 		return
 	}
 
-	schedules, _, err := h.servicesService.GetServiceSchedules(r.Context(), false)
+	schedules, _, err := h.servicesService.GetServiceSchedules(r.Context(), false, appsort.Sort{})
 	if err != nil {
 		log.Println("error fetching service schedules:", err)
 		http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
 		return
 	}
 
-	assignedSchedules, err := h.resourceService.GetResourceServiceMetricSchedules(r.Context(), resourceID, false)
+	assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID, false)
 	if err != nil {
 		log.Println("error fetching assigned service schedules:", err)
 		http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
@@ -1088,14 +1088,14 @@ func (h *ServiceHandler) AddResourceServiceSchedule(w http.ResponseWriter, r *ht
 	validationErrors := fd.validate()
 
 	if len(validationErrors) > 0 {
-		schedules, _, err := h.servicesService.GetServiceSchedules(r.Context(), false)
+		schedules, _, err := h.servicesService.GetServiceSchedules(r.Context(), false, appsort.Sort{})
 		if err != nil {
 			log.Println("error fetching service schedules:", err)
 			http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
 			return
 		}
 
-		assignedSchedules, err := h.resourceService.GetResourceServiceMetricSchedules(r.Context(), resourceID, false)
+		assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID, false)
 		if err != nil {
 			log.Println("error fetching assigned service schedules:", err)
 			http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)

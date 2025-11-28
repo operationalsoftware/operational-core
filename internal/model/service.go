@@ -16,19 +16,19 @@ const (
 
 type ServiceMetric struct {
 	ServiceMetricID int
-	Name            string
+	Name            string `sortable:"true"`
 	Description     string
-	IsCumulative    bool
-	IsArchived      bool
+	IsCumulative    bool `sortable:"true"`
+	IsArchived      bool `sortable:"true"`
 }
 
 type ServiceSchedule struct {
 	ServiceScheduleID       int
-	Name                    string
+	Name                    string `sortable:"true"`
 	ResourceServiceMetricID int
-	MetricName              string
-	Threshold               decimal.Decimal
-	IsArchived              bool
+	MetricName              string          `sortable:"true"`
+	Threshold               decimal.Decimal `sortable:"true"`
+	IsArchived              bool            `sortable:"true"`
 }
 
 type ResourceService struct {
@@ -112,6 +112,7 @@ type UpdateServiceSchedule struct {
 
 type ResourceServiceMetricStatus struct {
 	ServiceScheduleID        int
+	ServiceScheduleName      string
 	ResourceID               int
 	Type                     string
 	Reference                string

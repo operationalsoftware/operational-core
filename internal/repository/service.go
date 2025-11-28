@@ -2,6 +2,7 @@ package repository
 
 import (
 	"app/internal/model"
+	"app/pkg/appsort"
 	"app/pkg/db"
 	"context"
 	"fmt"
@@ -112,26 +113,6 @@ func (r *ServiceRepository) CreateResourceServiceSchedule(
 	schedule model.NewResourceServiceSchedule,
 ) (int, error) {
 
-	// Reactivate an archived schedule if it already exists for this resource.
-	var existingID int
-	err := exec.QueryRow(
-		ctx,
-		`
-UPDATE resource_service_schedule
-SET is_archived = FALSE, created_at = NOW()
-WHERE resource_id = $1 AND service_schedule_id = $2
-RETURNING resource_service_schedule_id;
-		`,
-		schedule.ResourceID,
-		schedule.ServiceScheduleID,
-	).Scan(&existingID)
-	if err == nil {
-		return existingID, nil
-	}
-	if err != nil && err != pgx.ErrNoRows {
-		return 0, err
-	}
-
 	query := `
 INSERT INTO resource_service_schedule (
 	resource_id,
@@ -141,7 +122,7 @@ RETURNING resource_service_schedule_id;
 	`
 
 	var newID int
-	err = exec.QueryRow(ctx, query, schedule.ResourceID, schedule.ServiceScheduleID).Scan(&newID)
+	err := exec.QueryRow(ctx, query, schedule.ResourceID, schedule.ServiceScheduleID).Scan(&newID)
 	if err != nil {
 		return 0, err
 	}
@@ -759,6 +740,7 @@ func (r *ServiceRepository) ListServiceMetrics(
 	ctx context.Context,
 	exec db.PGExecutor,
 	includeArchived bool,
+	sort appsort.Sort,
 ) ([]model.ServiceMetric, error) {
 
 	query := `
@@ -777,6 +759,16 @@ WHERE
 	is_archived = FALSE
 `
 	}
+
+	orderByClause, err := sort.ToOrderByClause(model.ServiceMetric{})
+	if err != nil {
+		return nil, err
+	}
+	if orderByClause == "" {
+		orderByClause = "ORDER BY name ASC"
+	}
+
+	query += "\n" + orderByClause
 
 	rows, err := exec.Query(ctx, query)
 	if err != nil {
@@ -810,32 +802,37 @@ func (r *ServiceRepository) ListServiceSchedules(
 	ctx context.Context,
 	exec db.PGExecutor,
 	includeArchived bool,
+	sort appsort.Sort,
 ) ([]model.ServiceSchedule, error) {
 
 	query := `
 SELECT
-    ss.service_schedule_id,
-    ss.name,
-	ss.resource_service_metric_id,
-    m.name AS metric_name,
-    ss.threshold,
-	ss.is_archived
+    service_schedule_id,
+    name,
+	resource_service_metric_id,
+    metric_name,
+    threshold,
+	is_archived
 FROM
-    service_schedule ss
-JOIN resource_service_metric m ON m.resource_service_metric_id = ss.resource_service_metric_id
+    service_schedule_view
 `
 	if !includeArchived {
 		query += `
 WHERE
-	ss.is_archived = FALSE
-	AND m.is_archived = FALSE
+	is_archived = FALSE
+		AND metric_is_archived = FALSE
 `
 	}
 
-	query += `
-ORDER BY
-	ss.name ASC
-`
+	orderByClause, err := sort.ToOrderByClause(model.ServiceSchedule{})
+	if err != nil {
+		return nil, err
+	}
+	if orderByClause == "" {
+		orderByClause = "ORDER BY name ASC"
+	}
+
+	query += "\n" + orderByClause
 
 	rows, err := exec.Query(ctx, query)
 	if err != nil {
@@ -904,14 +901,13 @@ func (r *ServiceRepository) GetServiceSchedulesCount(
 SELECT
 	COUNT(*)
 FROM
-	service_schedule ss
+	service_schedule_view
 `
 	if !includeArchived {
 		query += `
-JOIN resource_service_metric m ON m.resource_service_metric_id = ss.resource_service_metric_id
 WHERE
-	ss.is_archived = FALSE
-	AND m.is_archived = FALSE
+	is_archived = FALSE
+	AND metric_is_archived = FALSE
 `
 	}
 
@@ -969,17 +965,16 @@ func (r *ServiceRepository) GetServiceScheduleByID(
 
 	query := `
 SELECT
-	ss.service_schedule_id,
-	ss.name,
-	ss.resource_service_metric_id,
-	m.name AS metric_name,
-	ss.threshold,
-	ss.is_archived
+	service_schedule_id,
+	name,
+	resource_service_metric_id,
+	metric_name,
+	threshold,
+	is_archived
 FROM
-	service_schedule ss
-JOIN resource_service_metric m ON m.resource_service_metric_id = ss.resource_service_metric_id
+	service_schedule_view
 WHERE
-	ss.service_schedule_id = $1
+	service_schedule_id = $1
 `
 
 	var schedule model.ServiceSchedule
@@ -1214,6 +1209,7 @@ func (r *ServiceRepository) GetResourceServiceMetricStatuses(
 	baseQuery := `
 SELECT
     service_schedule_id,
+    service_schedule_name,
     resource_id,
     type,
     reference,
@@ -1239,12 +1235,6 @@ WHERE
 	AND metric_is_archived = FALSE
 `
 
-	var args []any
-	if len(q.ServiceOwnershipTeamIDs) > 0 {
-		baseQuery += fmt.Sprintf("	AND service_ownership_team_id = ANY($%d::int[])\n", len(args)+1)
-		args = append(args, q.ServiceOwnershipTeamIDs)
-	}
-
 	limit := q.PageSize
 	if limit == 0 {
 		limit = 50
@@ -1254,13 +1244,27 @@ WHERE
 		offset = 0
 	}
 
-	baseQuery += fmt.Sprintf(`
-ORDER BY normalised_percentage DESC
-LIMIT $%d OFFSET $%d
-`, len(args)+1, len(args)+2)
-	args = append(args, limit, offset)
+	params := map[string]any{
+		"limit":  limit,
+		"offset": offset,
+	}
 
-	rows, err := exec.Query(ctx, baseQuery, args...)
+	if len(q.ServiceOwnershipTeamIDs) > 0 {
+		baseQuery += "	AND service_ownership_team_id = ANY(:team_ids)\n"
+		params["team_ids"] = q.ServiceOwnershipTeamIDs
+	}
+
+	baseQuery += `
+ORDER BY normalised_percentage DESC
+LIMIT :limit OFFSET :offset
+`
+
+	query, args, err := db.BindNamed(baseQuery, params)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := exec.Query(ctx, query, args...)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -1273,6 +1277,7 @@ LIMIT $%d OFFSET $%d
 
 		err := rows.Scan(
 			&resource.ServiceScheduleID,
+			&resource.ServiceScheduleName,
 			&resource.ResourceID,
 			&resource.Type,
 			&resource.Reference,

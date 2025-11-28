@@ -438,6 +438,7 @@ func (r *ResourceRepository) ListResourceMetricSchedules(
 	query := `
 SELECT
     service_schedule_id,
+    service_schedule_name,
     resource_id,
     resource_service_metric_id,
     metric_name,
@@ -478,6 +479,7 @@ ORDER BY metric_name ASC
 
 		err := rows.Scan(
 			&metric.ServiceScheduleID,
+			&metric.ServiceScheduleName,
 			&metric.ResourceID,
 			&metric.ResourceServiceMetricID,
 			&metric.MetricName,

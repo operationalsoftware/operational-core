@@ -1,6 +1,7 @@
 -- Introduce shared service schedule templates and migrate existing resource schedules
 DROP VIEW IF EXISTS resource_service_metric_status_view;
 DROP VIEW IF EXISTS resource_service_current_metric_view;
+DROP VIEW IF EXISTS service_schedule_view;
 
 -- Preserve existing data
 ALTER TABLE resource_service_schedule RENAME TO resource_service_schedule_old;
@@ -15,6 +16,18 @@ CREATE TABLE service_schedule (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT service_schedule_metric_threshold_key UNIQUE (resource_service_metric_id, threshold)
 );
+
+CREATE OR REPLACE VIEW service_schedule_view AS
+SELECT
+    ss.service_schedule_id,
+    ss.name,
+    ss.resource_service_metric_id,
+    m.name AS metric_name,
+    ss.threshold,
+    ss.is_archived,
+    m.is_archived AS metric_is_archived
+FROM service_schedule ss
+JOIN resource_service_metric m ON m.resource_service_metric_id = ss.resource_service_metric_id;
 
 -- Seed templates from existing rows (dedupe by metric/threshold)
 INSERT INTO service_schedule (
@@ -50,13 +63,8 @@ CREATE TABLE resource_service_schedule (
     resource_id INT NOT NULL REFERENCES resource(resource_id) ON DELETE CASCADE,
     service_schedule_id INT NOT NULL REFERENCES service_schedule(service_schedule_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    is_archived BOOLEAN NOT NULL DEFAULT FALSE,
-    UNIQUE (resource_id, service_schedule_id, is_archived)
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE
 );
-
-CREATE UNIQUE INDEX resource_service_schedule_active_idx
-ON resource_service_schedule (resource_id, service_schedule_id)
-WHERE is_archived = FALSE;
 
 INSERT INTO resource_service_schedule (
     resource_id,
@@ -116,27 +124,28 @@ GROUP BY
 
 CREATE OR REPLACE VIEW resource_service_metric_status_view AS
 SELECT
-    ss.service_schedule_id,
+    ssv.service_schedule_id,
+    ssv.name AS service_schedule_name,
     r.resource_id,
     r.type,
     r.reference,
     r.service_ownership_team_id,
     t.team_name AS service_ownership_team_name,
-    m.resource_service_metric_id,
-    m.name AS metric_name,
+    ssv.resource_service_metric_id,
+    ssv.metric_name,
     COALESCE(cmv.current_value, 0) AS current_value,
-    ss.threshold,
+    ssv.threshold,
     CASE
-        WHEN ss.threshold > 0 THEN ROUND(COALESCE(cmv.current_value, 0) / ss.threshold, 2)
+        WHEN ssv.threshold > 0 THEN ROUND(COALESCE(cmv.current_value, 0) / ssv.threshold, 2)
         ELSE 0
     END AS normalised_value,
     CASE
-        WHEN ss.threshold > 0 THEN ROUND((COALESCE(cmv.current_value, 0) / ss.threshold) * 100, 0)
+        WHEN ssv.threshold > 0 THEN ROUND((COALESCE(cmv.current_value, 0) / ssv.threshold) * 100, 0)
         ELSE 0
     END AS normalised_percentage,
     CASE
-        WHEN ss.threshold > 0
-             AND (COALESCE(cmv.current_value, 0) / ss.threshold) >= 1
+        WHEN ssv.threshold > 0
+             AND (COALESCE(cmv.current_value, 0) / ssv.threshold) >= 1
         THEN TRUE
         ELSE FALSE
     END AS is_due,
@@ -167,22 +176,22 @@ SELECT
             rs3.resource_id = r.resource_id
             AND rs3.status = 'Work In Progress'
     ) AS has_wip_service,
-    (rss.is_archived OR ss.is_archived) AS schedule_is_archived,
-    m.is_archived AS metric_is_archived
+    (rss.is_archived OR ssv.is_archived) AS schedule_is_archived,
+    ssv.metric_is_archived AS metric_is_archived
 FROM resource r
 JOIN resource_service_schedule rss
   ON rss.resource_id = r.resource_id
-JOIN service_schedule ss
-  ON ss.service_schedule_id = rss.service_schedule_id
+JOIN service_schedule_view ssv
+  ON ssv.service_schedule_id = rss.service_schedule_id
 JOIN resource_service_metric m
-  ON m.resource_service_metric_id = ss.resource_service_metric_id
+  ON m.resource_service_metric_id = ssv.resource_service_metric_id
 JOIN resource_service_current_metric_view cmv
   ON cmv.resource_id = r.resource_id
-  AND cmv.resource_service_metric_id = m.resource_service_metric_id
+  AND cmv.resource_service_metric_id = ssv.resource_service_metric_id
 LEFT JOIN team t
   ON t.team_id = r.service_ownership_team_id
 WHERE
     r.is_archived = FALSE
     AND rss.is_archived = FALSE
-    AND ss.is_archived = FALSE
-    AND m.is_archived = FALSE;
+    AND ssv.is_archived = FALSE
+    AND ssv.metric_is_archived = FALSE;

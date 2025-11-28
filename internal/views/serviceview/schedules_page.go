@@ -108,10 +108,10 @@ type schedulesProps struct {
 
 func schedulesTable(p *schedulesProps) g.Node {
 	var columns = components.TableColumns{
-		{TitleContents: g.Text("Name")},
-		{TitleContents: g.Text("Metric")},
-		{TitleContents: g.Text("Threshold")},
-		{TitleContents: g.Text("Status")},
+		{TitleContents: g.Text("Name"), SortKey: "Name"},
+		{TitleContents: g.Text("Metric"), SortKey: "MetricName"},
+		{TitleContents: g.Text("Threshold"), SortKey: "Threshold"},
+		{TitleContents: g.Text("Status"), SortKey: "IsArchived"},
 		{TitleContents: g.Text("Actions")},
 	}
 
