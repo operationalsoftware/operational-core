@@ -21,6 +21,7 @@ type ResourcePageProps struct {
 	Resource              model.Resource
 	Services              []model.ResourceService
 	CurrentMetrics        []model.ResourceServiceMetricStatus
+	LifetimeTotals        []model.ServiceMetricLifetimeTotal
 	ServiceCount          int
 	Sort                  appsort.Sort
 	Page                  int
@@ -126,6 +127,15 @@ func ResourcePage(p *ResourcePageProps) g.Node {
 				canManageSchedules: p.CanManageSchedules,
 			}),
 			serviceview.StatusLegend(),
+
+			g.If(len(p.LifetimeTotals) > 0,
+				g.Group([]g.Node{
+					h.H3(g.Text("Lifetime Totals")),
+					lifetimeTotalsTable(&lifetimeTotalsTableProps{
+						records: p.LifetimeTotals,
+					}),
+				}),
+			),
 
 			h.H3(g.Text("Service History")),
 
@@ -353,6 +363,44 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 	return components.Table(&components.TableProps{
 		Columns: columns,
 		Sort:    p.sort,
+		Rows:    tableRows,
+	})
+}
+
+type lifetimeTotalsTableProps struct {
+	records []model.ServiceMetricLifetimeTotal
+}
+
+func lifetimeTotalsTable(p *lifetimeTotalsTableProps) g.Node {
+	var columns = components.TableColumns{
+		{TitleContents: g.Text("Resource ID")},
+		{TitleContents: g.Text("Resource Type")},
+		{TitleContents: g.Text("Reference")},
+		{TitleContents: g.Text("Metric")},
+		{TitleContents: g.Text("Lifetime Total"), Classes: c.Classes{"text-right": true}},
+	}
+
+	var tableRows components.TableRows
+	for _, r := range p.records {
+
+		lifetime := "\u2013"
+		if !r.LifetimeTotal.IsZero() {
+			lifetime = format.DecimalWithCommas(r.LifetimeTotal.String())
+		}
+
+		tableRows = append(tableRows, components.TableRow{
+			Cells: []components.TableCell{
+				{Contents: g.Text(fmt.Sprintf("%d", r.ResourceID))},
+				{Contents: g.Text(r.ResourceType)},
+				{Contents: g.Text(r.Reference)},
+				{Contents: g.Text(r.MetricName)},
+				{Contents: g.Text(lifetime), Classes: c.Classes{"text-right": true}},
+			},
+		})
+	}
+
+	return components.Table(&components.TableProps{
+		Columns: columns,
 		Rows:    tableRows,
 	})
 }

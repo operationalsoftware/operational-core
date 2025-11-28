@@ -426,6 +426,57 @@ WHERE
 	return serviceMetrics, nil
 }
 
+func (r *ResourceRepository) ListMetricLifetimeTotals(
+	ctx context.Context,
+	exec db.PGExecutor,
+	resourceID int,
+) ([]model.ServiceMetricLifetimeTotal, error) {
+
+	query := `
+SELECT
+    resource_id,
+    resource_type,
+    reference,
+    metric_name,
+    lifetime_total
+FROM
+    service_metric_lifetime_total_view
+WHERE
+    resource_id = $1
+ORDER BY metric_name ASC
+`
+
+	rows, err := exec.Query(ctx, query, resourceID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var totals []model.ServiceMetricLifetimeTotal
+
+	for rows.Next() {
+		var total model.ServiceMetricLifetimeTotal
+		err := rows.Scan(
+			&total.ResourceID,
+			&total.ResourceType,
+			&total.Reference,
+			&total.MetricName,
+			&total.LifetimeTotal,
+		)
+		if err != nil {
+			return nil, err
+		}
+		totals = append(totals, total)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return totals, nil
+}
+
 func (r *ResourceRepository) ListResourceMetricSchedules(
 	ctx context.Context,
 	exec db.PGExecutor,
@@ -435,18 +486,25 @@ func (r *ResourceRepository) ListResourceMetricSchedules(
 
 	query := `
 SELECT
-    resource_service_schedule_id,
-    resource_id,
-    resource_service_metric_id,
-    metric_name,
-    current_value,
+  type,
+  reference,
+  service_ownership_team_id,
+  service_ownership_team_name,
+  resource_service_schedule_id,
+  resource_id,
+  resource_service_metric_id,
+  metric_name,
+  current_value,
 	threshold,
 	normalised_value,
 	normalised_percentage,
 	is_due,
 	last_recorded_at,
 	schedule_is_archived,
-	metric_is_archived
+	metric_is_archived,
+	last_serviced_at,
+	wip_service_id,
+	has_wip_service
 FROM
     resource_service_metric_status_view
 WHERE
@@ -475,6 +533,10 @@ ORDER BY metric_name ASC
 		var metric model.ResourceServiceMetricStatus
 
 		err := rows.Scan(
+			&metric.Type,
+			&metric.Reference,
+			&metric.ServiceOwnershipTeamID,
+			&metric.ServiceOwnershipTeamName,
 			&metric.ResourceServiceScheduleID,
 			&metric.ResourceID,
 			&metric.ResourceServiceMetricID,
@@ -487,6 +549,9 @@ ORDER BY metric_name ASC
 			&metric.LastRecordedAt,
 			&metric.ScheduleIsArchived,
 			&metric.MetricIsArchived,
+			&metric.LastServicedAt,
+			&metric.WIPServiceID,
+			&metric.HasWIPService,
 		)
 		if err != nil {
 			return nil, err
