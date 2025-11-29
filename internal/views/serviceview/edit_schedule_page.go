@@ -26,7 +26,6 @@ type EditSchedulePageProps struct {
 func EditSchedulePage(p *EditSchedulePageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
 		editScheduleForm(&editScheduleFormProps{
 			schedule:         p.Schedule,
 			serviceMetrics:   p.ServiceMetrics,

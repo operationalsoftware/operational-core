@@ -1026,7 +1026,7 @@ WHERE
 	}
 
 	if ct.RowsAffected() == 0 {
-		return pgx.ErrNoRows
+		return fmt.Errorf("service metric not found")
 	}
 
 	return nil
@@ -1062,7 +1062,7 @@ WHERE
 	}
 
 	if ct.RowsAffected() == 0 {
-		return pgx.ErrNoRows
+		return fmt.Errorf("service schedule not found")
 	}
 
 	return nil

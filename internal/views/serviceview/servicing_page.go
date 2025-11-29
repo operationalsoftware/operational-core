@@ -5,6 +5,7 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/appsort"
+	"app/pkg/format"
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
@@ -206,10 +207,10 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 			{Contents: g.Text(r.Reference)},
 			{Contents: g.Text(serviceOwnershipTeamLabel(r.ServiceOwnershipTeamName))},
 			{Contents: scheduleCell},
-			{Contents: g.Text(r.CurrentValue.String()), Classes: c.Classes{
+			{Contents: g.Text(format.DecimalWithCommas(r.CurrentValue.String())), Classes: c.Classes{
 				"text-right": true,
 			}},
-			{Contents: g.Text(r.Threshold.String()), Classes: c.Classes{
+			{Contents: g.Text(format.DecimalWithCommas(r.Threshold.String())), Classes: c.Classes{
 				"text-right": true,
 			}},
 			{Contents: g.Text(r.NormalisedPercentage.String()), Classes: c.Classes{

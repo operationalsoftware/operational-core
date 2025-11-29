@@ -82,8 +82,11 @@ func (s *ServicesService) CreateServiceSchedule(
 	if err != nil {
 		return err
 	}
-	if metric == nil || metric.IsArchived {
-		return fmt.Errorf("service metric not found or archived")
+	if metric == nil {
+		return fmt.Errorf("service metric not found")
+	}
+	if metric.IsArchived {
+		return fmt.Errorf("service metric is archived")
 	}
 
 	_, err = s.servicesRepository.CreateServiceSchedule(ctx, tx, schedule)
@@ -200,8 +203,11 @@ func (s *ServicesService) CreateResourceServiceSchedule(
 	if err != nil {
 		return err
 	}
-	if metric == nil || metric.IsArchived {
-		return fmt.Errorf("service metric not found or archived")
+	if metric == nil {
+		return fmt.Errorf("service metric not found")
+	}
+	if metric.IsArchived {
+		return fmt.Errorf("service metric is archived")
 	}
 
 	_, err = s.servicesRepository.CreateResourceServiceSchedule(ctx, tx, serviceSchedule)
@@ -540,8 +546,11 @@ func (s *ServicesService) UpdateServiceSchedule(
 	if err != nil {
 		return err
 	}
-	if metric == nil || metric.IsArchived {
-		return fmt.Errorf("service metric not found or archived")
+	if metric == nil {
+		return fmt.Errorf("service metric not found")
+	}
+	if metric.IsArchived {
+		return fmt.Errorf("service metric is archived")
 	}
 
 	err = s.servicesRepository.UpdateServiceSchedule(ctx, tx, update)
