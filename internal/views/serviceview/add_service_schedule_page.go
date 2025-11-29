@@ -20,7 +20,7 @@ type AddResourceServiceSchedulePageProps struct {
 	ValidationErrors validate.ValidationErrors
 	IsSubmission     bool
 	Resource         model.Resource
-	ServiceMetrics   []model.ServiceMetric
+	ServiceSchedules []model.ServiceSchedule
 }
 
 func AddServiceSchedulePage(p *AddResourceServiceSchedulePageProps) g.Node {
@@ -31,7 +31,7 @@ func AddServiceSchedulePage(p *AddResourceServiceSchedulePageProps) g.Node {
 			values:           p.Values,
 			validationErrors: p.ValidationErrors,
 			isSubmission:     p.IsSubmission,
-			serviceMetrics:   p.ServiceMetrics,
+			serviceSchedules: p.ServiceSchedules,
 		}),
 	})
 
@@ -65,33 +65,21 @@ type addServiceScheduleFormProps struct {
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
-	serviceMetrics   []model.ServiceMetric
+	serviceSchedules []model.ServiceSchedule
 }
 
 func addServiceScheduleForm(p *addServiceScheduleFormProps) g.Node {
 
-	serviceMetricLabel := "Select service metric"
-	serviceMetricKey := "ServiceMetricID"
-	serviceMetricValue := p.values.Get(serviceMetricKey)
-	serviceMetricError := ""
-	if p.isSubmission || serviceMetricValue != "" {
-		serviceMetricError = p.validationErrors.GetError(serviceMetricKey, serviceMetricLabel)
+	serviceScheduleLabel := "Select service schedule"
+	serviceScheduleKey := "ServiceScheduleID"
+	serviceScheduleValue := p.values.Get(serviceScheduleKey)
+	serviceScheduleError := ""
+	if p.isSubmission || serviceScheduleValue != "" {
+		serviceScheduleError = p.validationErrors.GetError(serviceScheduleKey, serviceScheduleLabel)
 	}
-	serviceMetricHelperType := components.InputHelperTypeNone
-	if serviceMetricError != "" {
-		serviceMetricHelperType = components.InputHelperTypeError
-	}
-
-	thresholdLabel := "Threshold"
-	thresholdKey := "Threshold"
-	thresholdValue := p.values.Get(thresholdKey)
-	thresholdError := ""
-	if p.isSubmission || thresholdValue != "" {
-		thresholdError = p.validationErrors.GetError(thresholdKey, thresholdLabel)
-	}
-	thresholdHelperType := components.InputHelperTypeNone
-	if thresholdError != "" {
-		thresholdHelperType = components.InputHelperTypeError
+	serviceScheduleHelperType := components.InputHelperTypeNone
+	if serviceScheduleError != "" {
+		serviceScheduleHelperType = components.InputHelperTypeError
 	}
 
 	teamSelectOptions := []g.Node{
@@ -100,14 +88,14 @@ func addServiceScheduleForm(p *addServiceScheduleFormProps) g.Node {
 			g.Text("\u2013"),
 		),
 	}
-	for _, metric := range p.serviceMetrics {
-		intVal, _ := strconv.Atoi(serviceMetricValue)
-		isSelected := metric.ServiceMetricID == intVal
+	for _, schedule := range p.serviceSchedules {
+		intVal, _ := strconv.Atoi(serviceScheduleValue)
+		isSelected := schedule.ServiceScheduleID == intVal
 
 		teamSelectOptions = append(teamSelectOptions, h.Option(
-			h.Value(fmt.Sprintf("%d", metric.ServiceMetricID)),
+			h.Value(fmt.Sprintf("%d", schedule.ServiceScheduleID)),
 			g.If(isSelected, h.Selected()),
-			g.Text(metric.Name),
+			g.Text(schedule.Name),
 		))
 	}
 
@@ -117,37 +105,17 @@ func addServiceScheduleForm(p *addServiceScheduleFormProps) g.Node {
 
 		h.Div(
 			h.Label(
-				g.Text(serviceMetricLabel),
+				g.Text(serviceScheduleLabel),
 
 				h.Select(
-					h.Name(serviceMetricKey),
+					h.Name(serviceScheduleKey),
 					g.Group(teamSelectOptions),
 				),
 			),
-			g.If(serviceMetricError != "",
+			g.If(serviceScheduleError != "",
 				components.InputHelper(&components.InputHelperProps{
-					Label: serviceMetricError,
-					Type:  serviceMetricHelperType,
-				})),
-		),
-
-		h.Div(
-			h.Label(
-				g.Text(thresholdLabel),
-
-				h.Input(
-					h.Name(thresholdKey),
-					h.Type("number"),
-					h.Placeholder("Enter threshold"),
-					h.Value(thresholdValue),
-					h.AutoComplete("off"),
-				),
-			),
-			g.If(
-				thresholdError != "",
-				components.InputHelper(&components.InputHelperProps{
-					Label: thresholdError,
-					Type:  thresholdHelperType,
+					Label: serviceScheduleError,
+					Type:  serviceScheduleHelperType,
 				}),
 			),
 		),

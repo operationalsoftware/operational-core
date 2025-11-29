@@ -5,6 +5,7 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/appsort"
+	"app/pkg/format"
 	"app/pkg/nilsafe"
 	"app/pkg/reqcontext"
 	"fmt"
@@ -45,6 +46,12 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 					h.Class("link"),
 					h.Href("/services/metrics"),
 					g.Text("Manage Metrics"),
+				),
+
+				h.A(
+					h.Class("link"),
+					h.Href("/services/schedules"),
+					g.Text("Manage Schedules"),
 				),
 
 				h.A(
@@ -107,73 +114,6 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 	})
 }
 
-func servicingNav() g.Node {
-	return h.Nav(
-		h.Class("servicing-nav"),
-
-		// h.A(
-		// 	h.Class("button primary small"),
-		// 	h.Href(fmt.Sprintf("/resources/%d/services/new", p.resourceID)),
-		// 	components.Icon(&components.IconProps{
-		// 		Identifier: "plus",
-		// 	}),
-		// 	g.Text("Service"),
-		// ),
-	)
-}
-
-type resourceServicingFiltersProps struct {
-	availableFilters model.AndonAvailableFilters
-	activeFilters    model.AndonFilters
-}
-
-func resourceServicingFilters(p *resourceServicingFiltersProps) g.Node {
-	type selectDef struct {
-		label            string
-		name             string
-		availableFilters []string
-		activeFilters    []string
-	}
-
-	return g.Group{
-		h.Div(
-			h.Class("resources-filters"),
-
-			g.Map([]selectDef{
-				{
-					label:            "Location",
-					name:             "LocationIn",
-					availableFilters: p.availableFilters.LocationIn,
-					activeFilters:    p.activeFilters.LocationIn,
-				},
-				{
-					label:            "Status",
-					name:             "StatusIn",
-					availableFilters: p.availableFilters.StatusIn,
-					activeFilters:    p.activeFilters.StatusIn,
-				},
-			}, func(i selectDef) g.Node {
-				return h.Label(
-					g.Text(i.label),
-					components.SearchSelect(&components.SearchSelectProps{
-						Name:        i.name,
-						Placeholder: "-",
-						Mode:        "multi",
-						Options:     components.MapStringsToOptions(i.availableFilters, i.activeFilters),
-						Selected:    strings.Join(i.activeFilters, ","),
-					}),
-				)
-			}),
-		),
-
-		h.Button(
-			h.Class("button primary"),
-			h.Type("submit"),
-			g.Text("GO"),
-		),
-	}
-}
-
 type servicingTeamFilterProps struct {
 	teams           []model.Team
 	selectedTeamIDs []string
@@ -229,7 +169,7 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 	var columns = components.TableColumns{
 		{TitleContents: g.Text("Reference")},
 		{TitleContents: g.Text("Service Ownership Team")},
-		{TitleContents: g.Text("Metric")},
+		{TitleContents: g.Text("Schedule")},
 		{TitleContents: g.Text("Current Value")},
 		{TitleContents: g.Text("Threshold")},
 		{TitleContents: g.Text("Threshold Utilisation (%)")},
@@ -251,13 +191,31 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 			lastServicedAt = r.LastServicedAt.Format("2006-01-02 15:04:05")
 		}
 
+		scheduleCell := h.Div(
+			h.Class("schedule-cell"),
+			h.Span(
+				h.Class("schedule-name"),
+				g.Text(r.ServiceScheduleName),
+			),
+			h.Span(
+				h.Class("metric-name"),
+				g.Text(r.MetricName),
+			),
+		)
+
 		cells := []components.TableCell{
 			{Contents: g.Text(r.Reference)},
 			{Contents: g.Text(serviceOwnershipTeamLabel(r.ServiceOwnershipTeamName))},
-			{Contents: g.Text(r.MetricName)},
-			{Contents: g.Text(r.CurrentValue.String())},
-			{Contents: g.Text(r.Threshold.String())},
-			{Contents: g.Text(r.NormalisedPercentage.String())},
+			{Contents: scheduleCell},
+			{Contents: g.Text(format.DecimalWithCommas(r.CurrentValue.String())), Classes: c.Classes{
+				"text-right": true,
+			}},
+			{Contents: g.Text(format.DecimalWithCommas(r.Threshold.String())), Classes: c.Classes{
+				"text-right": true,
+			}},
+			{Contents: g.Text(r.NormalisedPercentage.String()), Classes: c.Classes{
+				"text-right": true,
+			}},
 			{Contents: g.Text(lastRecordedAt)},
 			{Contents: g.Text(lastServicedAt)},
 			{Contents: g.Group([]g.Node{

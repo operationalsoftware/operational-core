@@ -34,9 +34,16 @@ func addServiceRoutes(
 	mux.HandleFunc("POST /services/metrics/{id}/edit", servicesHandler.EditResourceServiceMetric)
 	mux.HandleFunc("PUT /services/{serviceID}/resource/{resourceID}/{action}/update", servicesHandler.UpdateResourceService)
 
-	mux.HandleFunc("GET /services/resource/{id}/schedules/add", servicesHandler.AddServiceSchedulePage)
-	mux.HandleFunc("POST /services/resource/{id}/schedules/add", servicesHandler.AddServiceSchedule)
-	mux.HandleFunc("POST /services/resource/{id}/schedules/{scheduleID}/archive", servicesHandler.ArchiveServiceSchedule)
+	mux.HandleFunc("GET /services/schedules", servicesHandler.ServiceSchedulesPage)
+
+	mux.HandleFunc("GET /services/schedules/add", servicesHandler.AddServiceSchedulePage)
+	mux.HandleFunc("POST /services/schedules/add", servicesHandler.AddServiceSchedule)
+	mux.HandleFunc("GET /services/schedules/{id}/edit", servicesHandler.EditServiceSchedulePage)
+	mux.HandleFunc("POST /services/schedules/{id}/edit", servicesHandler.EditServiceSchedule)
+
+	mux.HandleFunc("GET /services/resource/{id}/schedules/add", servicesHandler.AddResourceServiceSchedulePage)
+	mux.HandleFunc("POST /services/resource/{id}/schedules/add", servicesHandler.AddResourceServiceSchedule)
+	mux.HandleFunc("POST /services/resource/{id}/schedules/{scheduleID}/archive", servicesHandler.ArchiveResourceServiceSchedule)
 
 	mux.HandleFunc("GET /services", servicesHandler.ResourceServicingPage)
 	mux.HandleFunc("GET /services/all", servicesHandler.ServicesPage)

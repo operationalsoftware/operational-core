@@ -140,7 +140,7 @@ func (h *ResourceHandler) ResourcePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentMetrics, err := h.resourceService.GetResourceServiceMetricSchedules(
+	currentMetrics, err := h.resourceService.GetResourceServiceSchedules(
 		r.Context(),
 		resourceID,
 		resourcePageUV.ShowArchivedSchedules)
