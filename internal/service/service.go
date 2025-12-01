@@ -180,9 +180,9 @@ func (s *ServicesService) UpdateResourceService(
 	return nil
 }
 
-func (s *ServicesService) CreateResourceServiceSchedule(
+func (s *ServicesService) AssignServiceSchedule(
 	ctx context.Context,
-	serviceSchedule model.NewResourceServiceSchedule,
+	serviceSchedule model.NewServiceScheduleAssignment,
 ) error {
 
 	tx, err := s.db.Begin(ctx)
@@ -213,7 +213,7 @@ func (s *ServicesService) CreateResourceServiceSchedule(
 		return fmt.Errorf("service metric is archived")
 	}
 
-	_, err = s.servicesRepository.CreateResourceServiceSchedule(ctx, tx, serviceSchedule)
+	_, err = s.servicesRepository.AssignServiceSchedule(ctx, tx, serviceSchedule)
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (s *ServicesService) CreateResourceServiceSchedule(
 	return nil
 }
 
-func (s *ServicesService) ArchiveResourceServiceSchedule(
+func (s *ServicesService) UnassignServiceSchedule(
 	ctx context.Context,
 	resourceID int,
 	scheduleID int,
@@ -238,7 +238,7 @@ func (s *ServicesService) ArchiveResourceServiceSchedule(
 	}
 	defer tx.Rollback(ctx)
 
-	err = s.servicesRepository.ArchiveResourceServiceSchedule(ctx, tx, resourceID, scheduleID)
+	err = s.servicesRepository.UnassignServiceSchedule(ctx, tx, resourceID, scheduleID)
 	if err != nil {
 		return err
 	}

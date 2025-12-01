@@ -17,17 +17,16 @@ import (
 )
 
 type ResourcePageProps struct {
-	Ctx                   reqcontext.ReqContext
-	Resource              model.Resource
-	Services              []model.ResourceService
-	CurrentMetrics        []model.ResourceServiceMetricStatus
-	LifetimeTotals        []model.ServiceMetricLifetimeTotal
-	ServiceCount          int
-	Sort                  appsort.Sort
-	Page                  int
-	PageSize              int
-	CanManageSchedules    bool
-	ShowArchivedSchedules bool
+	Ctx                reqcontext.ReqContext
+	Resource           model.Resource
+	Services           []model.ResourceService
+	CurrentMetrics     []model.ResourceServiceMetricStatus
+	LifetimeTotals     []model.ServiceMetricLifetimeTotal
+	ServiceCount       int
+	Sort               appsort.Sort
+	Page               int
+	PageSize           int
+	CanManageSchedules bool
 }
 
 func ResourcePage(p *ResourcePageProps) g.Node {
@@ -97,24 +96,6 @@ func ResourcePage(p *ResourcePageProps) g.Node {
 				h.Class("service-schedule-header"),
 
 				h.H3(g.Text("Service Schedules")),
-
-				h.Form(
-					h.Method("GET"),
-					h.Class("service-schedule-filter"),
-
-					components.Checkbox(
-						&components.CheckboxProps{
-							Name:    "ShowArchivedSchedules",
-							Label:   "Show Archived",
-							Value:   "true",
-							Checked: p.ShowArchivedSchedules,
-							Classes: c.Classes{
-								"filter-checkbox": true,
-							},
-						},
-						g.Attr("onchange", "submitTableForm(this.form)"),
-					),
-				),
 			),
 
 			currentMetricsTable(&currentMetricsTableProps{
@@ -312,14 +293,14 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 			if !r.ScheduleIsArchived {
 				actionContent = h.Form(
 					h.Method("POST"),
-					h.Class("archive-service-schedule-form"),
+					h.Class("unassign-service-schedule-form"),
 					g.Attr("data-confirm-message",
-						fmt.Sprintf("Are you sure you want to archive the %s schedule?", r.MetricName)),
-					h.Action(fmt.Sprintf("/services/resource/%d/schedules/%d/archive", p.resourceID, r.ServiceScheduleID)),
+						fmt.Sprintf("Are you sure you want to unassign the %s schedule?", r.MetricName)),
+					h.Action(fmt.Sprintf("/services/resource/%d/schedules/%d/unassign", p.resourceID, r.ServiceScheduleID)),
 					h.Button(
 						h.Class("button secondary small"),
 						h.Type("submit"),
-						g.Text("Archive"),
+						g.Text("Unassign"),
 					),
 				)
 			}

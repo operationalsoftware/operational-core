@@ -43,7 +43,7 @@ func addServiceRoutes(
 
 	mux.HandleFunc("GET /services/resource/{id}/schedules/add", servicesHandler.AddResourceServiceSchedulePage)
 	mux.HandleFunc("POST /services/resource/{id}/schedules/add", servicesHandler.AddResourceServiceSchedule)
-	mux.HandleFunc("POST /services/resource/{id}/schedules/{scheduleID}/archive", servicesHandler.ArchiveResourceServiceSchedule)
+	mux.HandleFunc("POST /services/resource/{id}/schedules/{scheduleID}/unassign", servicesHandler.UnassignServiceSchedule)
 
 	mux.HandleFunc("GET /services", servicesHandler.ResourceServicingPage)
 	mux.HandleFunc("GET /services/all", servicesHandler.ServicesPage)

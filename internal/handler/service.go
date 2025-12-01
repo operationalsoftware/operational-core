@@ -1114,9 +1114,9 @@ func (h *ServiceHandler) AddResourceServiceSchedule(w http.ResponseWriter, r *ht
 		return
 	}
 
-	err = h.servicesService.CreateResourceServiceSchedule(
+	err = h.servicesService.AssignServiceSchedule(
 		r.Context(),
-		model.NewResourceServiceSchedule{
+		model.NewServiceScheduleAssignment{
 			ResourceID:        resourceID,
 			ServiceScheduleID: fd.ServiceScheduleID,
 		})
@@ -1129,7 +1129,7 @@ func (h *ServiceHandler) AddResourceServiceSchedule(w http.ResponseWriter, r *ht
 	http.Redirect(w, r, fmt.Sprintf("/resources/%d", resourceID), http.StatusSeeOther)
 }
 
-func (h *ServiceHandler) ArchiveResourceServiceSchedule(w http.ResponseWriter, r *http.Request) {
+func (h *ServiceHandler) UnassignServiceSchedule(w http.ResponseWriter, r *http.Request) {
 
 	resourceID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -1145,10 +1145,10 @@ func (h *ServiceHandler) ArchiveResourceServiceSchedule(w http.ResponseWriter, r
 		return
 	}
 
-	err = h.servicesService.ArchiveResourceServiceSchedule(r.Context(), resourceID, scheduleID)
+	err = h.servicesService.UnassignServiceSchedule(r.Context(), resourceID, scheduleID)
 	if err != nil {
-		log.Println("error archiving service schedule:", err)
-		http.Error(w, "Error archiving service schedule", http.StatusInternalServerError)
+		log.Println("error unassigning service schedule:", err)
+		http.Error(w, "Error unassigning service schedule", http.StatusInternalServerError)
 		return
 	}
 

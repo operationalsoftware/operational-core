@@ -37,7 +37,7 @@ func AddServiceSchedulePage(p *AddResourceServiceSchedulePageProps) g.Node {
 
 	return layout.Page(layout.PageProps{
 		Ctx:     p.Ctx,
-		Title:   "Add Resource Service Schedule",
+		Title:   "Assign Service Schedule",
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

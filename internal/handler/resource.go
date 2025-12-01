@@ -107,21 +107,10 @@ func (uv *resourceHomePageURLVals) normalise() {
 	}
 }
 
-type resourcePageURLVals struct {
-	ShowArchivedSchedules bool
-}
-
 func (h *ResourceHandler) ResourcePage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	canUserEdit := ctx.User.Permissions.UserAdmin.Access
-
-	var resourcePageUV resourcePageURLVals
-	if err := appurl.Unmarshal(r.URL.Query(), &resourcePageUV); err != nil {
-		log.Println("error decoding resource page query params:", err)
-		http.Error(w, "Error decoding query params", http.StatusBadRequest)
-		return
-	}
 
 	resourceID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -143,7 +132,7 @@ func (h *ResourceHandler) ResourcePage(w http.ResponseWriter, r *http.Request) {
 	currentMetrics, err := h.resourceService.GetResourceServiceSchedules(
 		r.Context(),
 		resourceID,
-		resourcePageUV.ShowArchivedSchedules)
+		false)
 	if err != nil {
 		log.Println("error fetching resource metrics summary:", err)
 		http.Error(w, "Error fetching resource metrics summary", http.StatusInternalServerError)
@@ -184,17 +173,16 @@ func (h *ResourceHandler) ResourcePage(w http.ResponseWriter, r *http.Request) {
 	canManageSchedules := canUserEdit && !resource.IsArchived
 
 	_ = resourceview.ResourcePage(&resourceview.ResourcePageProps{
-		Ctx:                   ctx,
-		Resource:              *resource,
-		Services:              services,
-		CurrentMetrics:        currentMetrics,
-		LifetimeTotals:        lifetimeTotals,
-		ServiceCount:          serviceCount,
-		Sort:                  serviceHistoryQuery.Sort,
-		Page:                  serviceHistoryQuery.Page,
-		PageSize:              serviceHistoryQuery.PageSize,
-		CanManageSchedules:    canManageSchedules,
-		ShowArchivedSchedules: resourcePageUV.ShowArchivedSchedules,
+		Ctx:                ctx,
+		Resource:           *resource,
+		Services:           services,
+		CurrentMetrics:     currentMetrics,
+		LifetimeTotals:     lifetimeTotals,
+		ServiceCount:       serviceCount,
+		Sort:               serviceHistoryQuery.Sort,
+		Page:               serviceHistoryQuery.Page,
+		PageSize:           serviceHistoryQuery.PageSize,
+		CanManageSchedules: canManageSchedules,
 	}).Render(w)
 }
 
