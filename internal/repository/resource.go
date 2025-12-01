@@ -385,12 +385,14 @@ SELECT
 	m.is_archived
 FROM
     resource_service_metric AS m
-JOIN
-    resource_service_schedule AS ss
-    ON m.resource_service_metric_id = ss.resource_service_metric_id
+JOIN service_schedule AS ss
+	ON m.resource_service_metric_id = ss.resource_service_metric_id
+JOIN resource_service_schedule AS rss
+	ON rss.service_schedule_id = ss.service_schedule_id
 WHERE
-    ss.resource_id = $1
+    rss.resource_id = $1
 	AND ss.is_archived = FALSE
+	AND rss.is_archived = FALSE
 	AND m.is_archived = FALSE;
 `
 
@@ -490,7 +492,8 @@ SELECT
   reference,
   service_ownership_team_id,
   service_ownership_team_name,
-  resource_service_schedule_id,
+	service_schedule_id,
+  service_schedule_name,
   resource_id,
   resource_service_metric_id,
   metric_name,
@@ -537,7 +540,8 @@ ORDER BY metric_name ASC
 			&metric.Reference,
 			&metric.ServiceOwnershipTeamID,
 			&metric.ServiceOwnershipTeamName,
-			&metric.ResourceServiceScheduleID,
+			&metric.ServiceScheduleID,
+			&metric.ServiceScheduleName,
 			&metric.ResourceID,
 			&metric.ResourceServiceMetricID,
 			&metric.MetricName,

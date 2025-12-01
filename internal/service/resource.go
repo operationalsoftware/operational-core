@@ -158,7 +158,7 @@ func (s *ResourceService) GetResourceServiceMetrics(
 	return metrics, nil
 }
 
-func (s *ResourceService) GetResourceServiceMetricSchedules(
+func (s *ResourceService) GetResourceServiceSchedules(
 	ctx context.Context,
 	resourceID int,
 	includeArchived bool,
