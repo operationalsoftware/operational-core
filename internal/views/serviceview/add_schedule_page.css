@@ -1,0 +1,14 @@
+.main {
+  display: flex;
+  justify-content: center;
+}
+
+.main form {
+  width: 100%;
+  max-width: var(--narrow-form-width);
+}
+
+.note {
+  font-size: var(--font-size-xs);
+  margin: var(--spacing-sm) 0;
+}

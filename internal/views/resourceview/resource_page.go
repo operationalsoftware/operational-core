@@ -194,7 +194,7 @@ func resourceNav(p *resourceNavProps) g.Node {
 				components.Icon(&components.IconProps{
 					Identifier: "plus",
 				}),
-				g.Text("Service Schedule"),
+				g.Text("Assign Service Schedule"),
 			),
 
 			h.A(
@@ -305,7 +305,7 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 					h.Class("archive-service-schedule-form"),
 					g.Attr("data-confirm-message",
 						fmt.Sprintf("Are you sure you want to archive the %s schedule?", r.MetricName)),
-					h.Action(fmt.Sprintf("/services/resource/%d/schedules/%d/archive", p.resourceID, r.ResourceServiceScheduleID)),
+					h.Action(fmt.Sprintf("/services/resource/%d/schedules/%d/archive", p.resourceID, r.ServiceScheduleID)),
 					h.Button(
 						h.Class("button secondary small"),
 						h.Type("submit"),

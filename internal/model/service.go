@@ -16,10 +16,19 @@ const (
 
 type ServiceMetric struct {
 	ServiceMetricID int
-	Name            string
+	Name            string `sortable:"true"`
 	Description     string
-	IsCumulative    bool
-	IsArchived      bool
+	IsCumulative    bool `sortable:"true"`
+	IsArchived      bool `sortable:"true"`
+}
+
+type ServiceSchedule struct {
+	ServiceScheduleID       int
+	Name                    string `sortable:"true"`
+	ResourceServiceMetricID int
+	MetricName              string          `sortable:"true"`
+	Threshold               decimal.Decimal `sortable:"true"`
+	IsArchived              bool            `sortable:"true"`
 }
 
 type ResourceService struct {
@@ -76,38 +85,52 @@ type UpdateResourceService struct {
 type ResourceServiceSchedule struct {
 	ResourceServiceScheduleID int
 	ResourceID                int
-	ResourceServiceMetricID   int
+	ServiceScheduleID         int
 	MetricName                string
 	Threshold                 decimal.Decimal
 	CreatedAt                 time.Time
 }
 
 type NewResourceServiceSchedule struct {
-	ResourceID              int
+	ResourceID        int
+	ServiceScheduleID int
+}
+
+type NewServiceSchedule struct {
+	Name                    string
 	ResourceServiceMetricID int
 	Threshold               decimal.Decimal
 }
 
+type UpdateServiceSchedule struct {
+	ServiceScheduleID       int
+	Name                    string
+	ResourceServiceMetricID int
+	Threshold               decimal.Decimal
+	IsArchived              bool
+}
+
 type ResourceServiceMetricStatus struct {
-	ResourceServiceScheduleID int
-	ResourceID                int
-	Type                      string
-	Reference                 string
-	ServiceOwnershipTeamID    *int
-	ServiceOwnershipTeamName  *string
-	ResourceServiceMetricID   int
-	MetricName                string
-	CurrentValue              decimal.Decimal
-	Threshold                 decimal.Decimal
-	NormalisedValue           decimal.Decimal
-	NormalisedPercentage      decimal.Decimal
-	IsDue                     bool
-	WIPServiceID              *int
-	HasWIPService             bool
-	LastRecordedAt            *time.Time
-	LastServicedAt            *time.Time
-	ScheduleIsArchived        bool
-	MetricIsArchived          bool
+	ServiceScheduleID        int
+	ServiceScheduleName      string
+	ResourceID               int
+	Type                     string
+	Reference                string
+	ServiceOwnershipTeamID   *int
+	ServiceOwnershipTeamName *string
+	ResourceServiceMetricID  int
+	MetricName               string
+	CurrentValue             decimal.Decimal
+	Threshold                decimal.Decimal
+	NormalisedValue          decimal.Decimal
+	NormalisedPercentage     decimal.Decimal
+	IsDue                    bool
+	WIPServiceID             *int
+	HasWIPService            bool
+	LastRecordedAt           *time.Time
+	LastServicedAt           *time.Time
+	ScheduleIsArchived       bool
+	MetricIsArchived         bool
 }
 
 type ResourceServiceMetricStatusesQuery struct {
