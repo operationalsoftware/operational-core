@@ -195,8 +195,11 @@ func (s *ServicesService) CreateResourceServiceSchedule(
 	if err != nil {
 		return err
 	}
-	if schedule == nil || schedule.IsArchived {
-		return fmt.Errorf("service schedule not found or archived")
+	if schedule == nil {
+		return fmt.Errorf("service schedule not found")
+	}
+	if schedule.IsArchived {
+		return fmt.Errorf("service schedule is archived")
 	}
 
 	metric, err := s.servicesRepository.GetResourceServiceMetricByID(ctx, tx, schedule.ResourceServiceMetricID)
