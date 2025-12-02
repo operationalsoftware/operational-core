@@ -66,12 +66,15 @@ func (h *ResourceHandler) ResourcesPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	resources, count, err := h.resourceService.GetResources(r.Context(), model.GetResourcesQuery{
+	resources, count, availableFilters, err := h.resourceService.GetResources(r.Context(), model.GetResourcesQuery{
 		Sort:     sort,
 		Page:     uv.Page,
 		PageSize: uv.PageSize,
 
-		IsArchived: uv.IsArchived,
+		IsArchived:             uv.IsArchived,
+		TypeIn:                 uv.TypeIn,
+		ServiceOwnershipTeamIn: uv.ServiceOwnershipTeamIn,
+		ReferenceIn:            uv.ReferenceIn,
 	})
 	if err != nil {
 		log.Println("error listing resources:", err)
@@ -80,22 +83,30 @@ func (h *ResourceHandler) ResourcesPage(w http.ResponseWriter, r *http.Request) 
 	}
 
 	_ = resourceview.ResourcesPage(&resourceview.ResourcesPageProps{
-		Ctx:            ctx,
-		ShowArchived:   uv.IsArchived,
-		Resources:      resources,
-		ResourcesCount: count,
-		Sort:           sort,
-		Page:           uv.Page,
-		PageSize:       uv.PageSize,
+		Ctx:              ctx,
+		ShowArchived:     uv.IsArchived,
+		Resources:        resources,
+		ResourcesCount:   count,
+		AvailableFilters: availableFilters,
+		ActiveFilters: model.ResourceFilters{
+			TypeIn:                 uv.TypeIn,
+			ServiceOwnershipTeamIn: uv.ServiceOwnershipTeamIn,
+			ReferenceIn:            uv.ReferenceIn,
+		},
+		Sort:     sort,
+		Page:     uv.Page,
+		PageSize: uv.PageSize,
 	}).Render(w)
 }
 
 type resourceHomePageURLVals struct {
-	Sort     string
-	Page     int
-	PageSize int
-
-	IsArchived bool
+	Sort                   string
+	Page                   int
+	PageSize               int
+	IsArchived             bool
+	TypeIn                 []string
+	ReferenceIn            []string
+	ServiceOwnershipTeamIn []string
 }
 
 func (uv *resourceHomePageURLVals) normalise() {
