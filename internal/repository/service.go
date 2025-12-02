@@ -1251,7 +1251,7 @@ WHERE
 	}
 
 	baseQuery += `
-ORDER BY normalised_percentage DESC
+ORDER BY normalised_percentage DESC, current_value DESC, reference ASC
 LIMIT :limit OFFSET :offset
 `
 
