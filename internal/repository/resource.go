@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -272,23 +273,17 @@ func (r *ResourceRepository) ListResources(
 	q model.GetResourcesQuery,
 ) ([]model.Resource, error) {
 
+	whereClause, args := generateResourceWhereClause(q)
+
+	limitPlaceholder := fmt.Sprintf("$%d", len(args)+1)
+	offsetPlaceholder := fmt.Sprintf("$%d", len(args)+2)
+
 	limit := q.PageSize
 	offset := (q.Page - 1) * q.PageSize
 	orderByClause, _ := q.Sort.ToOrderByClause(model.Resource{})
 
 	if orderByClause == "" {
 		orderByClause = "ORDER BY resource_id ASC"
-	}
-
-	whereClause := `
-WHERE
-	is_archived = FALSE
-`
-	if q.IsArchived {
-		whereClause = `
-WHERE
-	is_archived = TRUE
-`
 	}
 
 	query := `
@@ -304,10 +299,10 @@ FROM
     resource_view
 ` + whereClause + `
 ` + orderByClause + `
-LIMIT $1 OFFSET $2
+` + fmt.Sprintf("LIMIT %s OFFSET %s", limitPlaceholder, offsetPlaceholder) + `
 `
 
-	rows, err := exec.Query(ctx, query, limit, offset)
+	rows, err := exec.Query(ctx, query, append(args, limit, offset)...)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -343,16 +338,7 @@ func (r *ResourceRepository) Count(
 	q model.GetResourcesQuery,
 ) (int, error) {
 
-	whereClause := `
-WHERE
-	is_archived = FALSE
-`
-	if q.IsArchived {
-		whereClause = `
-WHERE
-	is_archived = TRUE
-`
-	}
+	whereClause, args := generateResourceWhereClause(q)
 
 	query := `
 SELECT
@@ -362,12 +348,121 @@ FROM
 ` + whereClause
 
 	var count int
-	err := exec.QueryRow(ctx, query).Scan(&count)
+	err := exec.QueryRow(ctx, query, args...).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
 
 	return count, nil
+}
+
+func (r *ResourceRepository) GetAvailableFilters(
+	ctx context.Context,
+	exec db.PGExecutor,
+	baseFilters model.GetResourcesQuery,
+) (model.ResourceAvailableFilters, error) {
+
+	mapping := map[string]string{
+		"TypeIn":                 "type",
+		"ServiceOwnershipTeamIn": "COALESCE(service_ownership_team_name, 'Unassigned')",
+		"ReferenceIn":            "reference",
+	}
+
+	avail := model.ResourceAvailableFilters{}
+
+	var collect = func(key string, dest *[]string) error {
+		queryFilters := baseFilters
+
+		switch key {
+		case "TypeIn":
+			queryFilters.TypeIn = nil
+		case "ServiceOwnershipTeamIn":
+			queryFilters.ServiceOwnershipTeamIn = nil
+		case "ReferenceIn":
+			queryFilters.ReferenceIn = nil
+		}
+
+		where, args := generateResourceWhereClause(queryFilters)
+		col := mapping[key]
+
+		if col != "" {
+			if where == "" {
+				where = "WHERE " + col + " IS NOT NULL"
+			} else {
+				where += "\nAND " + col + " IS NOT NULL"
+			}
+		}
+
+		query := `
+SELECT DISTINCT ` + col + ` AS val
+FROM resource_view
+` + where + `
+ORDER BY val ASC
+`
+
+		rows, err := exec.Query(ctx, query, args...)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var v string
+			if err := rows.Scan(&v); err != nil {
+				return err
+			}
+			*dest = append(*dest, v)
+		}
+
+		return rows.Err()
+	}
+
+	if err := collect("TypeIn", &avail.TypeIn); err != nil {
+		return avail, err
+	}
+	if err := collect("ServiceOwnershipTeamIn", &avail.ServiceOwnershipTeamIn); err != nil {
+		return avail, err
+	}
+	if err := collect("ReferenceIn", &avail.ReferenceIn); err != nil {
+		return avail, err
+	}
+
+	return avail, nil
+}
+
+func generateResourceWhereClause(q model.GetResourcesQuery) (string, []any) {
+	var whereClauses []string
+	var args []any
+	argID := 1
+
+	archivedClause := "is_archived = FALSE"
+	if q.IsArchived {
+		archivedClause = "is_archived = TRUE"
+	}
+	whereClauses = append(whereClauses, archivedClause)
+
+	addInClause := func(column string, values []string) {
+		if len(values) == 0 {
+			return
+		}
+		placeholders := make([]string, len(values))
+		for i, val := range values {
+			args = append(args, val)
+			placeholders[i] = fmt.Sprintf("$%d", argID)
+			argID++
+		}
+		whereClauses = append(whereClauses, fmt.Sprintf("%s IN (%s)", column, strings.Join(placeholders, ", ")))
+	}
+
+	addInClause("type", q.TypeIn)
+	addInClause("COALESCE(service_ownership_team_name, 'Unassigned')", q.ServiceOwnershipTeamIn)
+	addInClause("reference", q.ReferenceIn)
+
+	if len(whereClauses) == 0 {
+		return "", args
+	}
+
+	return "WHERE " + strings.Join(whereClauses, "\nAND "), args
 }
 
 func (r *ResourceRepository) GetResourceServiceMetrics(

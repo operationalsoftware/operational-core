@@ -203,30 +203,35 @@ func (s *ResourceService) GetServiceMetricLifetimeTotals(
 func (s *ResourceService) GetResources(
 	ctx context.Context,
 	q model.GetResourcesQuery,
-) ([]model.Resource, int, error) {
+) ([]model.Resource, int, model.ResourceAvailableFilters, error) {
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return []model.Resource{}, 0, err
+		return []model.Resource{}, 0, model.ResourceAvailableFilters{}, err
 	}
 	defer tx.Rollback(ctx)
 
 	resources, err := s.resourceRepository.ListResources(ctx, tx, q)
 	if err != nil {
-		return []model.Resource{}, 0, err
+		return []model.Resource{}, 0, model.ResourceAvailableFilters{}, err
 	}
 
 	count, err := s.resourceRepository.Count(ctx, tx, q)
 	if err != nil {
-		return []model.Resource{}, 0, err
+		return []model.Resource{}, 0, model.ResourceAvailableFilters{}, err
+	}
+
+	availableFilters, err := s.resourceRepository.GetAvailableFilters(ctx, tx, q)
+	if err != nil {
+		return []model.Resource{}, 0, model.ResourceAvailableFilters{}, err
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return []model.Resource{}, 0, err
+		return []model.Resource{}, 0, model.ResourceAvailableFilters{}, err
 	}
 
-	return resources, count, nil
+	return resources, count, availableFilters, nil
 }
 
 func (s *ResourceService) UpdateResource(

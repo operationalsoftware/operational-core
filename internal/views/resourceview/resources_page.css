@@ -30,6 +30,11 @@
   }
 }
 
+.resources-table-actions {
+  text-align: right;
+  margin-bottom: var(--spacing-md);
+}
+
 .table-head,
 .table-row {
   white-space: nowrap;

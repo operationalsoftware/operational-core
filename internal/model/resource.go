@@ -37,12 +37,26 @@ type NewResourceServiceMetricRecord struct {
 	ClosedByServiceID       *int
 }
 
-type GetResourcesQuery struct {
-	Sort     appsort.Sort
-	Page     int
-	PageSize int
+type ResourceFilters struct {
+	TypeIn                 []string
+	ServiceOwnershipTeamIn []string
+	ReferenceIn            []string
+}
 
-	IsArchived bool
+type ResourceAvailableFilters struct {
+	TypeIn                 []string
+	ServiceOwnershipTeamIn []string
+	ReferenceIn            []string
+}
+
+type GetResourcesQuery struct {
+	Sort                   appsort.Sort
+	Page                   int
+	PageSize               int
+	IsArchived             bool
+	TypeIn                 []string
+	ServiceOwnershipTeamIn []string
+	ReferenceIn            []string
 }
 
 type GetServicesQuery struct {

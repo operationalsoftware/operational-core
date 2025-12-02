@@ -19,8 +19,8 @@ type ResourcesPageProps struct {
 	ShowArchived     bool
 	Resources        []model.Resource
 	ResourcesCount   int
-	AvailableFilters model.AndonAvailableFilters
-	ActiveFilters    model.AndonFilters
+	AvailableFilters model.ResourceAvailableFilters
+	ActiveFilters    model.ResourceFilters
 	Sort             appsort.Sort
 	Page             int
 	PageSize         int
@@ -39,23 +39,26 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 		h.Form(
 			h.Method("GET"),
 
-			components.Checkbox(
-				&components.CheckboxProps{
-					Name:    "IsArchived",
-					Label:   "Show Archived",
-					Value:   "true",
-					Checked: p.ShowArchived,
-					Classes: c.Classes{
-						"filter-checkbox": true,
-					},
-				},
-				g.Attr("onchange", "submitTableForm(this.form)"),
-			),
+			resourcesFilters(&resourcesFiltersProps{
+				availableFilters: p.AvailableFilters,
+				activeFilters:    p.ActiveFilters,
+			}),
 
-			// resourcesFilters(&resourcesFiltersProps{
-			// 	availableFilters: p.AvailableFilters,
-			// 	activeFilters:    p.ActiveFilters,
-			// }),
+			h.Div(
+				h.Class("resources-table-actions"),
+				components.Checkbox(
+					&components.CheckboxProps{
+						Name:    "IsArchived",
+						Label:   "Show Archived",
+						Value:   "true",
+						Checked: p.ShowArchived,
+						Classes: c.Classes{
+							"filter-checkbox": true,
+						},
+					},
+					g.Attr("onchange", "submitTableForm(this.form)"),
+				),
+			),
 
 			resourcesTable(&resourcesProps{
 				sort:         p.Sort,
@@ -86,8 +89,8 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 }
 
 type resourcesFiltersProps struct {
-	availableFilters model.AndonAvailableFilters
-	activeFilters    model.AndonFilters
+	availableFilters model.ResourceAvailableFilters
+	activeFilters    model.ResourceFilters
 }
 
 func resourcesHomeNav() g.Node {
@@ -120,16 +123,22 @@ func resourcesFilters(p *resourcesFiltersProps) g.Node {
 
 			g.Map([]selectDef{
 				{
-					label:            "Location",
-					name:             "LocationIn",
-					availableFilters: p.availableFilters.LocationIn,
-					activeFilters:    p.activeFilters.LocationIn,
+					label:            "Reference",
+					name:             "ReferenceIn",
+					availableFilters: p.availableFilters.ReferenceIn,
+					activeFilters:    p.activeFilters.ReferenceIn,
 				},
 				{
-					label:            "Status",
-					name:             "StatusIn",
-					availableFilters: p.availableFilters.StatusIn,
-					activeFilters:    p.activeFilters.StatusIn,
+					label:            "Type",
+					name:             "TypeIn",
+					availableFilters: p.availableFilters.TypeIn,
+					activeFilters:    p.activeFilters.TypeIn,
+				},
+				{
+					label:            "Service Ownership Team",
+					name:             "ServiceOwnershipTeamIn",
+					availableFilters: p.availableFilters.ServiceOwnershipTeamIn,
+					activeFilters:    p.activeFilters.ServiceOwnershipTeamIn,
 				},
 			}, func(i selectDef) g.Node {
 				return h.Label(
