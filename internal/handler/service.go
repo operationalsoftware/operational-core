@@ -1034,7 +1034,7 @@ func (h *ServiceHandler) AddResourceServiceSchedulePage(
 		return
 	}
 
-	assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID, false)
+	assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID)
 	if err != nil {
 		log.Println("error fetching assigned service schedules:", err)
 		http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
@@ -1049,7 +1049,7 @@ func (h *ServiceHandler) AddResourceServiceSchedulePage(
 	}).Render(w)
 }
 
-func (h *ServiceHandler) AddResourceServiceSchedule(w http.ResponseWriter, r *http.Request) {
+func (h *ServiceHandler) AssignServiceSchedule(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	resourceID, err := strconv.Atoi(r.PathValue("id"))
@@ -1076,7 +1076,7 @@ func (h *ServiceHandler) AddResourceServiceSchedule(w http.ResponseWriter, r *ht
 		return
 	}
 
-	var fd addResourceServiceScheduleFormData
+	var fd assignServiceScheduleFormData
 	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
 		log.Println("error decoding form:", err)
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
@@ -1095,7 +1095,7 @@ func (h *ServiceHandler) AddResourceServiceSchedule(w http.ResponseWriter, r *ht
 			return
 		}
 
-		assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID, false)
+		assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID)
 		if err != nil {
 			log.Println("error fetching assigned service schedules:", err)
 			http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
@@ -1114,22 +1114,22 @@ func (h *ServiceHandler) AddResourceServiceSchedule(w http.ResponseWriter, r *ht
 		return
 	}
 
-	err = h.servicesService.CreateResourceServiceSchedule(
+	err = h.servicesService.AssignServiceSchedule(
 		r.Context(),
-		model.NewResourceServiceSchedule{
+		model.NewServiceScheduleAssignment{
 			ResourceID:        resourceID,
 			ServiceScheduleID: fd.ServiceScheduleID,
 		})
 	if err != nil {
-		log.Println("error creating resource service schedule:", err)
-		http.Error(w, "Error creating resource service schedule", http.StatusInternalServerError)
+		log.Println("error assigning service schedule:", err)
+		http.Error(w, "Error assigning service schedule", http.StatusInternalServerError)
 		return
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/resources/%d", resourceID), http.StatusSeeOther)
 }
 
-func (h *ServiceHandler) ArchiveResourceServiceSchedule(w http.ResponseWriter, r *http.Request) {
+func (h *ServiceHandler) UnassignServiceSchedule(w http.ResponseWriter, r *http.Request) {
 
 	resourceID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -1145,10 +1145,10 @@ func (h *ServiceHandler) ArchiveResourceServiceSchedule(w http.ResponseWriter, r
 		return
 	}
 
-	err = h.servicesService.ArchiveResourceServiceSchedule(r.Context(), resourceID, scheduleID)
+	err = h.servicesService.UnassignServiceSchedule(r.Context(), resourceID, scheduleID)
 	if err != nil {
-		log.Println("error archiving service schedule:", err)
-		http.Error(w, "Error archiving service schedule", http.StatusInternalServerError)
+		log.Println("error unassigning service schedule:", err)
+		http.Error(w, "Error unassigning service schedule", http.StatusInternalServerError)
 		return
 	}
 
@@ -1175,14 +1175,14 @@ func filterAssignedSchedules(
 	return filtered
 }
 
-type addResourceServiceScheduleFormData struct {
+type assignServiceScheduleFormData struct {
 	ServiceScheduleID int
 }
 
-func (fd *addResourceServiceScheduleFormData) normalise() {
+func (fd *assignServiceScheduleFormData) normalise() {
 }
 
-func (fd *addResourceServiceScheduleFormData) validate() validate.ValidationErrors {
+func (fd *assignServiceScheduleFormData) validate() validate.ValidationErrors {
 	var ve validate.ValidationErrors = make(map[string][]string)
 
 	if fd.ServiceScheduleID == 0 {

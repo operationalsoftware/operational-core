@@ -82,16 +82,16 @@ type UpdateResourceService struct {
 	Notes             string
 }
 
-type ResourceServiceSchedule struct {
-	ResourceServiceScheduleID int
-	ResourceID                int
-	ServiceScheduleID         int
-	MetricName                string
-	Threshold                 decimal.Decimal
-	CreatedAt                 time.Time
+type ServiceScheduleAssignment struct {
+	ServiceScheduleAssignmentID int
+	ResourceID                  int
+	ServiceScheduleID           int
+	MetricName                  string
+	Threshold                   decimal.Decimal
+	CreatedAt                   time.Time
 }
 
-type NewResourceServiceSchedule struct {
+type NewServiceScheduleAssignment struct {
 	ResourceID        int
 	ServiceScheduleID int
 }

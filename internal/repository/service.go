@@ -107,18 +107,18 @@ RETURNING service_schedule_id;
 	return newID, nil
 }
 
-func (r *ServiceRepository) CreateResourceServiceSchedule(
+func (r *ServiceRepository) AssignServiceSchedule(
 	ctx context.Context,
 	exec db.PGExecutor,
-	schedule model.NewResourceServiceSchedule,
+	schedule model.NewServiceScheduleAssignment,
 ) (int, error) {
 
 	query := `
-INSERT INTO resource_service_schedule (
+INSERT INTO service_schedule_assignment (
 	resource_id,
 	service_schedule_id
 ) VALUES ($1, $2)
-RETURNING resource_service_schedule_id;
+RETURNING service_schedule_assignment_id;
 	`
 
 	var newID int
@@ -142,12 +142,11 @@ func (r *ServiceRepository) HasActiveServiceSchedules(
 			SELECT
 				1
 			FROM
-				resource_service_schedule rss
-			JOIN service_schedule ss ON ss.service_schedule_id = rss.service_schedule_id
+				service_schedule_assignment ssa
+			JOIN service_schedule ss ON ss.service_schedule_id = ssa.service_schedule_id
 			JOIN resource_service_metric m ON m.resource_service_metric_id = ss.resource_service_metric_id
 			WHERE
-				rss.resource_id = $1
-				AND rss.is_archived = FALSE
+				ssa.resource_id = $1
 				AND ss.is_archived = FALSE
 				AND m.is_archived = FALSE
 	)
@@ -162,7 +161,7 @@ func (r *ServiceRepository) HasActiveServiceSchedules(
 	return exists, nil
 }
 
-func (r *ServiceRepository) ArchiveResourceServiceSchedule(
+func (r *ServiceRepository) UnassignServiceSchedule(
 	ctx context.Context,
 	exec db.PGExecutor,
 	resourceID int,
@@ -170,14 +169,11 @@ func (r *ServiceRepository) ArchiveResourceServiceSchedule(
 ) error {
 
 	query := `
-UPDATE
-	resource_service_schedule
-SET
-	is_archived = TRUE
+DELETE FROM
+	service_schedule_assignment
 WHERE
 	resource_id = $1
 	AND service_schedule_id = $2
-	AND is_archived = FALSE
 `
 
 	tag, err := exec.Exec(ctx, query, resourceID, scheduleID)

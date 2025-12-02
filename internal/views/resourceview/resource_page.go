@@ -17,17 +17,15 @@ import (
 )
 
 type ResourcePageProps struct {
-	Ctx                   reqcontext.ReqContext
-	Resource              model.Resource
-	Services              []model.ResourceService
-	CurrentMetrics        []model.ResourceServiceMetricStatus
-	LifetimeTotals        []model.ServiceMetricLifetimeTotal
-	ServiceCount          int
-	Sort                  appsort.Sort
-	Page                  int
-	PageSize              int
-	CanManageSchedules    bool
-	ShowArchivedSchedules bool
+	Ctx            reqcontext.ReqContext
+	Resource       model.Resource
+	Services       []model.ResourceService
+	CurrentMetrics []model.ResourceServiceMetricStatus
+	LifetimeTotals []model.ServiceMetricLifetimeTotal
+	ServiceCount   int
+	Sort           appsort.Sort
+	Page           int
+	PageSize       int
 }
 
 func ResourcePage(p *ResourcePageProps) g.Node {
@@ -97,34 +95,15 @@ func ResourcePage(p *ResourcePageProps) g.Node {
 				h.Class("service-schedule-header"),
 
 				h.H3(g.Text("Service Schedules")),
-
-				h.Form(
-					h.Method("GET"),
-					h.Class("service-schedule-filter"),
-
-					components.Checkbox(
-						&components.CheckboxProps{
-							Name:    "ShowArchivedSchedules",
-							Label:   "Show Archived",
-							Value:   "true",
-							Checked: p.ShowArchivedSchedules,
-							Classes: c.Classes{
-								"filter-checkbox": true,
-							},
-						},
-						g.Attr("onchange", "submitTableForm(this.form)"),
-					),
-				),
 			),
 
 			currentMetricsTable(&currentMetricsTableProps{
-				records:            p.CurrentMetrics,
-				count:              p.ServiceCount,
-				sort:               p.Sort,
-				pageSize:           p.PageSize,
-				page:               p.Page,
-				resourceID:         p.Resource.ResourceID,
-				canManageSchedules: p.CanManageSchedules,
+				records:    p.CurrentMetrics,
+				count:      p.ServiceCount,
+				sort:       p.Sort,
+				pageSize:   p.PageSize,
+				page:       p.Page,
+				resourceID: p.Resource.ResourceID,
 			}),
 			serviceview.StatusLegend(),
 
@@ -241,11 +220,10 @@ type currentMetricsTableProps struct {
 	records []model.ResourceServiceMetricStatus
 	count   int
 
-	sort               appsort.Sort
-	pageSize           int
-	page               int
-	resourceID         int
-	canManageSchedules bool
+	sort       appsort.Sort
+	pageSize   int
+	page       int
+	resourceID int
 }
 
 func currentMetricsTable(p *currentMetricsTableProps) g.Node {
@@ -257,11 +235,7 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 		{TitleContents: g.Text("Threshold Utilisation (%)"), Classes: c.Classes{"text-right": true}},
 		{TitleContents: g.Text("Is Due?")},
 		{TitleContents: g.Text("Last Recorded At")},
-	}
-	if p.canManageSchedules {
-		columns = append(columns, components.TableColumn{
-			TitleContents: g.Text("Actions"),
-		})
+		{TitleContents: g.Text("Actions")},
 	}
 
 	var tableRows components.TableRows
@@ -277,26 +251,13 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 			lastRecordedAt = r.LastRecordedAt.Format("2006-01-02 15:04:05")
 		}
 
-		metricNameContents := []g.Node{
-			h.Span(
-				h.Class("metric-name"),
-				g.Text(r.MetricName),
-			),
-		}
-
-		if r.ScheduleIsArchived {
-			metricNameContents = append(metricNameContents,
-				components.Badge(&components.BadgeProps{
-					Type: components.BadgeSecondary,
-					Size: components.BadgeSm,
-				}, g.Text("Archived")),
-			)
-		}
-
 		cells := []components.TableCell{
 			{Contents: h.Div(
 				h.Class("metric-cell"),
-				g.Group(metricNameContents),
+				h.Span(
+					h.Class("metric-name"),
+					g.Text(r.MetricName),
+				),
 			)},
 			{Contents: g.Text(serviceOwnershipTeamLabel(r.ServiceOwnershipTeamName))},
 			{Contents: g.Text(format.DecimalWithCommas(r.CurrentValue.String())), Classes: c.Classes{"text-right": true}},
@@ -306,28 +267,18 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 			{Contents: g.Text(lastRecordedAt)},
 		}
 
-		if p.canManageSchedules {
-			var actionContent g.Node = h.Span(h.Class("muted-text"), g.Text("Archived"))
-
-			if !r.ScheduleIsArchived {
-				actionContent = h.Form(
-					h.Method("POST"),
-					h.Class("archive-service-schedule-form"),
-					g.Attr("data-confirm-message",
-						fmt.Sprintf("Are you sure you want to archive the %s schedule?", r.MetricName)),
-					h.Action(fmt.Sprintf("/services/resource/%d/schedules/%d/archive", p.resourceID, r.ServiceScheduleID)),
-					h.Button(
-						h.Class("button secondary small"),
-						h.Type("submit"),
-						g.Text("Archive"),
-					),
-				)
-			}
-
-			cells = append(cells, components.TableCell{
-				Contents: actionContent,
-			})
-		}
+		cells = append(cells, components.TableCell{
+			Contents: h.Form(
+				h.Method("POST"),
+				h.Class("unassign-service-schedule-form"),
+				h.Action(fmt.Sprintf("/services/resource/%d/schedules/%d/unassign", p.resourceID, r.ServiceScheduleID)),
+				h.Button(
+					h.Class("button secondary small"),
+					h.Type("submit"),
+					g.Text("Unassign"),
+				),
+			),
+		})
 
 		one := decimal.NewFromInt(1)
 		nineTenths := decimal.NewFromFloat(0.9)
@@ -341,10 +292,7 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 			colourClass = "threshold-80"
 		}
 
-		endIdx := len(cells)
-		if p.canManageSchedules {
-			endIdx--
-		}
+		endIdx := len(cells) - 1
 
 		if colourClass != "" {
 			for i := 0; i < endIdx; i++ {

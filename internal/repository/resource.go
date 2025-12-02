@@ -387,12 +387,11 @@ FROM
     resource_service_metric AS m
 JOIN service_schedule AS ss
 	ON m.resource_service_metric_id = ss.resource_service_metric_id
-JOIN resource_service_schedule AS rss
-	ON rss.service_schedule_id = ss.service_schedule_id
+JOIN service_schedule_assignment AS ssa
+	ON ssa.service_schedule_id = ss.service_schedule_id
 WHERE
-    rss.resource_id = $1
+    ssa.resource_id = $1
 	AND ss.is_archived = FALSE
-	AND rss.is_archived = FALSE
 	AND m.is_archived = FALSE;
 `
 
@@ -483,7 +482,6 @@ func (r *ResourceRepository) ListResourceMetricSchedules(
 	ctx context.Context,
 	exec db.PGExecutor,
 	resourceID int,
-	includeArchived bool,
 ) ([]model.ResourceServiceMetricStatus, error) {
 
 	query := `
@@ -513,12 +511,10 @@ FROM
 WHERE
 	resource_id = $1
 `
-	if !includeArchived {
-		query += `
+	query += `
 	AND schedule_is_archived = FALSE
 	AND metric_is_archived = FALSE
 `
-	}
 
 	query += `
 ORDER BY metric_name ASC
