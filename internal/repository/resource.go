@@ -482,7 +482,6 @@ func (r *ResourceRepository) ListResourceMetricSchedules(
 	ctx context.Context,
 	exec db.PGExecutor,
 	resourceID int,
-	includeArchived bool,
 ) ([]model.ResourceServiceMetricStatus, error) {
 
 	query := `
@@ -512,12 +511,10 @@ FROM
 WHERE
 	resource_id = $1
 `
-	if !includeArchived {
-		query += `
+	query += `
 	AND schedule_is_archived = FALSE
 	AND metric_is_archived = FALSE
 `
-	}
 
 	query += `
 ORDER BY metric_name ASC

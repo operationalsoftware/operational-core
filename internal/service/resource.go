@@ -161,7 +161,6 @@ func (s *ResourceService) GetResourceServiceMetrics(
 func (s *ResourceService) GetResourceServiceSchedules(
 	ctx context.Context,
 	resourceID int,
-	includeArchived bool,
 ) (
 	[]model.ResourceServiceMetricStatus,
 	error,
@@ -171,7 +170,6 @@ func (s *ResourceService) GetResourceServiceSchedules(
 		ctx,
 		s.db,
 		resourceID,
-		includeArchived,
 	)
 	if err != nil {
 		return []model.ResourceServiceMetricStatus{},
