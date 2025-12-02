@@ -58,6 +58,12 @@
   align-items: center;
 }
 
+.service-note {
+  font-family: inherit;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
 .metric-cell {
   display: flex;
   align-items: center;
