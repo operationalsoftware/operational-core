@@ -378,15 +378,21 @@ func serviceHistoryTable(p *serviceHistoryTableProps) g.Node {
 		}
 
 		notes := "\u2013"
-		if len(s.Notes) > 100 {
-			notes = s.Notes[:100] + "..."
+		if s.Notes != "" {
+			notes = s.Notes
+			if len(s.Notes) > 100 {
+				notes = s.Notes[:100] + "..."
+			}
 		}
 
 		cells := []components.TableCell{
 			{Contents: g.Text(string(s.Status))},
 			{Contents: g.Text(completedBy)},
 			{Contents: g.Text(completedAt)},
-			{Contents: h.Pre(g.Text(notes))},
+			{Contents: h.Pre(
+				h.Class("service-note"),
+				g.Text(notes),
+			)},
 		}
 
 		tableRows = append(tableRows, components.TableRow{
