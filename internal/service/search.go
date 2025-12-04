@@ -68,15 +68,12 @@ func (s *SearchService) Search(
 	}
 
 	// Goroutine variables
-	var (
-		wg      sync.WaitGroup
-		mu      sync.Mutex
-		errChan = make(chan error, 5)
-	)
+	group := newSearchRoutineGroup()
+	var mu sync.Mutex
 
 	// User Search
 	if len(searchEntities) == 0 || searchEntitiesFilter["user"] {
-		runSearchRoutine(&wg, errChan, func() error {
+		group.run(func() error {
 			users, err := s.UserRepo.SearchUsers(ctx, s.db, searchTerm)
 			if err != nil {
 				return err
@@ -96,32 +93,38 @@ func (s *SearchService) Search(
 		})
 	}
 
-	// Wait for all to complete
-	wg.Wait()
-	close(errChan)
-
-	// Collect errors, return the first one if any
-	var firstErr error
-	for err := range errChan {
-		if firstErr == nil {
-			firstErr = err
-		}
-	}
-	if firstErr != nil {
-		return results, firstErr
+	if err := group.wait(); err != nil {
+		return results, err
 	}
 
 	return results, nil
 }
 
-func runSearchRoutine(wg *sync.WaitGroup, errChan chan error, routine func() error) {
-	wg.Add(1)
+type searchRoutineGroup struct {
+	wg      sync.WaitGroup
+	errOnce sync.Once
+	err     error
+}
+
+func newSearchRoutineGroup() *searchRoutineGroup {
+	return &searchRoutineGroup{}
+}
+
+func (g *searchRoutineGroup) run(routine func() error) {
+	g.wg.Add(1)
 
 	go func() {
-		defer wg.Done()
+		defer g.wg.Done()
 
 		if err := routine(); err != nil {
-			errChan <- err
+			g.errOnce.Do(func() {
+				g.err = err
+			})
 		}
 	}()
+}
+
+func (g *searchRoutineGroup) wait() error {
+	g.wg.Wait()
+	return g.err
 }
