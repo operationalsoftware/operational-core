@@ -20,10 +20,12 @@ type SearchService struct {
 func NewSearchService(
 	db *pgxpool.Pool,
 	UserRepository *repository.UserRepository,
+	searchRepository *repository.SearchRepository,
 ) *SearchService {
 	return &SearchService{
-		db:       db,
-		UserRepo: UserRepository,
+		db:         db,
+		UserRepo:   UserRepository,
+		SearchRepo: searchRepository,
 	}
 }
 
@@ -74,15 +76,10 @@ func (s *SearchService) Search(
 
 	// User Search
 	if len(searchEntities) == 0 || searchEntitiesFilter["user"] {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		runSearchRoutine(&wg, errChan, func() error {
 			users, err := s.UserRepo.SearchUsers(ctx, s.db, searchTerm)
 			if err != nil {
-				errChan <- err
-				return
+				return err
 			}
 
 			mu.Lock()
@@ -94,7 +91,9 @@ func (s *SearchService) Search(
 					return results.Users[i].Relevance > results.Users[j].Relevance
 				})
 			}
-		}()
+
+			return nil
+		})
 	}
 
 	// Wait for all to complete
@@ -113,4 +112,16 @@ func (s *SearchService) Search(
 	}
 
 	return results, nil
+}
+
+func runSearchRoutine(wg *sync.WaitGroup, errChan chan error, routine func() error) {
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		if err := routine(); err != nil {
+			errChan <- err
+		}
+	}()
 }
