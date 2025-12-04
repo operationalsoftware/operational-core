@@ -20,10 +20,12 @@ type SearchService struct {
 func NewSearchService(
 	db *pgxpool.Pool,
 	UserRepository *repository.UserRepository,
+	searchRepository *repository.SearchRepository,
 ) *SearchService {
 	return &SearchService{
-		db:       db,
-		UserRepo: UserRepository,
+		db:         db,
+		UserRepo:   UserRepository,
+		SearchRepo: searchRepository,
 	}
 }
 
@@ -66,23 +68,15 @@ func (s *SearchService) Search(
 	}
 
 	// Goroutine variables
-	var (
-		wg      sync.WaitGroup
-		mu      sync.Mutex
-		errChan = make(chan error, 5)
-	)
+	group := newSearchRoutineGroup()
+	var mu sync.Mutex
 
 	// User Search
 	if len(searchEntities) == 0 || searchEntitiesFilter["user"] {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		group.run(func() error {
 			users, err := s.UserRepo.SearchUsers(ctx, s.db, searchTerm)
 			if err != nil {
-				errChan <- err
-				return
+				return err
 			}
 
 			mu.Lock()
@@ -94,23 +88,43 @@ func (s *SearchService) Search(
 					return results.Users[i].Relevance > results.Users[j].Relevance
 				})
 			}
-		}()
+
+			return nil
+		})
 	}
 
-	// Wait for all to complete
-	wg.Wait()
-	close(errChan)
-
-	// Collect errors, return the first one if any
-	var firstErr error
-	for err := range errChan {
-		if firstErr == nil {
-			firstErr = err
-		}
-	}
-	if firstErr != nil {
-		return results, firstErr
+	if err := group.wait(); err != nil {
+		return results, err
 	}
 
 	return results, nil
+}
+
+type searchRoutineGroup struct {
+	wg      sync.WaitGroup
+	errOnce sync.Once
+	err     error
+}
+
+func newSearchRoutineGroup() *searchRoutineGroup {
+	return &searchRoutineGroup{}
+}
+
+func (g *searchRoutineGroup) run(routine func() error) {
+	g.wg.Add(1)
+
+	go func() {
+		defer g.wg.Done()
+
+		if err := routine(); err != nil {
+			g.errOnce.Do(func() {
+				g.err = err
+			})
+		}
+	}()
+}
+
+func (g *searchRoutineGroup) wait() error {
+	g.wg.Wait()
+	return g.err
 }

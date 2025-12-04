@@ -92,6 +92,7 @@ func main() {
 	teamRepository := repository.NewTeamRepository()
 	stockItemRepository := repository.NewStockItemRepository()
 	userRepository := repository.NewUserRepository()
+	searchRepository := repository.NewSearchRepository()
 
 	// Instantiate services
 	services := &router.Services{
@@ -103,7 +104,7 @@ func main() {
 		GalleryService:          *service.NewGalleryService(pgPool, swiftConn, appHMAC, fileRepository, galleryRepository),
 		PDFService:              *service.NewPDFService(),
 		ResourceService:         *service.NewResourceService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),
-		SearchService:           *service.NewSearchService(pgPool, userRepository),
+		SearchService:           *service.NewSearchService(pgPool, userRepository, searchRepository),
 		ServicesService:         *service.NewServicesService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),
 		StockItemService:        *service.NewStockItemService(pgPool, swiftConn, galleryRepository, stockItemRepository, commentRepository),
 		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),
