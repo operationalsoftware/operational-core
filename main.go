@@ -64,6 +64,7 @@ func main() {
 	swiftAuthURL := os.Getenv("SWIFT_AUTH_URL")
 	swiftTenantID := os.Getenv("SWIFT_TENANT_ID")
 	siteAddress := os.Getenv("SITE_ADDRESS")
+	printNodeAPIKey := os.Getenv("PRINTNODE_API_KEY")
 	// Initialise some things for start up
 	swiftConn, err := filestore.InitSwift(
 		secretKey,
@@ -89,6 +90,8 @@ func main() {
 	resourceRepository := repository.NewResourceRepository()
 	serviceRepository := repository.NewServiceRepository()
 	stockTrxRepository := repository.NewStockTransactionRepository()
+	printNodeService := service.NewPrintNodeService(printNodeAPIKey)
+	pdfService := service.NewPDFService(pgPool, swiftConn, fileRepository, printNodeService)
 	teamRepository := repository.NewTeamRepository()
 	stockItemRepository := repository.NewStockItemRepository()
 	userRepository := repository.NewUserRepository()
@@ -102,7 +105,8 @@ func main() {
 		CommentService:          *service.NewCommentService(pgPool, swiftConn, commentRepository),
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		GalleryService:          *service.NewGalleryService(pgPool, swiftConn, appHMAC, fileRepository, galleryRepository),
-		PDFService:              *service.NewPDFService(),
+		PDFService:              *pdfService,
+		PrintNodeService:        *printNodeService,
 		ResourceService:         *service.NewResourceService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),
 		SearchService:           *service.NewSearchService(pgPool, userRepository, searchRepository),
 		ServicesService:         *service.NewServicesService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),

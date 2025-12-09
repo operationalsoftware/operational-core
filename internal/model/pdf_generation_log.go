@@ -1,0 +1,14 @@
+package model
+
+import "time"
+
+type PDFGenerationLog struct {
+	ID           int
+	TemplateName string
+	InputData    string
+	FileID       string
+	Filename     string
+	FileURL      string
+	UserID       int
+	CreatedAt    time.Time
+}

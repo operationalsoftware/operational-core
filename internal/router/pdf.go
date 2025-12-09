@@ -9,10 +9,12 @@ import (
 func addPDFRoutes(
 	mux *http.ServeMux,
 	pdfService service.PDFService,
+	printNodeService service.PrintNodeService,
 ) {
-	pdfHandler := handler.NewPDFHandler(pdfService)
+	pdfHandler := handler.NewPDFHandler(pdfService, printNodeService)
 
 	mux.HandleFunc("GET /pdf/generate", pdfHandler.PDFGeneratorPage)
 	mux.HandleFunc("POST /pdf/generate", pdfHandler.PDFHandler)
+	mux.HandleFunc("POST /pdf/print", pdfHandler.PDFPrintHandler)
 
 }

@@ -199,6 +199,48 @@ WHERE
 	return nil
 }
 
+func (r *FileRepository) SaveFileContent(
+	ctx context.Context,
+	exec db.PGExecutor,
+	conn *swift.Connection,
+	f *model.File,
+	content []byte,
+) (*model.File, error) {
+	var fileID uuid.UUID
+	err := exec.QueryRow(ctx, `
+INSERT INTO file (
+	filename,
+	content_type,
+	size_bytes,
+	status,
+	entity,
+	entity_id,
+	user_id
+) VALUES (
+	$1, $2, $3, $4, $5, $6, $7
+) RETURNING file_id, created_at
+`, f.Filename, f.ContentType, f.SizeBytes, "pending", f.Entity, f.EntityID, f.UserID).Scan(&fileID, &f.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert file metadata: %w", err)
+	}
+
+	if err := conn.ObjectPutBytes(ctx, r.container, fileID.String(), content, f.ContentType); err != nil {
+		return nil, fmt.Errorf("failed to upload file content: %w", err)
+	}
+
+	if _, err := exec.Exec(ctx, `
+UPDATE file
+SET status = $2
+WHERE file_id = $1
+`, fileID.String(), "success"); err != nil {
+		return nil, fmt.Errorf("failed to mark file as success: %w", err)
+	}
+
+	f.FileID = fileID.String()
+	f.Status = "success"
+	return f, nil
+}
+
 func (r *CommentRepository) GetFilesByEntity(
 	ctx context.Context,
 	exec db.PGExecutor,

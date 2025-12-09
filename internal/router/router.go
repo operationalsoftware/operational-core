@@ -24,6 +24,7 @@ type Services struct {
 	ServicesService         service.ServicesService
 	StockTransactionService service.StockTransactionService
 	PDFService              service.PDFService
+	PrintNodeService        service.PrintNodeService
 	StockItemService        service.StockItemService
 	TeamService             service.TeamService
 	UserService             service.UserService
@@ -66,7 +67,7 @@ func NewRouter(services *Services, appHMAC apphmac.AppHMAC) http.Handler {
 	addCameraScannerRoutes(mux)
 	addFileRoutes(mux, services.FileService)
 	addGalleryRoutes(mux, services.GalleryService, appHMAC)
-	addPDFRoutes(mux, services.PDFService)
+	addPDFRoutes(mux, services.PDFService, services.PrintNodeService)
 	addResourceRoutes(
 		mux,
 		services.GalleryService,
