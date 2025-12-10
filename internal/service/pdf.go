@@ -18,6 +18,7 @@ type PDFService struct {
 	db        *pgxpool.Pool
 	swiftConn *swift.Connection
 	fileRepo  *repository.FileRepository
+	pdfRepo   *repository.PDFRepository
 	printNode *PrintNodeService
 }
 
@@ -25,12 +26,14 @@ func NewPDFService(
 	db *pgxpool.Pool,
 	swiftConn *swift.Connection,
 	fileRepo *repository.FileRepository,
+	pdfRepo *repository.PDFRepository,
 	printNode *PrintNodeService,
 ) *PDFService {
 	return &PDFService{
 		db:        db,
 		swiftConn: swiftConn,
 		fileRepo:  fileRepo,
+		pdfRepo:   pdfRepo,
 		printNode: printNode,
 	}
 }
@@ -66,7 +69,7 @@ func (s *PDFService) RecordGeneration(
 	pdfBytes []byte,
 	userID int,
 ) (model.PDFGenerationLog, error) {
-	if s.db == nil || s.swiftConn == nil || s.fileRepo == nil {
+	if s.db == nil || s.swiftConn == nil || s.fileRepo == nil || s.pdfRepo == nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("pdf service not fully configured for logging")
 	}
 
@@ -76,20 +79,8 @@ func (s *PDFService) RecordGeneration(
 	}
 	defer tx.Rollback(ctx)
 
-	var uid interface{}
-	if userID != 0 {
-		uid = userID
-	}
-
-	var logID int
-	err = tx.QueryRow(ctx, `
-INSERT INTO pdf_generation_log (
-	template_name,
-	input_data,
-	created_by
-) VALUES ($1, $2, $3)
-RETURNING pdf_generation_log_id
-`, templateName, inputData, uid).Scan(&logID)
+	uidPtr := nullOrInt(userID)
+	logID, err := s.pdfRepo.InsertGenerationLog(ctx, tx, templateName, inputData, uidPtr)
 	if err != nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to insert pdf generation log: %w", err)
 	}
@@ -108,11 +99,7 @@ RETURNING pdf_generation_log_id
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to store generated pdf: %w", err)
 	}
 
-	if _, err := tx.Exec(ctx, `
-UPDATE pdf_generation_log
-SET file_id = $2, filename = $3
-WHERE pdf_generation_log_id = $1
-`, logID, file.FileID, file.Filename); err != nil {
+	if err := s.pdfRepo.UpdateGenerationLogFile(ctx, tx, logID, file.FileID, file.Filename); err != nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to update pdf generation log with file: %w", err)
 	}
 
@@ -138,45 +125,12 @@ WHERE pdf_generation_log_id = $1
 }
 
 func (s *PDFService) ListRecentLogs(ctx context.Context, limit int) ([]model.PDFGenerationLog, error) {
-	if s.db == nil {
+	if s.db == nil || s.pdfRepo == nil {
 		return nil, fmt.Errorf("pdf service not configured for listing logs")
 	}
 
-	rows, err := s.db.Query(ctx, `
-SELECT
-	pdf_generation_log_id,
-	template_name,
-	input_data,
-	file_id,
-	filename,
-	created_by,
-	created_at
-FROM pdf_generation_log
-ORDER BY created_at DESC
-LIMIT $1
-`, limit)
+	logs, err := s.pdfRepo.ListRecentGenerationLogs(ctx, s.db, limit)
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var logs []model.PDFGenerationLog
-	for rows.Next() {
-		var log model.PDFGenerationLog
-		if err := rows.Scan(
-			&log.ID,
-			&log.TemplateName,
-			&log.InputData,
-			&log.FileID,
-			&log.Filename,
-			&log.UserID,
-			&log.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		logs = append(logs, log)
-	}
-	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
@@ -195,28 +149,7 @@ LIMIT $1
 }
 
 func (s *PDFService) fetchGenerationLog(ctx context.Context, id int) (model.PDFGenerationLog, error) {
-	var logEntry model.PDFGenerationLog
-	err := s.db.QueryRow(ctx, `
-SELECT
-	pdf_generation_log_id,
-	template_name,
-	input_data,
-	file_id,
-	filename,
-	created_by,
-	created_at
-FROM pdf_generation_log
-WHERE pdf_generation_log_id = $1
-`, id).Scan(
-		&logEntry.ID,
-		&logEntry.TemplateName,
-		&logEntry.InputData,
-		&logEntry.FileID,
-		&logEntry.Filename,
-		&logEntry.UserID,
-		&logEntry.CreatedAt,
-	)
-	return logEntry, err
+	return s.pdfRepo.GetGenerationLog(ctx, s.db, id)
 }
 
 func (s *PDFService) PrintAndLog(
@@ -253,22 +186,12 @@ func (s *PDFService) PrintAndLog(
 		errorMessage = err.Error()
 	}
 
-	var printLogID int
-	if s.db != nil {
-		_ = s.db.QueryRow(ctx, `
-INSERT INTO pdf_print_log (
-	pdf_generation_log_id,
-	template_name,
-	requirement_name,
-	printer_id,
-	printer_name,
-	printnode_job_id,
-	status,
-	error_message,
-	created_by
-) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-RETURNING pdf_print_log_id
-`, genLog.ID, templateName, requirementName, printerID, printerName, jobID, status, errorMessage, nullOrInt(userID)).Scan(&printLogID)
+	printLogID := 0
+	if s.db != nil && s.pdfRepo != nil {
+		id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, genLog.ID, templateName, requirementName, printerID, printerName, jobID, status, errorMessage, nullOrInt(userID))
+		if insertErr == nil {
+			printLogID = id
+		}
 	}
 
 	return model.PDFPrintLog{
@@ -292,24 +215,7 @@ RETURNING pdf_print_log_id
 
 func (s *PDFService) Reprint(ctx context.Context, printLogID int, overridePrinterID int, overridePrinterName string, userID int) (model.PDFPrintLog, error) {
 	var existing model.PDFPrintLog
-	err := s.db.QueryRow(ctx, `
-SELECT
-	pl.pdf_print_log_id,
-	pl.pdf_generation_log_id,
-	pl.template_name,
-	pl.requirement_name,
-	pl.printer_id,
-	pl.printer_name
-FROM pdf_print_log pl
-WHERE pl.pdf_print_log_id = $1
-`, printLogID).Scan(
-		&existing.ID,
-		&existing.PDFGenerationLogID,
-		&existing.TemplateName,
-		&existing.RequirementName,
-		&existing.PrinterID,
-		&existing.PrinterName,
-	)
+	existing, err := s.pdfRepo.GetPrintLog(ctx, s.db, printLogID)
 	if err != nil {
 		return model.PDFPrintLog{}, err
 	}
@@ -330,60 +236,12 @@ WHERE pl.pdf_print_log_id = $1
 }
 
 func (s *PDFService) ListRecentPrintLogs(ctx context.Context, limit int) ([]model.PDFPrintLog, error) {
-	if s.db == nil {
+	if s.db == nil || s.pdfRepo == nil {
 		return nil, fmt.Errorf("pdf service not configured for listing print logs")
 	}
 
-	rows, err := s.db.Query(ctx, `
-SELECT
-	pl.pdf_print_log_id,
-	pl.pdf_generation_log_id,
-	pl.template_name,
-	pl.requirement_name,
-	pl.printer_id,
-	pl.printer_name,
-	pl.printnode_job_id,
-	pl.status,
-	pl.error_message,
-	pl.created_by,
-	pl.created_at,
-	gl.file_id,
-	gl.filename,
-	gl.input_data
-FROM pdf_print_log pl
-JOIN pdf_generation_log gl ON gl.pdf_generation_log_id = pl.pdf_generation_log_id
-ORDER BY pl.created_at DESC
-LIMIT $1
-`, limit)
+	logs, err := s.pdfRepo.ListRecentPrintLogs(ctx, s.db, limit)
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var logs []model.PDFPrintLog
-	for rows.Next() {
-		var log model.PDFPrintLog
-		if err := rows.Scan(
-			&log.ID,
-			&log.PDFGenerationLogID,
-			&log.TemplateName,
-			&log.RequirementName,
-			&log.PrinterID,
-			&log.PrinterName,
-			&log.PrintNodeJobID,
-			&log.Status,
-			&log.ErrorMessage,
-			&log.UserID,
-			&log.CreatedAt,
-			&log.FileID,
-			&log.Filename,
-			&log.InputData,
-		); err != nil {
-			return nil, err
-		}
-		logs = append(logs, log)
-	}
-	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
@@ -401,7 +259,7 @@ LIMIT $1
 	return logs, nil
 }
 
-func nullOrInt(v int) interface{} {
+func nullOrInt(v int) any {
 	if v == 0 {
 		return nil
 	}

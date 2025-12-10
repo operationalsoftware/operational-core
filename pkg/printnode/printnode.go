@@ -176,12 +176,16 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
-func (c *Client) SubmitPrintJob(ctx context.Context, printerID int, title string, contentType string, content string) (int, error) {
+func (c *Client) SubmitPrintJob(ctx context.Context,
+	printerID int,
+	title string,
+	contentType string,
+	content string) (int, error) {
 	if c.apiKey == "" {
 		return 0, fmt.Errorf("printnode api key is not configured")
 	}
 
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"printerId":   printerID,
 		"title":       title,
 		"contentType": contentType,

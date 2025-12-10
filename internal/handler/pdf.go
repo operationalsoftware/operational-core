@@ -69,38 +69,36 @@ func (h *PDFHandler) PDFGeneratorPage(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	props := pdfview.PDFPageProps{
-		Ctx:               ctx,
-		Templates:         templates,
-		PrintNodeStatus:   printNodeStatus,
-		Printers:          printers,
-		PrintRequirements: printRequirements,
-	}
-
 	templateName := r.URL.Query().Get("TemplateName")
 
+	var selectedTemplate *pdftemplate.RegisteredTemplate
 	if templateName != "" {
 		t, found := pdftemplate.Registry[templateName]
 		if found {
-			props.SelectedTemplate = &t
+			selectedTemplate = &t
 		}
 	}
 
 	logs, err := h.pdfService.ListRecentLogs(r.Context(), 10)
 	if err != nil {
 		log.Println("An error occurred fetching PDF generation logs:", err)
-	} else {
-		props.GenerationLogs = logs
 	}
 
 	printLogs, err := h.pdfService.ListRecentPrintLogs(r.Context(), 10)
 	if err != nil {
 		log.Println("An error occurred fetching PDF print logs:", err)
-	} else {
-		props.PrintLogs = printLogs
 	}
 
-	pdfview.PDFGeneratorPage(props).Render(w)
+	pdfview.PDFGeneratorPage(pdfview.PDFPageProps{
+		Ctx:               ctx,
+		Templates:         templates,
+		PrintNodeStatus:   printNodeStatus,
+		Printers:          printers,
+		PrintRequirements: printRequirements,
+		SelectedTemplate:  selectedTemplate,
+		GenerationLogs:    logs,
+		PrintLogs:         printLogs,
+	}).Render(w)
 }
 
 func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {
@@ -117,7 +115,9 @@ func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := reqcontext.GetContext(r)
 
-	pdfBuf, err := h.pdfService.GenerateFromJSON(r.Context(), templateName, []byte(inputData))
+	pdfBuf, err := h.pdfService.GenerateFromJSON(r.Context(),
+		templateName,
+		[]byte(inputData))
 	if err != nil {
 		log.Println("An error occurred generating PDF:", err)
 		http.Error(w, "PDF generation failed", http.StatusInternalServerError)

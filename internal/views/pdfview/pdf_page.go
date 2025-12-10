@@ -11,7 +11,6 @@ import (
 	"net/url"
 
 	g "maragu.dev/gomponents"
-	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
@@ -34,7 +33,6 @@ type PrintRequirement struct {
 }
 
 func PDFGeneratorPage(p PDFPageProps) g.Node {
-
 	exampleJSON := ""
 	selectedTemplateName := ""
 	if p.SelectedTemplate != nil {
@@ -68,119 +66,7 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 
 	printNodeStatus := h.Div(
 		h.Class("printnode-status"),
-		components.Alert(&components.AlertProps{
-			AlertType: alertType,
-			Message:   printNodeMessage,
-		}),
-	)
-
-	printRequirements := h.Section(
-		h.Class("print-requirements-section"),
-		h.H2(g.Text("Print requirements")),
-		g.If(len(p.Printers) == 0,
-			h.P(g.Text("Configure PrintNode to select printers for each requirement.")),
-		),
-		g.If(len(p.Printers) > 0,
-			g.Group([]g.Node{
-				h.P(h.Class("hint"), g.Text("Printer selections are saved locally in this browser.")),
-				h.Div(
-					h.Class("print-requirements-list"),
-					g.Group(g.Map(p.PrintRequirements, func(req PrintRequirement) g.Node {
-						return h.Div(
-							h.Class("print-requirement-card"),
-							h.Div(
-								h.Class("print-requirement-header"),
-								h.H3(g.Text(req.Name)),
-								g.If(req.Description != "",
-									h.P(h.Class("print-requirement-desc"), g.Text(req.Description)),
-								),
-							),
-							h.Label(
-								g.Text("Printer"),
-								h.Select(
-									h.Class("print-requirement-select"),
-									g.Attr("data-requirement-name", req.Name),
-									g.Attr("data-default-printer", req.SelectedPrinter),
-									h.Option(
-										h.Value(""),
-										g.If(req.SelectedPrinter == "", h.Selected()),
-										g.Text("Select a printer"),
-									),
-									g.Group(g.Map(p.Printers, func(printer printnode.Printer) g.Node {
-										return h.Option(
-											h.Value(fmt.Sprintf("%d", printer.ID)),
-											g.If(req.SelectedPrinter == fmt.Sprintf("%d", printer.ID), h.Selected()),
-											g.Text(printer.Name),
-										)
-									})),
-								),
-							),
-							components.Button(
-								&components.ButtonProps{
-									ButtonType: components.ButtonPrimary,
-									Classes:    c.Classes{"print-requirement-action": true},
-								},
-								g.Attr("data-requirement-name", req.Name),
-								g.Text("Print with this requirement"),
-							),
-						)
-					})),
-				),
-			}),
-		),
-	)
-
-	printersList := g.If(p.PrintNodeStatus.Configured,
-		h.Section(
-			h.Class("printers-section"),
-			h.H2(g.Text("Available printers")),
-			g.If(len(p.Printers) == 0,
-				h.P(g.Text("No printers found in PrintNode.")),
-			),
-			g.If(len(p.Printers) > 0,
-				h.Div(
-					h.Class("printers-list"),
-					g.Group(g.Map(p.Printers, func(printer printnode.Printer) g.Node {
-						computer := printer.ComputerName
-						if computer == "" && printer.ComputerID != 0 {
-							computer = fmt.Sprintf("ID %d", printer.ComputerID)
-						}
-
-						state := printer.State
-						if state == "" {
-							state = "Unknown"
-						}
-
-						return h.Div(
-							h.Class("printer-card"),
-							h.Div(
-								h.Class("printer-card-header"),
-								h.H3(g.Text(printer.Name)),
-								g.If(printer.Default,
-									h.Span(h.Class("badge"), g.Text("Default")),
-								),
-							),
-							g.If(printer.Description != "",
-								h.P(h.Class("printer-desc"), g.Text(printer.Description)),
-							),
-							h.Div(
-								h.Class("printer-meta"),
-								h.Div(
-									h.Class("meta-row"),
-									h.Span(h.Class("label"), g.Text("Computer")),
-									h.Span(g.Text(computer)),
-								),
-								h.Div(
-									h.Class("meta-row"),
-									h.Span(h.Class("label"), g.Text("State")),
-									h.Span(g.Text(state)),
-								),
-							),
-						)
-					})),
-				),
-			),
-		),
+		components.Alert(&components.AlertProps{AlertType: alertType, Message: printNodeMessage}),
 	)
 
 	templatesList := h.Section(
@@ -195,26 +81,20 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 					h.Div(
 						h.Class("template-card-header"),
 						h.H3(g.Text(t.Name)),
-						g.If(t.Description != "",
-							h.P(h.Class("template-card-description"), g.Text(t.Description)),
-						),
+						g.If(t.Description != "", h.P(h.Class("template-card-description"), g.Text(t.Description))),
 					),
 					h.Div(
 						h.Class("template-card-body"),
-						g.If(t.ExampleJSON != "",
-							h.Div(
-								h.Class("template-card-example"),
-								h.Div(h.Class("label"), g.Text("Example Input")),
-								h.Pre(g.Text(t.ExampleJSON)),
-							),
-						),
+						g.If(t.ExampleJSON != "", h.Div(
+							h.Class("template-card-example"),
+							h.Div(h.Class("label"), g.Text("Example Input")),
+							h.Pre(g.Text(t.ExampleJSON)),
+						)),
 						h.Div(
 							h.Class("template-card-actions"),
-							components.Button(
-								&components.ButtonProps{
-									ButtonType: components.ButtonSecondary,
-									Link:       fmt.Sprintf("?TemplateName=%s", url.QueryEscape(t.Name)),
-								},
+							h.A(
+								h.Class("button secondary"),
+								h.Href(fmt.Sprintf("?TemplateName=%s", url.QueryEscape(t.Name))),
 								g.Text("Load into tester"),
 							),
 						),
@@ -229,19 +109,12 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 		h.Target("_blank"),
 		g.Group([]g.Node{
 			h.H1(g.Text("Test a PDF template")),
-
 			h.Label(
 				g.Text("PDF Template Name"),
-
 				h.Select(
 					h.Name("TemplateName"),
 					g.Attr("onchange", "handleTemplateNameChange(event)"),
-					h.Option(
-						h.Value(""),
-						h.Disabled(),
-						g.If(selectedTemplateName == "", h.Selected()),
-						g.Text("Select a template to begin"),
-					),
+					h.Option(h.Value(""), h.Disabled(), g.If(selectedTemplateName == "", h.Selected()), g.Text("Select a template to begin")),
 					g.Group(g.Map(p.Templates, func(t pdftemplate.RegisteredTemplate) g.Node {
 						return h.Option(
 							h.Value(t.Name),
@@ -251,35 +124,138 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 					})),
 				),
 			),
-
 			h.Label(
 				g.Text("Template Input Data (JSON)"),
-
 				h.Textarea(
 					h.Name("InputData"),
 					g.Text(exampleJSON),
 				),
 			),
-
-			g.If(exampleJSON != "",
-				h.Div(h.Class("example-input"),
-					g.Text("Example Input"),
-
-					h.Pre(g.Text(exampleJSON)),
-				),
-			),
-
-			components.Button(
-				&components.ButtonProps{
-					ButtonType: "primary",
-				},
+			g.If(exampleJSON != "", h.Div(
+				h.Class("example-input"),
+				g.Text("Example Input"),
+				h.Pre(g.Text(exampleJSON)),
+			)),
+			h.Button(
+				h.Class("button primary"),
+				h.Type("submit"),
 				g.Text("Generate PDF"),
 			),
 		}),
 	)
 
-	logRows := components.TableRows{}
-	for _, log := range p.GenerationLogs {
+	printersList := g.If(p.PrintNodeStatus.Configured, h.Section(
+		h.Class("printers-section"),
+		h.H2(g.Text("Available printers")),
+		g.If(len(p.Printers) == 0, h.P(g.Text("No printers found in PrintNode."))),
+		g.If(len(p.Printers) > 0, h.Div(
+			h.Class("printers-list"),
+			g.Group(g.Map(p.Printers, func(printer printnode.Printer) g.Node {
+				computer := printer.ComputerName
+				if computer == "" && printer.ComputerID != 0 {
+					computer = fmt.Sprintf("ID %d", printer.ComputerID)
+				}
+				state := printer.State
+				if state == "" {
+					state = "Unknown"
+				}
+				return h.Div(
+					h.Class("printer-card"),
+					h.Div(
+						h.Class("printer-card-header"),
+						h.H3(g.Text(printer.Name)),
+						g.If(printer.Default, h.Span(h.Class("badge"), g.Text("Default"))),
+					),
+					g.If(printer.Description != "", h.P(h.Class("printer-desc"), g.Text(printer.Description))),
+					h.Div(
+						h.Class("printer-meta"),
+						h.Div(
+							h.Class("meta-row"),
+							h.Span(h.Class("label"), g.Text("Computer")),
+							h.Span(g.Text(computer)),
+						),
+						h.Div(
+							h.Class("meta-row"),
+							h.Span(h.Class("label"), g.Text("State")),
+							h.Span(g.Text(state)),
+						),
+					),
+				)
+			})),
+		)),
+	))
+
+	printRequirements := h.Section(
+		h.Class("print-requirements-section"),
+		h.H2(g.Text("Print requirements")),
+		g.If(len(p.Printers) == 0, h.P(g.Text("Configure PrintNode to select printers for each requirement."))),
+		g.If(len(p.Printers) > 0, g.Group([]g.Node{
+			h.P(h.Class("hint"), g.Text("Printer selections are saved locally in this browser.")),
+			h.Div(
+				h.Class("print-requirements-list"),
+				g.Group(g.Map(p.PrintRequirements, func(req PrintRequirement) g.Node {
+					return h.Div(
+						h.Class("print-requirement-card"),
+						h.Div(
+							h.Class("print-requirement-header"),
+							h.H3(g.Text(req.Name)),
+							g.If(req.Description != "", h.P(h.Class("print-requirement-desc"), g.Text(req.Description))),
+						),
+						h.Label(
+							g.Text("Printer"),
+							h.Select(
+								h.Class("print-requirement-select"),
+								g.Attr("data-requirement-name", req.Name),
+								g.Attr("data-default-printer", req.SelectedPrinter),
+								h.Option(h.Value(""), g.If(req.SelectedPrinter == "", h.Selected()), g.Text("Select a printer")),
+								g.Group(g.Map(p.Printers, func(printer printnode.Printer) g.Node {
+									return h.Option(
+										h.Value(fmt.Sprintf("%d", printer.ID)),
+										g.If(req.SelectedPrinter == fmt.Sprintf("%d", printer.ID), h.Selected()),
+										g.Text(printer.Name),
+									)
+								})),
+							),
+						),
+						h.Button(
+							h.Class("button primary print-requirement-action"),
+							g.Attr("data-requirement-name", req.Name),
+							g.Text("Print with this requirement"),
+						),
+					)
+				})),
+			),
+		})),
+	)
+
+	return layout.Page(layout.PageProps{
+		Ctx:   p.Ctx,
+		Title: "PDF Templates",
+		Content: g.Group([]g.Node{
+			printNodeStatus,
+			templatesList,
+			form,
+			printersList,
+			printRequirements,
+			generationLogsSection(p.GenerationLogs),
+			printLogsSection(p.PrintLogs, p.Printers),
+		}),
+		AppendHead: []g.Node{components.InlineStyle("/internal/views/pdfview/pdf_page.css")},
+		AppendBody: []g.Node{components.InlineScript("/internal/views/pdfview/pdf_page.js")},
+	})
+}
+
+func generationLogsSection(logs []model.PDFGenerationLog) g.Node {
+	if len(logs) == 0 {
+		return h.Section(
+			h.Class("pdf-log-section"),
+			h.H2(g.Text("Recent PDF generations")),
+			h.P(g.Text("No PDF generations logged yet.")),
+		)
+	}
+
+	rows := components.TableRows{}
+	for _, log := range logs {
 		inputPreview := log.InputData
 		if len(inputPreview) > 120 {
 			inputPreview = inputPreview[:117] + "..."
@@ -288,7 +264,7 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 		if log.FileURL != "" {
 			documentCell = h.A(h.Href(log.FileURL), g.Text(log.Filename))
 		}
-		logRows = append(logRows, components.TableRow{
+		rows = append(rows, components.TableRow{
 			Cells: []components.TableCell{
 				{Contents: g.Text(log.TemplateName)},
 				{Contents: h.Pre(g.Text(inputPreview))},
@@ -298,8 +274,32 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 		})
 	}
 
-	printRows := components.TableRows{}
-	for _, log := range p.PrintLogs {
+	return h.Section(
+		h.Class("pdf-log-section"),
+		h.H2(g.Text("Recent PDF generations")),
+		components.Table(&components.TableProps{
+			Columns: components.TableColumns{
+				{TitleContents: g.Text("Template")},
+				{TitleContents: g.Text("Input data")},
+				{TitleContents: g.Text("Document")},
+				{TitleContents: g.Text("Generated at")},
+			},
+			Rows: rows,
+		}),
+	)
+}
+
+func printLogsSection(logs []model.PDFPrintLog, printers []printnode.Printer) g.Node {
+	if len(logs) == 0 {
+		return h.Section(
+			h.Class("pdf-log-section"),
+			h.H2(g.Text("Recent print jobs")),
+			h.P(g.Text("No print jobs logged yet.")),
+		)
+	}
+
+	rows := components.TableRows{}
+	for _, log := range logs {
 		status := log.Status
 		if status == "" {
 			status = "pending"
@@ -312,7 +312,7 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 		if log.FileURL != "" {
 			documentCell = h.A(h.Href(log.FileURL), g.Text(log.Filename))
 		}
-		printRows = append(printRows, components.TableRow{
+		rows = append(rows, components.TableRow{
 			Cells: []components.TableCell{
 				{Contents: g.Text(log.TemplateName)},
 				{Contents: g.Text(log.RequirementName)},
@@ -327,15 +327,12 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 						h.Class("print-log-printer"),
 						g.Attr("data-print-log-id", fmt.Sprintf("%d", log.ID)),
 						h.Option(h.Value(""), g.Text("Use logged printer")),
-						g.Group(g.Map(p.Printers, func(pr printnode.Printer) g.Node {
-							label := pr.Name
-							return h.Option(h.Value(fmt.Sprintf("%d", pr.ID)), g.Text(label))
+						g.Group(g.Map(printers, func(pr printnode.Printer) g.Node {
+							return h.Option(h.Value(fmt.Sprintf("%d", pr.ID)), g.Text(pr.Name))
 						})),
 					),
-					components.Button(&components.ButtonProps{
-						ButtonType: components.ButtonSecondary,
-						Classes:    c.Classes{"print-log-reprint": true},
-					},
+					h.Button(
+						h.Class("button secondary print-log-reprint"),
 						g.Attr("data-print-log-id", fmt.Sprintf("%d", log.ID)),
 						g.Text("Reprint"),
 					),
@@ -344,64 +341,21 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 		})
 	}
 
-	return layout.Page(layout.PageProps{
-		Ctx: p.Ctx,
-		Content: g.Group([]g.Node{
-			printNodeStatus,
-			templatesList,
-			form,
-			printersList,
-			printRequirements,
-			h.Section(
-				h.Class("pdf-log-section"),
-				h.H2(g.Text("Recent PDF generations")),
-				g.If(len(p.GenerationLogs) == 0,
-					h.P(g.Text("No PDF generations logged yet.")),
-				),
-				g.If(len(p.GenerationLogs) > 0,
-					components.Table(
-						&components.TableProps{
-							Columns: components.TableColumns{
-								{TitleContents: g.Text("Template")},
-								{TitleContents: g.Text("Input data")},
-								{TitleContents: g.Text("Document")},
-								{TitleContents: g.Text("Generated at")},
-							},
-							Rows: logRows,
-						},
-					),
-				),
-			),
-			h.Section(
-				h.Class("pdf-log-section"),
-				h.H2(g.Text("Recent print jobs")),
-				g.If(len(p.PrintLogs) == 0,
-					h.P(g.Text("No print jobs logged yet.")),
-				),
-				g.If(len(p.PrintLogs) > 0,
-					components.Table(&components.TableProps{
-						Columns: components.TableColumns{
-							{TitleContents: g.Text("Template")},
-							{TitleContents: g.Text("Requirement")},
-							{TitleContents: g.Text("Printer")},
-							{TitleContents: g.Text("PrintNode Job")},
-							{TitleContents: g.Text("Status")},
-							{TitleContents: g.Text("Printed at")},
-							{TitleContents: g.Text("Document")},
-							{TitleContents: g.Text("Actions")},
-						},
-						Rows: printRows,
-					}),
-				),
-			),
+	return h.Section(
+		h.Class("pdf-log-section"),
+		h.H2(g.Text("Recent print jobs")),
+		components.Table(&components.TableProps{
+			Columns: components.TableColumns{
+				{TitleContents: g.Text("Template")},
+				{TitleContents: g.Text("Requirement")},
+				{TitleContents: g.Text("Printer")},
+				{TitleContents: g.Text("PrintNode Job")},
+				{TitleContents: g.Text("Status")},
+				{TitleContents: g.Text("Printed at")},
+				{TitleContents: g.Text("Document")},
+				{TitleContents: g.Text("Actions")},
+			},
+			Rows: rows,
 		}),
-		Title: "PDF Templates",
-		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/pdfview/pdf_page.css"),
-		},
-		AppendBody: []g.Node{
-			components.InlineScript("/internal/views/pdfview/pdf_page.js"),
-		},
-	})
-
+	)
 }
