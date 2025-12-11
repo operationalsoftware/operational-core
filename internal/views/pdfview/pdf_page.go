@@ -85,11 +85,6 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 					),
 					h.Div(
 						h.Class("template-card-body"),
-						g.If(t.ExampleJSON != "", h.Div(
-							h.Class("template-card-example"),
-							h.Div(h.Class("label"), g.Text("Example Input")),
-							h.Pre(g.Text(t.ExampleJSON)),
-						)),
 						h.Div(
 							h.Class("template-card-actions"),
 							h.A(
@@ -238,6 +233,14 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 			printersList,
 			printRequirements,
 			generationLogsSection(p.GenerationLogs),
+			h.Div(
+				h.Class("pdf-log-section"),
+				h.A(
+					h.Class("button primary"),
+					h.Href("/pdf/logs"),
+					g.Text("View all PDF generation logs"),
+				),
+			),
 			printLogsSection(p.PrintLogs, p.Printers),
 		}),
 		AppendHead: []g.Node{components.InlineStyle("/internal/views/pdfview/pdf_page.css")},
@@ -260,16 +263,13 @@ func generationLogsSection(logs []model.PDFGenerationLog) g.Node {
 		if len(inputPreview) > 120 {
 			inputPreview = inputPreview[:117] + "..."
 		}
-		documentCell := g.Text("-")
-		if log.FileURL != "" {
-			documentCell = h.A(h.Href(log.FileURL), g.Text(log.Filename))
-		}
+		documentCell := documentLinkCell(log.PDFTitle, log.FileURL, log.FileID)
 		rows = append(rows, components.TableRow{
 			Cells: []components.TableCell{
 				{Contents: g.Text(log.TemplateName)},
-				{Contents: h.Pre(g.Text(inputPreview))},
 				{Contents: documentCell},
-				{Contents: g.Text(log.CreatedAt.Format("2006-01-02 15:04"))},
+				{Contents: h.Pre(g.Text(inputPreview))},
+				{Contents: g.Text(log.CreatedAt.Format("2006-01-02 15:04:05"))},
 			},
 		})
 	}
@@ -280,8 +280,8 @@ func generationLogsSection(logs []model.PDFGenerationLog) g.Node {
 		components.Table(&components.TableProps{
 			Columns: components.TableColumns{
 				{TitleContents: g.Text("Template")},
+				{TitleContents: g.Text("PDF title")},
 				{TitleContents: g.Text("Input data")},
-				{TitleContents: g.Text("Document")},
 				{TitleContents: g.Text("Generated at")},
 			},
 			Rows: rows,
@@ -308,10 +308,7 @@ func printLogsSection(logs []model.PDFPrintLog, printers []printnode.Printer) g.
 		if printerLabel == "" && log.PrinterID != 0 {
 			printerLabel = fmt.Sprintf("Printer %d", log.PrinterID)
 		}
-		documentCell := g.Text("-")
-		if log.FileURL != "" {
-			documentCell = h.A(h.Href(log.FileURL), g.Text(log.Filename))
-		}
+		documentCell := documentLinkCell(log.PDFTitle, log.FileURL, log.FileID)
 		rows = append(rows, components.TableRow{
 			Cells: []components.TableCell{
 				{Contents: g.Text(log.TemplateName)},
@@ -357,5 +354,36 @@ func printLogsSection(logs []model.PDFPrintLog, printers []printnode.Printer) g.
 			},
 			Rows: rows,
 		}),
+	)
+}
+
+func pdfViewerURL(fileURL, fileID, title string) string {
+	if title == "" {
+		title = "PDF Document"
+	}
+	switch {
+	case fileID != "":
+		return fmt.Sprintf("/pdf/view?file_id=%s&title=%s", url.QueryEscape(fileID), url.QueryEscape(title))
+	case fileURL != "":
+		return fmt.Sprintf("/pdf/view?url=%s&title=%s", url.QueryEscape(fileURL), url.QueryEscape(title))
+	default:
+		return ""
+	}
+}
+
+func documentLinkCell(title, fileURL, fileID string) g.Node {
+	linkTitle := title
+	if linkTitle == "" {
+		linkTitle = "PDF Document"
+	}
+	viewerURL := pdfViewerURL(fileURL, fileID, linkTitle)
+	if viewerURL == "" {
+		return g.Text("-")
+	}
+	return h.A(
+		h.Href(viewerURL),
+		h.Target("_blank"),
+		h.Rel("noopener noreferrer"),
+		g.Text(linkTitle),
 	)
 }

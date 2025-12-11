@@ -7,9 +7,12 @@ import (
 	"app/pkg/printnode"
 	"app/pkg/reqcontext"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 )
 
 type PDFHandler struct {
@@ -115,9 +118,15 @@ func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := reqcontext.GetContext(r)
 
-	pdfBuf, err := h.pdfService.GenerateFromJSON(r.Context(),
+	pdfTitle := h.pdfService.GeneratePDFTitleFromInput(templateName, []byte(inputData))
+	downloadName := h.pdfService.GeneratePDFFilename(pdfTitle)
+
+	pdfBuf, err := h.pdfService.GenerateFromJSON(
+		r.Context(),
 		templateName,
-		[]byte(inputData))
+		[]byte(inputData),
+		pdfTitle,
+	)
 	if err != nil {
 		log.Println("An error occurred generating PDF:", err)
 		http.Error(w, "PDF generation failed", http.StatusInternalServerError)
@@ -130,13 +139,14 @@ func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {
 		inputData,
 		pdfBuf,
 		ctx.User.UserID,
+		pdfTitle,
 	)
 	if err != nil {
 		log.Println("An error occurred recording PDF generation log:", err)
 	}
 
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", "inline")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", downloadName))
 	w.Write(pdfBuf)
 }
 
@@ -181,4 +191,99 @@ func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"status":"ok"}`))
+}
+
+// PDFViewHandler renders a simple inline viewer page for a given PDF URL.
+func (h *PDFHandler) PDFViewHandler(w http.ResponseWriter, r *http.Request) {
+	resolvedURL, resolvedTitle, err := h.resolvePDFView(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	pdfview.PDFInlineViewer(pdfview.PDFInlineViewerProps{
+		Title: resolvedTitle,
+		Src:   resolvedURL,
+	}).Render(w)
+}
+
+// PDFStreamHandler streams a PDF inline with an inline content disposition to avoid forced downloads.
+func (h *PDFHandler) PDFStreamHandler(w http.ResponseWriter, r *http.Request) {
+	fileID := r.URL.Query().Get("file_id")
+	if fileID == "" {
+		http.Error(w, "missing file_id", http.StatusBadRequest)
+		return
+	}
+
+	data, filename, err := h.pdfService.FetchPDFFile(r.Context(), fileID)
+	if err != nil {
+		log.Println("An error occurred streaming PDF:", err)
+		http.Error(w, "PDF not found", http.StatusNotFound)
+		return
+	}
+
+	if filename == "" {
+		filename = "document.pdf"
+	}
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", template.HTMLEscapeString(filename)))
+	w.Write(data)
+}
+
+func (h *PDFHandler) resolvePDFView(r *http.Request) (string, string, error) {
+	rawURL := r.URL.Query().Get("url")
+	fileID := r.URL.Query().Get("file_id")
+	title := r.URL.Query().Get("title")
+
+	if fileID != "" {
+		rawURL = fmt.Sprintf("/pdf/stream?file_id=%s", url.QueryEscape(fileID))
+		if fetchedTitle, err := h.pdfService.GetPDFTitleByFileID(r.Context(), fileID); err == nil && strings.TrimSpace(fetchedTitle) != "" {
+			title = fetchedTitle
+		} else if err != nil {
+			log.Println("An error occurred fetching PDF title:", err)
+		}
+	}
+
+	if strings.TrimSpace(rawURL) == "" {
+		return "", "", fmt.Errorf("missing url")
+	}
+	if strings.TrimSpace(title) == "" {
+		title = "PDF Document"
+	}
+
+	return rawURL, title, nil
+}
+
+// PDFGenerationLogsPage renders a paginated table of PDF generation logs.
+func (h *PDFHandler) PDFGenerationLogsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	page, _ := strconv.Atoi(r.URL.Query().Get("Page"))
+	if page < 1 {
+		page = 1
+	}
+	pageSize, _ := strconv.Atoi(r.URL.Query().Get("PageSize"))
+	if pageSize <= 0 {
+		pageSize = 25
+	}
+	offset := (page - 1) * pageSize
+
+	logs, total, err := h.pdfService.ListGenerationLogs(r.Context(), pageSize, offset)
+	if err != nil {
+		log.Println("An error occurred fetching PDF generation logs:", err)
+		http.Error(w, "Unable to load logs", http.StatusInternalServerError)
+		return
+	}
+
+	pdfview.PDFGenerationLogsPage(pdfview.PDFGenerationLogsPageProps{
+		Ctx:       ctx,
+		Logs:      logs,
+		Total:     total,
+		Page:      page,
+		PageSize:  pageSize,
+		PageQuery: "Page",
+		SizeQuery: "PageSize",
+	}).Render(w)
 }

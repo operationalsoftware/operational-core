@@ -141,6 +141,15 @@ func (r *FileRepository) getSignedUploadURL(conn *swift.Connection, objectName s
 	return uploadURL, nil
 }
 
+// GetFileContent retrieves file bytes directly from object storage.
+func (r *FileRepository) GetFileContent(
+	ctx context.Context,
+	conn *swift.Connection,
+	fileID string,
+) ([]byte, error) {
+	return conn.ObjectGetBytes(ctx, r.container, fileID)
+}
+
 func (r *FileRepository) CompleteFileUpload(
 	ctx context.Context,
 	exec db.PGExecutor,

@@ -7,7 +7,7 @@ type PDFGenerationLog struct {
 	TemplateName string
 	InputData    string
 	FileID       string
-	Filename     string
+	PDFTitle     string
 	FileURL      string
 	UserID       int
 	CreatedAt    time.Time

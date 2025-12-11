@@ -43,11 +43,11 @@
     gap: var(--spacing-lg);
   }
 
-  .print-requirement-card {
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-md);
-    background-color: var(--background-color-content);
-    padding: var(--spacing-lg);
+.print-requirement-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background-color: var(--background-color-content);
+  padding: var(--spacing-lg);
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
@@ -63,6 +63,46 @@
 
     select {
       margin-top: var(--spacing-xs);
+    }
+  }
+}
+
+.templates-section {
+  max-width: 1000px;
+  margin: 0 auto var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+
+  .templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-lg);
+    max-height: 520px;
+    overflow: auto;
+    padding-right: var(--spacing-sm);
+  }
+
+  .template-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background-color: var(--background-color-content);
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+
+    .template-card-header h3 {
+      margin: 0;
+    }
+
+    .template-card-description {
+      margin: var(--spacing-xs) 0 0;
+      color: var(--color-text-subtle);
+    }
+
+    .template-card-actions {
+      margin-top: auto;
     }
   }
 }
@@ -132,63 +172,6 @@
           letter-spacing: 0.05em;
         }
       }
-    }
-  }
-}
-
-.templates-section {
-  max-width: 900px;
-  margin: 0 auto var(--spacing-xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-
-  .templates-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: var(--spacing-lg);
-  }
-
-  .template-card {
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-md);
-    background-color: var(--background-color-content);
-    padding: var(--spacing-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-
-    .template-card-header h3 {
-      margin: 0;
-    }
-
-    .template-card-description {
-      margin: var(--spacing-xs) 0 0;
-      color: var(--color-text-subtle);
-    }
-
-    .template-card-example {
-      .label {
-        font-size: var(--font-size-xs);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--color-text-subtle);
-      }
-
-      pre {
-        margin: var(--spacing-xs) 0 0;
-        padding: var(--spacing-md);
-        background-color: var(--color-info);
-        font-family: monospace;
-        font-size: var(--font-size-sm);
-        white-space: pre-wrap;
-        word-break: break-word;
-        border-radius: var(--border-radius-sm);
-      }
-    }
-
-    .template-card-actions {
-      margin-top: auto;
     }
   }
 }

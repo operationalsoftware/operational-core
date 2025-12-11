@@ -3,7 +3,7 @@ CREATE TABLE pdf_generation_log (
     template_name TEXT NOT NULL,
     input_data TEXT NOT NULL,
     file_id UUID REFERENCES file(file_id),
-    filename TEXT,
+    pdf_title TEXT,
     created_by INT REFERENCES app_user(user_id),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -16,5 +16,8 @@ func addPDFRoutes(
 	mux.HandleFunc("GET /pdf/generate", pdfHandler.PDFGeneratorPage)
 	mux.HandleFunc("POST /pdf/generate", pdfHandler.PDFHandler)
 	mux.HandleFunc("POST /pdf/print", pdfHandler.PDFPrintHandler)
+	mux.HandleFunc("GET /pdf/view", pdfHandler.PDFViewHandler)
+	mux.HandleFunc("GET /pdf/stream", pdfHandler.PDFStreamHandler)
+	mux.HandleFunc("GET /pdf/logs", pdfHandler.PDFGenerationLogsPage)
 
 }

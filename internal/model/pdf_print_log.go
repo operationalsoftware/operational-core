@@ -14,7 +14,7 @@ type PDFPrintLog struct {
 	Status             string
 	ErrorMessage       string
 	FileID             string
-	Filename           string
+	PDFTitle           string
 	FileURL            string
 	UserID             int
 	CreatedAt          time.Time

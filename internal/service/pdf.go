@@ -42,6 +42,7 @@ func (s *PDFService) GenerateFromJSON(
 	ctx context.Context,
 	templateName string,
 	jsonInput []byte,
+	pdfTitle string,
 ) ([]byte, error) {
 	template, ok := pdftemplate.Registry[templateName]
 	if !ok {
@@ -52,6 +53,9 @@ func (s *PDFService) GenerateFromJSON(
 	if err != nil {
 		return []byte{}, fmt.Errorf("error generating PDF definition from template: %v", err)
 	}
+
+	pdfTitle = s.resolvePDFTitle(templateName, pdfTitle, jsonInput)
+	pdfDefinition.Title = pdfTitle
 
 	pdfBuffer, err := pdf.GeneratePDF(ctx, pdfDefinition)
 	if err != nil {
@@ -68,10 +72,15 @@ func (s *PDFService) RecordGeneration(
 	inputData string,
 	pdfBytes []byte,
 	userID int,
+	pdfTitle string,
 ) (model.PDFGenerationLog, error) {
 	if s.db == nil || s.swiftConn == nil || s.fileRepo == nil || s.pdfRepo == nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("pdf service not fully configured for logging")
 	}
+	if userID == 0 {
+		return model.PDFGenerationLog{}, fmt.Errorf("user id is required for logging")
+	}
+	pdfTitle = s.resolvePDFTitle(templateName, pdfTitle, []byte(inputData))
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -79,16 +88,15 @@ func (s *PDFService) RecordGeneration(
 	}
 	defer tx.Rollback(ctx)
 
-	uidPtr := nullOrInt(userID)
-	logID, err := s.pdfRepo.InsertGenerationLog(ctx, tx, templateName, inputData, uidPtr)
+	logID, err := s.pdfRepo.InsertGenerationLog(ctx, tx, templateName, inputData, userID, pdfTitle)
 	if err != nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to insert pdf generation log: %w", err)
 	}
 
-	filename := fmt.Sprintf("%s-%s.pdf", sanitizeFilename(templateName), time.Now().Format("20060102-150405"))
+	fileName := buildPDFFilename(pdfTitle)
 
 	file, err := s.fileRepo.SaveFileContent(ctx, tx, s.swiftConn, &model.File{
-		Filename:    filename,
+		Filename:    fileName,
 		ContentType: "application/pdf",
 		SizeBytes:   len(pdfBytes),
 		Entity:      "PDFGenerationLog",
@@ -99,7 +107,7 @@ func (s *PDFService) RecordGeneration(
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to store generated pdf: %w", err)
 	}
 
-	if err := s.pdfRepo.UpdateGenerationLogFile(ctx, tx, logID, file.FileID, file.Filename); err != nil {
+	if err := s.pdfRepo.UpdateGenerationLogFile(ctx, tx, logID, file.FileID, pdfTitle); err != nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to update pdf generation log with file: %w", err)
 	}
 
@@ -117,7 +125,7 @@ func (s *PDFService) RecordGeneration(
 		TemplateName: templateName,
 		InputData:    inputData,
 		FileID:       file.FileID,
-		Filename:     file.Filename,
+		PDFTitle:     pdfTitle,
 		FileURL:      downloadURL,
 		UserID:       userID,
 		CreatedAt:    time.Now(),
@@ -148,6 +156,35 @@ func (s *PDFService) ListRecentLogs(ctx context.Context, limit int) ([]model.PDF
 	return logs, nil
 }
 
+func (s *PDFService) ListGenerationLogs(ctx context.Context, limit, offset int) ([]model.PDFGenerationLog, int, error) {
+	if s.db == nil || s.pdfRepo == nil {
+		return nil, 0, fmt.Errorf("pdf service not configured for listing logs")
+	}
+
+	total, err := s.pdfRepo.CountGenerationLogs(ctx, s.db)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	logs, err := s.pdfRepo.ListGenerationLogs(ctx, s.db, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i := range logs {
+		if logs[i].FileID == "" {
+			continue
+		}
+		url, err := s.fileRepo.GetSignedDownloadURL(ctx, s.swiftConn, s.db, logs[i].FileID, 15*time.Minute)
+		if err != nil {
+			continue
+		}
+		logs[i].FileURL = url
+	}
+
+	return logs, total, nil
+}
+
 func (s *PDFService) fetchGenerationLog(ctx context.Context, id int) (model.PDFGenerationLog, error) {
 	return s.pdfRepo.GetGenerationLog(ctx, s.db, id)
 }
@@ -168,12 +205,14 @@ func (s *PDFService) PrintAndLog(
 		return model.PDFPrintLog{}, fmt.Errorf("printer id is required")
 	}
 
-	pdfBytes, err := s.GenerateFromJSON(ctx, templateName, []byte(inputData))
+	pdfTitle := s.resolvePDFTitle(templateName, "", []byte(inputData))
+
+	pdfBytes, err := s.GenerateFromJSON(ctx, templateName, []byte(inputData), pdfTitle)
 	if err != nil {
 		return model.PDFPrintLog{}, err
 	}
 
-	genLog, err := s.RecordGeneration(ctx, templateName, inputData, pdfBytes, userID)
+	genLog, err := s.RecordGeneration(ctx, templateName, inputData, pdfBytes, userID, pdfTitle)
 	if err != nil {
 		return model.PDFPrintLog{}, err
 	}
@@ -188,7 +227,7 @@ func (s *PDFService) PrintAndLog(
 
 	printLogID := 0
 	if s.db != nil && s.pdfRepo != nil {
-		id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, genLog.ID, templateName, requirementName, printerID, printerName, jobID, status, errorMessage, nullOrInt(userID))
+		id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, genLog.ID, templateName, requirementName, printerID, printerName, jobID, status, errorMessage, userID)
 		if insertErr == nil {
 			printLogID = id
 		}
@@ -206,7 +245,7 @@ func (s *PDFService) PrintAndLog(
 		Status:             status,
 		ErrorMessage:       errorMessage,
 		FileID:             genLog.FileID,
-		Filename:           genLog.Filename,
+		PDFTitle:           genLog.PDFTitle,
 		FileURL:            genLog.FileURL,
 		UserID:             userID,
 		CreatedAt:          time.Now(),
@@ -259,11 +298,73 @@ func (s *PDFService) ListRecentPrintLogs(ctx context.Context, limit int) ([]mode
 	return logs, nil
 }
 
-func nullOrInt(v int) any {
-	if v == 0 {
-		return nil
+func (s *PDFService) FetchPDFFile(ctx context.Context, fileID string) ([]byte, string, error) {
+	if fileID == "" {
+		return nil, "", fmt.Errorf("file id is required")
 	}
-	return v
+	if s.pdfRepo == nil || s.fileRepo == nil || s.swiftConn == nil || s.db == nil {
+		return nil, "", fmt.Errorf("pdf service not configured for file streaming")
+	}
+
+	logEntry, err := s.pdfRepo.GetGenerationLogByFileID(ctx, s.db, fileID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	data, err := s.fileRepo.GetFileContent(ctx, s.swiftConn, fileID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	filename := buildPDFFilename(logEntry.PDFTitle)
+
+	return data, filename, nil
+}
+
+func (s *PDFService) GetPDFTitleByFileID(ctx context.Context, fileID string) (string, error) {
+	if fileID == "" {
+		return "", fmt.Errorf("file id is required")
+	}
+	if s.pdfRepo == nil || s.db == nil {
+		return "", fmt.Errorf("pdf service not configured for metadata lookups")
+	}
+
+	logEntry, err := s.pdfRepo.GetGenerationLogByFileID(ctx, s.db, fileID)
+	if err != nil {
+		return "", err
+	}
+
+	title := logEntry.PDFTitle
+	if title == "" {
+		title = sanitizeFilename(logEntry.TemplateName) + ".pdf"
+	}
+	return title, nil
+}
+
+// GeneratePDFTitle creates a downloadable/display title for a template.
+func (s *PDFService) GeneratePDFTitle(templateName string) string {
+	return buildPDFTitle(templateName)
+}
+
+func (s *PDFService) GeneratePDFTitleFromInput(templateName string, jsonInput []byte) string {
+	return s.resolvePDFTitle(templateName, "", jsonInput)
+}
+
+// GeneratePDFFilename returns a sanitized filename (with .pdf) based on a display title.
+func (s *PDFService) GeneratePDFFilename(pdfTitle string) string {
+	return buildPDFFilename(pdfTitle)
+}
+
+func (s *PDFService) resolvePDFTitle(templateName, providedTitle string, jsonInput []byte) string {
+	if strings.TrimSpace(providedTitle) != "" {
+		return providedTitle
+	}
+	if tmpl, ok := pdftemplate.Registry[templateName]; ok && tmpl.TitleGenerator != nil {
+		if generated, err := tmpl.TitleGenerator(jsonInput); err == nil && strings.TrimSpace(generated) != "" {
+			return generated
+		}
+	}
+	return s.GeneratePDFTitle(templateName)
 }
 
 func sanitizeFilename(name string) string {
@@ -281,4 +382,23 @@ func sanitizeFilename(name string) string {
 		return "document"
 	}
 	return strings.Trim(builder.String(), "-")
+}
+
+func buildPDFTitle(templateName string) string {
+	cleanName := strings.TrimSpace(templateName)
+	if cleanName == "" {
+		cleanName = "PDF"
+	}
+	return fmt.Sprintf("%s-%s", cleanName, time.Now().Format("200601021504"))
+}
+
+func buildPDFFilename(title string) string {
+	base := sanitizeFilename(title)
+	if base == "" {
+		base = "document"
+	}
+	if strings.HasSuffix(base, ".pdf") {
+		return base
+	}
+	return base + ".pdf"
 }

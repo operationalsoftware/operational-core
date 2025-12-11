@@ -35,11 +35,15 @@ type RegisteredTemplate struct {
 	Description string
 	Generator   TemplateGenerator
 	ExampleJSON string
+	// TitleGenerator is optional and can derive a PDF title from the JSON input.
+	TitleGenerator func(jsonInput []byte) (string, error)
 }
 
-var Registry = map[string]RegisteredTemplate{
-	InvoiceTemplateDefinition.Name: InvoiceTemplateDefinition,
-}
+var Registry = func() map[string]RegisteredTemplate {
+	return map[string]RegisteredTemplate{
+		InvoiceTemplateDefinition.Name: InvoiceTemplateDefinition,
+	}
+}()
 
 // SortedTemplates returns a slice of RegisteredTemplate sorted by Name.
 func SortedTemplates() []RegisteredTemplate {

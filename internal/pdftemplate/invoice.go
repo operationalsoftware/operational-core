@@ -3,7 +3,10 @@ package pdftemplate
 import (
 	"app/pkg/pdf"
 	"fmt"
+	"strings"
+	"time"
 
+	"encoding/json"
 	"github.com/shopspring/decimal"
 	g "maragu.dev/gomponents"
 	h "maragu.dev/gomponents/html"
@@ -35,6 +38,18 @@ func (InvoiceTemplate) GenerateFromJSON(data []byte) (pdf.PDFDefinition, error) 
 	return GenerateTypedFromJSON(InvoiceTemplate{}.Generate, data)
 }
 
+func invoiceTitleFromJSON(data []byte) (string, error) {
+	var input InvoiceData
+	if err := json.Unmarshal(data, &input); err != nil {
+		return "", err
+	}
+	name := strings.TrimSpace(input.CustomerName)
+	if name == "" {
+		name = "Invoice"
+	}
+	return fmt.Sprintf("%s-%s", name, time.Now().Format("200601021504")), nil
+}
+
 var invoiceExampleJSON = `
 {
   "CustomerName": "Jane Doe",
@@ -42,8 +57,9 @@ var invoiceExampleJSON = `
 }`
 
 var InvoiceTemplateDefinition = RegisteredTemplate{
-	Name:        "Invoice",
-	Description: "Simple invoice with customer name and amount",
-	Generator:   InvoiceTemplate{},
-	ExampleJSON: invoiceExampleJSON,
+	Name:           "Invoice",
+	Description:    "Simple invoice with customer name and amount",
+	Generator:      InvoiceTemplate{},
+	ExampleJSON:    invoiceExampleJSON,
+	TitleGenerator: invoiceTitleFromJSON,
 }
