@@ -115,7 +115,15 @@ func (s *PDFService) RecordGeneration(
 		return model.PDFGenerationLog{}, err
 	}
 
-	downloadURL, err := s.fileRepo.GetSignedDownloadURL(ctx, s.swiftConn, s.db, file.FileID, 15*time.Minute)
+	downloadURL, err := s.fileRepo.GetSignedDownloadURLWithDisposition(
+		ctx,
+		s.swiftConn,
+		s.db,
+		file.FileID,
+		15*time.Minute,
+		file.Filename,
+		true,
+	)
 	if err != nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to generate download url: %w", err)
 	}
@@ -146,7 +154,15 @@ func (s *PDFService) ListRecentLogs(ctx context.Context, limit int) ([]model.PDF
 		if logs[i].FileID == "" {
 			continue
 		}
-		url, err := s.fileRepo.GetSignedDownloadURL(ctx, s.swiftConn, s.db, logs[i].FileID, 15*time.Minute)
+		url, err := s.fileRepo.GetSignedDownloadURLWithDisposition(
+			ctx,
+			s.swiftConn,
+			s.db,
+			logs[i].FileID,
+			15*time.Minute,
+			s.GeneratePDFFilename(logs[i].PDFTitle),
+			true,
+		)
 		if err != nil {
 			continue
 		}
@@ -175,7 +191,15 @@ func (s *PDFService) ListGenerationLogs(ctx context.Context, limit, offset int) 
 		if logs[i].FileID == "" {
 			continue
 		}
-		url, err := s.fileRepo.GetSignedDownloadURL(ctx, s.swiftConn, s.db, logs[i].FileID, 15*time.Minute)
+		url, err := s.fileRepo.GetSignedDownloadURLWithDisposition(
+			ctx,
+			s.swiftConn,
+			s.db,
+			logs[i].FileID,
+			15*time.Minute,
+			s.GeneratePDFFilename(logs[i].PDFTitle),
+			true,
+		)
 		if err != nil {
 			continue
 		}
@@ -288,7 +312,15 @@ func (s *PDFService) ListRecentPrintLogs(ctx context.Context, limit int) ([]mode
 		if logs[i].FileID == "" {
 			continue
 		}
-		url, err := s.fileRepo.GetSignedDownloadURL(ctx, s.swiftConn, s.db, logs[i].FileID, 15*time.Minute)
+		url, err := s.fileRepo.GetSignedDownloadURLWithDisposition(
+			ctx,
+			s.swiftConn,
+			s.db,
+			logs[i].FileID,
+			15*time.Minute,
+			s.GeneratePDFFilename(logs[i].PDFTitle),
+			true,
+		)
 		if err != nil {
 			continue
 		}

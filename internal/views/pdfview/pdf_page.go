@@ -263,7 +263,7 @@ func generationLogsSection(logs []model.PDFGenerationLog) g.Node {
 		if len(inputPreview) > 120 {
 			inputPreview = inputPreview[:117] + "..."
 		}
-		documentCell := documentLinkCell(log.PDFTitle, log.FileURL, log.FileID)
+		documentCell := documentLinkCell(log.PDFTitle, log.FileURL)
 		rows = append(rows, components.TableRow{
 			Cells: []components.TableCell{
 				{Contents: g.Text(log.TemplateName)},
@@ -308,7 +308,7 @@ func printLogsSection(logs []model.PDFPrintLog, printers []printnode.Printer) g.
 		if printerLabel == "" && log.PrinterID != 0 {
 			printerLabel = fmt.Sprintf("Printer %d", log.PrinterID)
 		}
-		documentCell := documentLinkCell(log.PDFTitle, log.FileURL, log.FileID)
+		documentCell := documentLinkCell(log.PDFTitle, log.FileURL)
 		rows = append(rows, components.TableRow{
 			Cells: []components.TableCell{
 				{Contents: g.Text(log.TemplateName)},
@@ -357,31 +357,16 @@ func printLogsSection(logs []model.PDFPrintLog, printers []printnode.Printer) g.
 	)
 }
 
-func pdfViewerURL(fileURL, fileID, title string) string {
-	if title == "" {
-		title = "PDF Document"
-	}
-	switch {
-	case fileID != "":
-		return fmt.Sprintf("/pdf/view?file_id=%s&title=%s", url.QueryEscape(fileID), url.QueryEscape(title))
-	case fileURL != "":
-		return fmt.Sprintf("/pdf/view?url=%s&title=%s", url.QueryEscape(fileURL), url.QueryEscape(title))
-	default:
-		return ""
-	}
-}
-
-func documentLinkCell(title, fileURL, fileID string) g.Node {
+func documentLinkCell(title, fileURL string) g.Node {
 	linkTitle := title
 	if linkTitle == "" {
 		linkTitle = "PDF Document"
 	}
-	viewerURL := pdfViewerURL(fileURL, fileID, linkTitle)
-	if viewerURL == "" {
+	if fileURL == "" {
 		return g.Text("-")
 	}
 	return h.A(
-		h.Href(viewerURL),
+		h.Href(fileURL),
 		h.Target("_blank"),
 		h.Rel("noopener noreferrer"),
 		g.Text(linkTitle),

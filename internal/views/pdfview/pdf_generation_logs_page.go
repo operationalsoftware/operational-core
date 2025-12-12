@@ -27,20 +27,7 @@ func PDFGenerationLogsPage(p PDFGenerationLogsPageProps) g.Node {
 		if len(inputPreview) > 120 {
 			inputPreview = inputPreview[:117] + "..."
 		}
-		documentCell := g.Text("-")
-		linkTitle := log.PDFTitle
-		if linkTitle == "" {
-			linkTitle = log.TemplateName
-		}
-		viewerURL := pdfViewerURL(log.FileURL, log.FileID, linkTitle)
-		if viewerURL != "" {
-			documentCell = h.A(
-				h.Href(viewerURL),
-				h.Target("_blank"),
-				h.Rel("noopener noreferrer"),
-				g.Text(linkTitle),
-			)
-		}
+		documentCell := documentLinkCell(log.PDFTitle, log.FileURL)
 
 		rows = append(rows, components.TableRow{
 			Cells: []components.TableCell{

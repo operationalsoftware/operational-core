@@ -5,6 +5,8 @@ import (
 	"app/pkg/db"
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,6 +43,40 @@ func (r *FileRepository) GetSignedDownloadURL(
 	// method "GET" for download
 	downloadURL := conn.ObjectTempUrl(r.container, file.FileID, r.secretKey, "GET", expires)
 	return downloadURL, nil
+}
+
+// GetSignedDownloadURLWithDisposition returns a temp URL and appends optional
+// Content-Disposition hints (inline/filename). These query params are supported
+// by Swift TempURL and do not affect the signature.
+func (r *FileRepository) GetSignedDownloadURLWithDisposition(
+	ctx context.Context,
+	conn *swift.Connection,
+	exec db.PGExecutor,
+	fileID string,
+	expiresIn time.Duration,
+	filename string,
+	inline bool,
+) (string, error) {
+	baseURL, err := r.GetSignedDownloadURL(ctx, conn, exec, fileID, expiresIn)
+	if err != nil {
+		return "", err
+	}
+
+	parsed, err := url.Parse(baseURL)
+	if err != nil {
+		return "", err
+	}
+
+	q := parsed.Query()
+	if inline {
+		q.Set("inline", "1")
+	}
+	if strings.TrimSpace(filename) != "" {
+		q.Set("filename", filename)
+	}
+	parsed.RawQuery = q.Encode()
+
+	return parsed.String(), nil
 }
 
 func (r *FileRepository) GetFileByID(
