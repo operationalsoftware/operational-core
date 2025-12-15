@@ -368,7 +368,7 @@ func (s *PDFService) GetPDFTitleByFileID(ctx context.Context, fileID string) (st
 
 	title := logEntry.PDFTitle
 	if title == "" {
-		title = sanitizeFilename(logEntry.TemplateName) + ".pdf"
+		title = logEntry.TemplateName
 	}
 	return title, nil
 }
@@ -382,7 +382,7 @@ func (s *PDFService) GeneratePDFTitleFromInput(templateName string, jsonInput []
 	return s.resolvePDFTitle(templateName, "", jsonInput)
 }
 
-// GeneratePDFFilename returns a sanitized filename (with .pdf) based on a display title.
+// GeneratePDFFilename returns a filename (with .pdf) based on the PDF title.
 func (s *PDFService) GeneratePDFFilename(pdfTitle string) string {
 	return buildPDFFilename(pdfTitle)
 }
@@ -399,23 +399,6 @@ func (s *PDFService) resolvePDFTitle(templateName, providedTitle string, jsonInp
 	return s.GeneratePDFTitle(templateName)
 }
 
-func sanitizeFilename(name string) string {
-	name = strings.ToLower(name)
-	builder := strings.Builder{}
-	for _, r := range name {
-		switch {
-		case (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'):
-			builder.WriteRune(r)
-		case r == ' ' || r == '_' || r == '-':
-			builder.WriteRune('-')
-		}
-	}
-	if builder.Len() == 0 {
-		return "document"
-	}
-	return strings.Trim(builder.String(), "-")
-}
-
 func buildPDFTitle(templateName string) string {
 	cleanName := strings.TrimSpace(templateName)
 	if cleanName == "" {
@@ -425,12 +408,12 @@ func buildPDFTitle(templateName string) string {
 }
 
 func buildPDFFilename(title string) string {
-	base := sanitizeFilename(title)
-	if base == "" {
-		base = "document"
+	name := strings.TrimSpace(title)
+	if name == "" {
+		name = "PDF Document"
 	}
-	if strings.HasSuffix(base, ".pdf") {
-		return base
+	if strings.HasSuffix(strings.ToLower(name), ".pdf") {
+		return name
 	}
-	return base + ".pdf"
+	return name + ".pdf"
 }
