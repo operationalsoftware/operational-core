@@ -322,7 +322,7 @@ func printLogsSection(logs []model.PDFPrintLog, printers []printnode.Printer) g.
 					h.Class("print-log-action"),
 					h.Select(
 						h.Class("print-log-printer"),
-						g.Attr("data-print-log-id", fmt.Sprintf("%d", log.ID)),
+						g.Attr("data-print-log-id", fmt.Sprintf("%d", log.PDFPrintLogID)),
 						h.Option(h.Value(""), g.Text("Use logged printer")),
 						g.Group(g.Map(printers, func(pr printnode.Printer) g.Node {
 							return h.Option(h.Value(fmt.Sprintf("%d", pr.ID)), g.Text(pr.Name))
@@ -330,7 +330,7 @@ func printLogsSection(logs []model.PDFPrintLog, printers []printnode.Printer) g.
 					),
 					h.Button(
 						h.Class("button secondary print-log-reprint"),
-						g.Attr("data-print-log-id", fmt.Sprintf("%d", log.ID)),
+						g.Attr("data-print-log-id", fmt.Sprintf("%d", log.PDFPrintLogID)),
 						g.Text("Reprint"),
 					),
 				)},

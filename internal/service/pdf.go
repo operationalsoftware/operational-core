@@ -129,14 +129,14 @@ func (s *PDFService) RecordGeneration(
 	}
 
 	return model.PDFGenerationLog{
-		ID:           logID,
-		TemplateName: templateName,
-		InputData:    inputData,
-		FileID:       file.FileID,
-		PDFTitle:     pdfTitle,
-		FileURL:      downloadURL,
-		UserID:       userID,
-		CreatedAt:    time.Now(),
+		PDFGenerationLogID: logID,
+		TemplateName:       templateName,
+		InputData:          inputData,
+		FileID:             file.FileID,
+		PDFTitle:           pdfTitle,
+		FileURL:            downloadURL,
+		UserID:             userID,
+		CreatedAt:          time.Now(),
 	}, nil
 }
 
@@ -251,15 +251,15 @@ func (s *PDFService) PrintAndLog(
 
 	printLogID := 0
 	if s.db != nil && s.pdfRepo != nil {
-		id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, genLog.ID, templateName, requirementName, printerID, printerName, jobID, status, errorMessage, userID)
+		id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, genLog.PDFGenerationLogID, templateName, requirementName, printerID, printerName, jobID, status, errorMessage, userID)
 		if insertErr == nil {
 			printLogID = id
 		}
 	}
 
 	return model.PDFPrintLog{
-		ID:                 printLogID,
-		PDFGenerationLogID: genLog.ID,
+		PDFPrintLogID:      printLogID,
+		PDFGenerationLogID: genLog.PDFGenerationLogID,
 		TemplateName:       templateName,
 		InputData:          inputData,
 		RequirementName:    requirementName,
