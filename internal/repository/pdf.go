@@ -66,7 +66,7 @@ SELECT
 FROM pdf_generation_log
 WHERE pdf_generation_log_id = $1
 `, id).Scan(
-		&log.ID,
+		&log.PDFGenerationLogID,
 		&log.TemplateName,
 		&log.InputData,
 		&log.FileID,
@@ -95,7 +95,7 @@ SELECT
 FROM pdf_generation_log
 WHERE file_id = $1
 `, fileID).Scan(
-		&log.ID,
+		&log.PDFGenerationLogID,
 		&log.TemplateName,
 		&log.InputData,
 		&log.FileID,
@@ -133,7 +133,7 @@ LIMIT $1
 	for rows.Next() {
 		var log model.PDFGenerationLog
 		if err := rows.Scan(
-			&log.ID,
+			&log.PDFGenerationLogID,
 			&log.TemplateName,
 			&log.InputData,
 			&log.FileID,
@@ -176,7 +176,7 @@ LIMIT $1 OFFSET $2
 	for rows.Next() {
 		var log model.PDFGenerationLog
 		if err := rows.Scan(
-			&log.ID,
+			&log.PDFGenerationLogID,
 			&log.TemplateName,
 			&log.InputData,
 			&log.FileID,
@@ -254,7 +254,7 @@ SELECT
 FROM pdf_print_log
 WHERE pdf_print_log_id = $1
 `, printLogID).Scan(
-		&log.ID,
+		&log.PDFPrintLogID,
 		&log.PDFGenerationLogID,
 		&log.TemplateName,
 		&log.RequirementName,
@@ -304,7 +304,7 @@ LIMIT $1
 	for rows.Next() {
 		var log model.PDFPrintLog
 		if err := rows.Scan(
-			&log.ID,
+			&log.PDFPrintLogID,
 			&log.PDFGenerationLogID,
 			&log.TemplateName,
 			&log.RequirementName,

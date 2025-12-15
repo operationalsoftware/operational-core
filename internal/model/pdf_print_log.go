@@ -3,7 +3,7 @@ package model
 import "time"
 
 type PDFPrintLog struct {
-	ID                 int
+	PDFPrintLogID      int
 	PDFGenerationLogID int
 	TemplateName       string
 	InputData          string
