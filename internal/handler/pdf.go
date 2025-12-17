@@ -237,6 +237,11 @@ func (h *PDFHandler) PrinterAssignmentsPage(w http.ResponseWriter, r *http.Reque
 // PrinterAssignmentEditPage shows an edit form for a print requirement.
 func (h *PDFHandler) PrinterAssignmentEditPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.PDF.PrinterAssignmentsEditor {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
 	reqName := strings.TrimSpace(r.URL.Query().Get("RequirementName"))
 	if reqName == "" {
 		http.Error(w, "RequirementName is required", http.StatusBadRequest)
@@ -284,6 +289,10 @@ func (h *PDFHandler) PrinterAssignmentsSave(w http.ResponseWriter, r *http.Reque
 	}
 
 	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.PDF.PrinterAssignmentsEditor {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 
 	requirement := r.FormValue("RequirementName")
 	printerIDStr := r.FormValue("PrinterID")

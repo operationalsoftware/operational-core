@@ -21,6 +21,8 @@ type PrinterAssignmentsPageProps struct {
 }
 
 func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
+	canEdit := p.Ctx.User.Permissions.PDF.PrinterAssignmentsEditor
+
 	rows := components.TableRows{}
 
 	for _, pr := range p.Assignments {
@@ -28,16 +30,22 @@ func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
 		if printerName == "" && pr.PrinterID != 0 {
 			printerName = fmt.Sprintf("Printer %d", pr.PrinterID)
 		}
+
+		actionCell := g.Text("-")
+		if canEdit {
+			actionCell = h.A(
+				h.Class("button secondary"),
+				h.Href("/pdf/printer-assignments/edit?"+url.Values{"RequirementName": []string{pr.RequirementName}}.Encode()),
+				components.Icon(&components.IconProps{Identifier: "pencil"}),
+				g.Text(" Edit"),
+			)
+		}
+
 		rows = append(rows, components.TableRow{
 			Cells: []components.TableCell{
 				{Contents: g.Text(pr.RequirementName)},
 				{Contents: g.Text(printerName)},
-				{Contents: h.A(
-					h.Class("button secondary"),
-					h.Href("/pdf/printer-assignments/edit?"+url.Values{"RequirementName": []string{pr.RequirementName}}.Encode()),
-					components.Icon(&components.IconProps{Identifier: "pencil"}),
-					g.Text(" Edit"),
-				)},
+				{Contents: actionCell},
 			},
 		})
 	}
