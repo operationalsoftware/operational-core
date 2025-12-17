@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"app/internal/model"
 	"app/internal/pdftemplate"
 	"app/internal/service"
 	"app/internal/views/pdfview"
@@ -10,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type PDFHandler struct {
@@ -37,38 +39,6 @@ func (h *PDFHandler) PDFGeneratorPage(w http.ResponseWriter, r *http.Request) {
 
 	templates := pdftemplate.SortedTemplates()
 
-	var printers []printnode.Printer
-	if printNodeStatus.Configured {
-		printers, err = h.printNodeService.Printers(r.Context())
-		if err != nil {
-			log.Println("An error occurred fetching PrintNode printers:", err)
-		}
-	}
-
-	defaultPrinterID := ""
-	defaultPrinterName := ""
-	for _, p := range printers {
-		if p.Default {
-			defaultPrinterID = fmt.Sprintf("%d", p.ID)
-			defaultPrinterName = p.Name
-			break
-		}
-	}
-	if defaultPrinterID == "" && len(printers) > 0 {
-		defaultPrinterID = fmt.Sprintf("%d", printers[0].ID)
-		defaultPrinterName = printers[0].Name
-	}
-
-	printRequirements := make([]pdfview.PrintRequirement, 0, len(templates))
-	for _, tmpl := range templates {
-		printRequirements = append(printRequirements, pdfview.PrintRequirement{
-			Name:               tmpl.Name,
-			Description:        tmpl.Description,
-			SelectedPrinter:    defaultPrinterID,
-			DefaultPrinterName: defaultPrinterName,
-		})
-	}
-
 	templateName := r.URL.Query().Get("TemplateName")
 
 	var selectedTemplate *pdftemplate.RegisteredTemplate
@@ -84,20 +54,12 @@ func (h *PDFHandler) PDFGeneratorPage(w http.ResponseWriter, r *http.Request) {
 		log.Println("An error occurred fetching PDF generation logs:", err)
 	}
 
-	printLogs, err := h.pdfService.ListRecentPrintLogs(r.Context(), 10)
-	if err != nil {
-		log.Println("An error occurred fetching PDF print logs:", err)
-	}
-
 	pdfview.PDFGeneratorPage(pdfview.PDFPageProps{
-		Ctx:               ctx,
-		Templates:         templates,
-		PrintNodeStatus:   printNodeStatus,
-		Printers:          printers,
-		PrintRequirements: printRequirements,
-		SelectedTemplate:  selectedTemplate,
-		GenerationLogs:    logs,
-		PrintLogs:         printLogs,
+		Ctx:              ctx,
+		Templates:        templates,
+		PrintNodeStatus:  printNodeStatus,
+		SelectedTemplate: selectedTemplate,
+		GenerationLogs:   logs,
 	}).Render(w)
 }
 
@@ -163,6 +125,16 @@ func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
 	inputData := r.FormValue("InputData")
 
 	printerID, _ := strconv.Atoi(printerIDStr)
+	if printerID != 0 && strings.TrimSpace(printerName) == "" {
+		if printers, err := h.printNodeService.Printers(r.Context()); err == nil {
+			for _, pr := range printers {
+				if pr.ID == printerID {
+					printerName = pr.Name
+					break
+				}
+			}
+		}
+	}
 
 	var err error
 	if printLogIDStr != "" {
@@ -186,8 +158,16 @@ func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"status":"ok"}`))
+	if strings.Contains(r.Header.Get("Accept"), "application/json") {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"status":"ok"}`))
+		return
+	}
+	ref := r.Referer()
+	if ref == "" {
+		ref = "/pdf/printer-assignments"
+	}
+	http.Redirect(w, r, ref, http.StatusSeeOther)
 }
 
 // PDFGenerationLogsPage renders a paginated table of PDF generation logs.
@@ -220,4 +200,132 @@ func (h *PDFHandler) PDFGenerationLogsPage(w http.ResponseWriter, r *http.Reques
 		PageQuery: "Page",
 		SizeQuery: "PageSize",
 	}).Render(w)
+}
+
+// PrinterAssignmentsPage shows the mapping of print requirements to printers plus recent print logs.
+func (h *PDFHandler) PrinterAssignmentsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	printNodeStatus, err := h.printNodeService.Status(r.Context())
+	if err != nil {
+		log.Println("An error occurred checking PrintNode status:", err)
+	}
+	printers := []printnode.Printer{}
+	if printNodeStatus.Configured {
+		if list, err := h.printNodeService.Printers(r.Context()); err == nil {
+			printers = list
+		}
+	}
+
+	assignments, err := h.pdfService.ListPrintRequirements(r.Context())
+	if err != nil {
+		log.Println("An error occurred fetching print requirements:", err)
+	}
+	printLogs, err := h.pdfService.ListRecentPrintLogs(r.Context(), 10)
+	if err != nil {
+		log.Println("An error occurred fetching PDF print logs:", err)
+	}
+
+	pdfview.PrinterAssignmentsPage(pdfview.PrinterAssignmentsPageProps{
+		Ctx:         ctx,
+		Printers:    printers,
+		Assignments: assignments,
+		PrintLogs:   printLogs,
+	}).Render(w)
+}
+
+// PrinterAssignmentEditPage shows an edit form for a print requirement.
+func (h *PDFHandler) PrinterAssignmentEditPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	reqName := strings.TrimSpace(r.URL.Query().Get("RequirementName"))
+	if reqName == "" {
+		http.Error(w, "RequirementName is required", http.StatusBadRequest)
+		return
+	}
+
+	printNodeStatus, err := h.printNodeService.Status(r.Context())
+	if err != nil {
+		log.Println("An error occurred checking PrintNode status:", err)
+	}
+	printers := []printnode.Printer{}
+	if printNodeStatus.Configured {
+		if list, err := h.printNodeService.Printers(r.Context()); err == nil {
+			printers = list
+		}
+	}
+
+	assignments, err := h.pdfService.ListPrintRequirements(r.Context())
+	if err != nil {
+		log.Println("An error occurred fetching print requirements:", err)
+	}
+	availablePrinters, _ := h.pdfService.ListAvailablePrinters(r.Context(), reqName, printers)
+	var current model.PrintRequirement
+	for _, a := range assignments {
+		if strings.EqualFold(a.RequirementName, reqName) {
+			current = a
+			break
+		}
+	}
+
+	pdfview.PrinterAssignmentEditPage(pdfview.PrinterAssignmentEditPageProps{
+		Ctx:            ctx,
+		Requirement:    reqName,
+		Printers:       availablePrinters,
+		SelectedID:     current.PrinterID,
+		PrintNodeReady: printNodeStatus.Configured,
+	}).Render(w)
+}
+
+// PrinterAssignmentsSave updates a requirement → printer mapping.
+func (h *PDFHandler) PrinterAssignmentsSave(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	ctx := reqcontext.GetContext(r)
+
+	requirement := r.FormValue("RequirementName")
+	printerIDStr := r.FormValue("PrinterID")
+
+	if requirement == "" {
+		http.Error(w, "RequirementName is required", http.StatusBadRequest)
+		return
+	}
+	printerID, _ := strconv.Atoi(printerIDStr)
+
+	printerName := ""
+	if printerID > 0 {
+		if printers, err := h.printNodeService.Printers(r.Context()); err == nil {
+			for _, pr := range printers {
+				if pr.ID == printerID {
+					printerName = pr.Name
+					break
+				}
+			}
+		}
+	}
+
+	_, err := h.pdfService.SavePrintRequirement(r.Context(), model.PrintRequirement{
+		RequirementName: requirement,
+		PrinterID:       printerID,
+		PrinterName:     printerName,
+		AssignedBy:      ctx.User.UserID,
+	})
+	if err != nil {
+		log.Println("An error occurred saving print requirement:", err)
+		if strings.Contains(err.Error(), "printer already assigned") {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "Save failed", http.StatusInternalServerError)
+		return
+	}
+
+	if strings.Contains(r.Header.Get("Accept"), "application/json") {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"status":"ok"}`))
+		return
+	}
+	http.Redirect(w, r, "/pdf/printer-assignments", http.StatusSeeOther)
 }

@@ -21,3 +21,16 @@ CREATE TABLE pdf_print_log (
     created_by INT REFERENCES app_user(user_id),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE print_requirement (
+    print_requirement_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    requirement_name TEXT UNIQUE NOT NULL,
+    printer_id INT,
+    printer_name TEXT,
+    assigned_by INT REFERENCES app_user(user_id),
+    assigned_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS print_requirement_unique_printer_id
+    ON print_requirement(printer_id)
+    WHERE printer_id IS NOT NULL AND printer_id <> 0;

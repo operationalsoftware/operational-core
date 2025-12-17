@@ -77,35 +77,6 @@ WHERE pdf_generation_log_id = $1
 	return log, err
 }
 
-func (r *PDFRepository) GetGenerationLogByFileID(
-	ctx context.Context,
-	exec db.PGExecutor,
-	fileID string,
-) (model.PDFGenerationLog, error) {
-	var log model.PDFGenerationLog
-	err := exec.QueryRow(ctx, `
-SELECT
-	pdf_generation_log_id,
-	template_name,
-	input_data,
-	file_id,
-	pdf_title,
-	created_by,
-	created_at
-FROM pdf_generation_log
-WHERE file_id = $1
-`, fileID).Scan(
-		&log.PDFGenerationLogID,
-		&log.TemplateName,
-		&log.InputData,
-		&log.FileID,
-		&log.PDFTitle,
-		&log.UserID,
-		&log.CreatedAt,
-	)
-	return log, err
-}
-
 func (r *PDFRepository) ListRecentGenerationLogs(
 	ctx context.Context,
 	exec db.PGExecutor,
@@ -325,4 +296,70 @@ LIMIT $1
 	}
 
 	return logs, rows.Err()
+}
+
+func (r *PDFRepository) ListPrintRequirements(
+	ctx context.Context,
+	exec db.PGExecutor,
+) ([]model.PrintRequirement, error) {
+	rows, err := exec.Query(ctx, `
+SELECT
+	print_requirement_id,
+	requirement_name,
+	COALESCE(printer_id, 0) AS printer_id,
+	COALESCE(printer_name, '') AS printer_name,
+	COALESCE(assigned_by, 0) AS assigned_by,
+	COALESCE(assigned_at, NOW()) AS assigned_at
+FROM print_requirement
+ORDER BY requirement_name ASC
+`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reqs []model.PrintRequirement
+	for rows.Next() {
+		var pr model.PrintRequirement
+		if err := rows.Scan(
+			&pr.PrintRequirementID,
+			&pr.RequirementName,
+			&pr.PrinterID,
+			&pr.PrinterName,
+			&pr.AssignedBy,
+			&pr.AssignedAt,
+		); err != nil {
+			return nil, err
+		}
+		reqs = append(reqs, pr)
+	}
+	return reqs, rows.Err()
+}
+
+func (r *PDFRepository) UpsertPrintRequirement(
+	ctx context.Context,
+	exec db.PGExecutor,
+	req model.PrintRequirement,
+) (model.PrintRequirement, error) {
+	err := exec.QueryRow(ctx, `
+INSERT INTO print_requirement (
+	requirement_name,
+	printer_id,
+	printer_name,
+	assigned_by
+) VALUES ($1,$2,$3,$4)
+ON CONFLICT (requirement_name)
+DO UPDATE SET
+	printer_id = EXCLUDED.printer_id,
+	printer_name = EXCLUDED.printer_name,
+	assigned_by = EXCLUDED.assigned_by,
+	assigned_at = NOW()
+RETURNING
+	print_requirement_id,
+	assigned_at
+`, req.RequirementName, req.PrinterID, req.PrinterName, req.AssignedBy).Scan(
+		&req.PrintRequirementID,
+		&req.AssignedAt,
+	)
+	return req, err
 }

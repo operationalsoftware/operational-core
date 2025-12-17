@@ -5,6 +5,7 @@ import (
 	"app/internal/pdftemplate"
 	"app/internal/repository"
 	"app/pkg/pdf"
+	"app/pkg/printnode"
 	"context"
 	"fmt"
 	"strings"
@@ -93,7 +94,7 @@ func (s *PDFService) RecordGeneration(
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to insert pdf generation log: %w", err)
 	}
 
-	fileName := buildPDFFilename(pdfTitle)
+	fileName := s.GeneratePDFFilename(pdfTitle)
 
 	file, err := s.fileRepo.SaveFileContent(ctx, tx, s.swiftConn, &model.File{
 		Filename:    fileName,
@@ -330,52 +331,68 @@ func (s *PDFService) ListRecentPrintLogs(ctx context.Context, limit int) ([]mode
 	return logs, nil
 }
 
-func (s *PDFService) FetchPDFFile(ctx context.Context, fileID string) ([]byte, string, error) {
-	if fileID == "" {
-		return nil, "", fmt.Errorf("file id is required")
+func (s *PDFService) ListPrintRequirements(ctx context.Context) ([]model.PrintRequirement, error) {
+	if s.db == nil || s.pdfRepo == nil {
+		return nil, fmt.Errorf("pdf service not configured for listing requirements")
 	}
-	if s.pdfRepo == nil || s.fileRepo == nil || s.swiftConn == nil || s.db == nil {
-		return nil, "", fmt.Errorf("pdf service not configured for file streaming")
-	}
-
-	logEntry, err := s.pdfRepo.GetGenerationLogByFileID(ctx, s.db, fileID)
-	if err != nil {
-		return nil, "", err
-	}
-
-	data, err := s.fileRepo.GetFileContent(ctx, s.swiftConn, fileID)
-	if err != nil {
-		return nil, "", err
-	}
-
-	filename := buildPDFFilename(logEntry.PDFTitle)
-
-	return data, filename, nil
+	return s.pdfRepo.ListPrintRequirements(ctx, s.db)
 }
 
-func (s *PDFService) GetPDFTitleByFileID(ctx context.Context, fileID string) (string, error) {
-	if fileID == "" {
-		return "", fmt.Errorf("file id is required")
+func (s *PDFService) SavePrintRequirement(ctx context.Context, pr model.PrintRequirement) (model.PrintRequirement, error) {
+	if s.db == nil || s.pdfRepo == nil {
+		return model.PrintRequirement{}, fmt.Errorf("pdf service not configured for saving requirements")
 	}
-	if s.pdfRepo == nil || s.db == nil {
-		return "", fmt.Errorf("pdf service not configured for metadata lookups")
+	pr.RequirementName = strings.TrimSpace(pr.RequirementName)
+	if pr.RequirementName == "" {
+		return model.PrintRequirement{}, fmt.Errorf("requirement name is required")
 	}
 
-	logEntry, err := s.pdfRepo.GetGenerationLogByFileID(ctx, s.db, fileID)
+	if pr.PrinterID == 0 {
+		pr.PrinterName = ""
+	}
+
+	assignments, err := s.pdfRepo.ListPrintRequirements(ctx, s.db)
 	if err != nil {
-		return "", err
+		return model.PrintRequirement{}, err
 	}
 
-	title := logEntry.PDFTitle
-	if title == "" {
-		title = logEntry.TemplateName
+	for _, a := range assignments {
+		if pr.PrinterID == 0 {
+			break
+		}
+		if a.PrinterID == pr.PrinterID && !strings.EqualFold(a.RequirementName, pr.RequirementName) {
+			return model.PrintRequirement{}, fmt.Errorf("printer already assigned to another requirement")
+		}
 	}
-	return title, nil
+
+	return s.pdfRepo.UpsertPrintRequirement(ctx, s.db, pr)
 }
 
-// GeneratePDFTitle creates a downloadable/display title for a template.
-func (s *PDFService) GeneratePDFTitle(templateName string) string {
-	return buildPDFTitle(templateName)
+func (s *PDFService) ListAvailablePrinters(ctx context.Context, currentReq string, printers []printnode.Printer) ([]printnode.Printer, error) {
+	if s.db == nil || s.pdfRepo == nil {
+		return nil, fmt.Errorf("pdf service not configured for listing requirements")
+	}
+	assignments, err := s.pdfRepo.ListPrintRequirements(ctx, s.db)
+	if err != nil {
+		return nil, err
+	}
+	assigned := map[int]struct{}{}
+	for _, a := range assignments {
+		if strings.EqualFold(a.RequirementName, currentReq) {
+			continue
+		}
+		if a.PrinterID != 0 {
+			assigned[a.PrinterID] = struct{}{}
+		}
+	}
+	available := make([]printnode.Printer, 0, len(printers))
+	for _, p := range printers {
+		if _, taken := assigned[p.ID]; taken {
+			continue
+		}
+		available = append(available, p)
+	}
+	return available, nil
 }
 
 func (s *PDFService) GeneratePDFTitleFromInput(templateName string, jsonInput []byte) string {
@@ -384,7 +401,11 @@ func (s *PDFService) GeneratePDFTitleFromInput(templateName string, jsonInput []
 
 // GeneratePDFFilename returns a filename (with .pdf) based on the PDF title.
 func (s *PDFService) GeneratePDFFilename(pdfTitle string) string {
-	return buildPDFFilename(pdfTitle)
+	name := strings.TrimSpace(pdfTitle)
+	if !strings.HasSuffix(strings.ToLower(name), ".pdf") {
+		name += ".pdf"
+	}
+	return name
 }
 
 func (s *PDFService) resolvePDFTitle(templateName, providedTitle string, jsonInput []byte) string {
@@ -396,24 +417,13 @@ func (s *PDFService) resolvePDFTitle(templateName, providedTitle string, jsonInp
 			return generated
 		}
 	}
-	return s.GeneratePDFTitle(templateName)
+	return s.fallbackPDFTitle(templateName)
 }
 
-func buildPDFTitle(templateName string) string {
+func (s *PDFService) fallbackPDFTitle(templateName string) string {
 	cleanName := strings.TrimSpace(templateName)
 	if cleanName == "" {
 		cleanName = "PDF"
 	}
 	return fmt.Sprintf("%s-%s", cleanName, time.Now().Format("200601021504"))
-}
-
-func buildPDFFilename(title string) string {
-	name := strings.TrimSpace(title)
-	if name == "" {
-		name = "PDF Document"
-	}
-	if strings.HasSuffix(strings.ToLower(name), ".pdf") {
-		return name
-	}
-	return name + ".pdf"
 }

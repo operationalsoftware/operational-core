@@ -31,44 +31,15 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+}
 
-  .hint {
-    color: var(--color-text-subtle);
-    margin: 0;
-  }
-
-  .print-requirements-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: var(--spacing-lg);
-  }
-
-.print-requirement-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  background-color: var(--background-color-content);
-  padding: var(--spacing-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-
-    .print-requirement-header h3 {
-      margin: 0;
-    }
-
-    .print-requirement-desc {
-      margin: 0;
-      color: var(--color-text-subtle);
-    }
-
-    select {
-      margin-top: var(--spacing-xs);
-    }
-  }
+.printer-assignments-page .print-requirements-section,
+.printer-assignments-page .pdf-log-section {
+  max-width: none;
 }
 
 .templates-section {
-  max-width: 1000px;
+  max-width: 900px;
   margin: 0 auto var(--spacing-xl);
   display: flex;
   flex-direction: column;
@@ -78,9 +49,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: var(--spacing-lg);
-    max-height: 520px;
-    overflow: auto;
-    padding-right: var(--spacing-sm);
   }
 
   .template-card {
@@ -101,77 +69,28 @@
       color: var(--color-text-subtle);
     }
 
-    .template-card-actions {
-      margin-top: auto;
-    }
-  }
-}
-
-.printers-section {
-  max-width: 900px;
-  margin: 0 auto var(--spacing-xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-
-  .printers-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: var(--spacing-lg);
-  }
-
-  .printer-card {
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-md);
-    background-color: var(--background-color-content);
-    padding: var(--spacing-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-
-    .printer-card-header {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      flex-wrap: wrap;
-
-      h3 {
-        margin: 0;
-      }
-
-      .badge {
-        background: var(--color-success);
-        color: var(--color-surface);
-        padding: 2px 8px;
-        border-radius: var(--border-radius-sm);
+    .template-card-example {
+      .label {
         font-size: var(--font-size-xs);
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        color: var(--color-text-subtle);
+      }
+
+      pre {
+        margin: var(--spacing-xs) 0 0;
+        padding: var(--spacing-md);
+        background-color: var(--color-info);
+        font-family: monospace;
+        font-size: var(--font-size-sm);
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-radius: var(--border-radius-sm);
       }
     }
 
-    .printer-desc {
-      margin: 0;
-      color: var(--color-text-subtle);
-    }
-
-    .printer-meta {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--spacing-xs);
-
-      .meta-row {
-        display: flex;
-        gap: var(--spacing-sm);
-        align-items: center;
-
-        .label {
-          color: var(--color-text-subtle);
-          font-size: var(--font-size-xs);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-      }
+    .template-card-actions {
+      margin-top: auto;
     }
   }
 }

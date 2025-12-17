@@ -17,5 +17,8 @@ func addPDFRoutes(
 	mux.HandleFunc("POST /pdf/generate", pdfHandler.PDFHandler)
 	mux.HandleFunc("POST /pdf/print", pdfHandler.PDFPrintHandler)
 	mux.HandleFunc("GET /pdf/logs", pdfHandler.PDFGenerationLogsPage)
+	mux.HandleFunc("GET /pdf/printer-assignments", pdfHandler.PrinterAssignmentsPage)
+	mux.HandleFunc("GET /pdf/printer-assignments/edit", pdfHandler.PrinterAssignmentEditPage)
+	mux.HandleFunc("POST /pdf/printer-assignments", pdfHandler.PrinterAssignmentsSave)
 
 }
