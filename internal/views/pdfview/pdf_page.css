@@ -38,6 +38,15 @@
   max-width: none;
 }
 
+.printer-assignment-edit {
+  max-width: var(--narrow-form-width);
+}
+
+.printer-assignment-edit form {
+  max-width: 100%;
+  margin: 0;
+}
+
 .templates-section {
   max-width: 900px;
   margin: 0 auto var(--spacing-xl);

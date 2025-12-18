@@ -78,7 +78,7 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 						h.Div(
 							h.Class("template-card-actions"),
 							h.A(
-								h.Class("button secondary"),
+								h.Class("button primary small"),
 								h.Href(fmt.Sprintf("?TemplateName=%s", url.QueryEscape(t.Name))),
 								g.Text("Load into tester"),
 							),

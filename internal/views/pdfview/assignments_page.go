@@ -21,7 +21,7 @@ type PrinterAssignmentsPageProps struct {
 }
 
 func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
-	canEdit := p.Ctx.User.Permissions.PDF.PrinterAssignmentsEditor
+	canEdit := p.Ctx.User.Permissions.Automation.PrinterAssignmentsEditor
 
 	rows := components.TableRows{}
 
@@ -31,37 +31,43 @@ func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
 			printerName = fmt.Sprintf("Printer %d", pr.PrinterID)
 		}
 
-		actionCell := g.Text("-")
+		cells := []components.TableCell{
+			{Contents: g.Text(pr.RequirementName)},
+			{Contents: g.Text(printerName)},
+		}
 		if canEdit {
-			actionCell = h.A(
-				h.Class("button secondary"),
-				h.Href("/pdf/printer-assignments/edit?"+url.Values{"RequirementName": []string{pr.RequirementName}}.Encode()),
-				components.Icon(&components.IconProps{Identifier: "pencil"}),
-				g.Text(" Edit"),
-			)
+			cells = append(cells, components.TableCell{
+				Contents: h.A(
+					h.Class("button primary small"),
+					h.Href("/pdf/printer-assignments/edit?"+url.Values{"RequirementName": []string{pr.RequirementName}}.Encode()),
+					components.Icon(&components.IconProps{Identifier: "pencil"}),
+				),
+			})
 		}
 
-		rows = append(rows, components.TableRow{
-			Cells: []components.TableCell{
-				{Contents: g.Text(pr.RequirementName)},
-				{Contents: g.Text(printerName)},
-				{Contents: actionCell},
-			},
-		})
+		rows = append(rows, components.TableRow{Cells: cells})
 	}
 
-	assignmentsTable := components.Table(&components.TableProps{
-		Columns: components.TableColumns{
-			{TitleContents: g.Text("Print requirement")},
-			{TitleContents: g.Text("Printer")},
-			{TitleContents: g.Text("Actions")},
-		},
-		Rows: rows,
-	})
+	columns := components.TableColumns{
+		{TitleContents: g.Text("Print requirement")},
+		{TitleContents: g.Text("Printer Name")},
+	}
+	if canEdit {
+		columns = append(columns, components.TableColumn{TitleContents: g.Text("Edit")})
+	}
+
+	assignmentsTable := components.Table(&components.TableProps{Columns: columns, Rows: rows})
 
 	return layout.Page(layout.PageProps{
 		Ctx:   p.Ctx,
 		Title: "Printer Assignments",
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			{
+				IconIdentifier: "printer-settings",
+				Title:          "Printer Assignments",
+				URLPart:        "andon-issues",
+			}},
 		Content: h.Div(
 			h.Class("printer-assignments-page"),
 			h.Section(

@@ -18,7 +18,7 @@ type SupplyChainPermissions struct {
 	TeamMember bool `description:"General supply chain tasks"`
 }
 
-type PDFPermissions struct {
+type AutomationPermissions struct {
 	PrinterAssignmentsEditor bool `description:"Able to edit printer assignments"`
 }
 
@@ -28,5 +28,5 @@ type UserPermissions struct {
 	Stock       StockItemPermissions   `description:"Stock"`
 	SupplyChain SupplyChainPermissions `description:"Supply Chain"`
 	UserAdmin   UserAdminPermissions   `description:"User Admin"`
-	PDF         PDFPermissions         `description:"PDF"`
+	Automation  AutomationPermissions  `description:"Automation"`
 }

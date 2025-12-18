@@ -28,7 +28,11 @@ func (s *PrintNodeService) Printers(ctx context.Context) ([]printnode.Printer, e
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	return s.client.ListPrinters(ctx)
+	printers, err := s.client.ListPrinters(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return printers, nil
 }
 
 func (s *PrintNodeService) SubmitPDF(ctx context.Context, printerID int, title string, pdfBytes []byte) (int, error) {

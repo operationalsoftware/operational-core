@@ -23,7 +23,7 @@ func PrinterAssignmentEditPage(p PrinterAssignmentEditPageProps) g.Node {
 	options := []components.SearchSelectOption{}
 	for _, pr := range p.Printers {
 		options = append(options, components.SearchSelectOption{
-			Text:     fmt.Sprintf("%s (ID %d)", pr.Name, pr.ID),
+			Text:     pr.Name,
 			Value:    fmt.Sprintf("%d", pr.ID),
 			Selected: pr.ID == p.SelectedID,
 		})
@@ -35,22 +35,28 @@ func PrinterAssignmentEditPage(p PrinterAssignmentEditPageProps) g.Node {
 	}
 
 	form := h.Form(
+		h.Class("form"),
 		h.Method("POST"),
 		h.Action("/pdf/printer-assignments"),
-		components.SearchSelect(&components.SearchSelectProps{
-			Name:        "PrinterID",
-			Placeholder: "Select printer",
-			Mode:        "single",
-			Options:     options,
-			Selected:    selected,
-		}),
+		h.Div(
+			h.Label(g.Text("Printer")),
+			components.SearchSelect(&components.SearchSelectProps{
+				Name:        "PrinterID",
+				Placeholder: "Select printer",
+				Mode:        "single",
+				Options:     options,
+				Selected:    selected,
+			}),
+		),
 		h.Input(
 			h.Type("hidden"),
 			h.Name("RequirementName"),
 			h.Value(p.Requirement),
 		),
-		h.Button(
-			h.Class("button primary"),
+		components.Button(
+			&components.ButtonProps{
+				ButtonType: components.ButtonPrimary,
+			},
 			h.Type("submit"),
 			g.Text("Save"),
 		),
@@ -61,12 +67,15 @@ func PrinterAssignmentEditPage(p PrinterAssignmentEditPageProps) g.Node {
 		Title: "Edit Printer Assignment",
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
-			{Title: "Printer Assignments", URLPart: "/pdf/printer-assignments"},
+			{
+				IconIdentifier: "printer-settings",
+				Title:          "Printer Assignments",
+				URLPart:        "pdf/printer-assignments",
+			},
 			{Title: p.Requirement},
 		},
 		Content: h.Section(
-			h.Class("print-requirements-section"),
-			h.H2(g.Textf("Edit assignment: %s", p.Requirement)),
+			h.Class("print-requirements-section printer-assignment-edit"),
 			g.If(!p.PrintNodeReady, h.P(g.Text("PrintNode is not configured."))),
 			g.If(p.PrintNodeReady, form),
 		),
