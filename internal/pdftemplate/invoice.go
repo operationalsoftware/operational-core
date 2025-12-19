@@ -2,6 +2,7 @@ package pdftemplate
 
 import (
 	"app/pkg/pdf"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -36,8 +37,18 @@ func (InvoiceTemplate) GenerateFromJSON(data []byte) (pdf.PDFDefinition, error) 
 	return GenerateTypedFromJSON(InvoiceTemplate{}.Generate, data)
 }
 
-func invoiceTitleFromJSON(data []byte) (string, error) {
-	return fmt.Sprintf("Invoice-%s", time.Now().Format("200601021504")), nil
+// GenerateTitle derives a title for the invoice template based on typed input.
+func (InvoiceTemplate) GenerateTitle(input InvoiceData) string {
+	return fmt.Sprintf("Invoice-%s", time.Now().Format("200601021504"))
+}
+
+// GenerateTitleFromJSON derives a title for the invoice template from raw JSON.
+func (InvoiceTemplate) GenerateTitleFromJSON(data []byte) (string, error) {
+	var input InvoiceData
+	if err := json.Unmarshal(data, &input); err != nil {
+		return "", err
+	}
+	return InvoiceTemplate{}.GenerateTitle(input), nil
 }
 
 var invoiceExampleJSON = `
@@ -51,5 +62,5 @@ var InvoiceTemplateDefinition = RegisteredTemplate{
 	Description:    "Simple invoice with customer name and amount",
 	Generator:      InvoiceTemplate{},
 	ExampleJSON:    invoiceExampleJSON,
-	TitleGenerator: invoiceTitleFromJSON,
+	TitleGenerator: InvoiceTemplate{}.GenerateTitleFromJSON,
 }
