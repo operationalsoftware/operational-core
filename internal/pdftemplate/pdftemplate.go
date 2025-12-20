@@ -4,7 +4,10 @@ import (
 	"app/pkg/pdf"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"sort"
+	"strings"
+	"time"
 
 	g "maragu.dev/gomponents"
 )
@@ -35,15 +38,11 @@ type RegisteredTemplate struct {
 	Description string
 	Generator   TemplateGenerator
 	ExampleJSON string
-	// TitleGenerator is optional and can derive a PDF title from the JSON input.
-	TitleGenerator func(jsonInput []byte) (string, error)
 }
 
-var Registry = func() map[string]RegisteredTemplate {
-	return map[string]RegisteredTemplate{
-		InvoiceTemplateDefinition.Name: InvoiceTemplateDefinition,
-	}
-}()
+var Registry = map[string]RegisteredTemplate{
+	InvoiceTemplateDefinition.Name: InvoiceTemplateDefinition,
+}
 
 // SortedTemplates returns a slice of RegisteredTemplate sorted by Name.
 func SortedTemplates() []RegisteredTemplate {
@@ -57,4 +56,12 @@ func SortedTemplates() []RegisteredTemplate {
 	})
 
 	return templates
+}
+
+func FallbackTitle(base string) string {
+	title := strings.TrimSpace(base)
+	if title == "" {
+		title = "PDF"
+	}
+	return fmt.Sprintf("%s-%s", title, time.Now().Format("200601021504"))
 }

@@ -39,31 +39,38 @@ func NewPDFService(
 	}
 }
 
+// GenerateFromJSON builds a PDF and returns both the bytes and the resolved title.
 func (s *PDFService) GenerateFromJSON(
 	ctx context.Context,
 	templateName string,
 	jsonInput []byte,
-	pdfTitle string,
-) ([]byte, error) {
+	providedTitle string,
+) ([]byte, string, error) {
 	template, ok := pdftemplate.Registry[templateName]
 	if !ok {
-		return nil, fmt.Errorf("unknown template: %s", templateName)
+		return nil, "", fmt.Errorf("unknown template: %s", templateName)
 	}
 
 	pdfDefinition, err := template.Generator.GenerateFromJSON(jsonInput)
 	if err != nil {
-		return []byte{}, fmt.Errorf("error generating PDF definition from template: %v", err)
+		return []byte{}, "", fmt.Errorf("error generating PDF definition from template: %v", err)
 	}
 
-	pdfTitle = s.resolvePDFTitle(templateName, pdfTitle, jsonInput)
-	pdfDefinition.Title = pdfTitle
+	title := strings.TrimSpace(providedTitle)
+	if title == "" {
+		title = strings.TrimSpace(pdfDefinition.Title)
+	}
+	if title == "" {
+		title = pdftemplate.FallbackTitle(templateName)
+	}
+	pdfDefinition.Title = title
 
 	pdfBuffer, err := pdf.GeneratePDF(ctx, pdfDefinition)
 	if err != nil {
-		return []byte{}, fmt.Errorf("error generating PDF from definition: %v", err)
+		return []byte{}, "", fmt.Errorf("error generating PDF from definition: %v", err)
 	}
 
-	return pdfBuffer, nil
+	return pdfBuffer, title, nil
 }
 
 // RecordGeneration persists the generated PDF and a log entry. It returns the log record.
@@ -81,7 +88,10 @@ func (s *PDFService) RecordGeneration(
 	if userID == 0 {
 		return model.PDFGenerationLog{}, fmt.Errorf("user id is required for logging")
 	}
-	pdfTitle = s.resolvePDFTitle(templateName, pdfTitle, []byte(inputData))
+	title := strings.TrimSpace(pdfTitle)
+	if title == "" {
+		title = pdftemplate.FallbackTitle(templateName)
+	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -89,12 +99,12 @@ func (s *PDFService) RecordGeneration(
 	}
 	defer tx.Rollback(ctx)
 
-	logID, err := s.pdfRepo.InsertGenerationLog(ctx, tx, templateName, inputData, userID, pdfTitle)
+	logID, err := s.pdfRepo.InsertGenerationLog(ctx, tx, templateName, inputData, userID, title)
 	if err != nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to insert pdf generation log: %w", err)
 	}
 
-	fileName := s.GeneratePDFFilename(pdfTitle)
+	fileName := s.GeneratePDFFilename(title)
 
 	file, err := s.fileRepo.SaveFileContent(ctx, tx, s.swiftConn, &model.File{
 		Filename:    fileName,
@@ -108,7 +118,7 @@ func (s *PDFService) RecordGeneration(
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to store generated pdf: %w", err)
 	}
 
-	if err := s.pdfRepo.UpdateGenerationLogFile(ctx, tx, logID, file.FileID, pdfTitle); err != nil {
+	if err := s.pdfRepo.UpdateGenerationLogFile(ctx, tx, logID, file.FileID, title); err != nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to update pdf generation log with file: %w", err)
 	}
 
@@ -134,7 +144,7 @@ func (s *PDFService) RecordGeneration(
 		TemplateName:       templateName,
 		InputData:          inputData,
 		FileID:             file.FileID,
-		PDFTitle:           pdfTitle,
+		PDFTitle:           title,
 		FileURL:            downloadURL,
 		UserID:             userID,
 		CreatedAt:          time.Now(),
@@ -230,14 +240,12 @@ func (s *PDFService) PrintAndLog(
 		return model.PDFPrintLog{}, fmt.Errorf("printer id is required")
 	}
 
-	pdfTitle := s.resolvePDFTitle(templateName, "", []byte(inputData))
-
-	pdfBytes, err := s.GenerateFromJSON(ctx, templateName, []byte(inputData), pdfTitle)
+	pdfBytes, title, err := s.GenerateFromJSON(ctx, templateName, []byte(inputData), "")
 	if err != nil {
 		return model.PDFPrintLog{}, err
 	}
 
-	genLog, err := s.RecordGeneration(ctx, templateName, inputData, pdfBytes, userID, pdfTitle)
+	genLog, err := s.RecordGeneration(ctx, templateName, inputData, pdfBytes, userID, title)
 	if err != nil {
 		return model.PDFPrintLog{}, err
 	}
@@ -396,7 +404,7 @@ func (s *PDFService) ListAvailablePrinters(ctx context.Context, currentReq strin
 }
 
 func (s *PDFService) GeneratePDFTitleFromInput(templateName string, jsonInput []byte) string {
-	return s.resolvePDFTitle(templateName, "", jsonInput)
+	return pdftemplate.FallbackTitle(templateName)
 }
 
 // GeneratePDFFilename returns a filename (with .pdf) based on the PDF title.
@@ -406,24 +414,4 @@ func (s *PDFService) GeneratePDFFilename(pdfTitle string) string {
 		name += ".pdf"
 	}
 	return name
-}
-
-func (s *PDFService) resolvePDFTitle(templateName, providedTitle string, jsonInput []byte) string {
-	if strings.TrimSpace(providedTitle) != "" {
-		return providedTitle
-	}
-	if tmpl, ok := pdftemplate.Registry[templateName]; ok && tmpl.TitleGenerator != nil {
-		if generated, err := tmpl.TitleGenerator(jsonInput); err == nil && strings.TrimSpace(generated) != "" {
-			return generated
-		}
-	}
-	return s.fallbackPDFTitle(templateName)
-}
-
-func (s *PDFService) fallbackPDFTitle(templateName string) string {
-	cleanName := strings.TrimSpace(templateName)
-	if cleanName == "" {
-		cleanName = "PDF"
-	}
-	return fmt.Sprintf("%s-%s", cleanName, time.Now().Format("200601021504"))
 }

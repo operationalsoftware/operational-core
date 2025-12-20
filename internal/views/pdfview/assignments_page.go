@@ -66,7 +66,6 @@ func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
 			{
 				IconIdentifier: "printer-settings",
 				Title:          "Printer Assignments",
-				URLPart:        "andon-issues",
 			}},
 		Content: h.Div(
 			h.Class("printer-assignments-page"),

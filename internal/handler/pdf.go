@@ -77,14 +77,11 @@ func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := reqcontext.GetContext(r)
 
-	pdfTitle := h.pdfService.GeneratePDFTitleFromInput(templateName, []byte(inputData))
-	downloadName := h.pdfService.GeneratePDFFilename(pdfTitle)
-
-	pdfBuf, err := h.pdfService.GenerateFromJSON(
+	pdfBuf, resolvedTitle, err := h.pdfService.GenerateFromJSON(
 		r.Context(),
 		templateName,
 		[]byte(inputData),
-		pdfTitle,
+		"",
 	)
 	if err != nil {
 		log.Println("An error occurred generating PDF:", err)
@@ -92,13 +89,15 @@ func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	downloadName := h.pdfService.GeneratePDFFilename(resolvedTitle)
+
 	_, err = h.pdfService.RecordGeneration(
 		r.Context(),
 		templateName,
 		inputData,
 		pdfBuf,
 		ctx.User.UserID,
-		pdfTitle,
+		resolvedTitle,
 	)
 	if err != nil {
 		log.Println("An error occurred recording PDF generation log:", err)

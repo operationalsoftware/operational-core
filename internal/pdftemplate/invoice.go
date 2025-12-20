@@ -2,8 +2,8 @@ package pdftemplate
 
 import (
 	"app/pkg/pdf"
-	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -28,7 +28,7 @@ func (InvoiceTemplate) Generate(input InvoiceData) (pdf.PDFDefinition, error) {
 		return pdf.PDFDefinition{}, fmt.Errorf("error generating invoice html: %v", err)
 	}
 
-	title := "Invoice"
+	title := InvoiceTemplate{}.GenerateTitle(input)
 
 	return pdf.PDFDefinition{Title: title, HTML: html}, nil
 }
@@ -39,16 +39,11 @@ func (InvoiceTemplate) GenerateFromJSON(data []byte) (pdf.PDFDefinition, error) 
 
 // GenerateTitle derives a title for the invoice template based on typed input.
 func (InvoiceTemplate) GenerateTitle(input InvoiceData) string {
-	return fmt.Sprintf("Invoice-%s", time.Now().Format("200601021504"))
-}
-
-// GenerateTitleFromJSON derives a title for the invoice template from raw JSON.
-func (InvoiceTemplate) GenerateTitleFromJSON(data []byte) (string, error) {
-	var input InvoiceData
-	if err := json.Unmarshal(data, &input); err != nil {
-		return "", err
+	base := strings.TrimSpace(input.CustomerName)
+	if base == "" {
+		base = "Invoice"
 	}
-	return InvoiceTemplate{}.GenerateTitle(input), nil
+	return fmt.Sprintf("%s-%s", base, time.Now().Format("200601021504"))
 }
 
 var invoiceExampleJSON = `
@@ -58,9 +53,8 @@ var invoiceExampleJSON = `
 }`
 
 var InvoiceTemplateDefinition = RegisteredTemplate{
-	Name:           "Invoice",
-	Description:    "Simple invoice with customer name and amount",
-	Generator:      InvoiceTemplate{},
-	ExampleJSON:    invoiceExampleJSON,
-	TitleGenerator: InvoiceTemplate{}.GenerateTitleFromJSON,
+	Name:        "Invoice",
+	Description: "Simple invoice with customer name and amount",
+	Generator:   InvoiceTemplate{},
+	ExampleJSON: invoiceExampleJSON,
 }
