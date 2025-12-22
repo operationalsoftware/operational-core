@@ -44,7 +44,6 @@ func (s *PDFService) GenerateFromJSON(
 	ctx context.Context,
 	templateName string,
 	jsonInput []byte,
-	providedTitle string,
 ) ([]byte, string, error) {
 	template, ok := pdftemplate.Registry[templateName]
 	if !ok {
@@ -56,10 +55,7 @@ func (s *PDFService) GenerateFromJSON(
 		return []byte{}, "", fmt.Errorf("error generating PDF definition from template: %v", err)
 	}
 
-	title := strings.TrimSpace(providedTitle)
-	if title == "" {
-		title = strings.TrimSpace(pdfDefinition.Title)
-	}
+	title := strings.TrimSpace(pdfDefinition.Title)
 	if title == "" {
 		title = pdftemplate.FallbackTitle(templateName)
 	}
@@ -240,7 +236,7 @@ func (s *PDFService) PrintAndLog(
 		return model.PDFPrintLog{}, fmt.Errorf("printer id is required")
 	}
 
-	pdfBytes, title, err := s.GenerateFromJSON(ctx, templateName, []byte(inputData), "")
+	pdfBytes, title, err := s.GenerateFromJSON(ctx, templateName, []byte(inputData))
 	if err != nil {
 		return model.PDFPrintLog{}, err
 	}

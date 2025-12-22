@@ -81,7 +81,6 @@ func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		templateName,
 		[]byte(inputData),
-		"",
 	)
 	if err != nil {
 		log.Println("An error occurred generating PDF:", err)
