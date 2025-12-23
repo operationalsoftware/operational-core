@@ -1,3 +1,114 @@
+.pdf-log-section {
+  max-width: 900px;
+  margin: 0 auto var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+  }
+
+  .print-log-action {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    flex-wrap: wrap;
+
+    select {
+      min-width: 160px;
+    }
+  }
+}
+
+.print-requirements-section {
+  max-width: 900px;
+  margin: 0 auto var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.printer-assignments-page .print-requirements-section,
+.printer-assignments-page .pdf-log-section {
+  max-width: none;
+}
+
+.printer-assignment-edit {
+  max-width: var(--narrow-form-width);
+}
+
+.printer-assignment-edit form {
+  max-width: 100%;
+  margin: 0;
+}
+
+.templates-section {
+  max-width: 900px;
+  margin: 0 auto var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+
+  .templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .template-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background-color: var(--background-color-content);
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+
+    .template-card-header h3 {
+      margin: 0;
+    }
+
+    .template-card-description {
+      margin: var(--spacing-xs) 0 0;
+      color: var(--color-text-subtle);
+    }
+
+    .template-card-example {
+      .label {
+        font-size: var(--font-size-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-subtle);
+      }
+
+      pre {
+        margin: var(--spacing-xs) 0 0;
+        padding: var(--spacing-md);
+        background-color: var(--color-info);
+        font-family: monospace;
+        font-size: var(--font-size-sm);
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-radius: var(--border-radius-sm);
+      }
+    }
+
+    .template-card-actions {
+      margin-top: auto;
+    }
+  }
+}
+
+.printnode-status {
+  max-width: 600px;
+  margin: 0 auto var(--spacing-lg);
+}
+
 form {
   max-width: 600px;
   margin: 0 auto;
@@ -24,4 +135,3 @@ form {
     font-family: monospace;
   }
 }
-

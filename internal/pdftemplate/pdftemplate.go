@@ -4,7 +4,10 @@ import (
 	"app/pkg/pdf"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"sort"
+	"strings"
+	"time"
 
 	g "maragu.dev/gomponents"
 )
@@ -53,4 +56,12 @@ func SortedTemplates() []RegisteredTemplate {
 	})
 
 	return templates
+}
+
+func FallbackTitle(base string) string {
+	title := strings.TrimSpace(base)
+	if title == "" {
+		title = "PDF"
+	}
+	return fmt.Sprintf("%s-%s", title, time.Now().Format("200601021504"))
 }

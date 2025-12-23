@@ -42,6 +42,19 @@ var AppMenu = []components.GridMenuGroup{
 		},
 	},
 	{
+		GroupName: "Automation",
+		Items: []components.GridMenuItem{
+			{
+				Icon: "printer-settings",
+				Name: "Printer Assignments",
+				Link: "/pdf/printer-assignments",
+				Show: func(permissions model.UserPermissions) bool {
+					return permissions.Automation.PrinterAssignmentsEditor
+				},
+			},
+		},
+	},
+	{
 		GroupName: "Stock",
 		Items: []components.GridMenuItem{
 			{

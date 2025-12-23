@@ -3,6 +3,8 @@ package pdftemplate
 import (
 	"app/pkg/pdf"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/shopspring/decimal"
 	g "maragu.dev/gomponents"
@@ -26,13 +28,22 @@ func (InvoiceTemplate) Generate(input InvoiceData) (pdf.PDFDefinition, error) {
 		return pdf.PDFDefinition{}, fmt.Errorf("error generating invoice html: %v", err)
 	}
 
-	title := "Invoice"
+	title := InvoiceTemplate{}.GenerateTitle(input)
 
 	return pdf.PDFDefinition{Title: title, HTML: html}, nil
 }
 
 func (InvoiceTemplate) GenerateFromJSON(data []byte) (pdf.PDFDefinition, error) {
 	return GenerateTypedFromJSON(InvoiceTemplate{}.Generate, data)
+}
+
+// GenerateTitle derives a title for the invoice template based on typed input.
+func (InvoiceTemplate) GenerateTitle(input InvoiceData) string {
+	base := strings.TrimSpace(input.CustomerName)
+	if base == "" {
+		base = "Invoice"
+	}
+	return fmt.Sprintf("%s-%s", base, time.Now().Format("200601021504"))
 }
 
 var invoiceExampleJSON = `

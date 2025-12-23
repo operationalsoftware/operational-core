@@ -18,10 +18,15 @@ type SupplyChainPermissions struct {
 	TeamMember bool `description:"General supply chain tasks"`
 }
 
+type AutomationPermissions struct {
+	PrinterAssignmentsEditor bool `description:"Able to edit printer assignments"`
+}
+
 // Finally, group under the UserPermissions struct
 type UserPermissions struct {
 	Andon       AndonPermissions       `description:"Andon"`
 	Stock       StockItemPermissions   `description:"Stock"`
 	SupplyChain SupplyChainPermissions `description:"Supply Chain"`
 	UserAdmin   UserAdminPermissions   `description:"User Admin"`
+	Automation  AutomationPermissions  `description:"Automation"`
 }

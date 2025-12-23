@@ -60,6 +60,14 @@ hr {
   align-items: center;
   justify-content: space-between;
   border-radius: var(--border-radius);
+
+  .icon {
+    margin-left: var(--spacing);
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    vertical-align: middle;
+  }
 }
 
 .alert.hide {
@@ -72,19 +80,16 @@ hr {
 
 .alert.warning {
   background-color: #ffe58f;
+
+  .icon {
+    fill: #000;
+  }
 }
 
 .alert.error {
   background-color: #ffccc7;
 }
 
-.alert .icon {
-  margin-left: var(--spacing);
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  vertical-align: middle;
-}
 /* End Alert */
 
 /* Start Badge */

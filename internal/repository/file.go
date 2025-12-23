@@ -5,6 +5,8 @@ import (
 	"app/pkg/db"
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,6 +43,40 @@ func (r *FileRepository) GetSignedDownloadURL(
 	// method "GET" for download
 	downloadURL := conn.ObjectTempUrl(r.container, file.FileID, r.secretKey, "GET", expires)
 	return downloadURL, nil
+}
+
+// GetSignedDownloadURLWithDisposition returns a temp URL and appends optional
+// Content-Disposition hints (inline/filename). These query params are supported
+// by Swift TempURL and do not affect the signature.
+func (r *FileRepository) GetSignedDownloadURLWithDisposition(
+	ctx context.Context,
+	conn *swift.Connection,
+	exec db.PGExecutor,
+	fileID string,
+	expiresIn time.Duration,
+	filename string,
+	inline bool,
+) (string, error) {
+	baseURL, err := r.GetSignedDownloadURL(ctx, conn, exec, fileID, expiresIn)
+	if err != nil {
+		return "", err
+	}
+
+	parsed, err := url.Parse(baseURL)
+	if err != nil {
+		return "", err
+	}
+
+	q := parsed.Query()
+	if inline {
+		q.Set("inline", "1")
+	}
+	if strings.TrimSpace(filename) != "" {
+		q.Set("filename", filename)
+	}
+	parsed.RawQuery = q.Encode()
+
+	return parsed.String(), nil
 }
 
 func (r *FileRepository) GetFileByID(
@@ -141,6 +177,15 @@ func (r *FileRepository) getSignedUploadURL(conn *swift.Connection, objectName s
 	return uploadURL, nil
 }
 
+// GetFileContent retrieves file bytes directly from object storage.
+func (r *FileRepository) GetFileContent(
+	ctx context.Context,
+	conn *swift.Connection,
+	fileID string,
+) ([]byte, error) {
+	return conn.ObjectGetBytes(ctx, r.container, fileID)
+}
+
 func (r *FileRepository) CompleteFileUpload(
 	ctx context.Context,
 	exec db.PGExecutor,
@@ -197,6 +242,48 @@ WHERE
 	}
 
 	return nil
+}
+
+func (r *FileRepository) SaveFileContent(
+	ctx context.Context,
+	exec db.PGExecutor,
+	conn *swift.Connection,
+	f *model.File,
+	content []byte,
+) (*model.File, error) {
+	var fileID uuid.UUID
+	err := exec.QueryRow(ctx, `
+INSERT INTO file (
+	filename,
+	content_type,
+	size_bytes,
+	status,
+	entity,
+	entity_id,
+	user_id
+) VALUES (
+	$1, $2, $3, $4, $5, $6, $7
+) RETURNING file_id, created_at
+`, f.Filename, f.ContentType, f.SizeBytes, "pending", f.Entity, f.EntityID, f.UserID).Scan(&fileID, &f.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert file metadata: %w", err)
+	}
+
+	if err := conn.ObjectPutBytes(ctx, r.container, fileID.String(), content, f.ContentType); err != nil {
+		return nil, fmt.Errorf("failed to upload file content: %w", err)
+	}
+
+	if _, err := exec.Exec(ctx, `
+UPDATE file
+SET status = $2
+WHERE file_id = $1
+`, fileID.String(), "success"); err != nil {
+		return nil, fmt.Errorf("failed to mark file as success: %w", err)
+	}
+
+	f.FileID = fileID.String()
+	f.Status = "success"
+	return f, nil
 }
 
 func (r *CommentRepository) GetFilesByEntity(
