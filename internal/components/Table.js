@@ -30,9 +30,10 @@ function updatePageSizeAndSubmit(selectElement) {
 }
 
 function rowClickNavigate(event) {
-  const interactiveTags = ["BUTTON", "A", "INPUT", "SELECT", "TEXTAREA"];
+  const interactiveSelector = "button, a, input, select, textarea, label";
 
-  if (interactiveTags.includes(event.target.tagName)) return;
+  const target = event.target;
+  if (target instanceof Element && target.closest(interactiveSelector)) return;
 
   const selection = window.getSelection();
   if (selection && selection.toString().length > 0) return;
