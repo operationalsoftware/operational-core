@@ -117,13 +117,23 @@ func (r *ServiceRepository) AssignServiceSchedule(
 INSERT INTO service_schedule_assignment (
 	resource_id,
 	service_schedule_id
-) VALUES ($1, $2)
+) 
+SELECT $1, $2
+WHERE NOT EXISTS (
+	SELECT 1
+	FROM service_schedule_assignment
+	WHERE resource_id = $1
+		AND service_schedule_id = $2
+)
 RETURNING service_schedule_assignment_id;
 	`
 
 	var newID int
 	err := exec.QueryRow(ctx, query, schedule.ResourceID, schedule.ServiceScheduleID).Scan(&newID)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return 0, nil
+		}
 		return 0, err
 	}
 
@@ -176,13 +186,9 @@ WHERE
 	AND service_schedule_id = $2
 `
 
-	tag, err := exec.Exec(ctx, query, resourceID, scheduleID)
+	_, err := exec.Exec(ctx, query, resourceID, scheduleID)
 	if err != nil {
 		return err
-	}
-
-	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("service schedule not found for resource")
 	}
 
 	return nil

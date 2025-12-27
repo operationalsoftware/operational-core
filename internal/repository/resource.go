@@ -288,15 +288,24 @@ func (r *ResourceRepository) ListResources(
 
 	query := `
 SELECT
-    resource_id,
-    type,
-    reference,
-    is_archived,
-	service_ownership_team_id,
-	service_ownership_team_name,
-    last_serviced_at
+    r.resource_id,
+    r.type,
+    r.reference,
+    r.is_archived,
+	r.service_ownership_team_id,
+	r.service_ownership_team_name,
+    r.last_serviced_at,
+	COALESCE((
+		SELECT STRING_AGG(ss.name, ', ' ORDER BY ss.name)
+		FROM service_schedule_assignment ssa
+		JOIN service_schedule ss ON ss.service_schedule_id = ssa.service_schedule_id
+		JOIN resource_service_metric m ON m.resource_service_metric_id = ss.resource_service_metric_id
+		WHERE ssa.resource_id = r.resource_id
+			AND ss.is_archived = FALSE
+			AND m.is_archived = FALSE
+	), '') AS service_schedule_names
 FROM
-    resource_view
+    resource_view r
 ` + whereClause + `
 ` + orderByClause + `
 ` + fmt.Sprintf("LIMIT %s OFFSET %s", limitPlaceholder, offsetPlaceholder) + `
@@ -321,6 +330,7 @@ FROM
 			&resource.ServiceOwnershipTeamID,
 			&resource.ServiceOwnershipTeamName,
 			&resource.LastServicedAt,
+			&resource.ServiceScheduleNames,
 		)
 		if err != nil {
 			return nil, err
@@ -435,11 +445,9 @@ func generateResourceWhereClause(q model.GetResourcesQuery) (string, []any) {
 	var args []any
 	argID := 1
 
-	archivedClause := "is_archived = FALSE"
-	if q.IsArchived {
-		archivedClause = "is_archived = TRUE"
+	if !q.IsArchived {
+		whereClauses = append(whereClauses, "is_archived = FALSE")
 	}
-	whereClauses = append(whereClauses, archivedClause)
 
 	addInClause := func(column string, values []string) {
 		if len(values) == 0 {

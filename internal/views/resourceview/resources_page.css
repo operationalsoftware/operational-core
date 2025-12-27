@@ -31,11 +31,36 @@
 }
 
 .resources-table-actions {
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
   margin-bottom: var(--spacing-md);
+}
+
+.resources-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
 }
 
 .table-head,
 .table-row {
   white-space: nowrap;
+}
+
+.resources-select-column,
+.resources-select-cell {
+  text-align: center;
+  width: 1%;
+}
+
+.resources-select-cell input {
+  cursor: pointer;
+}
+
+.resources-select-column input {
+  cursor: pointer;
 }

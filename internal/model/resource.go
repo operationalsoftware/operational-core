@@ -13,6 +13,7 @@ type Resource struct {
 	Reference                string `sortable:"true"`
 	ServiceOwnershipTeamID   *int
 	ServiceOwnershipTeamName *string
+	ServiceScheduleNames     string
 	IsArchived               bool
 	LastServicedAt           *time.Time `sortable:"true"`
 }
