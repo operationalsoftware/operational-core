@@ -119,7 +119,7 @@ func (uv *resourceHomePageURLVals) normalise() {
 }
 
 type bulkEditServiceSchedulesURLVals struct {
-	ResourceID []int
+	ResourceIDs []int
 }
 
 func (h *ResourceHandler) BulkEditServiceSchedulesPage(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +132,7 @@ func (h *ResourceHandler) BulkEditServiceSchedulesPage(w http.ResponseWriter, r 
 		return
 	}
 
-	resourceIDs := uniqueIntSlice(uv.ResourceID)
+	resourceIDs := uniqueIntSlice(uv.ResourceIDs)
 
 	schedules, _, err := h.servicesService.GetServiceSchedules(r.Context(), false, appsort.Sort{})
 	if err != nil {
@@ -150,7 +150,7 @@ func (h *ResourceHandler) BulkEditServiceSchedulesPage(w http.ResponseWriter, r 
 }
 
 type bulkEditServiceSchedulesFormData struct {
-	ResourceID                 []int
+	ResourceIDs                []int
 	AssignServiceScheduleIDs   []int
 	UnassignServiceScheduleIDs []int
 }
@@ -169,7 +169,7 @@ func (h *ResourceHandler) BulkEditServiceSchedules(w http.ResponseWriter, r *htt
 		return
 	}
 
-	resourceIDs := uniqueIntSlice(fd.ResourceID)
+	resourceIDs := uniqueIntSlice(fd.ResourceIDs)
 	assignIDs := uniqueIntSlice(fd.AssignServiceScheduleIDs)
 	unassignIDs := uniqueIntSlice(fd.UnassignServiceScheduleIDs)
 

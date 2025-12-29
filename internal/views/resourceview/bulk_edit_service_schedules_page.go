@@ -90,7 +90,7 @@ func bulkEditServiceSchedulesForm(p *bulkEditServiceSchedulesFormProps) g.Node {
 	for _, resourceID := range p.resourceIDs {
 		resourceInputs = append(resourceInputs, h.Input(
 			h.Type("hidden"),
-			h.Name("ResourceID"),
+			h.Name("ResourceIDs"),
 			h.Value(strconv.Itoa(resourceID)),
 		))
 	}

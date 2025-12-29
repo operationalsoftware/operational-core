@@ -296,14 +296,14 @@ SELECT
 	r.service_ownership_team_name,
     r.last_serviced_at,
 	COALESCE((
-		SELECT STRING_AGG(ss.name, ', ' ORDER BY ss.name)
+		SELECT ARRAY_AGG(ss.name ORDER BY ss.name)
 		FROM service_schedule_assignment ssa
 		JOIN service_schedule ss ON ss.service_schedule_id = ssa.service_schedule_id
 		JOIN resource_service_metric m ON m.resource_service_metric_id = ss.resource_service_metric_id
 		WHERE ssa.resource_id = r.resource_id
 			AND ss.is_archived = FALSE
 			AND m.is_archived = FALSE
-	), '') AS service_schedule_names
+	), ARRAY[]::text[]) AS service_schedule_names
 FROM
     resource_view r
 ` + whereClause + `

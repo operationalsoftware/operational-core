@@ -112,7 +112,7 @@ function initResourceBulkSelection() {
     const params = new URLSearchParams();
 
     Array.from(selected).forEach((resourceID) => {
-      params.append("ResourceID", resourceID);
+      params.append("ResourceIDs", resourceID);
     });
 
     const query = params.toString();

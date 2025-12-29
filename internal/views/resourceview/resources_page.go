@@ -221,8 +221,8 @@ func resourcesTable(p *resourcesProps) g.Node {
 			teamName = *a.ServiceOwnershipTeamName
 		}
 		scheduleNames := "\u2013"
-		if a.ServiceScheduleNames != "" {
-			scheduleNames = a.ServiceScheduleNames
+		if len(a.ServiceScheduleNames) > 0 {
+			scheduleNames = strings.Join(a.ServiceScheduleNames, ", ")
 		}
 
 		cells := []components.TableCell{
