@@ -163,7 +163,10 @@
         selected.push(value);
         option.classList.add("selected");
       }
-      inputSpan.textContent = selected.join(", ");
+      const selectedOptionLabels = Array.from(
+        optionsList.querySelectorAll(".select-option.selected")
+      ).map((opt) => opt.textContent);
+      inputSpan.textContent = selectedOptionLabels.join(", ");
     }
 
     reorderOptionsBySelection();

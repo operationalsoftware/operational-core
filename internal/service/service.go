@@ -226,6 +226,66 @@ func (s *ServicesService) AssignServiceSchedule(
 	return nil
 }
 
+func (s *ServicesService) BulkEditServiceSchedules(
+	ctx context.Context,
+	input model.BulkEditServiceSchedulesInput,
+) error {
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	for _, scheduleID := range input.AssignServiceScheduleIDs {
+		schedule, err := s.servicesRepository.GetServiceScheduleByID(ctx, tx, scheduleID)
+		if err != nil {
+			return err
+		}
+		if schedule == nil {
+			return fmt.Errorf("service schedule not found")
+		}
+		if schedule.IsArchived {
+			return fmt.Errorf("service schedule is archived")
+		}
+
+		metric, err := s.servicesRepository.GetResourceServiceMetricByID(ctx, tx, schedule.ResourceServiceMetricID)
+		if err != nil {
+			return err
+		}
+		if metric == nil {
+			return fmt.Errorf("service metric not found")
+		}
+		if metric.IsArchived {
+			return fmt.Errorf("service metric is archived")
+		}
+	}
+
+	for _, resourceID := range input.ResourceIDs {
+		for _, scheduleID := range input.AssignServiceScheduleIDs {
+			_, err := s.servicesRepository.AssignServiceSchedule(ctx, tx, model.NewServiceScheduleAssignment{
+				ResourceID:        resourceID,
+				ServiceScheduleID: scheduleID,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		for _, scheduleID := range input.UnassignServiceScheduleIDs {
+			if err := s.servicesRepository.UnassignServiceSchedule(ctx, tx, resourceID, scheduleID); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *ServicesService) UnassignServiceSchedule(
 	ctx context.Context,
 	resourceID int,

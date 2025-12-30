@@ -118,6 +118,81 @@ func (uv *resourceHomePageURLVals) normalise() {
 	}
 }
 
+func (h *ResourceHandler) BulkEditServiceSchedulesPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	var input model.BulkEditServiceSchedulesInput
+	if err := appurl.Unmarshal(r.URL.Query(), &input); err != nil {
+		log.Println("error decoding url values:", err)
+		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+		return
+	}
+
+	resourceIDs := uniqueIntSlice(input.ResourceIDs)
+
+	schedules, _, err := h.servicesService.GetServiceSchedules(r.Context(), false, appsort.Sort{})
+	if err != nil {
+		log.Println("error fetching service schedules:", err)
+		http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
+		return
+	}
+
+	_ = resourceview.BulkEditServiceSchedulesPage(&resourceview.BulkEditServiceSchedulesPageProps{
+		Ctx:              ctx,
+		Values:           r.URL.Query(),
+		ResourceIDs:      resourceIDs,
+		ServiceSchedules: schedules,
+	}).Render(w)
+}
+
+func (h *ResourceHandler) BulkEditServiceSchedules(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		log.Println("error parsing form:", err)
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	var input model.BulkEditServiceSchedulesInput
+	if err := appurl.Unmarshal(r.Form, &input); err != nil {
+		log.Println("error decoding form:", err)
+		http.Error(w, "Error decoding form", http.StatusBadRequest)
+		return
+	}
+
+	input.ResourceIDs = uniqueIntSlice(input.ResourceIDs)
+	input.AssignServiceScheduleIDs = uniqueIntSlice(input.AssignServiceScheduleIDs)
+	input.UnassignServiceScheduleIDs = uniqueIntSlice(input.UnassignServiceScheduleIDs)
+
+	if len(input.ResourceIDs) == 0 {
+		http.Error(w, "No resources selected", http.StatusBadRequest)
+		return
+	}
+	if len(input.AssignServiceScheduleIDs) == 0 && len(input.UnassignServiceScheduleIDs) == 0 {
+		http.Error(w, "No schedules selected", http.StatusBadRequest)
+		return
+	}
+
+	assignSet := make(map[int]struct{}, len(input.AssignServiceScheduleIDs))
+	for _, scheduleID := range input.AssignServiceScheduleIDs {
+		assignSet[scheduleID] = struct{}{}
+	}
+	for _, scheduleID := range input.UnassignServiceScheduleIDs {
+		if _, exists := assignSet[scheduleID]; exists {
+			http.Error(w, "Schedules cannot be both assigned and unassigned", http.StatusBadRequest)
+			return
+		}
+	}
+
+	err := h.servicesService.BulkEditServiceSchedules(r.Context(), input)
+	if err != nil {
+		log.Println("error bulk editing service schedules:", err)
+		http.Error(w, "Error bulk editing service schedules", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/resources", http.StatusSeeOther)
+}
+
 func (h *ResourceHandler) ResourcePage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
@@ -724,4 +799,17 @@ func (fd *addResourceMetricRecordFormData) validate() validate.ValidationErrors 
 	}
 
 	return ve
+}
+
+func uniqueIntSlice(values []int) []int {
+	seen := make(map[int]struct{}, len(values))
+	out := make([]int, 0, len(values))
+	for _, value := range values {
+		if _, exists := seen[value]; exists {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	return out
 }

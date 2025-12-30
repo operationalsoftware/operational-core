@@ -46,6 +46,18 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 
 			h.Div(
 				h.Class("resources-table-actions"),
+				h.Div(
+					h.Class("resources-bulk-actions"),
+					components.Button(&components.ButtonProps{
+						ButtonType: components.ButtonPrimary,
+						Disabled:   true,
+					},
+						h.Type("button"),
+						h.Data("resource-bulk-edit-button", "true"),
+						h.Data("bulk-edit-url", "/resources/bulk-edit-service-schedules"),
+						g.Text("Bulk edit schedules"),
+					),
+				),
 				components.Checkbox(
 					&components.CheckboxProps{
 						Name:    "IsArchived",
@@ -84,6 +96,7 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 		},
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/resourceview/resources_page.css"),
+			components.InlineScript("/internal/views/resourceview/resources_page.js"),
 		},
 	})
 }
@@ -174,9 +187,20 @@ type resourcesProps struct {
 
 func resourcesTable(p *resourcesProps) g.Node {
 	var columns = components.TableColumns{
+		{
+			TitleContents: h.Input(
+				h.Type("checkbox"),
+				h.Data("resource-select-all", "true"),
+				h.Aria("label", "Select all resources on this page"),
+			),
+			Classes: c.Classes{
+				"resources-select-column": true,
+			},
+		},
 		{TitleContents: g.Text("Reference"), SortKey: "Reference"},
 		{TitleContents: g.Text("Type"), SortKey: "Type"},
 		{TitleContents: g.Text("Service Ownership Team")},
+		{TitleContents: g.Text("Service Schedules")},
 		{TitleContents: g.Text("Last Serviced At"), SortKey: "LastServicedAt"},
 	}
 	if p.showArchived {
@@ -196,11 +220,27 @@ func resourcesTable(p *resourcesProps) g.Node {
 		if a.ServiceOwnershipTeamName != nil && *a.ServiceOwnershipTeamName != "" {
 			teamName = *a.ServiceOwnershipTeamName
 		}
+		scheduleNames := "\u2013"
+		if len(a.ServiceScheduleNames) > 0 {
+			scheduleNames = strings.Join(a.ServiceScheduleNames, ", ")
+		}
 
 		cells := []components.TableCell{
+			{
+				Classes: c.Classes{
+					"resources-select-cell": true,
+				},
+				Contents: h.Input(
+					h.Type("checkbox"),
+					h.Data("resource-select", "true"),
+					h.Data("resource-id", fmt.Sprintf("%d", a.ResourceID)),
+					h.Aria("label", fmt.Sprintf("Select resource %s", a.Reference)),
+				),
+			},
 			{Contents: g.Text(a.Reference)},
 			{Contents: g.Text(a.Type)},
 			{Contents: g.Text(teamName)},
+			{Contents: g.Text(scheduleNames)},
 			{Contents: g.Text(lastServicedAt)},
 		}
 		if p.showArchived {
