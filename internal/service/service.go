@@ -228,9 +228,7 @@ func (s *ServicesService) AssignServiceSchedule(
 
 func (s *ServicesService) BulkEditServiceSchedules(
 	ctx context.Context,
-	resourceIDs []int,
-	assignScheduleIDs []int,
-	unassignScheduleIDs []int,
+	input model.BulkEditServiceSchedulesInput,
 ) error {
 
 	tx, err := s.db.Begin(ctx)
@@ -239,7 +237,7 @@ func (s *ServicesService) BulkEditServiceSchedules(
 	}
 	defer tx.Rollback(ctx)
 
-	for _, scheduleID := range assignScheduleIDs {
+	for _, scheduleID := range input.AssignServiceScheduleIDs {
 		schedule, err := s.servicesRepository.GetServiceScheduleByID(ctx, tx, scheduleID)
 		if err != nil {
 			return err
@@ -263,8 +261,8 @@ func (s *ServicesService) BulkEditServiceSchedules(
 		}
 	}
 
-	for _, resourceID := range resourceIDs {
-		for _, scheduleID := range assignScheduleIDs {
+	for _, resourceID := range input.ResourceIDs {
+		for _, scheduleID := range input.AssignServiceScheduleIDs {
 			_, err := s.servicesRepository.AssignServiceSchedule(ctx, tx, model.NewServiceScheduleAssignment{
 				ResourceID:        resourceID,
 				ServiceScheduleID: scheduleID,
@@ -274,7 +272,7 @@ func (s *ServicesService) BulkEditServiceSchedules(
 			}
 		}
 
-		for _, scheduleID := range unassignScheduleIDs {
+		for _, scheduleID := range input.UnassignServiceScheduleIDs {
 			if err := s.servicesRepository.UnassignServiceSchedule(ctx, tx, resourceID, scheduleID); err != nil {
 				return err
 			}

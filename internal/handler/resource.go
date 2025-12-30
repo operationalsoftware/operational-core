@@ -118,21 +118,17 @@ func (uv *resourceHomePageURLVals) normalise() {
 	}
 }
 
-type bulkEditServiceSchedulesURLVals struct {
-	ResourceIDs []int
-}
-
 func (h *ResourceHandler) BulkEditServiceSchedulesPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	var uv bulkEditServiceSchedulesURLVals
-	if err := appurl.Unmarshal(r.URL.Query(), &uv); err != nil {
+	var input model.BulkEditServiceSchedulesInput
+	if err := appurl.Unmarshal(r.URL.Query(), &input); err != nil {
 		log.Println("error decoding url values:", err)
 		http.Error(w, "Error decoding url values", http.StatusBadRequest)
 		return
 	}
 
-	resourceIDs := uniqueIntSlice(uv.ResourceIDs)
+	resourceIDs := uniqueIntSlice(input.ResourceIDs)
 
 	schedules, _, err := h.servicesService.GetServiceSchedules(r.Context(), false, appsort.Sort{})
 	if err != nil {
@@ -149,12 +145,6 @@ func (h *ResourceHandler) BulkEditServiceSchedulesPage(w http.ResponseWriter, r 
 	}).Render(w)
 }
 
-type bulkEditServiceSchedulesFormData struct {
-	ResourceIDs                []int
-	AssignServiceScheduleIDs   []int
-	UnassignServiceScheduleIDs []int
-}
-
 func (h *ResourceHandler) BulkEditServiceSchedules(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Println("error parsing form:", err)
@@ -162,38 +152,38 @@ func (h *ResourceHandler) BulkEditServiceSchedules(w http.ResponseWriter, r *htt
 		return
 	}
 
-	var fd bulkEditServiceSchedulesFormData
-	if err := appurl.Unmarshal(r.Form, &fd); err != nil {
+	var input model.BulkEditServiceSchedulesInput
+	if err := appurl.Unmarshal(r.Form, &input); err != nil {
 		log.Println("error decoding form:", err)
 		http.Error(w, "Error decoding form", http.StatusBadRequest)
 		return
 	}
 
-	resourceIDs := uniqueIntSlice(fd.ResourceIDs)
-	assignIDs := uniqueIntSlice(fd.AssignServiceScheduleIDs)
-	unassignIDs := uniqueIntSlice(fd.UnassignServiceScheduleIDs)
+	input.ResourceIDs = uniqueIntSlice(input.ResourceIDs)
+	input.AssignServiceScheduleIDs = uniqueIntSlice(input.AssignServiceScheduleIDs)
+	input.UnassignServiceScheduleIDs = uniqueIntSlice(input.UnassignServiceScheduleIDs)
 
-	if len(resourceIDs) == 0 {
+	if len(input.ResourceIDs) == 0 {
 		http.Error(w, "No resources selected", http.StatusBadRequest)
 		return
 	}
-	if len(assignIDs) == 0 && len(unassignIDs) == 0 {
+	if len(input.AssignServiceScheduleIDs) == 0 && len(input.UnassignServiceScheduleIDs) == 0 {
 		http.Error(w, "No schedules selected", http.StatusBadRequest)
 		return
 	}
 
-	assignSet := make(map[int]struct{}, len(assignIDs))
-	for _, scheduleID := range assignIDs {
+	assignSet := make(map[int]struct{}, len(input.AssignServiceScheduleIDs))
+	for _, scheduleID := range input.AssignServiceScheduleIDs {
 		assignSet[scheduleID] = struct{}{}
 	}
-	for _, scheduleID := range unassignIDs {
+	for _, scheduleID := range input.UnassignServiceScheduleIDs {
 		if _, exists := assignSet[scheduleID]; exists {
 			http.Error(w, "Schedules cannot be both assigned and unassigned", http.StatusBadRequest)
 			return
 		}
 	}
 
-	err := h.servicesService.BulkEditServiceSchedules(r.Context(), resourceIDs, assignIDs, unassignIDs)
+	err := h.servicesService.BulkEditServiceSchedules(r.Context(), input)
 	if err != nil {
 		log.Println("error bulk editing service schedules:", err)
 		http.Error(w, "Error bulk editing service schedules", http.StatusInternalServerError)
