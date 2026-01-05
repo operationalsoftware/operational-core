@@ -27,6 +27,8 @@ func addResourceRoutes(
 	)
 
 	mux.HandleFunc("GET /resources", resourceHandler.ResourcesPage)
+	mux.HandleFunc("GET /resources/bulk-edit-service-schedules", resourceHandler.BulkEditServiceSchedulesPage)
+	mux.HandleFunc("POST /resources/bulk-edit-service-schedules", resourceHandler.BulkEditServiceSchedules)
 
 	mux.HandleFunc("GET /resources/add", resourceHandler.AddResourcePage)
 	mux.HandleFunc("POST /resources/add", resourceHandler.AddResource)

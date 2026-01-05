@@ -160,3 +160,9 @@ type UpdateResourceServiceMetric struct {
 	IsCumulative    bool
 	IsArchived      bool
 }
+
+type BulkEditServiceSchedulesInput struct {
+	ResourceIDs                []int
+	AssignServiceScheduleIDs   []int
+	UnassignServiceScheduleIDs []int
+}
