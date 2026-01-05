@@ -1,0 +1,228 @@
+package handler
+
+import (
+	"app/internal/model"
+	"app/internal/service"
+	"app/internal/views/notificationview"
+	"app/pkg/appurl"
+	"app/pkg/reqcontext"
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+)
+
+type NotificationHandler struct {
+	notificationService service.NotificationService
+}
+
+func NewNotificationHandler(notificationService service.NotificationService) *NotificationHandler {
+	return &NotificationHandler{notificationService: notificationService}
+}
+
+func (h *NotificationHandler) NotificationsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	var uv notificationsPageURLVals
+	if err := appurl.Unmarshal(r.URL.Query(), &uv); err != nil {
+		log.Println("error decoding url values:", err)
+		http.Error(w, "Error decoding url values", http.StatusBadRequest)
+		return
+	}
+	if uv.Filter == "" {
+		uv.Filter = r.URL.Query().Get("filter")
+	}
+
+	notifications, counts, normalizedQuery, err := h.notificationService.ListNotifications(r.Context(), ctx.User.UserID, model.ListNotificationsQuery{
+		Filter:   uv.Filter,
+		Page:     uv.Page,
+		PageSize: uv.PageSize,
+	})
+	if err != nil {
+		log.Println("error loading notifications:", err)
+		http.Error(w, "Error loading notifications", http.StatusInternalServerError)
+		return
+	}
+
+	_ = notificationview.NotificationPage(notificationview.NotificationPageProps{
+		Ctx:          ctx,
+		Filters:      notificationFilters(counts),
+		ActiveFilter: normalizedQuery.Filter,
+		Groups:       groupNotifications(notifications),
+		UnreadCount:  counts.Unread,
+		Page:         normalizedQuery.Page,
+		PageSize:     normalizedQuery.PageSize,
+		TotalRecords: notificationTotalRecords(counts, normalizedQuery.Filter),
+	}).Render(w)
+}
+
+type notificationsPageURLVals struct {
+	Filter   string
+	Page     int
+	PageSize int
+}
+
+func notificationFilters(counts model.NotificationCounts) []model.NotificationFilter {
+	readCount := max(counts.Total-counts.Unread, 0)
+
+	return []model.NotificationFilter{
+		{
+			ID:    "unread",
+			Label: "Unread",
+			Count: counts.Unread,
+			URL:   "/notifications?Filter=unread",
+		},
+		{
+			ID:    "read",
+			Label: "Read",
+			Count: readCount,
+			URL:   "/notifications?Filter=read",
+		},
+	}
+}
+
+func notificationTotalRecords(counts model.NotificationCounts, filter string) int {
+	readCount := max(counts.Total-counts.Unread, 0)
+
+	switch strings.ToLower(filter) {
+	case "read":
+		return readCount
+	default:
+		return counts.Unread
+	}
+}
+
+func groupNotifications(notifications []model.Notification) []model.NotificationGroup {
+	grouped := map[string][]model.NotificationItem{}
+
+	for _, notification := range notifications {
+		label := notificationGroupLabel(notification.CreatedAt)
+		grouped[label] = append(grouped[label], notificationItem(notification))
+	}
+
+	var groups []model.NotificationGroup
+	for _, label := range []string{"Today", "Yesterday", "Earlier"} {
+		items := grouped[label]
+		if len(items) == 0 {
+			continue
+		}
+		groups = append(groups, model.NotificationGroup{
+			Title: label,
+			Items: items,
+		})
+	}
+
+	return groups
+}
+
+func notificationGroupLabel(createdAt time.Time) string {
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	yesterday := today.AddDate(0, 0, -1)
+
+	if createdAt.After(today) {
+		return "Today"
+	}
+	if createdAt.After(yesterday) {
+		return "Yesterday"
+	}
+	return "Earlier"
+}
+
+func notificationItem(notification model.Notification) model.NotificationItem {
+	return model.NotificationItem{
+		NotificationID: notification.NotificationID,
+		ActorUsername:  notification.ActorUsername,
+		Category:       notification.Category,
+		Title:          notification.Title,
+		URL:            notification.URL,
+		Summary:        notification.Summary,
+		Time:           formatNotificationTime(notification.CreatedAt),
+		Reason:         notification.Reason,
+		ReasonType:     model.NormalizeNotificationReasonType(notification.ReasonType),
+		Unread:         !notification.IsRead,
+	}
+}
+
+func formatNotificationTime(createdAt time.Time) string {
+	diff := time.Since(createdAt)
+	if diff < time.Minute {
+		return "Just now"
+	}
+	if diff < time.Hour {
+		return fmt.Sprintf("%dm ago", int(diff.Minutes()))
+	}
+	if diff < 24*time.Hour {
+		return fmt.Sprintf("%dh ago", int(diff.Hours()))
+	}
+	if diff < 7*24*time.Hour {
+		return fmt.Sprintf("%dd ago", int(diff.Hours()/24))
+	}
+	return createdAt.Format("Jan 2, 2006")
+}
+
+func (h *NotificationHandler) MarkAllRead(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if err := h.notificationService.MarkAllRead(r.Context(), ctx.User.UserID); err != nil {
+		log.Println("error marking notifications as read:", err)
+		http.Error(w, "Error marking notifications as read", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/notifications?Filter=unread", http.StatusSeeOther)
+}
+
+func (h *NotificationHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	notificationID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || notificationID <= 0 {
+		if err != nil {
+			log.Println("invalid notification id:", err)
+		}
+		http.Error(w, "Invalid notification id", http.StatusBadRequest)
+		return
+	}
+
+	err = h.notificationService.MarkRead(r.Context(), ctx.User.UserID, notificationID)
+	if err != nil {
+		log.Println("error updating notification:", err)
+		http.Error(w, "Error updating notification", http.StatusInternalServerError)
+		return
+	}
+
+	redirectURL := notificationRedirect(r.URL.Query().Get("Redirect"))
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+}
+
+func (h *NotificationHandler) MarkUnread(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	notificationID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || notificationID <= 0 {
+		if err != nil {
+			log.Println("invalid notification id:", err)
+		}
+		http.Error(w, "Invalid notification id", http.StatusBadRequest)
+		return
+	}
+
+	err = h.notificationService.MarkUnread(r.Context(), ctx.User.UserID, notificationID)
+	if err != nil {
+		log.Println("error updating notification:", err)
+		http.Error(w, "Error updating notification", http.StatusInternalServerError)
+		return
+	}
+
+	redirectURL := notificationRedirect(r.URL.Query().Get("Redirect"))
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+}
+
+func notificationRedirect(redirect string) string {
+	if redirect == "" {
+		return "/notifications"
+	}
+	if strings.HasPrefix(redirect, "/") && !strings.HasPrefix(redirect, "//") {
+		return redirect
+	}
+	return "/notifications"
+}

@@ -136,6 +136,11 @@ hr {
     background-color: var(--background-color-grey);
     color: var(--text-color);
   }
+
+  &.info {
+    background-color: var(--info-color);
+    color: var(--text-color-contrast);
+  }
 }
 /* End Badge */
 
@@ -1607,18 +1612,18 @@ div.table-pagination {
   animation: fadeIn 0.3s ease-in-out, fadeOut 0.3s ease-in-out 3.7s;
   opacity: 0;
   pointer-events: none;
-}
 
-.toast.toast-success {
-  background-color: #4caf50;
-}
+  &.toast-success {
+    background-color: #4caf50;
+  }
 
-.toast.toast-error {
-  background-color: #f44336;
-}
+  &.toast-error {
+    background-color: #f44336;
+  }
 
-.toast.toast-info {
-  background-color: #2196f3;
+  &.toast-info {
+    background-color: var(--info-color);
+  }
 }
 
 @keyframes fadeIn {

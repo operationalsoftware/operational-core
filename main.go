@@ -85,14 +85,15 @@ func main() {
 	andonIssueRepository := repository.NewAndonIssueRepository()
 	authRepository := repository.NewAuthRepository()
 	fileRepository := repository.NewFileRepository(swiftContainer, secretKey)
-	galleryRepository := repository.NewGalleryRepository(secretKey, fileRepository)
 	commentRepository := repository.NewCommentRepository(fileRepository)
-	resourceRepository := repository.NewResourceRepository()
-	serviceRepository := repository.NewServiceRepository()
-	stockTrxRepository := repository.NewStockTransactionRepository()
+	galleryRepository := repository.NewGalleryRepository(secretKey, fileRepository)
+	notificationRepository := repository.NewNotificationRepository()
 	printNodeService := service.NewPrintNodeService(printNodeAPIKey)
 	pdfRepository := repository.NewPDFRepository()
 	pdfService := service.NewPDFService(pgPool, swiftConn, fileRepository, pdfRepository, printNodeService)
+	resourceRepository := repository.NewResourceRepository()
+	serviceRepository := repository.NewServiceRepository()
+	stockTrxRepository := repository.NewStockTransactionRepository()
 	teamRepository := repository.NewTeamRepository()
 	stockItemRepository := repository.NewStockItemRepository()
 	userRepository := repository.NewUserRepository()
@@ -106,6 +107,7 @@ func main() {
 		CommentService:          *service.NewCommentService(pgPool, swiftConn, commentRepository),
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		GalleryService:          *service.NewGalleryService(pgPool, swiftConn, appHMAC, fileRepository, galleryRepository),
+		NotificationService:     *service.NewNotificationService(pgPool, notificationRepository),
 		PDFService:              *pdfService,
 		PrintNodeService:        *printNodeService,
 		ResourceService:         *service.NewResourceService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),
