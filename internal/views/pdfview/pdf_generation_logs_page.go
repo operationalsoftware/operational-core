@@ -68,10 +68,7 @@ func PDFGenerationLogsPage(p PDFGenerationLogsPageProps) g.Node {
 		Content: h.Section(
 			h.Class("pdf-generation-log-section"),
 			h.H2(g.Text("PDF generation logs")),
-			g.If(len(p.Logs) == 0,
-				h.P(g.Text("No PDF generations logged yet.")),
-			),
-			g.If(len(p.Logs) > 0, table),
+			table,
 		),
 		AppendHead: []g.Node{components.InlineStyle("/internal/views/pdfview/pdf_page.css")},
 	})

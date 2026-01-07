@@ -154,16 +154,7 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 func generationLogsSection(logs []model.PDFGenerationLog) g.Node {
 
 	rows := components.TableRows{}
-	if len(logs) == 0 {
-		rows = append(rows, components.TableRow{
-			Cells: []components.TableCell{
-				{Contents: g.Text("No PDF generations logged yet.")},
-				{Contents: g.Text("")},
-				{Contents: g.Text("")},
-				{Contents: g.Text("")},
-			},
-		})
-	}
+
 	for _, log := range logs {
 		inputPreview := log.InputData
 		if len(inputPreview) > 120 {
