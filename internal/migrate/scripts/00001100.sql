@@ -22,7 +22,7 @@ CREATE TABLE pdf_print_log (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE print_requirement (
+CREATE TABLE pdf_print_requirement (
     print_requirement_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     requirement_name TEXT UNIQUE NOT NULL,
     printer_id INT,
@@ -31,6 +31,6 @@ CREATE TABLE print_requirement (
     assigned_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS print_requirement_unique_printer_id
-    ON print_requirement(printer_id)
+CREATE UNIQUE INDEX IF NOT EXISTS pdf_print_requirement_unique_printer_id
+    ON pdf_print_requirement(printer_id)
     WHERE printer_id IS NOT NULL AND printer_id <> 0;

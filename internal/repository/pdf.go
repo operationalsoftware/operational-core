@@ -310,7 +310,7 @@ SELECT
 	COALESCE(printer_name, '') AS printer_name,
 	COALESCE(assigned_by, 0) AS assigned_by,
 	COALESCE(assigned_at, NOW()) AS assigned_at
-FROM print_requirement
+FROM pdf_print_requirement
 ORDER BY requirement_name ASC
 `)
 	if err != nil {
@@ -342,7 +342,7 @@ func (r *PDFRepository) UpsertPrintRequirement(
 	req model.PrintRequirement,
 ) (model.PrintRequirement, error) {
 	err := exec.QueryRow(ctx, `
-INSERT INTO print_requirement (
+INSERT INTO pdf_print_requirement (
 	requirement_name,
 	printer_id,
 	printer_name,
