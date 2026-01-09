@@ -28,19 +28,29 @@
   & > * {
     width: 300px;
   }
+
+  & > .resources-filters-go {
+    width: auto;
+    align-self: flex-end;
+  }
 }
 
 .resources-table-actions {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-md);
 }
 
 .resources-bulk-actions {
-  margin-top: var(--spacing-lg);
+  margin-top: 0;
+}
+
+.resources-table-actions .checkbox {
+  width: auto;
 }
 
 .table-head,

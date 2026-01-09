@@ -165,12 +165,12 @@ func resourcesFilters(p *resourcesFiltersProps) g.Node {
 					}),
 				)
 			}),
-		),
 
-		h.Button(
-			h.Class("button primary"),
-			h.Type("submit"),
-			g.Text("GO"),
+			h.Button(
+				h.Class("button primary resources-filters-go"),
+				h.Type("submit"),
+				g.Text("GO"),
+			),
 		),
 	}
 }
