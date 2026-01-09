@@ -17,7 +17,5 @@ func addPrintingRoutes(
 	mux.HandleFunc("GET /printing/print-jobs", printingHandler.PDFPrintJobsPage)
 	mux.HandleFunc("GET /printing/printer-assignments", printingHandler.PrinterAssignmentsPage)
 	mux.HandleFunc("GET /printing/printer-assignments/edit", printingHandler.PrinterAssignmentEditPage)
-	mux.HandleFunc("GET /printing/edit", printingHandler.PrinterAssignmentEditPage)
 	mux.HandleFunc("POST /printing/printer-assignments", printingHandler.PrinterAssignmentsSave)
-	mux.HandleFunc("POST /printing", printingHandler.PrinterAssignmentsSave)
 }
