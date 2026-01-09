@@ -46,18 +46,6 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 
 			h.Div(
 				h.Class("resources-table-actions"),
-				h.Div(
-					h.Class("resources-bulk-actions"),
-					components.Button(&components.ButtonProps{
-						ButtonType: components.ButtonPrimary,
-						Disabled:   true,
-					},
-						h.Type("button"),
-						h.Data("resource-bulk-edit-button", "true"),
-						h.Data("bulk-edit-url", "/resources/bulk-edit-service-schedules"),
-						g.Text("Bulk edit schedules"),
-					),
-				),
 				components.Checkbox(
 					&components.CheckboxProps{
 						Name:    "IsArchived",
@@ -69,6 +57,18 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 						},
 					},
 					g.Attr("onchange", "submitTableForm(this.form)"),
+				),
+				h.Div(
+					h.Class("resources-bulk-actions"),
+					components.Button(&components.ButtonProps{
+						ButtonType: components.ButtonPrimary,
+						Disabled:   true,
+					},
+						h.Type("button"),
+						h.Data("resource-bulk-edit-button", "true"),
+						h.Data("bulk-edit-url", "/resources/bulk-edit-service-schedules"),
+						g.Text("Bulk edit schedules"),
+					),
 				),
 			),
 
