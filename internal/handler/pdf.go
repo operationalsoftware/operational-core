@@ -29,13 +29,12 @@ func NewPDFHandler(
 	}
 }
 
+func (h *PDFHandler) PDFHome(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/pdf/generate", http.StatusSeeOther)
+}
+
 func (h *PDFHandler) PDFGeneratorPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-
-	printNodeStatus, err := h.printNodeService.Status(r.Context())
-	if err != nil {
-		log.Println("An error occurred checking PrintNode status:", err)
-	}
 
 	templates := pdftemplate.SortedTemplates()
 
@@ -49,17 +48,10 @@ func (h *PDFHandler) PDFGeneratorPage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	logs, err := h.pdfService.ListRecentLogs(r.Context(), 10)
-	if err != nil {
-		log.Println("An error occurred fetching PDF generation logs:", err)
-	}
-
 	pdfview.PDFGeneratorPage(pdfview.PDFPageProps{
 		Ctx:              ctx,
 		Templates:        templates,
-		PrintNodeStatus:  printNodeStatus,
 		SelectedTemplate: selectedTemplate,
-		GenerationLogs:   logs,
 	}).Render(w)
 }
 
@@ -108,12 +100,16 @@ func (h *PDFHandler) PDFHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.Printing.Operator {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-
-	ctx := reqcontext.GetContext(r)
 
 	printLogIDStr := r.FormValue("PrintLogID")
 	printerIDStr := r.FormValue("PrinterID")
@@ -163,7 +159,7 @@ func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ref := r.Referer()
 	if ref == "" {
-		ref = "/pdf/printer-assignments"
+		ref = "/printing"
 	}
 	http.Redirect(w, r, ref, http.StatusSeeOther)
 }
@@ -200,9 +196,32 @@ func (h *PDFHandler) PDFGenerationLogsPage(w http.ResponseWriter, r *http.Reques
 	}).Render(w)
 }
 
-// PrinterAssignmentsPage shows the mapping of print requirements to printers plus recent print logs.
+// PrinterAssignmentsPage shows the mapping of print requirements to printers.
 func (h *PDFHandler) PrinterAssignmentsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.Printing.Admin {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	assignments, err := h.pdfService.ListPrintRequirements(r.Context())
+	if err != nil {
+		log.Println("An error occurred fetching print requirements:", err)
+	}
+
+	pdfview.PrinterAssignmentsPage(pdfview.PrinterAssignmentsPageProps{
+		Ctx:         ctx,
+		Assignments: assignments,
+	}).Render(w)
+}
+
+// PDFPrintJobsPage shows print jobs.
+func (h *PDFHandler) PDFPrintJobsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if !ctx.User.Permissions.Printing.Operator {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 
 	printNodeStatus, err := h.printNodeService.Status(r.Context())
 	if err != nil {
@@ -215,27 +234,23 @@ func (h *PDFHandler) PrinterAssignmentsPage(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	assignments, err := h.pdfService.ListPrintRequirements(r.Context())
-	if err != nil {
-		log.Println("An error occurred fetching print requirements:", err)
-	}
 	printLogs, err := h.pdfService.ListRecentPrintLogs(r.Context(), 10)
 	if err != nil {
 		log.Println("An error occurred fetching PDF print logs:", err)
 	}
 
-	pdfview.PrinterAssignmentsPage(pdfview.PrinterAssignmentsPageProps{
-		Ctx:         ctx,
-		Printers:    printers,
-		Assignments: assignments,
-		PrintLogs:   printLogs,
+	pdfview.PDFPrintJobsPage(pdfview.PDFPrintJobsPageProps{
+		Ctx:             ctx,
+		Printers:        printers,
+		PrintLogs:       printLogs,
+		PrintNodeStatus: printNodeStatus,
 	}).Render(w)
 }
 
 // PrinterAssignmentEditPage shows an edit form for a print requirement.
 func (h *PDFHandler) PrinterAssignmentEditPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.Automation.PrinterAssignmentsEditor {
+	if !ctx.User.Permissions.Printing.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -287,7 +302,7 @@ func (h *PDFHandler) PrinterAssignmentsSave(w http.ResponseWriter, r *http.Reque
 	}
 
 	ctx := reqcontext.GetContext(r)
-	if !ctx.User.Permissions.Automation.PrinterAssignmentsEditor {
+	if !ctx.User.Permissions.Printing.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -334,5 +349,5 @@ func (h *PDFHandler) PrinterAssignmentsSave(w http.ResponseWriter, r *http.Reque
 		w.Write([]byte(`{"status":"ok"}`))
 		return
 	}
-	http.Redirect(w, r, "/pdf/printer-assignments", http.StatusSeeOther)
+	http.Redirect(w, r, "/printing/printer-assignments", http.StatusSeeOther)
 }

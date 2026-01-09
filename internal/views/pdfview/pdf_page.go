@@ -11,6 +11,7 @@ import (
 	"net/url"
 
 	g "maragu.dev/gomponents"
+	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
@@ -18,8 +19,6 @@ type PDFPageProps struct {
 	Ctx              reqcontext.ReqContext
 	Templates        []pdftemplate.RegisteredTemplate
 	SelectedTemplate *pdftemplate.RegisteredTemplate
-	PrintNodeStatus  printnode.Status
-	GenerationLogs   []model.PDFGenerationLog
 }
 
 func PDFGeneratorPage(p PDFPageProps) g.Node {
@@ -30,33 +29,16 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 		selectedTemplateName = p.SelectedTemplate.Name
 	}
 
-	printNodeMessage := p.PrintNodeStatus.Message
-	alertType := components.AlertWarning
-
-	if !p.PrintNodeStatus.Configured {
-		printNodeMessage = "PrintNode API key is not configured. Set PRINTNODE_API_KEY to enable automated printing."
-	} else if p.PrintNodeStatus.Reachable {
-		alertType = components.AlertSuccess
-		switch {
-		case p.PrintNodeStatus.AccountName != "" && p.PrintNodeStatus.AccountEmail != "":
-			printNodeMessage = fmt.Sprintf("Connected to PrintNode as %s (%s).", p.PrintNodeStatus.AccountName, p.PrintNodeStatus.AccountEmail)
-		case p.PrintNodeStatus.AccountEmail != "":
-			printNodeMessage = fmt.Sprintf("Connected to PrintNode as %s.", p.PrintNodeStatus.AccountEmail)
-		case p.PrintNodeStatus.AccountName != "":
-			printNodeMessage = fmt.Sprintf("Connected to PrintNode as %s.", p.PrintNodeStatus.AccountName)
-		default:
-			printNodeMessage = "PrintNode connection is working."
-		}
-	} else {
-		alertType = components.AlertError
-		if printNodeMessage == "" {
-			printNodeMessage = "Unable to reach PrintNode. Check the API key and network connectivity."
-		}
-	}
-
-	printNodeStatus := h.Div(
-		h.Class("printnode-status"),
-		components.Alert(&components.AlertProps{AlertType: alertType, Message: printNodeMessage}),
+	header := h.Section(
+		h.Class("pdf-generator-header"),
+		h.Nav(
+			h.Class("pdf-generator-nav"),
+			h.A(
+				h.Href("/pdf/logs"),
+				g.Text("PDF generation logs"),
+			),
+		),
+		h.H1(g.Text("PDF Templates")),
 	)
 
 	templatesList := h.Section(
@@ -93,7 +75,7 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 		h.Method("POST"),
 		h.Target("_blank"),
 		g.Group([]g.Node{
-			h.H1(g.Text("Test a PDF template")),
+			h.H2(g.Text("Test a PDF template")),
 			h.Label(
 				g.Text("PDF Template Name"),
 				h.Select(
@@ -132,23 +114,64 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 	return layout.Page(layout.PageProps{
 		Ctx:   p.Ctx,
 		Title: "PDF Templates",
+		Breadcrumbs: []layout.Breadcrumb{
+			layout.HomeBreadcrumb,
+			{
+				IconIdentifier: "text-box-outline",
+				Title:          "PDFs",
+				URLPart:        "pdf",
+			},
+			{
+				Title:   "PDF Templates",
+				URLPart: "generate",
+			},
+		},
 		Content: g.Group([]g.Node{
-			printNodeStatus,
+			header,
 			templatesList,
 			form,
-			generationLogsSection(p.GenerationLogs),
-			h.Div(
-				h.Class("pdf-log-section"),
-				h.A(
-					h.Class("button primary"),
-					h.Href("/pdf/logs"),
-					g.Text("View all PDF generation logs"),
-				),
-			),
 		}),
 		AppendHead: []g.Node{components.InlineStyle("/internal/views/pdfview/pdf_page.css")},
 		AppendBody: []g.Node{components.InlineScript("/internal/views/pdfview/pdf_page.js")},
 	})
+}
+
+func printNodeStatusBox(status printnode.Status) g.Node {
+	message := status.Message
+	statusClass := "warning"
+
+	if !status.Configured {
+		message = "PrintNode API key is not configured. Set PRINTNODE_API_KEY to enable automated printing."
+	} else if status.Reachable {
+		statusClass = "success"
+		switch {
+		case status.AccountName != "" && status.AccountEmail != "":
+			message = fmt.Sprintf("Connected to PrintNode as %s (%s).", status.AccountName, status.AccountEmail)
+		case status.AccountEmail != "":
+			message = fmt.Sprintf("Connected to PrintNode as %s.", status.AccountEmail)
+		case status.AccountName != "":
+			message = fmt.Sprintf("Connected to PrintNode as %s.", status.AccountName)
+		default:
+			message = "PrintNode connection is working."
+		}
+	} else {
+		statusClass = "error"
+		if message == "" {
+			message = "Unable to reach PrintNode. Check the API key and network connectivity."
+		}
+	}
+
+	return h.Div(
+		c.Classes{
+			"printnode-status-box": true,
+			statusClass:            true,
+		},
+		h.Div(
+			h.Class("printnode-status-title"),
+			g.Text("PrintNode"),
+		),
+		h.P(g.Text(message)),
+	)
 }
 
 func generationLogsSection(logs []model.PDFGenerationLog) g.Node {
@@ -186,7 +209,12 @@ func generationLogsSection(logs []model.PDFGenerationLog) g.Node {
 	)
 }
 
-func printLogsSection(logs []model.PDFPrintLog, printers []printnode.Printer) g.Node {
+func printLogsSection(
+	logs []model.PDFPrintLog,
+	printers []printnode.Printer,
+	showAssignmentsNav bool,
+	statusBox g.Node,
+) g.Node {
 
 	rows := components.TableRows{}
 
@@ -240,7 +268,18 @@ func printLogsSection(logs []model.PDFPrintLog, printers []printnode.Printer) g.
 
 	return h.Section(
 		h.Class("pdf-log-section"),
-		h.H2(g.Text("Recent print jobs")),
+		g.If(showAssignmentsNav, h.Nav(
+			h.Class("print-requirements-nav"),
+			h.A(
+				h.Href("/printing/printer-assignments"),
+				g.Text("Printer assignments"),
+			),
+		)),
+		h.Div(
+			h.Class("print-jobs-titlebar"),
+			h.H2(g.Text("Print jobs")),
+			g.If(statusBox != nil, statusBox),
+		),
 		components.Table(&components.TableProps{
 			Columns: components.TableColumns{
 				{TitleContents: g.Text("Template")},

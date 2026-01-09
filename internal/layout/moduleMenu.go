@@ -45,9 +45,17 @@ var AppMenu = []components.GridMenuGroup{
 		GroupName: "Automation",
 		Items: []components.GridMenuItem{
 			{
+				Icon: "text-box-outline",
+				Name: "PDFs",
+				Link: "/pdf",
+				Show: func(permissions model.UserPermissions) bool {
+					return permissions.Automation.AutomationAdmin
+				},
+			},
+			{
 				Icon: "printer-settings",
-				Name: "Printer Assignments",
-				Link: "/pdf/printer-assignments",
+				Name: "Printing",
+				Link: "/printing",
 				Show: func(permissions model.UserPermissions) bool {
 					return permissions.Automation.PrinterAssignmentsEditor
 				},

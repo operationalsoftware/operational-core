@@ -37,7 +37,7 @@ func PrinterAssignmentEditPage(p PrinterAssignmentEditPageProps) g.Node {
 	form := h.Form(
 		h.Class("form"),
 		h.Method("POST"),
-		h.Action("/pdf/printer-assignments"),
+		h.Action("/printing/printer-assignments"),
 		h.Div(
 			h.Label(g.Text("Printer")),
 			components.SearchSelect(&components.SearchSelectProps{
@@ -69,8 +69,12 @@ func PrinterAssignmentEditPage(p PrinterAssignmentEditPageProps) g.Node {
 			layout.HomeBreadcrumb,
 			{
 				IconIdentifier: "printer-settings",
-				Title:          "Printer Assignments",
-				URLPart:        "pdf/printer-assignments",
+				Title:          "Printing",
+				URLPart:        "printing",
+			},
+			{
+				Title:   "Printer Assignments",
+				URLPart: "printer-assignments",
 			},
 			{Title: p.Requirement},
 		},

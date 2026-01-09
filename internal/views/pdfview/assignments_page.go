@@ -4,7 +4,6 @@ import (
 	"app/internal/components"
 	"app/internal/layout"
 	"app/internal/model"
-	"app/pkg/printnode"
 	"app/pkg/reqcontext"
 	"fmt"
 	"net/url"
@@ -15,9 +14,7 @@ import (
 
 type PrinterAssignmentsPageProps struct {
 	Ctx         reqcontext.ReqContext
-	Printers    []printnode.Printer
 	Assignments []model.PrintRequirement
-	PrintLogs   []model.PDFPrintLog
 }
 
 func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
@@ -39,7 +36,7 @@ func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
 			cells = append(cells, components.TableCell{
 				Contents: h.A(
 					h.Class("button primary small"),
-					h.Href("/pdf/printer-assignments/edit?"+url.Values{"RequirementName": []string{pr.RequirementName}}.Encode()),
+					h.Href("/printing/printer-assignments/edit?"+url.Values{"RequirementName": []string{pr.RequirementName}}.Encode()),
 					components.Icon(&components.IconProps{Identifier: "pencil"}),
 				),
 			})
@@ -65,7 +62,12 @@ func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
 			layout.HomeBreadcrumb,
 			{
 				IconIdentifier: "printer-settings",
-				Title:          "Printer Assignments",
+				Title:          "Printing",
+				URLPart:        "printing",
+			},
+			{
+				Title:   "Printer Assignments",
+				URLPart: "printer-assignments",
 			}},
 		Content: h.Div(
 			h.Class("printer-assignments-page"),
@@ -74,7 +76,6 @@ func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
 				h.H2(g.Text("Print requirements")),
 				assignmentsTable,
 			),
-			printLogsSection(p.PrintLogs, p.Printers),
 		),
 		AppendHead: []g.Node{components.InlineStyle("/internal/views/pdfview/pdf_page.css")},
 	})

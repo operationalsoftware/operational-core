@@ -33,9 +33,86 @@
   gap: var(--spacing-md);
 }
 
+.print-requirements-nav {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: center;
+}
+
+.pdf-generator-nav {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.pdf-generator-header {
+  margin: 0 0 var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+
+  h1 {
+    margin-bottom: 0;
+  }
+}
+
 .printer-assignments-page .print-requirements-section,
 .printer-assignments-page .pdf-log-section {
   max-width: none;
+}
+
+.print-jobs-page .pdf-log-section {
+  max-width: none;
+}
+
+.printnode-status-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  border-left-width: 4px;
+  background-color: var(--background-color-content);
+  max-width: 320px;
+}
+
+.printnode-status-box.success {
+  border-left-color: var(--success-color);
+}
+
+.printnode-status-box.warning {
+  border-left-color: var(--warning-color);
+}
+
+.printnode-status-box.error {
+  border-left-color: var(--error-color);
+}
+
+.printnode-status-title {
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-color-light);
+}
+
+.printnode-status-box p {
+  margin: 0;
+}
+
+.print-jobs-titlebar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.print-jobs-titlebar h2 {
+  margin: 0;
+}
+
+.print-jobs-titlebar .printnode-status-box {
+  margin-left: auto;
 }
 
 .printer-assignment-edit {
@@ -48,8 +125,7 @@
 }
 
 .templates-section {
-  max-width: 900px;
-  margin: 0 auto var(--spacing-xl);
+  margin: 0 0 var(--spacing-xl);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
@@ -102,11 +178,6 @@
       margin-top: auto;
     }
   }
-}
-
-.printnode-status {
-  max-width: 600px;
-  margin: 0 auto var(--spacing-lg);
 }
 
 form {

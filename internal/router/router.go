@@ -70,6 +70,7 @@ func NewRouter(services *Services, appHMAC apphmac.AppHMAC) http.Handler {
 	addGalleryRoutes(mux, services.GalleryService, appHMAC)
 	addNotificationRoutes(mux, services.NotificationService)
 	addPDFRoutes(mux, services.PDFService, services.PrintNodeService)
+	addPrintingRoutes(mux, services.PDFService, services.PrintNodeService)
 	addResourceRoutes(
 		mux,
 		services.GalleryService,

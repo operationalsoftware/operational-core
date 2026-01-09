@@ -62,7 +62,13 @@ func PDFGenerationLogsPage(p PDFGenerationLogsPageProps) g.Node {
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
 			{
-				Title: "PDF Generation Logs",
+				IconIdentifier: "text-box-outline",
+				Title:          "PDFs",
+				URLPart:        "pdf",
+			},
+			{
+				Title:   "PDF Generation Logs",
+				URLPart: "logs",
 			},
 		},
 		Content: h.Section(
