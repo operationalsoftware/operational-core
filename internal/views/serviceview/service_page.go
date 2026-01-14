@@ -33,7 +33,6 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 
 	service := p.ResourceService
 	isWIPService := p.ResourceService.Status == model.ServiceStatusWorkInProgress
-	canUserEdit := p.Ctx.User.Permissions.UserAdmin.Access
 
 	galleryButtonText := "View Service Images"
 	if len(p.GalleryImageURLs) == 0 {
@@ -168,7 +167,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 				Comments:        p.ResourceServiceComments,
 				CommentThreadID: p.ResourceService.CommentThreadID,
 				HMACEnvelope:    p.CommentHMACEnvelope,
-				CanAddComment:   canUserEdit,
+				CanAddComment:   true,
 			}),
 			serviceChangeLog(&serviceChangeLogProps{
 				changeLog: p.ServiceChangelog,
