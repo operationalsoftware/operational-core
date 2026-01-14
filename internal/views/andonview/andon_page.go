@@ -87,6 +87,7 @@ func AndonPage(p *AndonPageProps) g.Node {
 				Comments:        p.AndonComments,
 				CommentThreadID: p.Andon.CommentThreadID,
 				HMACEnvelope:    p.AddCommentHMACEnvelope,
+				CanAddComment:   true,
 			}),
 			andonChangeLog(&andonChangeLogProps{
 				changeLog: p.AndonChangelog,

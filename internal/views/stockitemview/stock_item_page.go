@@ -29,7 +29,7 @@ type StockItemPageProps struct {
 
 func StockItemPage(p *StockItemPageProps) g.Node {
 
-	userCanEdit := p.Ctx.User.Permissions.Stock.Admin
+	canUserEdit := p.Ctx.User.Permissions.Stock.Admin
 
 	content := g.Group([]g.Node{
 
@@ -38,7 +38,7 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 
 			h.H3(g.Text(p.StockItem.StockCode)),
 
-			stockItemActions(p.StockItem.StockItemID, userCanEdit),
+			stockItemActions(p.StockItem.StockItemID, canUserEdit),
 		),
 
 		h.Div(
@@ -71,6 +71,7 @@ func StockItemPage(p *StockItemPageProps) g.Node {
 				Comments:        p.StockItemComments,
 				CommentThreadID: p.StockItem.CommentThreadID,
 				HMACEnvelope:    p.AddCommentsHMACEnvelope,
+				CanAddComment:   canUserEdit,
 			}),
 
 			stockItemChangeLog(p.StockItemChanges),
