@@ -28,9 +28,12 @@ func navbar(p *navbarProps) g.Node {
 			avatarMenu(&avatarMenuProps{
 				Ctx: p.ctx,
 			}),
-			moduleMenu(&moduleMenuProps{
-				Ctx: p.ctx,
-			}),
+			g.If(
+				p.ctx.User.UserID != 0,
+				moduleMenu(&moduleMenuProps{
+					Ctx: p.ctx,
+				}),
+			),
 		),
 	)
 }

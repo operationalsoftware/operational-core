@@ -105,6 +105,9 @@ type moduleMenuProps struct {
 }
 
 func moduleMenu(p *moduleMenuProps) g.Node {
+	if p.Ctx.User.UserID == 0 {
+		return nil
+	}
 
 	return h.Div(
 		h.Button(
