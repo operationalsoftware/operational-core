@@ -65,3 +65,7 @@ func Verify() error {
 	}
 	return nil
 }
+
+func IsProduction() bool {
+	return os.Getenv("APP_ENV") == "production"
+}
