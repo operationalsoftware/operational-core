@@ -167,6 +167,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 				Comments:        p.ResourceServiceComments,
 				CommentThreadID: p.ResourceService.CommentThreadID,
 				HMACEnvelope:    p.CommentHMACEnvelope,
+				CanAddComment:   true,
 			}),
 			serviceChangeLog(&serviceChangeLogProps{
 				changeLog: p.ServiceChangelog,

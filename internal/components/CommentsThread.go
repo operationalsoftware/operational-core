@@ -15,6 +15,7 @@ type CommentsThreadProps struct {
 	Comments        []model.Comment
 	CommentThreadID int
 	HMACEnvelope    string
+	CanAddComment   bool
 }
 
 func CommentsThread(p *CommentsThreadProps) g.Node {
@@ -107,70 +108,72 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 			g.Group(comments),
 		),
 
-		h.Form(
-			h.Class("comment-form"),
-			h.Data("thread-id", fmt.Sprintf("%d", p.CommentThreadID)),
-			h.Data("hmac-envelope", p.HMACEnvelope),
-			h.Name("comment-form"),
-			h.Method("POST"),
-			h.EncType("multipart/form-data"),
-			g.Attr("onsubmit", "submitComment(event)"),
-
-			h.Div(
-				h.Class("comment-box"),
-
-				h.Textarea(
-					h.Class("new-comment"),
-					h.Name("Comment"),
-
-					h.Placeholder("Enter Comment"),
-				),
+		g.If(p.CanAddComment,
+			h.Form(
+				h.Class("comment-form"),
+				h.Data("thread-id", fmt.Sprintf("%d", p.CommentThreadID)),
+				h.Data("hmac-envelope", p.HMACEnvelope),
+				h.Name("comment-form"),
+				h.Method("POST"),
+				h.EncType("multipart/form-data"),
+				g.Attr("onsubmit", "submitComment(event)"),
 
 				h.Div(
-					h.Class("file-upload-wrapper"),
+					h.Class("comment-box"),
+
+					h.Textarea(
+						h.Class("new-comment"),
+						h.Name("Comment"),
+
+						h.Placeholder("Enter Comment"),
+					),
 
 					h.Div(
-						h.Class("files"),
-
-						h.Label(
-							h.Class("file-input-label button small"),
-
-							h.Input(
-								h.Class("file-input"),
-								h.Name("Files"),
-								h.Type("file"),
-								h.Multiple(),
-								h.Accept("image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.odt,.ods,.odp"),
-								g.Attr("data-max-files", "10"),
-							),
-
-							Icon(&IconProps{
-								Identifier: "paperclip-plus",
-							}),
-							g.Text("Attach files"),
-						),
+						h.Class("file-upload-wrapper"),
 
 						h.Div(
-							h.ID("selected-files"),
-							h.Class("selected-files"),
+							h.Class("files"),
+
+							h.Label(
+								h.Class("file-input-label button small"),
+
+								h.Input(
+									h.Class("file-input"),
+									h.Name("Files"),
+									h.Type("file"),
+									h.Multiple(),
+									h.Accept("image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.odt,.ods,.odp"),
+									g.Attr("data-max-files", "10"),
+								),
+
+								Icon(&IconProps{
+									Identifier: "paperclip-plus",
+								}),
+								g.Text("Attach files"),
+							),
+
+							h.Div(
+								h.ID("selected-files"),
+								h.Class("selected-files"),
+							),
 						),
 					),
-				),
 
-				h.Div(
-					h.Class("submit-btn"),
-					Button(&ButtonProps{
-						Classes: c.Classes{
-							"add-comment-btn": true,
+					h.Div(
+						h.Class("submit-btn"),
+						Button(&ButtonProps{
+							Classes: c.Classes{
+								"add-comment-btn": true,
+							},
+							ButtonType: "primary",
+							Loading:    true,
 						},
-						ButtonType: "primary",
-						Loading:    true,
-					},
-						g.Attr("type", "submit"),
-						Icon(&IconProps{
-							Identifier: "comment-text-outline",
-						}),
-						g.Text(" Comment"),
+							g.Attr("type", "submit"),
+							Icon(&IconProps{
+								Identifier: "comment-text-outline",
+							}),
+							g.Text(" Comment"),
+						),
 					),
 				),
 			),
