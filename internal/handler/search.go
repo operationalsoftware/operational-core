@@ -31,6 +31,13 @@ func (h *SearchHandler) SearchPage(w http.ResponseWriter, r *http.Request) {
 				return permissions.UserAdmin.Access
 			},
 		},
+		{
+			Name:  "stock-item",
+			Title: "Stock Items",
+			HasPermission: func(permissions model.UserPermissions) bool {
+				return true
+			},
+		},
 		// Add more entities as needed
 	}
 

@@ -165,6 +165,17 @@ func RecentSearches(terms []model.RecentSearch) g.Node {
 func SearchResults(results model.SearchResults, searchTerm string) g.Node {
 	var resultSections []g.Node
 
+	if len(results.StockItems) > 0 {
+		group := []g.Node{
+			h.H3(h.Class("result-type-heading"), g.Text("Stock Item Results")),
+			h.Ul(
+				h.Class("result-group"),
+				g.Group(StockItemResults(results.StockItems, searchTerm)),
+			),
+		}
+		resultSections = append(resultSections, group...)
+	}
+
 	if len(results.Users) > 0 {
 		group := []g.Node{
 			h.H3(h.Class("result-type-heading"), g.Text("User Results")),
@@ -181,6 +192,33 @@ func SearchResults(results model.SearchResults, searchTerm string) g.Node {
 	}
 
 	return g.Group(resultSections)
+}
+
+func StockItemResults(items []model.StockItemSearchResult, searchTerm string) []g.Node {
+	var nodes []g.Node
+
+	for _, item := range items {
+		stockItemURL := fmt.Sprintf("/stock-items/%d", item.StockItemID)
+
+		nodes = append(nodes,
+			h.A(
+				h.Href(stockItemURL),
+				h.Li(
+					h.Class("search-result-item"),
+					h.Div(
+						h.Class("title"),
+						components.Highlight(item.StockCode, searchTerm),
+					),
+					h.Div(
+						h.Strong(g.Text("Description: ")),
+						components.Highlight(item.Description, searchTerm),
+					),
+				),
+			),
+		)
+	}
+
+	return nodes
 }
 
 func UserResults(users []model.UserSearchResult, searchTerm string) []g.Node {

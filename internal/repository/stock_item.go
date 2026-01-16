@@ -342,6 +342,7 @@ func (r *StockItemRepository) SearchStockItems(
 
 	rows, err := db.Query(ctx, `
 		SELECT
+			stock_item_id,
 			stock_code,
 			description,
 			(
@@ -374,7 +375,7 @@ func (r *StockItemRepository) SearchStockItems(
 	var results []model.StockItemSearchResult
 	for rows.Next() {
 		var ur model.StockItemSearchResult
-		if err := rows.Scan(&ur.StockCode, &ur.Description, &ur.Relevance); err != nil {
+		if err := rows.Scan(&ur.StockItemID, &ur.StockCode, &ur.Description, &ur.Relevance); err != nil {
 			return nil, err
 		}
 

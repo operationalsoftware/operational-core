@@ -21,6 +21,7 @@ type BaseSearchResult struct {
 
 type StockItemSearchResult struct {
 	BaseSearchResult
+	StockItemID int
 	StockCode   string
 	Description string
 }
