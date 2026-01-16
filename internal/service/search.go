@@ -13,22 +13,16 @@ import (
 
 type SearchService struct {
 	db            *pgxpool.Pool
-	UserRepo      *repository.UserRepository
 	SearchRepo    *repository.SearchRepository
-	StockItemRepo *repository.StockItemRepository
 }
 
 func NewSearchService(
 	db *pgxpool.Pool,
-	UserRepository *repository.UserRepository,
 	searchRepository *repository.SearchRepository,
-	stockItemRepository *repository.StockItemRepository,
 ) *SearchService {
 	return &SearchService{
-		db:            db,
-		UserRepo:      UserRepository,
-		SearchRepo:    searchRepository,
-		StockItemRepo: stockItemRepository,
+		db:         db,
+		SearchRepo: searchRepository,
 	}
 }
 
@@ -77,7 +71,7 @@ func (s *SearchService) Search(
 	// User Search
 	if len(searchEntities) == 0 || searchEntitiesFilter["user"] {
 		group.run(func() error {
-			users, err := s.UserRepo.SearchUsers(ctx, s.db, searchTerm)
+			users, err := s.SearchRepo.SearchUsers(ctx, s.db, searchTerm)
 			if err != nil {
 				return err
 			}
@@ -99,7 +93,7 @@ func (s *SearchService) Search(
 	// Stock Item Search
 	if len(searchEntities) == 0 || searchEntitiesFilter["stock-item"] {
 		group.run(func() error {
-			stockItems, err := s.StockItemRepo.SearchStockItems(ctx, s.db, searchTerm)
+			stockItems, err := s.SearchRepo.SearchStockItems(ctx, s.db, searchTerm)
 			if err != nil {
 				return err
 			}

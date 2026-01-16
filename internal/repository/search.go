@@ -96,3 +96,121 @@ func (r *SearchRepository) FetchRecentSearches(
 
 	return searches, nil
 }
+
+func (r *SearchRepository) SearchUsers(
+	ctx context.Context,
+	exec db.PGExecutor,
+	searchTerm string,
+) ([]model.UserSearchResult, error) {
+
+	rows, err := exec.Query(ctx, `
+		SELECT
+			user_id,
+			COALESCE(email, '') AS email,
+			COALESCE(username, '') AS username,
+			COALESCE(first_name, '') AS first_name,
+			COALESCE(last_name, '') AS last_name,
+			(
+				CASE WHEN COALESCE(email, '') ILIKE $1 THEN 3
+					WHEN COALESCE(email, '') ILIKE $1 || '%' THEN 2
+					WHEN COALESCE(email, '') ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 3
+				+
+				CASE WHEN COALESCE(username, '') ILIKE $1 THEN 3
+					WHEN COALESCE(username, '') ILIKE $1 || '%' THEN 2
+					WHEN COALESCE(username, '') ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 2
+				+
+				CASE WHEN COALESCE(first_name, '') ILIKE $1 THEN 3
+					WHEN COALESCE(first_name, '') ILIKE $1 || '%' THEN 2
+					WHEN COALESCE(first_name, '') ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 1
+				+
+				CASE WHEN COALESCE(last_name, '') ILIKE $1 THEN 3
+					WHEN COALESCE(last_name, '') ILIKE $1 || '%' THEN 2
+					WHEN COALESCE(last_name, '') ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 1
+			) AS relevance
+		FROM
+			user_view
+		WHERE
+			COALESCE(email, '') ILIKE '%' || $1 || '%'
+		OR	COALESCE(username, '') ILIKE '%' || $1 || '%'
+		OR	COALESCE(first_name, '') ILIKE '%' || $1 || '%'
+		OR	COALESCE(last_name, '') ILIKE '%' || $1 || '%'
+		ORDER BY
+			relevance DESC
+		LIMIT 7
+	`, searchTerm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []model.UserSearchResult
+	for rows.Next() {
+		var ur model.UserSearchResult
+		if err := rows.Scan(&ur.ID, &ur.Email, &ur.Username, &ur.FirstName, &ur.LastName, &ur.Relevance); err != nil {
+			return nil, err
+		}
+
+		results = append(results, ur)
+	}
+
+	return results, nil
+}
+
+func (r *SearchRepository) SearchStockItems(
+	ctx context.Context,
+	exec db.PGExecutor,
+	searchTerm string,
+) ([]model.StockItemSearchResult, error) {
+
+	rows, err := exec.Query(ctx, `
+		SELECT
+			stock_item_id,
+			stock_code,
+			description,
+			(
+				CASE WHEN stock_code ILIKE $1 THEN 3
+					WHEN stock_code ILIKE $1 || '%' THEN 2
+					WHEN stock_code ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 3
+				+
+				CASE WHEN description ILIKE $1 THEN 3
+					WHEN description ILIKE $1 || '%' THEN 2
+					WHEN description ILIKE '%' || $1 || '%' THEN 1
+					ELSE 0
+				END * 2
+			) AS relevance
+		FROM
+			stock_item
+		WHERE
+			stock_code ILIKE '%' || $1 || '%'
+		OR	description ILIKE '%' || $1 || '%'
+		ORDER BY
+			relevance DESC
+		LIMIT 7
+	`, searchTerm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []model.StockItemSearchResult
+	for rows.Next() {
+		var ur model.StockItemSearchResult
+		if err := rows.Scan(&ur.StockItemID, &ur.StockCode, &ur.Description, &ur.Relevance); err != nil {
+			return nil, err
+		}
+
+		results = append(results, ur)
+	}
+
+	return results, nil
+}

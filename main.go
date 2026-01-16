@@ -111,7 +111,7 @@ func main() {
 		PDFService:              *pdfService,
 		PrintNodeService:        *printNodeService,
 		ResourceService:         *service.NewResourceService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),
-		SearchService:           *service.NewSearchService(pgPool, userRepository, searchRepository, stockItemRepository),
+		SearchService:           *service.NewSearchService(pgPool, searchRepository),
 		ServicesService:         *service.NewServicesService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),
 		StockItemService:        *service.NewStockItemService(pgPool, swiftConn, galleryRepository, stockItemRepository, commentRepository),
 		StockTransactionService: *service.NewStockTransactionService(pgPool, stockTrxRepository),

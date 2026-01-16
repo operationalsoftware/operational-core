@@ -8,7 +8,6 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type StockItemRepository struct{}
@@ -332,57 +331,6 @@ VALUES ($1, $2, $3, $4)
 	}
 
 	return nil
-}
-
-func (r *StockItemRepository) SearchStockItems(
-	ctx context.Context,
-	db *pgxpool.Pool,
-	searchTerm string,
-) ([]model.StockItemSearchResult, error) {
-
-	rows, err := db.Query(ctx, `
-		SELECT
-			stock_item_id,
-			stock_code,
-			description,
-			(
-				CASE WHEN stock_code ILIKE $1 THEN 3
-					WHEN stock_code ILIKE $1 || '%' THEN 2
-					WHEN stock_code ILIKE '%' || $1 || '%' THEN 1
-					ELSE 0
-				END * 3
-				+
-				CASE WHEN description ILIKE $1 THEN 3
-					WHEN description ILIKE $1 || '%' THEN 2
-					WHEN description ILIKE '%' || $1 || '%' THEN 1
-					ELSE 0
-				END * 2
-			) AS relevance
-		FROM
-			stock_item
-		WHERE
-			stock_code ILIKE '%' || $1 || '%'
-		OR	description ILIKE '%' || $1 || '%'
-		ORDER BY
-			relevance DESC
-		LIMIT 7
-	`, searchTerm)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var results []model.StockItemSearchResult
-	for rows.Next() {
-		var ur model.StockItemSearchResult
-		if err := rows.Scan(&ur.StockItemID, &ur.StockCode, &ur.Description, &ur.Relevance); err != nil {
-			return nil, err
-		}
-
-		results = append(results, ur)
-	}
-
-	return results, nil
 }
 
 func (r *StockItemRepository) GetStockCodes(
