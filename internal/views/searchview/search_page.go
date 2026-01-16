@@ -16,11 +16,12 @@ import (
 )
 
 type SearchPageProps struct {
-	Ctx             reqcontext.ReqContext
-	SearchTerm      string
-	SearchEntities  []model.SearchEntity
-	Results         model.SearchResults
-	UserPermissions model.UserPermissions
+	Ctx              reqcontext.ReqContext
+	SearchTerm       string
+	SearchEntities   []model.SearchEntity
+	SelectedEntities []string
+	Results          model.SearchResults
+	UserPermissions  model.UserPermissions
 }
 
 func SearchPage(p SearchPageProps) g.Node {
@@ -55,7 +56,7 @@ func SearchPage(p SearchPageProps) g.Node {
 				h.Div(
 					h.Class("filters"),
 
-					searchCheckboxes(p.SearchEntities),
+					searchCheckboxes(p.SearchEntities, p.SelectedEntities),
 				),
 			),
 
@@ -65,11 +66,11 @@ func SearchPage(p SearchPageProps) g.Node {
 					h.Div(
 						h.ID("recent-searches"),
 
-						RecentSearches(p.Results.RecentSearches),
+						RecentSearches(p.Results.RecentSearches, p.SearchEntities),
 					),
 					h.Div(
 						h.Class("search-results"),
-						SearchResults(p.Results, p.SearchTerm),
+						SearchResults(p.Results, p.SearchTerm, p.UserPermissions),
 					),
 				}),
 			),
@@ -96,16 +97,12 @@ func SearchPage(p SearchPageProps) g.Node {
 	})
 }
 
-func searchCheckboxes(searchEntities []model.SearchEntity) g.Node {
-	// Getting entity names
-	entityNames := make([]string, 0, len(searchEntities))
-	for _, e := range searchEntities {
-		entityNames = append(entityNames, e.Name)
-	}
-
+func searchCheckboxes(
+	searchEntities []model.SearchEntity,
+	selectedEntities []string,
+) g.Node {
 	var entityCheckboxes []g.Node
 	for _, entity := range searchEntities {
-
 		c := cases.Title(language.English)
 		entityTitle := c.String(entity.Title)
 
@@ -116,7 +113,7 @@ func searchCheckboxes(searchEntities []model.SearchEntity) g.Node {
 					h.Value(entity.Name),
 					h.Name("E"),
 					h.Class("filter-checkbox"),
-					g.If(arrayutil.Includes(entityNames, entity.Name),
+					g.If(arrayutil.Includes(selectedEntities, entity.Name),
 						g.Attr("checked", "checked")),
 				),
 				g.Text(entityTitle),
@@ -128,9 +125,17 @@ func searchCheckboxes(searchEntities []model.SearchEntity) g.Node {
 }
 
 // Recent Searches Section
-func RecentSearches(terms []model.RecentSearch) g.Node {
+func RecentSearches(
+	terms []model.RecentSearch,
+	searchEntities []model.SearchEntity,
+) g.Node {
 	if len(terms) == 0 {
 		return g.Group(nil)
+	}
+
+	allowedEntityMap := make(map[string]struct{}, len(searchEntities))
+	for _, entity := range searchEntities {
+		allowedEntityMap[entity.Name] = struct{}{}
 	}
 
 	var items []g.Node
@@ -138,6 +143,9 @@ func RecentSearches(terms []model.RecentSearch) g.Node {
 		url := fmt.Sprintf("/search?Q=%s", term.SearchTerm)
 
 		for _, entity := range term.SearchEntities {
+			if _, ok := allowedEntityMap[entity]; !ok {
+				continue
+			}
 			url += fmt.Sprintf("&E=%s", entity)
 		}
 
@@ -162,7 +170,7 @@ func RecentSearches(terms []model.RecentSearch) g.Node {
 	)
 }
 
-func SearchResults(results model.SearchResults, searchTerm string) g.Node {
+func SearchResults(results model.SearchResults, searchTerm string, permissions model.UserPermissions) g.Node {
 	var resultSections []g.Node
 
 	if len(results.StockItems) > 0 {
@@ -176,7 +184,7 @@ func SearchResults(results model.SearchResults, searchTerm string) g.Node {
 		resultSections = append(resultSections, group...)
 	}
 
-	if len(results.Users) > 0 {
+	if permissions.UserAdmin.Access && len(results.Users) > 0 {
 		group := []g.Node{
 			h.H3(h.Class("result-type-heading"), g.Text("User Results")),
 			h.Ul(
