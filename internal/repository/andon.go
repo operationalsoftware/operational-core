@@ -122,6 +122,8 @@ SELECT
 	is_open,
 	status,
 	(
+		require_acknowledgement = true
+		AND
 		is_cancelled = false
 		AND
 		is_acknowledged = false
@@ -549,24 +551,33 @@ func (r *AndonRepository) AcknowledgeAndon(
 	}
 
 	andonUpdateQuery, andonUpdateParams, err := db.BindNamed(`
-UPDATE 
+UPDATE
 	andon
-SET 
+SET
 	acknowledged_by = :user_id,
 	acknowledged_at = :now,
 	last_updated = :now
+FROM
+	andon_issue
 WHERE
-	andon_id = :andon_id
+	andon.andon_issue_id = andon_issue.andon_issue_id
+	AND andon_issue.require_acknowledgement = true
+	AND andon.acknowledged_at IS NULL
+	AND andon.cancelled_at IS NULL
+	AND andon.andon_id = :andon_id
 `, namedParams)
 	if err != nil {
 		return fmt.Errorf("error binding andon update params: %v", err)
 	}
-	_, err = exec.Exec(
+	commandTag, err := exec.Exec(
 		ctx, andonUpdateQuery,
 		andonUpdateParams...,
 	)
 	if err != nil {
 		return err
+	}
+	if commandTag.RowsAffected() == 0 {
+		return fmt.Errorf("andon cannot be acknowledged")
 	}
 
 	changelogQuery, changelogParams, err := db.BindNamed(`

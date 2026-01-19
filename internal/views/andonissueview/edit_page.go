@@ -175,6 +175,18 @@ func editForm(p *editFormProps) g.Node {
 		severityHelperType = components.InputHelperTypeError
 	}
 
+	requireAckLabel := "Require Acknowledgement"
+	requireAckKey := "RequireAcknowledgement"
+	requireAckValue := p.values.Get(requireAckKey)
+	requireAckChecked := false
+	if p.isSubmission {
+		requireAckChecked = requireAckValue == "true"
+	} else if requireAckValue != "" {
+		requireAckChecked = requireAckValue == "true"
+	} else {
+		requireAckChecked = andonIssue.RequireAcknowledgement
+	}
+
 	isArchivedLabel := "Is Archived?"
 	isArchivedKey := "IsArchived"
 	isArchivedValue := false
@@ -280,6 +292,15 @@ func editForm(p *editFormProps) g.Node {
 					Type:  severityHelperType,
 				}),
 			),
+		),
+
+		h.Div(
+			components.Checkbox(&components.CheckboxProps{
+				Name:    requireAckKey,
+				Label:   requireAckLabel,
+				Value:   "true",
+				Checked: requireAckChecked,
+			}),
 		),
 
 		h.Div(

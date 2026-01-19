@@ -442,6 +442,11 @@ func (h *AndonHandler) UpdateAndon(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Andon not found", http.StatusNotFound)
 			return
 		}
+
+		if andonAction == "acknowledge" && !andon.CanUserAcknowledge {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
 	}
 
 	err := h.andonService.UpdateAndon(

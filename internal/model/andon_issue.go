@@ -22,16 +22,17 @@ var AndonSeverities = []AndonSeverity{
 }
 
 type AndonIssue struct {
-	AndonIssueID     int
-	IssueName        string   `sortable:"true"`
-	NamePath         []string `sortable:"true"`
-	IsArchived       bool     `sortable:"true"`
-	ChildrenCount    int      `sortable:"true"`
-	Depth            int
-	ParentID         *int
-	AssignedTeam     int
-	AssignedTeamName string        `sortable:"true"`
-	Severity         AndonSeverity `sortable:"true"`
+	AndonIssueID           int
+	IssueName              string   `sortable:"true"`
+	NamePath               []string `sortable:"true"`
+	IsArchived             bool     `sortable:"true"`
+	ChildrenCount          int      `sortable:"true"`
+	Depth                  int
+	ParentID               *int
+	AssignedTeam           int
+	AssignedTeamName       string        `sortable:"true"`
+	Severity               AndonSeverity `sortable:"true"`
+	RequireAcknowledgement bool
 
 	CreatedAt         time.Time `sortable:"true"`
 	CreatedBy         int
@@ -42,18 +43,20 @@ type AndonIssue struct {
 }
 
 type NewAndonIssue struct {
-	IssueName    string
-	ParentID     *int
-	AssignedTeam int
-	Severity     AndonSeverity
+	IssueName              string
+	ParentID               *int
+	AssignedTeam           int
+	Severity               AndonSeverity
+	RequireAcknowledgement bool
 }
 
 type AndonIssueUpdate struct {
-	IssueName    string
-	ParentID     *int
-	IsArchived   bool
-	AssignedTeam int
-	Severity     AndonSeverity
+	IssueName              string
+	ParentID               *int
+	IsArchived             bool
+	AssignedTeam           int
+	Severity               AndonSeverity
+	RequireAcknowledgement bool
 }
 
 type AndonIssueGroupUpdate struct {
@@ -70,17 +73,18 @@ type ListAndonIssuesQuery struct {
 }
 
 type AndonIssueNode struct {
-	AndonIssueID     int
-	IssueName        string   `sortable:"true"`
-	NamePath         []string `sortable:"true"`
-	IsArchived       bool     `sortable:"true"`
-	ChildrenCount    int      `sortable:"true"`
-	Depth            int
-	ParentID         *int
-	AssignedTeam     *int
-	AssignedTeamName *string        `sortable:"true"`
-	Severity         *AndonSeverity `sortable:"true"`
-	DownDepth        int
+	AndonIssueID           int
+	IssueName              string   `sortable:"true"`
+	NamePath               []string `sortable:"true"`
+	IsArchived             bool     `sortable:"true"`
+	ChildrenCount          int      `sortable:"true"`
+	Depth                  int
+	ParentID               *int
+	AssignedTeam           *int
+	AssignedTeamName       *string        `sortable:"true"`
+	Severity               *AndonSeverity `sortable:"true"`
+	DownDepth              int
+	RequireAcknowledgement bool
 
 	IsGroup bool
 

@@ -66,6 +66,14 @@ func AndonIssuePage(p *AndonIssuePageProps) g.Node {
 					),
 
 					h.Span(
+						h.Strong(g.Text("Requires Acknowledgement?")),
+					),
+					h.Span(
+						g.If(andonIssue.RequireAcknowledgement, g.Text("Yes")),
+						g.If(!andonIssue.RequireAcknowledgement, g.Text("No")),
+					),
+
+					h.Span(
 						h.Strong(g.Text("Is Archived?")),
 					),
 					h.Span(

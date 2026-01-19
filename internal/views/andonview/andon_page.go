@@ -129,7 +129,7 @@ func andonActions(p *andonActionsProps) g.Node {
 			showText: true,
 			returnTo: p.returnTo,
 		})),
-		g.If(andon.CanUserResolve, resolveButton(&resolveButtonProps{
+		g.If(andon.CanUserResolve && !andon.CanUserAcknowledge, resolveButton(&resolveButtonProps{
 			andonID:  andon.AndonID,
 			showText: true,
 			returnTo: p.returnTo,

@@ -211,10 +211,11 @@ func (h *AndonIssueHandler) Add(w http.ResponseWriter, r *http.Request) {
 	if err := h.andonIssueService.Create(
 		r.Context(),
 		model.NewAndonIssue{
-			IssueName:    fd.IssueName,
-			ParentID:     fd.ParentID,
-			AssignedTeam: fd.AssignedTeam,
-			Severity:     fd.Severity,
+			IssueName:              fd.IssueName,
+			ParentID:               fd.ParentID,
+			AssignedTeam:           fd.AssignedTeam,
+			Severity:               fd.Severity,
+			RequireAcknowledgement: fd.RequireAcknowledgement,
 		},
 		ctx.User.UserID,
 	); err != nil {
@@ -304,10 +305,11 @@ func (h *AndonIssueHandler) AddGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 type addAndonIssueFormData struct {
-	IssueName    string
-	ParentID     *int
-	AssignedTeam int
-	Severity     model.AndonSeverity
+	IssueName              string
+	ParentID               *int
+	AssignedTeam           int
+	Severity               model.AndonSeverity
+	RequireAcknowledgement bool
 }
 
 func (fd *addAndonIssueFormData) normalise() {
@@ -465,11 +467,12 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		andonIssueID,
 		model.AndonIssueUpdate{
-			IssueName:    fd.IssueName,
-			ParentID:     fd.ParentID,
-			IsArchived:   fd.IsArchived,
-			AssignedTeam: fd.AssignedTeam,
-			Severity:     fd.Severity,
+			IssueName:              fd.IssueName,
+			ParentID:               fd.ParentID,
+			IsArchived:             fd.IsArchived,
+			AssignedTeam:           fd.AssignedTeam,
+			Severity:               fd.Severity,
+			RequireAcknowledgement: fd.RequireAcknowledgement,
 		},
 		ctx.User.UserID,
 	)
@@ -484,11 +487,12 @@ func (h *AndonIssueHandler) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 type editAndonIssueFormData struct {
-	IssueName    string
-	IsArchived   bool
-	ParentID     *int
-	AssignedTeam int
-	Severity     model.AndonSeverity
+	IssueName              string
+	IsArchived             bool
+	ParentID               *int
+	AssignedTeam           int
+	Severity               model.AndonSeverity
+	RequireAcknowledgement bool
 }
 
 func (fd *editAndonIssueFormData) normalise() {
@@ -605,8 +609,8 @@ func (h *AndonIssueHandler) EditGroup(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		andonIssueGroupID,
 		model.AndonIssueGroupUpdate{
-			IssueName: fd.IssueName,
-			ParentID:  fd.ParentID,
+			IssueName:  fd.IssueName,
+			ParentID:   fd.ParentID,
 			IsArchived: fd.IsArchived,
 		},
 		ctx.User.UserID,

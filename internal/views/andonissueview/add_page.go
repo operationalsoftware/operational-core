@@ -132,6 +132,18 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 		severityHelperType = components.InputHelperTypeError
 	}
 
+	requireAckLabel := "Require Acknowledgement"
+	requireAckKey := "RequireAcknowledgement"
+	requireAckValue := p.values.Get(requireAckKey)
+	requireAckChecked := false
+	if p.isSubmission {
+		requireAckChecked = requireAckValue == "true"
+	} else if requireAckValue == "" {
+		requireAckChecked = true
+	} else {
+		requireAckChecked = requireAckValue == "true"
+	}
+
 	teamSelectOptions := []g.Node{
 		h.Option(
 			h.Value(""),
@@ -236,6 +248,15 @@ func addIssueForm(p *addIssueFormProps) g.Node {
 					Type:  severityHelperType,
 				}),
 			),
+		),
+
+		h.Div(
+			components.Checkbox(&components.CheckboxProps{
+				Name:    requireAckKey,
+				Label:   requireAckLabel,
+				Value:   "true",
+				Checked: requireAckChecked,
+			}),
 		),
 
 		h.Button(
