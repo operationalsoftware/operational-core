@@ -28,6 +28,9 @@ func navbar(p *navbarProps) g.Node {
 			avatarMenu(&avatarMenuProps{
 				Ctx: p.ctx,
 			}),
+			notificationsMenu(&notificationsMenuProps{
+				Ctx: p.ctx,
+			}),
 			moduleMenu(&moduleMenuProps{
 				Ctx: p.ctx,
 			}),

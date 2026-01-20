@@ -13,6 +13,7 @@ func addNotificationRoutes(
 	notificationHandler := handler.NewNotificationHandler(notificationService)
 
 	mux.HandleFunc("GET /notifications", notificationHandler.NotificationsPage)
+	mux.HandleFunc("GET /notifications/tray", notificationHandler.NotificationsTray)
 	mux.HandleFunc("POST /notifications/{id}/read", notificationHandler.MarkRead)
 	mux.HandleFunc("POST /notifications/{id}/unread", notificationHandler.MarkUnread)
 	mux.HandleFunc("POST /notifications/mark-all-read", notificationHandler.MarkAllRead)

@@ -261,7 +261,7 @@ func notificationGroup(group model.NotificationGroup, p *NotificationPageProps) 
 }
 
 func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.Node {
-	iconIdentifier := notificationIconIdentifier(item)
+	iconIdentifier := components.NotificationIconIdentifier(item)
 	titleClasses := c.Classes{
 		"notification-title": true,
 	}
@@ -284,7 +284,7 @@ func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.N
 		},
 		h.Span(h.Class("notification-unread")),
 		h.Div(
-			notificationIconClasses(item),
+			components.NotificationIconClasses(item),
 			components.Icon(&components.IconProps{Identifier: iconIdentifier}),
 		),
 		h.Div(
@@ -434,39 +434,6 @@ func notificationsListURL(p *NotificationPageProps) string {
 		return "/notifications"
 	}
 	return "/notifications?" + query.Encode()
-}
-
-func notificationIconIdentifier(item model.NotificationItem) string {
-	switch model.NormalizeNotificationReasonType(item.ReasonType) {
-	case model.NotificationReasonDanger:
-		return "close"
-	case model.NotificationReasonWarning:
-		return "exclamation"
-	case model.NotificationReasonSuccess:
-		return "check"
-	case model.NotificationReasonInfo:
-		return "comment-text-outline"
-	}
-	return "comment-text-outline"
-}
-
-func notificationIconClasses(item model.NotificationItem) c.Classes {
-	classes := c.Classes{
-		"notification-icon": true,
-	}
-
-	switch model.NormalizeNotificationReasonType(item.ReasonType) {
-	case model.NotificationReasonInfo:
-		classes["reason-info"] = true
-	case model.NotificationReasonSuccess:
-		classes["reason-success"] = true
-	case model.NotificationReasonWarning:
-		classes["reason-warning"] = true
-	case model.NotificationReasonDanger:
-		classes["reason-danger"] = true
-	}
-
-	return classes
 }
 
 func notificationsEmptyState(activeFilter string) g.Node {

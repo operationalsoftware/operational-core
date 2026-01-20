@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"app/internal/components"
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/notificationview"
@@ -55,6 +56,41 @@ func (h *NotificationHandler) NotificationsPage(w http.ResponseWriter, r *http.R
 		Page:         normalizedQuery.Page,
 		PageSize:     normalizedQuery.PageSize,
 		TotalRecords: notificationTotalRecords(counts, normalizedQuery.Filter),
+	}).Render(w)
+}
+
+func (h *NotificationHandler) NotificationsTray(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if ctx.User.UserID == 0 {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	const trayPageSize = 6
+	notifications, counts, _, err := h.notificationService.ListNotifications(
+		r.Context(),
+		ctx.User.UserID,
+		model.ListNotificationsQuery{
+			Filter:   "unread",
+			Page:     1,
+			PageSize: trayPageSize,
+		},
+	)
+	if err != nil {
+		log.Println("error loading notifications tray:", err)
+		http.Error(w, "Error loading notifications", http.StatusInternalServerError)
+		return
+	}
+
+	items := make([]model.NotificationItem, 0, len(notifications))
+	for _, notification := range notifications {
+		items = append(items, notificationItem(notification))
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_ = components.NotificationsTray(components.NotificationsTrayProps{
+		Items:       items,
+		UnreadCount: counts.Unread,
 	}).Render(w)
 }
 
