@@ -19,7 +19,6 @@ type PDFPrintLog struct {
 	TemplateName       string
 	InputData          string
 	RequirementName    string
-	PrinterID          int
 	PrinterName        string
 	PrintNodeJobID     int
 	Status             string
@@ -34,7 +33,6 @@ type PDFPrintLog struct {
 type PrintRequirement struct {
 	PrintRequirementID int
 	RequirementName    string
-	PrinterID          int
 	PrinterName        string
 	AssignedBy         int
 	AssignedAt         time.Time

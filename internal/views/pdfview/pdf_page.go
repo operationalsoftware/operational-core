@@ -224,8 +224,8 @@ func printLogsSection(
 			status = "pending"
 		}
 		printerLabel := log.PrinterName
-		if printerLabel == "" && log.PrinterID != 0 {
-			printerLabel = fmt.Sprintf("Printer %d", log.PrinterID)
+		if printerLabel == "" {
+			printerLabel = "-"
 		}
 		documentCell := documentLinkCell(log.PDFTitle, log.FileURL)
 		rows = append(rows, components.TableRow{
@@ -249,10 +249,10 @@ func printLogsSection(
 						),
 						h.Select(
 							h.Class("print-log-printer"),
-							h.Name("PrinterID"),
+							h.Name("PrinterName"),
 							h.Option(h.Value(""), g.Text("Use logged printer")),
 							g.Group(g.Map(printers, func(pr printnode.Printer) g.Node {
-								return h.Option(h.Value(fmt.Sprintf("%d", pr.ID)), g.Text(pr.Name))
+								return h.Option(h.Value(pr.Name), g.Text(pr.Name))
 							})),
 						),
 						h.Button(

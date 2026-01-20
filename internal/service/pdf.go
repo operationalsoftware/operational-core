@@ -224,7 +224,6 @@ func (s *PDFService) PrintAndLog(
 	ctx context.Context,
 	templateName string,
 	inputData string,
-	printerID int,
 	printerName string,
 	requirementName string,
 	userID int,
@@ -232,8 +231,9 @@ func (s *PDFService) PrintAndLog(
 	if s.printNode == nil {
 		return model.PDFPrintLog{}, fmt.Errorf("printnode service not configured")
 	}
-	if printerID == 0 {
-		return model.PDFPrintLog{}, fmt.Errorf("printer id is required")
+	printerName = strings.TrimSpace(printerName)
+	if printerName == "" {
+		return model.PDFPrintLog{}, fmt.Errorf("printer name is required")
 	}
 
 	pdfBytes, title, err := s.GenerateFromJSON(ctx, templateName, []byte(inputData))
@@ -246,9 +246,30 @@ func (s *PDFService) PrintAndLog(
 		return model.PDFPrintLog{}, err
 	}
 
-	jobID, err := s.printNode.SubmitPDF(ctx, printerID, templateName, pdfBytes)
+	jobID := 0
 	status := "success"
 	errorMessage := ""
+
+	printerID := 0
+	printers, err := s.printNode.Printers(ctx)
+	if err != nil {
+		status = "error"
+		errorMessage = err.Error()
+	}
+
+	for _, pr := range printers {
+		if strings.EqualFold(pr.Name, printerName) {
+			printerID = pr.ID
+			break
+		}
+	}
+	if printerID == 0 {
+		err = fmt.Errorf("printer not found: %s", printerName)
+		status = "error"
+		errorMessage = err.Error()
+	}
+
+	jobID, err = s.printNode.SubmitPDF(ctx, printerID, templateName, pdfBytes)
 	if err != nil {
 		status = "error"
 		errorMessage = err.Error()
@@ -256,7 +277,7 @@ func (s *PDFService) PrintAndLog(
 
 	printLogID := 0
 	if s.db != nil && s.pdfRepo != nil {
-		id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, genLog.PDFGenerationLogID, templateName, requirementName, printerID, printerName, jobID, status, errorMessage, userID)
+		id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, genLog.PDFGenerationLogID, templateName, requirementName, printerName, jobID, status, errorMessage, userID)
 		if insertErr == nil {
 			printLogID = id
 		}
@@ -268,7 +289,6 @@ func (s *PDFService) PrintAndLog(
 		TemplateName:       templateName,
 		InputData:          inputData,
 		RequirementName:    requirementName,
-		PrinterID:          printerID,
 		PrinterName:        printerName,
 		PrintNodeJobID:     jobID,
 		Status:             status,
@@ -281,7 +301,7 @@ func (s *PDFService) PrintAndLog(
 	}, err
 }
 
-func (s *PDFService) Reprint(ctx context.Context, printLogID int, overridePrinterID int, overridePrinterName string, userID int) (model.PDFPrintLog, error) {
+func (s *PDFService) Reprint(ctx context.Context, printLogID int, overridePrinterName string, userID int) (model.PDFPrintLog, error) {
 	var existing model.PDFPrintLog
 	existing, err := s.pdfRepo.GetPrintLog(ctx, s.db, printLogID)
 	if err != nil {
@@ -293,14 +313,12 @@ func (s *PDFService) Reprint(ctx context.Context, printLogID int, overridePrinte
 		return model.PDFPrintLog{}, err
 	}
 
-	printerID := existing.PrinterID
 	printerName := existing.PrinterName
-	if overridePrinterID != 0 {
-		printerID = overridePrinterID
+	if strings.TrimSpace(overridePrinterName) != "" {
 		printerName = overridePrinterName
 	}
 
-	return s.PrintAndLog(ctx, logEntry.TemplateName, logEntry.InputData, printerID, printerName, existing.RequirementName, userID)
+	return s.PrintAndLog(ctx, logEntry.TemplateName, logEntry.InputData, printerName, existing.RequirementName, userID)
 }
 
 func (s *PDFService) ListRecentPrintLogs(ctx context.Context, limit int) ([]model.PDFPrintLog, error) {
@@ -350,9 +368,9 @@ func (s *PDFService) SavePrintRequirement(ctx context.Context, pr model.PrintReq
 	if pr.RequirementName == "" {
 		return model.PrintRequirement{}, fmt.Errorf("requirement name is required")
 	}
-
-	if pr.PrinterID == 0 {
-		pr.PrinterName = ""
+	pr.PrinterName = strings.TrimSpace(pr.PrinterName)
+	if pr.PrinterName == "" {
+		return model.PrintRequirement{}, fmt.Errorf("printer name is required")
 	}
 
 	assignments, err := s.pdfRepo.ListPrintRequirements(ctx, s.db)
@@ -361,10 +379,10 @@ func (s *PDFService) SavePrintRequirement(ctx context.Context, pr model.PrintReq
 	}
 
 	for _, a := range assignments {
-		if pr.PrinterID == 0 {
+		if pr.PrinterName == "" {
 			break
 		}
-		if a.PrinterID == pr.PrinterID && !strings.EqualFold(a.RequirementName, pr.RequirementName) {
+		if strings.EqualFold(a.PrinterName, pr.PrinterName) && !strings.EqualFold(a.RequirementName, pr.RequirementName) {
 			return model.PrintRequirement{}, fmt.Errorf("printer already assigned to another requirement")
 		}
 	}
@@ -380,18 +398,18 @@ func (s *PDFService) ListAvailablePrinters(ctx context.Context, currentReq strin
 	if err != nil {
 		return nil, err
 	}
-	assigned := map[int]struct{}{}
+	assigned := map[string]struct{}{}
 	for _, a := range assignments {
 		if strings.EqualFold(a.RequirementName, currentReq) {
 			continue
 		}
-		if a.PrinterID != 0 {
-			assigned[a.PrinterID] = struct{}{}
+		if name := strings.TrimSpace(a.PrinterName); name != "" {
+			assigned[strings.ToLower(name)] = struct{}{}
 		}
 	}
 	available := make([]printnode.Printer, 0, len(printers))
 	for _, p := range printers {
-		if _, taken := assigned[p.ID]; taken {
+		if _, taken := assigned[strings.ToLower(strings.TrimSpace(p.Name))]; taken {
 			continue
 		}
 		available = append(available, p)

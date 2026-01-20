@@ -178,7 +178,6 @@ func (r *PDFRepository) InsertPrintLog(
 	genLogID int,
 	templateName string,
 	requirementName string,
-	printerID int,
 	printerName string,
 	jobID int,
 	status string,
@@ -191,15 +190,14 @@ INSERT INTO pdf_print_log (
 	pdf_generation_log_id,
 	template_name,
 	requirement_name,
-	printer_id,
 	printer_name,
 	printnode_job_id,
 	status,
 	error_message,
 	created_by
-) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
 RETURNING pdf_print_log_id
-`, genLogID, templateName, requirementName, printerID, printerName, jobID, status, errorMessage, userID).Scan(&id)
+`, genLogID, templateName, requirementName, printerName, jobID, status, errorMessage, userID).Scan(&id)
 	return id, err
 }
 
@@ -215,7 +213,6 @@ SELECT
 	pdf_generation_log_id,
 	template_name,
 	requirement_name,
-	printer_id,
 	printer_name,
 	printnode_job_id,
 	status,
@@ -229,7 +226,6 @@ WHERE pdf_print_log_id = $1
 		&log.PDFGenerationLogID,
 		&log.TemplateName,
 		&log.RequirementName,
-		&log.PrinterID,
 		&log.PrinterName,
 		&log.PrintNodeJobID,
 		&log.Status,
@@ -251,7 +247,6 @@ SELECT
 	pl.pdf_generation_log_id,
 	pl.template_name,
 	pl.requirement_name,
-	pl.printer_id,
 	pl.printer_name,
 	pl.printnode_job_id,
 	pl.status,
@@ -279,7 +274,6 @@ LIMIT $1
 			&log.PDFGenerationLogID,
 			&log.TemplateName,
 			&log.RequirementName,
-			&log.PrinterID,
 			&log.PrinterName,
 			&log.PrintNodeJobID,
 			&log.Status,
@@ -306,8 +300,7 @@ func (r *PDFRepository) ListPrintRequirements(
 SELECT
 	print_requirement_id,
 	requirement_name,
-	COALESCE(printer_id, 0) AS printer_id,
-	COALESCE(printer_name, '') AS printer_name,
+	printer_name,
 	COALESCE(assigned_by, 0) AS assigned_by,
 	COALESCE(assigned_at, NOW()) AS assigned_at
 FROM print_requirement
@@ -324,7 +317,6 @@ ORDER BY requirement_name ASC
 		if err := rows.Scan(
 			&pr.PrintRequirementID,
 			&pr.RequirementName,
-			&pr.PrinterID,
 			&pr.PrinterName,
 			&pr.AssignedBy,
 			&pr.AssignedAt,
@@ -344,20 +336,18 @@ func (r *PDFRepository) UpsertPrintRequirement(
 	err := exec.QueryRow(ctx, `
 INSERT INTO print_requirement (
 	requirement_name,
-	printer_id,
 	printer_name,
 	assigned_by
-) VALUES ($1,$2,$3,$4)
+) VALUES ($1,$2,$3)
 ON CONFLICT (requirement_name)
 DO UPDATE SET
-	printer_id = EXCLUDED.printer_id,
 	printer_name = EXCLUDED.printer_name,
 	assigned_by = EXCLUDED.assigned_by,
 	assigned_at = NOW()
 RETURNING
 	print_requirement_id,
 	assigned_at
-`, req.RequirementName, req.PrinterID, req.PrinterName, req.AssignedBy).Scan(
+`, req.RequirementName, req.PrinterName, req.AssignedBy).Scan(
 		&req.PrintRequirementID,
 		&req.AssignedAt,
 	)

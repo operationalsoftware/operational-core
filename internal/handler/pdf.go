@@ -112,23 +112,10 @@ func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	printLogIDStr := r.FormValue("PrintLogID")
-	printerIDStr := r.FormValue("PrinterID")
 	printerName := r.FormValue("PrinterName")
 	requirementName := r.FormValue("RequirementName")
 	templateName := r.FormValue("TemplateName")
 	inputData := r.FormValue("InputData")
-
-	printerID, _ := strconv.Atoi(printerIDStr)
-	if printerID != 0 && strings.TrimSpace(printerName) == "" {
-		if printers, err := h.printNodeService.Printers(r.Context()); err == nil {
-			for _, pr := range printers {
-				if pr.ID == printerID {
-					printerName = pr.Name
-					break
-				}
-			}
-		}
-	}
 
 	var err error
 	if printLogIDStr != "" {
@@ -137,13 +124,13 @@ func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid PrintLogID", http.StatusBadRequest)
 			return
 		}
-		_, err = h.pdfService.Reprint(r.Context(), printLogID, printerID, printerName, ctx.User.UserID)
+		_, err = h.pdfService.Reprint(r.Context(), printLogID, printerName, ctx.User.UserID)
 	} else {
-		if templateName == "" || inputData == "" || printerID == 0 {
-			http.Error(w, "TemplateName, InputData, and PrinterID are required", http.StatusBadRequest)
+		if templateName == "" || inputData == "" || strings.TrimSpace(printerName) == "" {
+			http.Error(w, "TemplateName, InputData, and PrinterName are required", http.StatusBadRequest)
 			return
 		}
-		_, err = h.pdfService.PrintAndLog(r.Context(), templateName, inputData, printerID, printerName, requirementName, ctx.User.UserID)
+		_, err = h.pdfService.PrintAndLog(r.Context(), templateName, inputData, printerName, requirementName, ctx.User.UserID)
 	}
 
 	if err != nil {
@@ -261,6 +248,7 @@ func (h *PDFHandler) PrinterAssignmentEditPage(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	ctx = reqcontext.GetContext(r)
 	printNodeStatus, err := h.printNodeService.Status(r.Context())
 	if err != nil {
 		log.Println("An error occurred checking PrintNode status:", err)
@@ -289,7 +277,7 @@ func (h *PDFHandler) PrinterAssignmentEditPage(w http.ResponseWriter, r *http.Re
 		Ctx:            ctx,
 		Requirement:    reqName,
 		Printers:       availablePrinters,
-		SelectedID:     current.PrinterID,
+		SelectedName:   current.PrinterName,
 		PrintNodeReady: printNodeStatus.Configured,
 	}).Render(w)
 }
@@ -308,29 +296,19 @@ func (h *PDFHandler) PrinterAssignmentsSave(w http.ResponseWriter, r *http.Reque
 	}
 
 	requirement := r.FormValue("RequirementName")
-	printerIDStr := r.FormValue("PrinterID")
+	printerName := strings.TrimSpace(r.FormValue("PrinterName"))
 
 	if requirement == "" {
 		http.Error(w, "RequirementName is required", http.StatusBadRequest)
 		return
 	}
-	printerID, _ := strconv.Atoi(printerIDStr)
-
-	printerName := ""
-	if printerID > 0 {
-		if printers, err := h.printNodeService.Printers(r.Context()); err == nil {
-			for _, pr := range printers {
-				if pr.ID == printerID {
-					printerName = pr.Name
-					break
-				}
-			}
-		}
+	if printerName == "" {
+		http.Error(w, "PrinterName is required", http.StatusBadRequest)
+		return
 	}
 
 	_, err := h.pdfService.SavePrintRequirement(r.Context(), model.PrintRequirement{
 		RequirementName: requirement,
-		PrinterID:       printerID,
 		PrinterName:     printerName,
 		AssignedBy:      ctx.User.UserID,
 	})
