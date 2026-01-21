@@ -72,6 +72,7 @@ func PDFGeneratorPage(p PDFPageProps) g.Node {
 	)
 
 	form := h.Form(
+		h.Class("pdf-template-form"),
 		h.Method("POST"),
 		h.Target("_blank"),
 		g.Group([]g.Node{
@@ -302,7 +303,7 @@ func documentLinkCell(title, fileURL string) g.Node {
 		linkTitle = "PDF Document"
 	}
 	if fileURL == "" {
-		return g.Text("-")
+		return g.Text(linkTitle)
 	}
 	return h.A(
 		h.Href(fileURL),

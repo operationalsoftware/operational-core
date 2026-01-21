@@ -59,9 +59,9 @@ SELECT
 	pdf_generation_log_id,
 	template_name,
 	input_data,
-	file_id,
-	pdf_title,
-	created_by,
+	COALESCE(file_id::text, '') AS file_id,
+	COALESCE(pdf_title, '') AS pdf_title,
+	COALESCE(created_by, 0) AS created_by,
 	created_at
 FROM pdf_generation_log
 WHERE pdf_generation_log_id = $1
@@ -87,9 +87,9 @@ SELECT
 	pdf_generation_log_id,
 	template_name,
 	input_data,
-	file_id,
-	pdf_title,
-	created_by,
+	COALESCE(file_id::text, '') AS file_id,
+	COALESCE(pdf_title, '') AS pdf_title,
+	COALESCE(created_by, 0) AS created_by,
 	created_at
 FROM pdf_generation_log
 ORDER BY created_at DESC
@@ -130,9 +130,9 @@ SELECT
 	pdf_generation_log_id,
 	template_name,
 	input_data,
-	file_id,
-	pdf_title,
-	created_by,
+	COALESCE(file_id::text, '') AS file_id,
+	COALESCE(pdf_title, '') AS pdf_title,
+	COALESCE(created_by, 0) AS created_by,
 	created_at
 FROM pdf_generation_log
 ORDER BY created_at DESC
@@ -253,8 +253,8 @@ SELECT
 	pl.error_message,
 	pl.created_by,
 	pl.created_at,
-	gl.file_id,
-	gl.pdf_title,
+	COALESCE(gl.file_id::text, '') AS file_id,
+	COALESCE(gl.pdf_title, '') AS pdf_title,
 	gl.input_data
 FROM pdf_print_log pl
 JOIN pdf_generation_log gl ON gl.pdf_generation_log_id = pl.pdf_generation_log_id
@@ -326,6 +326,31 @@ ORDER BY requirement_name ASC
 		reqs = append(reqs, pr)
 	}
 	return reqs, rows.Err()
+}
+
+func (r *PDFRepository) GetPrintRequirementByName(
+	ctx context.Context,
+	exec db.PGExecutor,
+	requirementName string,
+) (model.PrintRequirement, error) {
+	var pr model.PrintRequirement
+	err := exec.QueryRow(ctx, `
+SELECT
+	print_requirement_id,
+	requirement_name,
+	printer_name,
+	COALESCE(assigned_by, 0) AS assigned_by,
+	COALESCE(assigned_at, NOW()) AS assigned_at
+FROM pdf_print_requirement
+WHERE requirement_name = $1
+`, requirementName).Scan(
+		&pr.PrintRequirementID,
+		&pr.RequirementName,
+		&pr.PrinterName,
+		&pr.AssignedBy,
+		&pr.AssignedAt,
+	)
+	return pr, err
 }
 
 func (r *PDFRepository) UpsertPrintRequirement(

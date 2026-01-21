@@ -39,22 +39,25 @@ func PDFGenerationLogsPage(p PDFGenerationLogsPageProps) g.Node {
 		})
 	}
 
-	table := components.Table(&components.TableProps{
-		Columns: components.TableColumns{
-			{TitleContents: g.Text("Template")},
-			{TitleContents: g.Text("PDF title")},
-			{TitleContents: g.Text("Input data")},
-			{TitleContents: g.Text("Generated at")},
-		},
-		Rows: rows,
-		Pagination: &components.TablePaginationProps{
-			TotalRecords:        p.Total,
-			PageSize:            p.PageSize,
-			CurrentPage:         p.Page,
-			CurrentPageQueryKey: p.PageQuery,
-			PageSizeQueryKey:    p.SizeQuery,
-		},
-	})
+	table := h.Form(
+		h.Method("GET"),
+		components.Table(&components.TableProps{
+			Columns: components.TableColumns{
+				{TitleContents: g.Text("Template")},
+				{TitleContents: g.Text("PDF title")},
+				{TitleContents: g.Text("Input data")},
+				{TitleContents: g.Text("Generated at")},
+			},
+			Rows: rows,
+			Pagination: &components.TablePaginationProps{
+				TotalRecords:        p.Total,
+				PageSize:            p.PageSize,
+				CurrentPage:         p.Page,
+				CurrentPageQueryKey: p.PageQuery,
+				PageSizeQueryKey:    p.SizeQuery,
+			},
+		}),
+	)
 
 	return layout.Page(layout.PageProps{
 		Title: "PDF Generation Logs",

@@ -360,6 +360,16 @@ func (s *PDFService) ListPrintRequirements(ctx context.Context) ([]model.PrintRe
 	return s.pdfRepo.ListPrintRequirements(ctx, s.db)
 }
 
+func (s *PDFService) GetPrintRequirementByName(ctx context.Context, requirementName string) (model.PrintRequirement, error) {
+	if s.db == nil || s.pdfRepo == nil {
+		return model.PrintRequirement{}, fmt.Errorf("pdf service not configured for listing requirements")
+	}
+	if requirementName == "" {
+		return model.PrintRequirement{}, fmt.Errorf("print requirement name is required")
+	}
+	return s.pdfRepo.GetPrintRequirementByName(ctx, s.db, requirementName)
+}
+
 func (s *PDFService) SavePrintRequirement(ctx context.Context, pr model.PrintRequirement) (model.PrintRequirement, error) {
 	if s.db == nil || s.pdfRepo == nil {
 		return model.PrintRequirement{}, fmt.Errorf("pdf service not configured for saving requirements")
