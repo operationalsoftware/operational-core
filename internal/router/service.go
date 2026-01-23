@@ -50,5 +50,6 @@ func addServiceRoutes(
 
 	mux.HandleFunc("GET /services/{serviceID}", servicesHandler.ResourceServicePage)
 	mux.HandleFunc("POST /services/{serviceID}", servicesHandler.UpdateResourceServiceNotes)
+	mux.HandleFunc("DELETE /services/{serviceID}", servicesHandler.DeleteResourceService)
 
 }

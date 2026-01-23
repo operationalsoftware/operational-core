@@ -900,6 +900,18 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	hasNewerService, err := h.servicesService.HasNewerServiceForResource(
+		r.Context(),
+		resourceService.ResourceID,
+		resourceService.ResourceServiceID,
+		resourceService.StartedAt,
+	)
+	if err != nil {
+		log.Println("error checking newer service for resource:", err)
+		http.Error(w, "Error checking newer service for resource", http.StatusInternalServerError)
+		return
+	}
+
 	changelog, err := h.servicesService.GetServiceChangelog(
 		r.Context(),
 		serviceID,
@@ -950,11 +962,36 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 		Ctx:                     ctx,
 		ResourceService:         *resourceService,
 		LastResourceService:     lastService,
+		CanDelete:               canUserEdit && !hasNewerService,
 		GalleryImageURLs:        galleryImgURLs,
 		ResourceServiceComments: serviceComments,
 		ServiceChangelog:        changelog,
 		CommentHMACEnvelope:     commentEnvelope,
 	}).Render(w)
+}
+
+func (h *ServiceHandler) DeleteResourceService(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	if !ctx.User.Permissions.UserAdmin.Access {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	serviceID, err := strconv.Atoi(r.PathValue("serviceID"))
+	if err != nil {
+		http.Error(w, "Invalid resource service id", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.servicesService.DeleteResourceService(r.Context(), serviceID); err != nil {
+		err := fmt.Errorf("error deleting resource service: %w", err)
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ServiceHandler) UpdateResourceService(w http.ResponseWriter, r *http.Request) {

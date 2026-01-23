@@ -24,3 +24,24 @@ function updateService(e) {
     });
   }
 }
+
+function deleteService(e) {
+  e.preventDefault();
+  const targetBtn = e.currentTarget;
+  const resourceId = targetBtn.dataset.id;
+  const serviceId = targetBtn.dataset.serviceId;
+
+  const confirmDelete = confirm(
+    "Are you sure you want to delete this Service? This cannot be undone."
+  );
+
+  if (confirmDelete) {
+    fetch(`/services/${serviceId}`, { method: "DELETE" }).then((res) => {
+      if (res.ok) {
+        window.location.href = `/resources/${resourceId}`;
+      } else {
+        alert("Failed to delete Resource Service");
+      }
+    });
+  }
+}

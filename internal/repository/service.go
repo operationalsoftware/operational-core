@@ -607,6 +607,58 @@ WHERE
 	return &sm, nil
 }
 
+func (r *ServiceRepository) HasNewerServiceForResource(
+	ctx context.Context,
+	exec db.PGExecutor,
+	resourceID int,
+	serviceID int,
+	startedAt time.Time,
+) (bool, error) {
+	query := `
+SELECT
+	EXISTS (
+		SELECT
+			1
+		FROM
+			resource_service
+		WHERE
+			resource_id = $1
+			AND resource_service_id <> $2
+			AND (
+				started_at > $3
+				OR (started_at = $3 AND resource_service_id > $2)
+			)
+	);
+`
+
+	var exists bool
+	if err := exec.QueryRow(ctx, query, resourceID, serviceID, startedAt).Scan(&exists); err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (r *ServiceRepository) DeleteResourceService(
+	ctx context.Context,
+	exec db.PGExecutor,
+	serviceID int,
+) error {
+	query := `
+DELETE FROM
+	resource_service
+WHERE
+	resource_service_id = $1
+`
+
+	_, err := exec.Exec(ctx, query, serviceID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *ServiceRepository) GetLastServiceForResource(
 	ctx context.Context,
 	exec db.PGExecutor,

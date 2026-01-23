@@ -14,6 +14,7 @@ import (
 )
 
 var ErrResourceServiceNotFound = errors.New("resource service not found")
+var ErrResourceServiceNotLast = errors.New("resource service is not the most recent")
 
 type ServicesService struct {
 	db                 *pgxpool.Pool
@@ -408,6 +409,92 @@ func (s *ServicesService) GetResourceServiceByID(
 	}
 
 	return service, nil
+}
+
+func (s *ServicesService) HasNewerServiceForResource(
+	ctx context.Context,
+	resourceID int,
+	serviceID int,
+	startedAt time.Time,
+) (bool, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback(ctx)
+
+	hasNewer, err := s.servicesRepository.HasNewerServiceForResource(
+		ctx,
+		tx,
+		resourceID,
+		serviceID,
+		startedAt,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return false, err
+	}
+
+	return hasNewer, nil
+}
+
+func (s *ServicesService) DeleteResourceService(
+	ctx context.Context,
+	serviceID int,
+) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	serviceRecord, err := s.servicesRepository.GetResourceServiceByID(ctx, tx, serviceID)
+	if err != nil {
+		return err
+	}
+	if serviceRecord == nil {
+		return ErrResourceServiceNotFound
+	}
+
+	hasNewer, err := s.servicesRepository.HasNewerServiceForResource(
+		ctx,
+		tx,
+		serviceRecord.ResourceID,
+		serviceRecord.ResourceServiceID,
+		serviceRecord.StartedAt,
+	)
+	if err != nil {
+		return err
+	}
+	if hasNewer {
+		return ErrResourceServiceNotLast
+	}
+
+	if err := s.resourceRepository.ReopenClosedMetricRecords(
+		ctx,
+		tx,
+		serviceRecord.ResourceID,
+		serviceRecord.ResourceServiceID,
+	); err != nil {
+		return err
+	}
+
+	if err := s.servicesRepository.DeleteResourceService(ctx, tx, serviceID); err != nil {
+		return err
+	}
+
+	if err := s.galleryRepository.DeleteGallery(ctx, tx, serviceRecord.GalleryID); err != nil {
+		return err
+	}
+
+	if err := s.commentRepository.DeleteCommentThread(ctx, tx, serviceRecord.CommentThreadID); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (s *ServicesService) GetLastServiceForResource(

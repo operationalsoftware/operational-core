@@ -27,6 +27,7 @@ type ResourceServicePageProps struct {
 	CommentHMACEnvelope     string
 	ReturnTo                string
 	GalleryImageURLs        []string
+	CanDelete               bool
 }
 
 func ResourceServicePage(p *ResourceServicePageProps) g.Node {
@@ -105,6 +106,34 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 
 						g.Text("Cancel"),
 					),
+				),
+				g.If(
+					p.CanDelete,
+					components.Button(&components.ButtonProps{
+						ButtonType: components.ButtonDanger,
+					},
+						g.Attr("onclick", "deleteService(event)"),
+						h.Title("Delete"),
+						h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
+						h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
+						components.Icon(&components.IconProps{
+							Identifier: "alert-octagon-outline",
+						}),
+						g.Text("Delete"),
+					),
+					// h.Button(
+					// 	c.Classes{"button": true, "danger": true},
+					// 	g.Attr("onclick", "deleteService(event)"),
+					// 	h.Title("Delete"),
+					// 	h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
+					// 	h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
+
+					// 	components.Icon(&components.IconProps{
+					// 		Identifier: "alert-octagon-outline",
+					// 	}),
+
+					// 	g.Text("Delete"),
+					// ),
 				),
 			),
 		),
