@@ -7,6 +7,7 @@ import (
 	"app/pkg/pdf"
 	"app/pkg/printnode"
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -78,12 +79,6 @@ func (s *PDFService) RecordGeneration(
 	userID int,
 	pdfTitle string,
 ) (model.PDFGenerationLog, error) {
-	if s.db == nil || s.swiftConn == nil || s.fileRepo == nil || s.pdfRepo == nil {
-		return model.PDFGenerationLog{}, fmt.Errorf("pdf service not fully configured for logging")
-	}
-	if userID == 0 {
-		return model.PDFGenerationLog{}, fmt.Errorf("user id is required for logging")
-	}
 	title := strings.TrimSpace(pdfTitle)
 	if title == "" {
 		title = pdftemplate.FallbackTitle(templateName)
@@ -95,21 +90,29 @@ func (s *PDFService) RecordGeneration(
 	}
 	defer tx.Rollback(ctx)
 
-	logID, err := s.pdfRepo.InsertGenerationLog(ctx, tx, templateName, inputData, userID, title)
+	printNodeOptions := json.RawMessage(`{}`)
+	logParams := model.CreatePDFGenerationLogParams{
+		TemplateName:     templateName,
+		InputData:        json.RawMessage(inputData),
+		PrintNodeOptions: printNodeOptions,
+		CreatedBy:        userID,
+	}
+	logID, err := s.pdfRepo.InsertGenerationLog(ctx, tx, logParams, title)
 	if err != nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to insert pdf generation log: %w", err)
 	}
 
 	fileName := s.GeneratePDFFilename(title)
 
-	file, err := s.fileRepo.SaveFileContent(ctx, tx, s.swiftConn, &model.File{
+	fileInput := &model.File{
 		Filename:    fileName,
 		ContentType: "application/pdf",
 		SizeBytes:   len(pdfBytes),
 		Entity:      "PDFGenerationLog",
 		EntityID:    logID,
 		UserID:      userID,
-	}, pdfBytes)
+	}
+	file, err := s.fileRepo.SaveFileContent(ctx, tx, s.swiftConn, fileInput, pdfBytes)
 	if err != nil {
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to store generated pdf: %w", err)
 	}
@@ -135,55 +138,20 @@ func (s *PDFService) RecordGeneration(
 		return model.PDFGenerationLog{}, fmt.Errorf("failed to generate download url: %w", err)
 	}
 
+	fileID := file.FileID
 	return model.PDFGenerationLog{
 		PDFGenerationLogID: logID,
 		TemplateName:       templateName,
-		InputData:          inputData,
-		FileID:             file.FileID,
+		InputData:          json.RawMessage(inputData),
+		FileID:             &fileID,
 		PDFTitle:           title,
-		FileURL:            downloadURL,
-		UserID:             userID,
+		PrintNodeOptions:   printNodeOptions,
+		FileURL:            &downloadURL,
 		CreatedAt:          time.Now(),
 	}, nil
 }
 
-func (s *PDFService) ListRecentLogs(ctx context.Context, limit int) ([]model.PDFGenerationLog, error) {
-	if s.db == nil || s.pdfRepo == nil {
-		return nil, fmt.Errorf("pdf service not configured for listing logs")
-	}
-
-	logs, err := s.pdfRepo.ListRecentGenerationLogs(ctx, s.db, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range logs {
-		if logs[i].FileID == "" {
-			continue
-		}
-		url, err := s.fileRepo.GetSignedDownloadURLWithDisposition(
-			ctx,
-			s.swiftConn,
-			s.db,
-			logs[i].FileID,
-			15*time.Minute,
-			s.GeneratePDFFilename(logs[i].PDFTitle),
-			true,
-		)
-		if err != nil {
-			continue
-		}
-		logs[i].FileURL = url
-	}
-
-	return logs, nil
-}
-
 func (s *PDFService) ListGenerationLogs(ctx context.Context, limit, offset int) ([]model.PDFGenerationLog, int, error) {
-	if s.db == nil || s.pdfRepo == nil {
-		return nil, 0, fmt.Errorf("pdf service not configured for listing logs")
-	}
-
 	total, err := s.pdfRepo.CountGenerationLogs(ctx, s.db)
 	if err != nil {
 		return nil, 0, err
@@ -195,14 +163,17 @@ func (s *PDFService) ListGenerationLogs(ctx context.Context, limit, offset int) 
 	}
 
 	for i := range logs {
-		if logs[i].FileID == "" {
+		if logs[i].FileID == nil || *logs[i].FileID == "" {
+			continue
+		}
+		if logs[i].PDFTitle == "" {
 			continue
 		}
 		url, err := s.fileRepo.GetSignedDownloadURLWithDisposition(
 			ctx,
 			s.swiftConn,
 			s.db,
-			logs[i].FileID,
+			*logs[i].FileID,
 			15*time.Minute,
 			s.GeneratePDFFilename(logs[i].PDFTitle),
 			true,
@@ -210,51 +181,56 @@ func (s *PDFService) ListGenerationLogs(ctx context.Context, limit, offset int) 
 		if err != nil {
 			continue
 		}
-		logs[i].FileURL = url
+		logs[i].FileURL = &url
 	}
 
 	return logs, total, nil
-}
-
-func (s *PDFService) fetchGenerationLog(ctx context.Context, id int) (model.PDFGenerationLog, error) {
-	return s.pdfRepo.GetGenerationLog(ctx, s.db, id)
 }
 
 func (s *PDFService) PrintAndLog(
 	ctx context.Context,
 	templateName string,
 	inputData string,
-	printerName string,
 	requirementName string,
 	userID int,
-) (model.PDFPrintLog, error) {
-	if s.printNode == nil {
-		return model.PDFPrintLog{}, fmt.Errorf("printnode service not configured")
+) (int, error) {
+	requirementName = strings.TrimSpace(requirementName)
+	if requirementName == "" {
+		return 0, fmt.Errorf("print requirement name is required")
 	}
-	printerName = strings.TrimSpace(printerName)
-	if printerName == "" {
-		return model.PDFPrintLog{}, fmt.Errorf("printer name is required")
+
+	requirement, err := s.pdfRepo.GetPrintRequirementByName(ctx, s.db, requirementName)
+	if err != nil {
+		return 0, err
 	}
+	if strings.TrimSpace(requirement.PrinterName) == "" {
+		return 0, fmt.Errorf("print requirement does not have a printer assigned: %s", requirementName)
+	}
+	printerName := requirement.PrinterName
 
 	pdfBytes, title, err := s.GenerateFromJSON(ctx, templateName, []byte(inputData))
 	if err != nil {
-		return model.PDFPrintLog{}, err
+		return 0, err
 	}
 
 	genLog, err := s.RecordGeneration(ctx, templateName, inputData, pdfBytes, userID, title)
 	if err != nil {
-		return model.PDFPrintLog{}, err
+		return 0, err
 	}
 
-	jobID := 0
-	status := "success"
-	errorMessage := ""
+	printLogParams := model.CreatePDFPrintLogParams{
+		PDFGenerationLogID: genLog.PDFGenerationLogID,
+		TemplateName:       templateName,
+		InputData:          json.RawMessage(inputData),
+		PrintRequirementID: requirement.PrintRequirementID,
+		RequirementName:    requirement.RequirementName,
+		CreatedBy:          userID,
+	}
 
 	printerID := 0
 	printers, err := s.printNode.Printers(ctx)
 	if err != nil {
-		status = "error"
-		errorMessage = err.Error()
+		return s.recordPrintError(ctx, printLogParams, err)
 	}
 
 	for _, pr := range printers {
@@ -265,81 +241,142 @@ func (s *PDFService) PrintAndLog(
 	}
 	if printerID == 0 {
 		err = fmt.Errorf("printer not found: %s", printerName)
-		status = "error"
-		errorMessage = err.Error()
+		return s.recordPrintError(ctx, printLogParams, err)
 	}
 
-	jobID, err = s.printNode.SubmitPDF(ctx, printerID, templateName, pdfBytes)
+	jobID, err := s.printNode.SubmitPDF(ctx, printerID, templateName, pdfBytes)
 	if err != nil {
-		status = "error"
-		errorMessage = err.Error()
+		return s.recordPrintError(ctx, printLogParams, err)
 	}
 
 	printLogID := 0
-	if s.db != nil && s.pdfRepo != nil {
-		id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, genLog.PDFGenerationLogID, templateName, requirementName, printerName, jobID, status, errorMessage, userID)
-		if insertErr == nil {
-			printLogID = id
-		}
+	var jobIDPtr *int
+	if jobID != 0 {
+		jobIDPtr = &jobID
 	}
-
-	return model.PDFPrintLog{
-		PDFPrintLogID:      printLogID,
-		PDFGenerationLogID: genLog.PDFGenerationLogID,
-		TemplateName:       templateName,
-		InputData:          inputData,
-		RequirementName:    requirementName,
-		PrinterName:        printerName,
-		PrintNodeJobID:     jobID,
-		Status:             status,
-		ErrorMessage:       errorMessage,
-		FileID:             genLog.FileID,
-		PDFTitle:           genLog.PDFTitle,
-		FileURL:            genLog.FileURL,
-		UserID:             userID,
-		CreatedAt:          time.Now(),
-	}, err
+	id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, printLogParams, jobIDPtr, nil)
+	if insertErr == nil {
+		printLogID = id
+	}
+	return printLogID, err
 }
 
-func (s *PDFService) Reprint(ctx context.Context, printLogID int, overridePrinterName string, userID int) (model.PDFPrintLog, error) {
+func (s *PDFService) Reprint(ctx context.Context, printLogID int, overridePrinterName string, userID int) (int, error) {
 	var existing model.PDFPrintLog
 	existing, err := s.pdfRepo.GetPrintLog(ctx, s.db, printLogID)
 	if err != nil {
-		return model.PDFPrintLog{}, err
+		return 0, err
 	}
 
-	logEntry, err := s.fetchGenerationLog(ctx, existing.PDFGenerationLogID)
+	logEntry, err := s.pdfRepo.GetGenerationLog(ctx, s.db, existing.PDFGenerationLogID)
 	if err != nil {
-		return model.PDFPrintLog{}, err
+		return 0, err
 	}
 
-	printerName := existing.PrinterName
-	if strings.TrimSpace(overridePrinterName) != "" {
-		printerName = overridePrinterName
+	var requirementName string
+	req, err := s.pdfRepo.GetPrintRequirementByID(ctx, s.db, existing.PrintRequirementID)
+	if err != nil {
+		return 0, err
+	}
+	requirementName = req.RequirementName
+	if requirementName == "" {
+		return 0, fmt.Errorf("print requirement not available for reprint")
 	}
 
-	return s.PrintAndLog(ctx, logEntry.TemplateName, logEntry.InputData, printerName, existing.RequirementName, userID)
+	overridePrinterName = strings.TrimSpace(overridePrinterName)
+	if overridePrinterName != "" {
+		return s.printWithOverride(ctx, logEntry.TemplateName, string(logEntry.InputData), requirementName, overridePrinterName, userID)
+	}
+	return s.PrintAndLog(ctx, logEntry.TemplateName, string(logEntry.InputData), requirementName, userID)
+}
+
+func (s *PDFService) printWithOverride(
+	ctx context.Context,
+	templateName string,
+	inputData string,
+	requirementName string,
+	printerName string,
+	userID int,
+) (int, error) {
+	requirement, err := s.pdfRepo.GetPrintRequirementByName(ctx, s.db, requirementName)
+	if err != nil {
+		return 0, err
+	}
+	if strings.TrimSpace(printerName) == "" {
+		return 0, fmt.Errorf("printer name is required for override")
+	}
+
+	pdfBytes, title, err := s.GenerateFromJSON(ctx, templateName, []byte(inputData))
+	if err != nil {
+		return 0, err
+	}
+
+	genLog, err := s.RecordGeneration(ctx, templateName, inputData, pdfBytes, userID, title)
+	if err != nil {
+		return 0, err
+	}
+
+	printLogParams := model.CreatePDFPrintLogParams{
+		PDFGenerationLogID: genLog.PDFGenerationLogID,
+		TemplateName:       templateName,
+		InputData:          json.RawMessage(inputData),
+		PrintRequirementID: requirement.PrintRequirementID,
+		RequirementName:    requirement.RequirementName,
+		CreatedBy:          userID,
+	}
+
+	printerID := 0
+	printers, err := s.printNode.Printers(ctx)
+	if err != nil {
+		return s.recordPrintError(ctx, printLogParams, err)
+	}
+
+	for _, pr := range printers {
+		if strings.EqualFold(pr.Name, printerName) {
+			printerID = pr.ID
+			break
+		}
+	}
+	if printerID == 0 {
+		err = fmt.Errorf("printer not found: %s", printerName)
+		return s.recordPrintError(ctx, printLogParams, err)
+	}
+
+	jobID, err := s.printNode.SubmitPDF(ctx, printerID, templateName, pdfBytes)
+	if err != nil {
+		return s.recordPrintError(ctx, printLogParams, err)
+	}
+
+	printLogID := 0
+	var jobIDPtr *int
+	if jobID != 0 {
+		jobIDPtr = &jobID
+	}
+	id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, printLogParams, jobIDPtr, nil)
+	if insertErr == nil {
+		printLogID = id
+	}
+	return printLogID, err
 }
 
 func (s *PDFService) ListRecentPrintLogs(ctx context.Context, limit int) ([]model.PDFPrintLog, error) {
-	if s.db == nil || s.pdfRepo == nil {
-		return nil, fmt.Errorf("pdf service not configured for listing print logs")
-	}
-
 	logs, err := s.pdfRepo.ListRecentPrintLogs(ctx, s.db, limit)
 	if err != nil {
 		return nil, err
 	}
 
 	for i := range logs {
-		if logs[i].FileID == "" {
+		if logs[i].FileID == nil || *logs[i].FileID == "" {
+			continue
+		}
+		if logs[i].PDFTitle == "" {
 			continue
 		}
 		url, err := s.fileRepo.GetSignedDownloadURLWithDisposition(
 			ctx,
 			s.swiftConn,
 			s.db,
-			logs[i].FileID,
+			*logs[i].FileID,
 			15*time.Minute,
 			s.GeneratePDFFilename(logs[i].PDFTitle),
 			true,
@@ -347,39 +384,30 @@ func (s *PDFService) ListRecentPrintLogs(ctx context.Context, limit int) ([]mode
 		if err != nil {
 			continue
 		}
-		logs[i].FileURL = url
+		logs[i].FileURL = &url
 	}
 
 	return logs, nil
 }
 
 func (s *PDFService) ListPrintRequirements(ctx context.Context) ([]model.PrintRequirement, error) {
-	if s.db == nil || s.pdfRepo == nil {
-		return nil, fmt.Errorf("pdf service not configured for listing requirements")
-	}
 	return s.pdfRepo.ListPrintRequirements(ctx, s.db)
 }
 
 func (s *PDFService) GetPrintRequirementByName(ctx context.Context, requirementName string) (model.PrintRequirement, error) {
-	if s.db == nil || s.pdfRepo == nil {
-		return model.PrintRequirement{}, fmt.Errorf("pdf service not configured for listing requirements")
-	}
 	if requirementName == "" {
 		return model.PrintRequirement{}, fmt.Errorf("print requirement name is required")
 	}
 	return s.pdfRepo.GetPrintRequirementByName(ctx, s.db, requirementName)
 }
 
-func (s *PDFService) SavePrintRequirement(ctx context.Context, pr model.PrintRequirement) (model.PrintRequirement, error) {
-	if s.db == nil || s.pdfRepo == nil {
-		return model.PrintRequirement{}, fmt.Errorf("pdf service not configured for saving requirements")
-	}
-	pr.RequirementName = strings.TrimSpace(pr.RequirementName)
-	if pr.RequirementName == "" {
+func (s *PDFService) SavePrintRequirement(ctx context.Context, requirementName string, printerName string, assignedBy int) (model.PrintRequirement, error) {
+	requirementName = strings.TrimSpace(requirementName)
+	if requirementName == "" {
 		return model.PrintRequirement{}, fmt.Errorf("requirement name is required")
 	}
-	pr.PrinterName = strings.TrimSpace(pr.PrinterName)
-	if pr.PrinterName == "" {
+	printerName = strings.TrimSpace(printerName)
+	if printerName == "" {
 		return model.PrintRequirement{}, fmt.Errorf("printer name is required")
 	}
 
@@ -389,21 +417,18 @@ func (s *PDFService) SavePrintRequirement(ctx context.Context, pr model.PrintReq
 	}
 
 	for _, a := range assignments {
-		if pr.PrinterName == "" {
+		if printerName == "" {
 			break
 		}
-		if strings.EqualFold(a.PrinterName, pr.PrinterName) && !strings.EqualFold(a.RequirementName, pr.RequirementName) {
+		if strings.EqualFold(a.PrinterName, printerName) && !strings.EqualFold(a.RequirementName, requirementName) {
 			return model.PrintRequirement{}, fmt.Errorf("printer already assigned to another requirement")
 		}
 	}
 
-	return s.pdfRepo.UpsertPrintRequirement(ctx, s.db, pr)
+	return s.pdfRepo.UpdatePrintRequirement(ctx, s.db, requirementName, printerName, assignedBy)
 }
 
 func (s *PDFService) ListAvailablePrinters(ctx context.Context, currentReq string, printers []printnode.Printer) ([]printnode.Printer, error) {
-	if s.db == nil || s.pdfRepo == nil {
-		return nil, fmt.Errorf("pdf service not configured for listing requirements")
-	}
 	assignments, err := s.pdfRepo.ListPrintRequirements(ctx, s.db)
 	if err != nil {
 		return nil, err
@@ -427,8 +452,16 @@ func (s *PDFService) ListAvailablePrinters(ctx context.Context, currentReq strin
 	return available, nil
 }
 
-func (s *PDFService) GeneratePDFTitleFromInput(templateName string, jsonInput []byte) string {
-	return pdftemplate.FallbackTitle(templateName)
+// helper to record a print error and return the log id
+func (s *PDFService) recordPrintError(
+	ctx context.Context,
+	params model.CreatePDFPrintLogParams,
+	err error,
+) (int, error) {
+	errorMessage := err.Error()
+	errorPtr := &errorMessage
+	logID, _ := s.pdfRepo.InsertPrintLog(ctx, s.db, params, nil, errorPtr)
+	return logID, err
 }
 
 // GeneratePDFFilename returns a filename (with .pdf) based on the PDF title.
