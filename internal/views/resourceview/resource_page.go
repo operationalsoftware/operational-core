@@ -26,6 +26,7 @@ type ResourcePageProps struct {
 	Sort           appsort.Sort
 	Page           int
 	PageSize       int
+	CanManage      bool
 }
 
 func ResourcePage(p *ResourcePageProps) g.Node {
@@ -69,7 +70,7 @@ func ResourcePage(p *ResourcePageProps) g.Node {
 
 			resourceNav(&resourceNavProps{
 				resourceID: p.Resource.ResourceID,
-				canEdit:    p.Ctx.User.Permissions.UserAdmin.Access,
+				canManage:  p.CanManage,
 				isArchived: p.Resource.IsArchived,
 			}),
 		),
@@ -160,7 +161,7 @@ func serviceOwnershipTeamLabel(name *string) string {
 
 type resourceNavProps struct {
 	resourceID int
-	canEdit    bool
+	canManage  bool
 	isArchived bool
 }
 
@@ -168,46 +169,44 @@ func resourceNav(p *resourceNavProps) g.Node {
 	actions := []g.Node{}
 
 	if !p.isArchived {
-		actions = append(actions,
-			h.A(
-				h.Class("button primary"),
-				h.Href(fmt.Sprintf("/resources/%d/services/new", p.resourceID)),
-				components.Icon(&components.IconProps{
-					Identifier: "plus",
-				}),
-				g.Text("Start Service"),
-			),
-			h.A(
-				h.Class("button primary"),
-				h.Href(fmt.Sprintf("/services/resource/%d/schedules/add", p.resourceID)),
-				components.Icon(&components.IconProps{
-					Identifier: "plus",
-				}),
-				g.Text("Assign Service Schedule"),
-			),
+		if p.canManage {
+			actions = append(actions,
+				h.A(
+					h.Class("button primary"),
+					h.Href(fmt.Sprintf("/resources/%d/services/new", p.resourceID)),
+					components.Icon(&components.IconProps{
+						Identifier: "plus",
+					}),
+					g.Text("Start Service"),
+				),
+				h.A(
+					h.Class("button primary"),
+					h.Href(fmt.Sprintf("/services/resource/%d/schedules/add", p.resourceID)),
+					components.Icon(&components.IconProps{
+						Identifier: "plus",
+					}),
+					g.Text("Assign Service Schedule"),
+				),
 
-			h.A(
-				h.Class("button primary"),
-				h.Href(fmt.Sprintf("/resources/%d/metric-recording/add", p.resourceID)),
-				components.Icon(&components.IconProps{
-					Identifier: "plus",
-				}),
-				g.Text("Recording"),
-			),
-		)
-	}
+				h.A(
+					h.Class("button primary"),
+					h.Href(fmt.Sprintf("/resources/%d/metric-recording/add", p.resourceID)),
+					components.Icon(&components.IconProps{
+						Identifier: "plus",
+					}),
+					g.Text("Recording"),
+				),
 
-	if p.canEdit {
-		actions = append(actions,
-			h.A(
-				h.Class("button primary"),
-				h.Href(fmt.Sprintf("/resources/%d/edit", p.resourceID)),
-				components.Icon(&components.IconProps{
-					Identifier: "pencil",
-				}),
-				g.Text("Edit"),
-			),
-		)
+				h.A(
+					h.Class("button primary"),
+					h.Href(fmt.Sprintf("/resources/%d/edit", p.resourceID)),
+					components.Icon(&components.IconProps{
+						Identifier: "pencil",
+					}),
+					g.Text("Edit"),
+				),
+			)
+		}
 	}
 
 	return h.Nav(
@@ -273,6 +272,13 @@ func currentMetricsTable(p *currentMetricsTableProps) g.Node {
 				h.Class("unassign-service-schedule-form"),
 				h.Action(fmt.Sprintf("/services/resource/%d/schedules/%d/unassign", p.resourceID, r.ServiceScheduleID)),
 				h.Button(
+					g.If(
+						!r.CanUserManage,
+						g.Group{
+							h.Disabled(),
+							g.Attr("title", "You do not have permission to unassign this service schedule"),
+						},
+					),
 					h.Class("button secondary small"),
 					h.Type("submit"),
 					g.Text("Unassign"),

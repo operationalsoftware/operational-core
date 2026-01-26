@@ -137,8 +137,9 @@ func (s *ResourceService) CreateResourceService(
 func (s *ResourceService) GetResourceByID(
 	ctx context.Context,
 	resourceID int,
+	userID *int,
 ) (*model.Resource, error) {
-	resource, err := s.resourceRepository.GetResourceByID(ctx, s.db, resourceID)
+	resource, err := s.resourceRepository.GetResourceByID(ctx, s.db, resourceID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +249,7 @@ func (s *ResourceService) UpdateResource(
 	}
 	defer tx.Rollback(ctx)
 
-	resource, err := s.resourceRepository.GetResourceByID(ctx, tx, resourceID)
+	resource, err := s.resourceRepository.GetResourceByID(ctx, tx, resourceID, nil)
 	if err != nil {
 		return validationErrors, err
 	}

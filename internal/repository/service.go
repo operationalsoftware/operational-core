@@ -1257,6 +1257,7 @@ func (r *ServiceRepository) generateWhereClause(filters model.GetServicesQuery) 
 func (r *ServiceRepository) GetResourceServiceMetricStatuses(
 	ctx context.Context,
 	exec db.PGExecutor,
+	userID int,
 	q model.ResourceServiceMetricStatusesQuery,
 ) ([]model.ResourceServiceMetricStatus, error) {
 
@@ -1281,7 +1282,16 @@ SELECT
   wip_service_id,
   has_wip_service,
 	schedule_is_archived,
-	metric_is_archived
+	metric_is_archived,
+	(
+		service_ownership_team_id IS NOT NULL
+		AND
+		service_ownership_team_id IN (
+			SELECT team_id
+			FROM user_team
+			WHERE user_id = :user_id
+		)
+	) AS can_user_manage
 FROM
     resource_service_metric_status_view
 WHERE
@@ -1299,8 +1309,9 @@ WHERE
 	}
 
 	params := map[string]any{
-		"limit":  limit,
-		"offset": offset,
+		"limit":   limit,
+		"offset":  offset,
+		"user_id": userID,
 	}
 
 	if len(q.ServiceOwnershipTeamIDs) > 0 {
@@ -1350,6 +1361,7 @@ LIMIT :limit OFFSET :offset
 			&resource.HasWIPService,
 			&resource.ScheduleIsArchived,
 			&resource.MetricIsArchived,
+			&resource.CanUserManage,
 		)
 		if err != nil {
 			return nil, err

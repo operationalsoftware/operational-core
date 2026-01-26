@@ -182,11 +182,15 @@ func (h *ServiceHandler) ResourceServicingPage(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	resources, count, err := h.servicesService.GetResourceServiceMetricStatuses(r.Context(), model.ResourceServiceMetricStatusesQuery{
-		ServiceOwnershipTeamIDs: uv.ServiceOwnershipTeamIDs,
-		Page:                    uv.Page,
-		PageSize:                uv.PageSize,
-	})
+	resources, count, err := h.servicesService.GetResourceServiceMetricStatuses(
+		r.Context(),
+		ctx.User.UserID,
+		model.ResourceServiceMetricStatusesQuery{
+			ServiceOwnershipTeamIDs: uv.ServiceOwnershipTeamIDs,
+			Page:                    uv.Page,
+			PageSize:                uv.PageSize,
+		},
+	)
 	if err != nil {
 		log.Println("error listing resources:", err)
 		http.Error(w, "Error listing resources", http.StatusInternalServerError)
@@ -818,6 +822,33 @@ func (h *ServiceHandler) UpdateResourceServiceNotes(w http.ResponseWriter, r *ht
 		return
 	}
 
+	resourceService, err := h.servicesService.GetResourceServiceByID(r.Context(), serviceID)
+	if err != nil {
+		log.Println("error fetching resource service:", err)
+		http.Error(w, "Error fetching resource service", http.StatusInternalServerError)
+		return
+	}
+
+	resource, err := h.resourceService.GetResourceByID(
+		r.Context(),
+		resourceService.ResourceID,
+		&ctx.User.UserID,
+	)
+	if err != nil {
+		log.Println("error fetching resource:", err)
+		http.Error(w, "Error fetching resource", http.StatusInternalServerError)
+		return
+	}
+	if resource == nil {
+		http.Error(w, "Resource not found", http.StatusNotFound)
+		return
+	}
+
+	if !resource.CanUserManage {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		log.Println("error parsing form:", err)
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
@@ -869,8 +900,6 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 	ctx := reqcontext.GetContext(r)
 	userID := ctx.User.UserID
 
-	canUserEdit := ctx.User.Permissions.UserAdmin.Access
-
 	serviceID, err := strconv.Atoi(r.PathValue("serviceID"))
 	if err != nil {
 		http.Error(w, "Invalid resource service id", http.StatusBadRequest)
@@ -887,6 +916,23 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Error fetching resource service", http.StatusInternalServerError)
 		return
 	}
+
+	resource, err := h.resourceService.GetResourceByID(
+		r.Context(),
+		resourceService.ResourceID,
+		&ctx.User.UserID,
+	)
+	if err != nil {
+		log.Println("error fetching resource:", err)
+		http.Error(w, "Error fetching resource", http.StatusInternalServerError)
+		return
+	}
+	if resource == nil {
+		http.Error(w, "Resource not found", http.StatusNotFound)
+		return
+	}
+
+	canManage := resource.CanUserManage
 
 	lastService, err := h.servicesService.GetLastServiceForResource(
 		r.Context(),
@@ -922,10 +968,10 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if canUserEdit {
+	if canManage {
 		resourceService.GalleryURL = h.galleryService.GenerateEditTempURL(resourceService.GalleryID, true)
 	} else {
-		resourceService.GalleryURL = h.galleryService.GenerateTempURL(resourceService.GalleryID, canUserEdit)
+		resourceService.GalleryURL = h.galleryService.GenerateTempURL(resourceService.GalleryID, false)
 	}
 
 	galleryImgURLs, err := h.galleryService.GetGalleryImgURLs(r.Context(), resourceService.GalleryID)
@@ -944,7 +990,7 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 
 	// Build a JSON envelope for adding a comment to this andon's thread, valid for 24 hours
 	permissions := []string{"view"}
-	if canUserEdit {
+	if canManage {
 		permissions = append(permissions, "add")
 	}
 
@@ -962,7 +1008,8 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 		Ctx:                     ctx,
 		ResourceService:         *resourceService,
 		LastResourceService:     lastService,
-		CanDelete:               canUserEdit && !hasNewerService,
+		CanManage:               canManage,
+		CanDelete:               canManage && !hasNewerService,
 		GalleryImageURLs:        galleryImgURLs,
 		ResourceServiceComments: serviceComments,
 		ServiceChangelog:        changelog,
@@ -973,14 +1020,36 @@ func (h *ServiceHandler) ResourceServicePage(w http.ResponseWriter, r *http.Requ
 func (h *ServiceHandler) DeleteResourceService(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	if !ctx.User.Permissions.UserAdmin.Access {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
 	serviceID, err := strconv.Atoi(r.PathValue("serviceID"))
 	if err != nil {
 		http.Error(w, "Invalid resource service id", http.StatusBadRequest)
+		return
+	}
+
+	resourceService, err := h.servicesService.GetResourceServiceByID(r.Context(), serviceID)
+	if err != nil {
+		log.Println("error fetching resource service:", err)
+		http.Error(w, "Error fetching resource service", http.StatusInternalServerError)
+		return
+	}
+
+	resource, err := h.resourceService.GetResourceByID(
+		r.Context(),
+		resourceService.ResourceID,
+		&ctx.User.UserID,
+	)
+	if err != nil {
+		log.Println("error fetching resource:", err)
+		http.Error(w, "Error fetching resource", http.StatusInternalServerError)
+		return
+	}
+	if resource == nil {
+		http.Error(w, "Resource not found", http.StatusNotFound)
+		return
+	}
+
+	if !resource.CanUserManage {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -1010,7 +1079,7 @@ func (h *ServiceHandler) UpdateResourceService(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	resource, err := h.resourceService.GetResourceByID(r.Context(), resourceID)
+	resource, err := h.resourceService.GetResourceByID(r.Context(), resourceID, &ctx.User.UserID)
 	if err != nil {
 		log.Println("error fetching resource:", err)
 		http.Error(w, "Error fetching resource", http.StatusInternalServerError)
@@ -1019,6 +1088,11 @@ func (h *ServiceHandler) UpdateResourceService(w http.ResponseWriter, r *http.Re
 
 	if resource == nil {
 		http.Error(w, "Resource not found", http.StatusNotFound)
+		return
+	}
+
+	if !resource.CanUserManage {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -1053,7 +1127,7 @@ func (h *ServiceHandler) AddResourceServiceSchedulePage(
 		return
 	}
 
-	resource, err := h.resourceService.GetResourceByID(r.Context(), resourceID)
+	resource, err := h.resourceService.GetResourceByID(r.Context(), resourceID, &ctx.User.UserID)
 	if err != nil {
 		log.Println("error fetching resource:", err)
 		http.Error(w, "Error fetching resource", http.StatusInternalServerError)
@@ -1061,6 +1135,11 @@ func (h *ServiceHandler) AddResourceServiceSchedulePage(
 	}
 	if resource == nil {
 		http.Error(w, "Resource not found", http.StatusNotFound)
+		return
+	}
+
+	if !resource.CanUserManage {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -1096,7 +1175,7 @@ func (h *ServiceHandler) AssignServiceSchedule(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	resource, err := h.resourceService.GetResourceByID(r.Context(), resourceID)
+	resource, err := h.resourceService.GetResourceByID(r.Context(), resourceID, &ctx.User.UserID)
 	if err != nil {
 		log.Println("error fetching resource:", err)
 		http.Error(w, "Error fetching resource", http.StatusInternalServerError)
@@ -1104,6 +1183,11 @@ func (h *ServiceHandler) AssignServiceSchedule(w http.ResponseWriter, r *http.Re
 	}
 	if resource == nil || resource.IsArchived {
 		http.Error(w, "Resource not available", http.StatusNotFound)
+		return
+	}
+
+	if !resource.CanUserManage {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -1167,6 +1251,7 @@ func (h *ServiceHandler) AssignServiceSchedule(w http.ResponseWriter, r *http.Re
 }
 
 func (h *ServiceHandler) UnassignServiceSchedule(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
 
 	resourceID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -1179,6 +1264,22 @@ func (h *ServiceHandler) UnassignServiceSchedule(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Println("invalid schedule id:", err)
 		http.Error(w, "Invalid schedule id", http.StatusBadRequest)
+		return
+	}
+
+	resource, err := h.resourceService.GetResourceByID(r.Context(), resourceID, &ctx.User.UserID)
+	if err != nil {
+		log.Println("error fetching resource:", err)
+		http.Error(w, "Error fetching resource", http.StatusInternalServerError)
+		return
+	}
+	if resource == nil || resource.IsArchived {
+		http.Error(w, "Resource not available", http.StatusNotFound)
+		return
+	}
+
+	if !resource.CanUserManage {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 

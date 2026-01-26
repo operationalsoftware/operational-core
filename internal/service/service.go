@@ -713,6 +713,7 @@ func (s *ServicesService) UpdateServiceSchedule(
 
 func (s *ServicesService) GetResourceServiceMetricStatuses(
 	ctx context.Context,
+	userID int,
 	q model.ResourceServiceMetricStatusesQuery,
 ) ([]model.ResourceServiceMetricStatus, int, error) {
 
@@ -722,7 +723,7 @@ func (s *ServicesService) GetResourceServiceMetricStatuses(
 	}
 	defer tx.Rollback(ctx)
 
-	resources, err := s.servicesRepository.GetResourceServiceMetricStatuses(ctx, tx, q)
+	resources, err := s.servicesRepository.GetResourceServiceMetricStatuses(ctx, tx, userID, q)
 	if err != nil {
 		return []model.ResourceServiceMetricStatus{}, 0, err
 	}

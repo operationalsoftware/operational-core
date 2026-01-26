@@ -27,6 +27,7 @@ type ResourceServicePageProps struct {
 	CommentHMACEnvelope     string
 	ReturnTo                string
 	GalleryImageURLs        []string
+	CanManage               bool
 	CanDelete               bool
 }
 
@@ -36,7 +37,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 	isWIPService := p.ResourceService.Status == model.ServiceStatusWorkInProgress
 
 	galleryButtonText := "View Service Images"
-	if len(p.GalleryImageURLs) == 0 {
+	if p.CanManage && len(p.GalleryImageURLs) == 0 {
 		galleryButtonText = "Add Service Images"
 	}
 
@@ -54,86 +55,77 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 				h.Class("actions"),
 
 				g.If(
-					!isWIPService,
+					p.CanManage,
+					g.Group([]g.Node{
+						g.If(
+							!isWIPService,
 
-					h.Button(
-						c.Classes{"button": true},
-						g.Attr("onclick", "updateService(event)"),
-						h.Title("Reopen"),
-						h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
-						h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
-						h.Data("action", "reopen"),
+							h.Button(
+								c.Classes{"button": true},
+								g.Attr("onclick", "updateService(event)"),
+								h.Title("Reopen"),
+								h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
+								h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
+								h.Data("action", "reopen"),
 
-						components.Icon(&components.IconProps{
-							Identifier: "restore",
-						}),
+								components.Icon(&components.IconProps{
+									Identifier: "restore",
+								}),
 
-						g.Text("Reopen"),
-					),
-				),
+								g.Text("Reopen"),
+							),
+						),
 
-				g.If(
-					isWIPService,
+						g.If(
+							isWIPService,
 
-					h.Button(
-						c.Classes{"button": true, "resolve": true},
-						g.Attr("onclick", "updateService(event)"),
-						h.Title("Complete"),
-						h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
-						h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
-						h.Data("action", "complete"),
+							h.Button(
+								c.Classes{"button": true, "resolve": true},
+								g.Attr("onclick", "updateService(event)"),
+								h.Title("Complete"),
+								h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
+								h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
+								h.Data("action", "complete"),
 
-						components.Icon(&components.IconProps{
-							Identifier: "check",
-						}),
+								components.Icon(&components.IconProps{
+									Identifier: "check",
+								}),
 
-						g.Text("Complete"),
-					),
-				),
-				g.If(
-					isWIPService,
-					h.Button(
-						c.Classes{"button": true, "danger": true},
-						g.Attr("onclick", "updateService(event)"),
-						h.Title("Cancel"),
-						h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
-						h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
-						h.Data("action", "cancel"),
+								g.Text("Complete"),
+							),
+						),
+						g.If(
+							isWIPService,
+							h.Button(
+								c.Classes{"button": true, "danger": true},
+								g.Attr("onclick", "updateService(event)"),
+								h.Title("Cancel"),
+								h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
+								h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
+								h.Data("action", "cancel"),
 
-						components.Icon(&components.IconProps{
-							Identifier: "cancel",
-						}),
+								components.Icon(&components.IconProps{
+									Identifier: "cancel",
+								}),
 
-						g.Text("Cancel"),
-					),
-				),
-				g.If(
-					p.CanDelete,
-					components.Button(&components.ButtonProps{
-						ButtonType: components.ButtonDanger,
-					},
-						g.Attr("onclick", "deleteService(event)"),
-						h.Title("Delete"),
-						h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
-						h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
-						components.Icon(&components.IconProps{
-							Identifier: "alert-octagon-outline",
-						}),
-						g.Text("Delete"),
-					),
-					// h.Button(
-					// 	c.Classes{"button": true, "danger": true},
-					// 	g.Attr("onclick", "deleteService(event)"),
-					// 	h.Title("Delete"),
-					// 	h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
-					// 	h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
-
-					// 	components.Icon(&components.IconProps{
-					// 		Identifier: "alert-octagon-outline",
-					// 	}),
-
-					// 	g.Text("Delete"),
-					// ),
+								g.Text("Cancel"),
+							),
+						),
+						components.Button(&components.ButtonProps{
+							ButtonType: components.ButtonDanger,
+							Disabled:   !p.CanDelete,
+						},
+							g.Attr("onclick", "deleteService(event)"),
+							g.Attr("title", "The service can only be deleted if it is the most recent service on the resource."),
+							h.Title("Delete"),
+							h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
+							h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
+							components.Icon(&components.IconProps{
+								Identifier: "alert-octagon-outline",
+							}),
+							g.Text("Delete"),
+						),
+					}),
 				),
 			),
 		),
@@ -147,25 +139,38 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 					lastResourceService: p.LastResourceService,
 				}),
 
-				h.Form(
-					h.Method("POST"),
+				g.If(
+					p.CanManage,
+					h.Form(
+						h.Method("POST"),
 
-					h.H3(g.Text("Notes")),
-					h.Div(
-						h.Class("description"),
-						h.Textarea(
-							h.Rows("5"),
-							h.Name("Notes"),
-							h.Placeholder("Enter notes"),
-							g.Text(service.Notes),
+						h.H3(g.Text("Notes")),
+						h.Div(
+							h.Class("description"),
+							h.Textarea(
+								h.Rows("5"),
+								h.Name("Notes"),
+								h.Placeholder("Enter notes"),
+								g.Text(service.Notes),
+							),
+						),
+
+						h.Button(
+							h.Class("button primary notes-btn"),
+							h.Type("submit"),
+							g.Text("Save"),
 						),
 					),
-
-					h.Button(
-						h.Class("button primary notes-btn"),
-						h.Type("submit"),
-						g.Text("Save"),
-					),
+				),
+				g.If(
+					!p.CanManage,
+					g.Group([]g.Node{
+						h.H3(g.Text("Notes")),
+						h.Div(
+							h.Class("description"),
+							g.Text(service.Notes),
+						),
+					}),
 				),
 			),
 
@@ -196,7 +201,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 				Comments:        p.ResourceServiceComments,
 				CommentThreadID: p.ResourceService.CommentThreadID,
 				HMACEnvelope:    p.CommentHMACEnvelope,
-				CanAddComment:   true,
+				CanAddComment:   p.CanManage,
 			}),
 			serviceChangeLog(&serviceChangeLogProps{
 				changeLog: p.ServiceChangelog,
