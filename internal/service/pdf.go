@@ -66,6 +66,9 @@ func (s *PDFService) GenerateFromJSON(
 	if err != nil {
 		return []byte{}, "", fmt.Errorf("error generating PDF from definition: %v", err)
 	}
+	if len(pdfBuffer) == 0 {
+		return []byte{}, "", fmt.Errorf("generated PDF buffer is invalid")
+	}
 
 	return pdfBuffer, title, nil
 }
@@ -193,15 +196,16 @@ func (s *PDFService) PrintAndLog(
 	inputData string,
 	requirementName string,
 	userID int,
-) (int, error) {
-	genLog, pdfBytes, err := s.GenerateAndLog(ctx, templateName, inputData, userID)
+) (int, []byte, error) {
+	genLog, pdfBytes, err := s.generateAndLog(ctx, templateName, inputData, userID)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
-	return s.PrintGeneratedPDF(ctx, genLog, pdfBytes, requirementName, "", userID)
+	printLogId, err := s.printGeneratedPDF(ctx, genLog, pdfBytes, requirementName, "", userID)
+	return printLogId, pdfBytes, err
 }
 
-func (s *PDFService) GenerateAndLog(
+func (s *PDFService) generateAndLog(
 	ctx context.Context,
 	templateName string,
 	inputData string,
@@ -220,7 +224,7 @@ func (s *PDFService) GenerateAndLog(
 	return genLog, pdfBytes, nil
 }
 
-func (s *PDFService) PrintGeneratedPDF(
+func (s *PDFService) printGeneratedPDF(
 	ctx context.Context,
 	genLog model.PDFGenerationLog,
 	pdfBytes []byte,
@@ -311,13 +315,13 @@ func (s *PDFService) Reprint(ctx context.Context, printLogID int, overridePrinte
 		return 0, fmt.Errorf("print requirement not available for reprint")
 	}
 
-	genLog, pdfBytes, err := s.GenerateAndLog(ctx, logEntry.TemplateName, string(logEntry.InputData), userID)
+	genLog, pdfBytes, err := s.generateAndLog(ctx, logEntry.TemplateName, string(logEntry.InputData), userID)
 	if err != nil {
 		return 0, err
 	}
 
 	overridePrinterName = strings.TrimSpace(overridePrinterName)
-	return s.PrintGeneratedPDF(ctx, genLog, pdfBytes, requirementName, overridePrinterName, userID)
+	return s.printGeneratedPDF(ctx, genLog, pdfBytes, requirementName, overridePrinterName, userID)
 }
 
 func (s *PDFService) ListRecentPrintLogs(ctx context.Context, limit int) ([]model.PDFPrintLog, error) {

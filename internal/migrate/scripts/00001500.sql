@@ -13,6 +13,9 @@ ALTER TABLE pdf_print_log
     DROP COLUMN IF EXISTS requirement_name;
 
 ALTER TABLE pdf_print_log
+    DROP COLUMN IF EXISTS status;
+
+ALTER TABLE pdf_print_log
     ADD COLUMN print_requirement_id INT NOT NULL REFERENCES print_requirement(print_requirement_id);
 
 ALTER TABLE pdf_generation_log

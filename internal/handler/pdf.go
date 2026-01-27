@@ -130,7 +130,7 @@ func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "TemplateName, InputData, and RequirementName are required", http.StatusBadRequest)
 			return
 		}
-		_, err = h.pdfService.PrintAndLog(r.Context(), templateName, inputData, requirementName, ctx.User.UserID)
+		_, _, err = h.pdfService.PrintAndLog(r.Context(), templateName, inputData, requirementName, ctx.User.UserID)
 	}
 
 	if err != nil {

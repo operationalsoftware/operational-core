@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	g "maragu.dev/gomponents"
+	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
@@ -33,6 +34,12 @@ func printLogsSection(
 		printNodeJobId := "-"
 		if log.PrintNodeJobID != nil {
 			printNodeJobId = fmt.Sprintf("%d", *log.PrintNodeJobID)
+		}
+		errorMessage := "-"
+		hasError := false
+		if log.ErrorMessage != nil && *log.ErrorMessage != "" {
+			errorMessage = *log.ErrorMessage
+			hasError = true
 		}
 		documentCell := documentLinkCell(log.PDFTitle, log.FileURL)
 
@@ -63,6 +70,9 @@ func printLogsSection(
 		)
 
 		rows = append(rows, components.TableRow{
+			Classes: c.Classes{
+				"print-log-error-row": hasError,
+			},
 			Cells: []components.TableCell{
 				{Contents: g.Text(log.TemplateName)},
 				{Contents: g.Text(requirementName)},
@@ -70,6 +80,7 @@ func printLogsSection(
 				{Contents: documentCell},
 				{Contents: g.Text(log.CreatedByUsername)},
 				{Contents: g.Text(log.CreatedAt.Format("2006-01-02 15:04"))},
+				{Contents: h.Pre(g.Text(errorMessage))},
 				{Contents: printerOverrideForm},
 			},
 		})
@@ -97,6 +108,7 @@ func printLogsSection(
 				{TitleContents: g.Text("PDF Title")},
 				{TitleContents: g.Text("Created By")},
 				{TitleContents: g.Text("Created At")},
+				{TitleContents: g.Text("Error")},
 				{TitleContents: g.Text("Actions")},
 			},
 			Rows: rows,
