@@ -94,6 +94,9 @@ func (s *PDFService) RecordGeneration(
 	defer tx.Rollback(ctx)
 
 	printNodeOptions := json.RawMessage(`{}`)
+	if tmpl, ok := pdftemplate.Registry[templateName]; ok && len(tmpl.PrintNodeOptions) > 0 {
+		printNodeOptions = tmpl.PrintNodeOptions
+	}
 	logParams := model.CreatePDFGenerationLogParams{
 		TemplateName:     templateName,
 		InputData:        json.RawMessage(inputData),
@@ -276,20 +279,21 @@ func (s *PDFService) printGeneratedPDF(
 		return s.recordPrintError(ctx, printLogParams, err)
 	}
 
-	jobID, err := s.printNode.SubmitPDF(ctx, printerID, genLog.TemplateName, pdfBytes)
+	jobID, err := s.printNode.SubmitPDF(ctx, printerID, genLog.TemplateName, pdfBytes, genLog.PrintNodeOptions)
 	if err != nil {
 		return s.recordPrintError(ctx, printLogParams, err)
 	}
 
 	printLogID := 0
-	var jobIDPtr *int
+	var jobIDPtr *int64
 	if jobID != 0 {
 		jobIDPtr = &jobID
 	}
 	id, insertErr := s.pdfRepo.InsertPrintLog(ctx, s.db, printLogParams, jobIDPtr, nil)
-	if insertErr == nil {
-		printLogID = id
+	if insertErr != nil {
+		return 0, insertErr
 	}
+	printLogID = id
 	return printLogID, err
 }
 

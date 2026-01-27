@@ -34,10 +34,11 @@ type TemplateGenerator interface {
 }
 
 type RegisteredTemplate struct {
-	Name        string
-	Description string
-	Generator   TemplateGenerator
-	ExampleJSON string
+	Name             string
+	Description      string
+	Generator        TemplateGenerator
+	ExampleJSON      string
+	PrintNodeOptions json.RawMessage
 }
 
 var Registry = map[string]RegisteredTemplate{

@@ -31,7 +31,7 @@ type PDFPrintLog struct {
 	InputData          json.RawMessage
 	PrintRequirementID int
 	RequirementName    string
-	PrintNodeJobID     *int
+	PrintNodeJobID     *int64
 	ErrorMessage       *string
 	FileID             *string
 	FileURL            *string

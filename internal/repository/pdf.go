@@ -137,7 +137,7 @@ func (r *PDFRepository) InsertPrintLog(
 	ctx context.Context,
 	exec db.PGExecutor,
 	input model.CreatePDFPrintLogParams,
-	jobID *int,
+	jobID *int64,
 	errorMessage *string,
 ) (int, error) {
 	var id int

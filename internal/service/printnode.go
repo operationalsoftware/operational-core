@@ -4,6 +4,7 @@ import (
 	"app/pkg/printnode"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"time"
 )
 
@@ -35,10 +36,10 @@ func (s *PrintNodeService) Printers(ctx context.Context) ([]printnode.Printer, e
 	return printers, nil
 }
 
-func (s *PrintNodeService) SubmitPDF(ctx context.Context, printerID int, title string, pdfBytes []byte) (int, error) {
+func (s *PrintNodeService) SubmitPDF(ctx context.Context, printerID int, title string, pdfBytes []byte, options json.RawMessage) (int64, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	encoded := base64.StdEncoding.EncodeToString(pdfBytes)
-	return s.client.SubmitPrintJob(ctx, printerID, title, "pdf_base64", encoded)
+	return s.client.SubmitPrintJob(ctx, printerID, title, "pdf_base64", encoded, options)
 }

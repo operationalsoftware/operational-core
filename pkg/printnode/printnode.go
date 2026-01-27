@@ -176,7 +176,8 @@ func (c *Client) SubmitPrintJob(ctx context.Context,
 	printerID int,
 	title string,
 	contentType string,
-	content string) (int, error) {
+	content string,
+	options json.RawMessage) (int64, error) {
 	if c.apiKey == "" {
 		return 0, fmt.Errorf("printnode api key is not configured")
 	}
@@ -186,6 +187,7 @@ func (c *Client) SubmitPrintJob(ctx context.Context,
 		"title":       title,
 		"contentType": contentType,
 		"content":     content,
+		"options":     options,
 	}
 
 	body, err := json.Marshal(payload)
@@ -221,7 +223,7 @@ func (c *Client) SubmitPrintJob(ctx context.Context,
 		return 0, err
 	}
 
-	var jobID int
+	var jobID int64
 	if err := json.Unmarshal(respBody, &jobID); err != nil {
 		return 0, fmt.Errorf("printnode printjob invalid response: %s", strings.TrimSpace(string(respBody)))
 	}

@@ -18,6 +18,9 @@ ALTER TABLE pdf_print_log
 ALTER TABLE pdf_print_log
     ADD COLUMN print_requirement_id INT NOT NULL REFERENCES print_requirement(print_requirement_id);
 
+ALTER TABLE pdf_print_log
+    ALTER COLUMN printnode_job_id TYPE BIGINT;
+
 ALTER TABLE pdf_generation_log
     ADD COLUMN print_node_options JSONB NOT NULL;
 
