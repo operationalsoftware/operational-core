@@ -225,7 +225,7 @@ func (s *UserService) GetUsers(
 		return []model.User{}, 0, err
 	}
 
-	count, err := s.userRepository.GetUserCount(ctx, tx)
+	count, err := s.userRepository.GetUserCount(ctx, tx, q)
 	if err != nil {
 		return []model.User{}, 0, err
 	}

@@ -22,7 +22,7 @@ type UsersHomePageProps struct {
 	Sort                appsort.Sort
 	Page                int
 	PageSize            int
-	MyFilter            string
+	Search              string
 }
 
 func UsersHomePage(p *UsersHomePageProps) g.Node {
@@ -63,26 +63,26 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 			Cells: []components.TableCell{
 				{
 					Contents: h.A(
-						g.Text(u.Username),
+						components.Highlight(u.Username, p.Search),
 						g.Attr("href",
 							fmt.Sprintf("/users/%d", u.UserID))),
 				},
 				{
 					Contents: g.Group([]g.Node{
 						g.If(u.FirstName == nil, g.Text("\u2013")),
-						g.If(u.FirstName != nil, g.Text(nilsafe.Str(u.FirstName))),
+						g.If(u.FirstName != nil, components.Highlight(nilsafe.Str(u.FirstName), p.Search)),
 					}),
 				},
 				{
 					Contents: g.Group([]g.Node{
 						g.If(u.LastName == nil, g.Text("\u2013")),
-						g.If(u.LastName != nil, g.Text(nilsafe.Str(u.LastName))),
+						g.If(u.LastName != nil, components.Highlight(nilsafe.Str(u.LastName), p.Search)),
 					}),
 				},
 				{
 					Contents: g.Group([]g.Node{
 						g.If(u.Email == nil, g.Text("\u2013")),
-						g.If(u.Email != nil, g.Text(nilsafe.Str(u.Email))),
+						g.If(u.Email != nil, components.Highlight(nilsafe.Str(u.Email), p.Search)),
 					}),
 				},
 				{
@@ -144,9 +144,27 @@ func UsersHomePage(p *UsersHomePageProps) g.Node {
 		),
 
 		// form container for table interaction
-		h.FormEl(
+		h.Form(
 			h.ID("users-table-form"),
 			g.Attr("method", "GET"),
+
+			h.Div(
+				h.Class("users-filters"),
+				components.Input(&components.InputProps{
+					Name:        "Search",
+					Label:       "Search users",
+					Placeholder: "Search name or email",
+					InputProps: []g.Node{
+						h.Value(p.Search),
+					},
+				}),
+				components.Button(&components.ButtonProps{
+					ButtonType: components.ButtonPrimary,
+				},
+					h.Type("submit"),
+					g.Text("GO"),
+				),
+			),
 
 			components.Table(&components.TableProps{
 				Columns: columns,

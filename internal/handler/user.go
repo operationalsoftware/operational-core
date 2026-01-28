@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -52,6 +53,7 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		Sort:     sort,
 		Page:     uv.Page,
 		PageSize: uv.PageSize,
+		Search:   uv.Search,
 	})
 	if err != nil {
 		log.Panicln(err)
@@ -77,6 +79,7 @@ func (h *UserHandler) UsersHomePage(w http.ResponseWriter, r *http.Request) {
 		Sort:                sort,
 		Page:                uv.Page,
 		PageSize:            uv.PageSize,
+		Search:              uv.Search,
 	}).Render(w)
 }
 
@@ -84,6 +87,7 @@ type usersHomePageURLVals struct {
 	Sort     string
 	Page     int
 	PageSize int
+	Search   string
 }
 
 func (uv *usersHomePageURLVals) normalise() {
@@ -93,6 +97,7 @@ func (uv *usersHomePageURLVals) normalise() {
 	if uv.PageSize == 0 {
 		uv.PageSize = 50
 	}
+	uv.Search = strings.TrimSpace(uv.Search)
 }
 
 func (h *UserHandler) UserPage(w http.ResponseWriter, r *http.Request) {

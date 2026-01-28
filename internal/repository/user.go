@@ -357,9 +357,13 @@ func (r *UserRepository) GetUsers(
 	q model.GetUsersQuery,
 ) ([]model.User, error) {
 
+	whereClause, args := generateUsersWhereClause(q)
+
 	limit := q.PageSize
 	offset := (q.Page - 1) * q.PageSize
 	orderByClause, _ := q.Sort.ToOrderByClause(model.User{})
+	limitPlaceholder := fmt.Sprintf("$%d", len(args)+1)
+	offsetPlaceholder := fmt.Sprintf("$%d", len(args)+2)
 
 	if orderByClause == "" {
 		orderByClause = "ORDER BY username ASC"
@@ -382,12 +386,13 @@ SELECT
 FROM
     user_view
 
+` + whereClause + `
 ` + orderByClause + `
 
-LIMIT $1 OFFSET $2
+LIMIT ` + limitPlaceholder + ` OFFSET ` + offsetPlaceholder + `
 `
 
-	rows, err := exec.Query(ctx, query, limit, offset)
+	rows, err := exec.Query(ctx, query, append(args, limit, offset)...)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -436,22 +441,43 @@ LIMIT $1 OFFSET $2
 func (r *UserRepository) GetUserCount(
 	ctx context.Context,
 	exec db.PGExecutor,
+	q model.GetUsersQuery,
 ) (int, error) {
+
+	whereClause, args := generateUsersWhereClause(q)
 
 	query := `
 SELECT
 	COUNT(*)
 FROM
 	user_view
-	`
+` + whereClause
 
 	var count int
-	err := exec.QueryRow(ctx, query).Scan(&count)
+	err := exec.QueryRow(ctx, query, args...).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
 
 	return count, nil
+}
+
+func generateUsersWhereClause(q model.GetUsersQuery) (string, []any) {
+	if q.Search == "" {
+		return "", nil
+	}
+
+	args := []any{q.Search}
+
+	where := `
+WHERE
+	COALESCE(username, '') ILIKE '%' || $1 || '%'
+OR	COALESCE(email, '') ILIKE '%' || $1 || '%'
+OR	COALESCE(first_name, '') ILIKE '%' || $1 || '%'
+OR	COALESCE(last_name, '') ILIKE '%' || $1 || '%'
+`
+
+	return where, args
 }
 
 func (r *UserRepository) GetActiveUserCountSince(
