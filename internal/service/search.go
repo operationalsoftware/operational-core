@@ -12,8 +12,8 @@ import (
 )
 
 type SearchService struct {
-	db            *pgxpool.Pool
-	SearchRepo    *repository.SearchRepository
+	db         *pgxpool.Pool
+	SearchRepo *repository.SearchRepository
 }
 
 func NewSearchService(
@@ -105,6 +105,50 @@ func (s *SearchService) Search(
 			if len(results.StockItems) > 0 {
 				sort.Slice(results.StockItems, func(i, j int) bool {
 					return results.StockItems[i].Relevance > results.StockItems[j].Relevance
+				})
+			}
+
+			return nil
+		})
+	}
+
+	// Resource Search
+	if len(searchEntities) == 0 || searchEntitiesFilter["resource"] {
+		group.run(func() error {
+			resources, err := s.SearchRepo.SearchResources(ctx, s.db, searchTerm)
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			results.Resources = resources
+			mu.Unlock()
+
+			if len(results.Resources) > 0 {
+				sort.Slice(results.Resources, func(i, j int) bool {
+					return results.Resources[i].Relevance > results.Resources[j].Relevance
+				})
+			}
+
+			return nil
+		})
+	}
+
+	// Service Search
+	if len(searchEntities) == 0 || searchEntitiesFilter["service"] {
+		group.run(func() error {
+			services, err := s.SearchRepo.SearchServices(ctx, s.db, searchTerm)
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			results.Services = services
+			mu.Unlock()
+
+			if len(results.Services) > 0 {
+				sort.Slice(results.Services, func(i, j int) bool {
+					return results.Services[i].Relevance > results.Services[j].Relevance
 				})
 			}
 

@@ -195,6 +195,28 @@ func SearchResults(results model.SearchResults, searchTerm string, permissions m
 		resultSections = append(resultSections, group...)
 	}
 
+	if len(results.Resources) > 0 {
+		group := []g.Node{
+			h.H3(h.Class("result-type-heading"), g.Text("Resource Results")),
+			h.Ul(
+				h.Class("result-group"),
+				g.Group(ResourceResults(results.Resources, searchTerm)),
+			),
+		}
+		resultSections = append(resultSections, group...)
+	}
+
+	if len(results.Services) > 0 {
+		group := []g.Node{
+			h.H3(h.Class("result-type-heading"), g.Text("Service Results")),
+			h.Ul(
+				h.Class("result-group"),
+				g.Group(ServiceResults(results.Services, searchTerm)),
+			),
+		}
+		resultSections = append(resultSections, group...)
+	}
+
 	if len(resultSections) == 0 {
 		return h.P(h.Class("placeholder"), g.Text("No Search results."))
 	}
@@ -251,6 +273,95 @@ func UserResults(users []model.UserSearchResult, searchTerm string) []g.Node {
 					h.Div(
 						h.Strong(g.Text("Email: ")),
 						components.Highlight(user.Email, searchTerm),
+					),
+				),
+			),
+		)
+	}
+
+	return nodes
+}
+
+func ResourceResults(resources []model.ResourceSearchResult, searchTerm string) []g.Node {
+	var nodes []g.Node
+
+	for _, resource := range resources {
+		resourceURL := fmt.Sprintf("/resources/%d", resource.ResourceID)
+		serviceTeam := "\u2013"
+		if strings.TrimSpace(resource.ServiceOwnershipTeamName) != "" {
+			serviceTeam = resource.ServiceOwnershipTeamName
+		}
+
+		archivedText := ""
+		if resource.IsArchived {
+			archivedText = " (Archived)"
+		}
+
+		teamNode := g.Node(g.Text(serviceTeam))
+		if serviceTeam != "\u2013" {
+			teamNode = components.Highlight(serviceTeam, searchTerm)
+		}
+
+		nodes = append(nodes,
+			h.A(
+				h.Href(resourceURL),
+				h.Li(
+					h.Class("search-result-item"),
+					h.Div(
+						h.Class("title"),
+						components.Highlight(resource.Reference, searchTerm),
+						g.Text(archivedText),
+					),
+					h.Div(
+						h.Class("search-result-grid"),
+						h.Strong(g.Text("Type: ")),
+						h.Span(components.Highlight(resource.Type, searchTerm)),
+						h.Strong(g.Text("Service Team: ")),
+						h.Span(teamNode),
+					),
+				),
+			),
+		)
+	}
+
+	return nodes
+}
+
+func ServiceResults(services []model.ServiceSearchResult, searchTerm string) []g.Node {
+	var nodes []g.Node
+
+	for _, service := range services {
+		serviceURL := fmt.Sprintf("/services/%d", service.ResourceServiceID)
+		startedAt := service.StartedAt.Format("2006-01-02 15:04:05")
+		startedBy := "\u2013"
+		if strings.TrimSpace(service.StartedByUsername) != "" {
+			startedBy = service.StartedByUsername
+		}
+
+		startedByNode := g.Node(g.Text(startedBy))
+		if startedBy != "\u2013" {
+			startedByNode = components.Highlight(startedBy, searchTerm)
+		}
+
+		nodes = append(nodes,
+			h.A(
+				h.Href(serviceURL),
+				h.Li(
+					h.Class("search-result-item"),
+					h.Div(
+						h.Class("title"),
+						components.Highlight(service.ResourceReference, searchTerm),
+					),
+					h.Div(
+						h.Class("search-result-grid"),
+						h.Strong(g.Text("Resource Type: ")),
+						h.Span(components.Highlight(service.ResourceType, searchTerm)),
+						h.Strong(g.Text("Status: ")),
+						h.Span(components.Highlight(string(service.Status), searchTerm)),
+						h.Strong(g.Text("Started By: ")),
+						h.Span(startedByNode),
+						h.Strong(g.Text("Started At: ")),
+						h.Span(g.Text(startedAt)),
 					),
 				),
 			),

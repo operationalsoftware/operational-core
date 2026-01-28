@@ -38,6 +38,20 @@ func (h *SearchHandler) SearchPage(w http.ResponseWriter, r *http.Request) {
 				return true
 			},
 		},
+		{
+			Name:  "resource",
+			Title: "Resources",
+			HasPermission: func(permissions model.UserPermissions) bool {
+				return true
+			},
+		},
+		{
+			Name:  "service",
+			Title: "Services",
+			HasPermission: func(permissions model.UserPermissions) bool {
+				return true
+			},
+		},
 		// Add more entities as needed
 	}
 
