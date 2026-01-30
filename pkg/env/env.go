@@ -28,6 +28,7 @@ func Verify() error {
 		"SWIFT_API_KEY":           {},
 		"SWIFT_AUTH_URL":          {},
 		"SWIFT_CONTAINER":         {},
+		"VAPID_PUBLIC_KEY":        {},
 	}
 
 	// Iterate in a stable order for consistent output

@@ -16,14 +16,15 @@ import (
 )
 
 type NotificationPageProps struct {
-	Ctx          reqcontext.ReqContext
-	Filters      []model.NotificationFilter
-	ActiveFilter string
-	Groups       []model.NotificationGroup
-	UnreadCount  int
-	Page         int
-	PageSize     int
-	TotalRecords int
+	Ctx            reqcontext.ReqContext
+	Filters        []model.NotificationFilter
+	ActiveFilter   string
+	Groups         []model.NotificationGroup
+	UnreadCount    int
+	Page           int
+	PageSize       int
+	TotalRecords   int
+	VAPIDPublicKey string
 }
 
 func NotificationPage(p NotificationPageProps) g.Node {
@@ -41,7 +42,7 @@ func NotificationPage(p NotificationPageProps) g.Node {
 	content := h.Div(
 		h.Class("notifications-page"),
 
-		notificationsHeader(p.UnreadCount, activeFilter),
+		notificationsHeader(p.UnreadCount, activeFilter, p.VAPIDPublicKey),
 
 		h.Div(
 			h.Class("notifications-layout"),
@@ -67,13 +68,15 @@ func NotificationPage(p NotificationPageProps) g.Node {
 		},
 		AppendBody: []g.Node{
 			components.InlineScript("/internal/components/Table.js"),
+			components.InlineScript("/internal/views/notificationview/notifications_page.js"),
 		},
 	})
 }
 
-func notificationsHeader(unreadCount int, activeFilter string) g.Node {
+func notificationsHeader(unreadCount int, activeFilter string, vapidPublicKey string) g.Node {
 	subtitle := "Activity across the platform."
 	showMarkAll := strings.ToLower(activeFilter) != "read"
+	showPush := strings.TrimSpace(vapidPublicKey) != ""
 
 	return h.Div(
 		h.Class("notifications-header"),
@@ -82,21 +85,47 @@ func notificationsHeader(unreadCount int, activeFilter string) g.Node {
 			h.H1(g.Text("Notifications")),
 			h.P(g.Text(subtitle)),
 		),
-		g.If(showMarkAll,
+		g.If(
+			showMarkAll || showPush,
 			h.Div(
 				h.Class("notifications-actions"),
-				h.Form(
-					h.Method("POST"),
-					h.Action("/notifications/mark-all-read"),
-					components.Button(&components.ButtonProps{
-						ButtonType: components.ButtonPrimary,
-						Size:       components.ButtonSm,
-					},
-						components.Icon(&components.IconProps{Identifier: "text-box-check-outline"}),
-						g.Text("Mark all as read"),
+				g.If(showMarkAll,
+					h.Form(
+						h.Method("POST"),
+						h.Action("/notifications/mark-all-read"),
+						components.Button(&components.ButtonProps{
+							ButtonType: components.ButtonPrimary,
+							Size:       components.ButtonSm,
+						},
+							components.Icon(&components.IconProps{Identifier: "text-box-check-outline"}),
+							g.Text("Mark all as read"),
+						),
 					),
 				),
+				g.If(showPush, notificationsPushAction(vapidPublicKey)),
 			),
+		),
+	)
+}
+
+func notificationsPushAction(vapidPublicKey string) g.Node {
+	vapidPublicKey = strings.TrimSpace(vapidPublicKey)
+	if vapidPublicKey == "" {
+		return g.Group(nil)
+	}
+
+	return h.Div(
+		h.Class("notifications-push-action"),
+		h.Button(
+			h.ID("notifications-push-button"),
+			h.Type("button"),
+			h.Class("button small"),
+			h.Data("vapid-public-key", vapidPublicKey),
+			g.Text("Enable notifications"),
+		),
+		h.Span(
+			h.ID("notifications-push-status"),
+			h.Class("notifications-push-status"),
 		),
 	)
 }

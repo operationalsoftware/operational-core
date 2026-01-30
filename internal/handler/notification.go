@@ -6,10 +6,13 @@ import (
 	"app/internal/service"
 	"app/internal/views/notificationview"
 	"app/pkg/appurl"
+	"app/pkg/env"
 	"app/pkg/reqcontext"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -48,14 +51,15 @@ func (h *NotificationHandler) NotificationsPage(w http.ResponseWriter, r *http.R
 	}
 
 	_ = notificationview.NotificationPage(notificationview.NotificationPageProps{
-		Ctx:          ctx,
-		Filters:      notificationFilters(counts),
-		ActiveFilter: normalizedQuery.Filter,
-		Groups:       groupNotifications(notifications),
-		UnreadCount:  counts.Unread,
-		Page:         normalizedQuery.Page,
-		PageSize:     normalizedQuery.PageSize,
-		TotalRecords: notificationTotalRecords(counts, normalizedQuery.Filter),
+		Ctx:            ctx,
+		Filters:        notificationFilters(counts),
+		ActiveFilter:   normalizedQuery.Filter,
+		Groups:         groupNotifications(notifications),
+		UnreadCount:    counts.Unread,
+		Page:           normalizedQuery.Page,
+		PageSize:       normalizedQuery.PageSize,
+		TotalRecords:   notificationTotalRecords(counts, normalizedQuery.Filter),
+		VAPIDPublicKey: vapidPublicKeyForEnv(),
 	}).Render(w)
 }
 
@@ -92,6 +96,90 @@ func (h *NotificationHandler) NotificationsTray(w http.ResponseWriter, r *http.R
 		Items:       items,
 		UnreadCount: counts.Unread,
 	}).Render(w)
+}
+
+func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *http.Request) {
+	if env.IsProduction() {
+		http.NotFound(w, r)
+		return
+	}
+
+	ctx := reqcontext.GetContext(r)
+	if ctx.User.UserID == 0 {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var subscription model.PushSubscription
+	if err := json.NewDecoder(r.Body).Decode(&subscription); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	subscription.Endpoint = strings.TrimSpace(subscription.Endpoint)
+	subscription.Keys.P256dh = strings.TrimSpace(subscription.Keys.P256dh)
+	subscription.Keys.Auth = strings.TrimSpace(subscription.Keys.Auth)
+
+	if subscription.Endpoint == "" || subscription.Keys.P256dh == "" || subscription.Keys.Auth == "" {
+		http.Error(w, "Missing subscription fields", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.notificationService.SavePushSubscription(r.Context(), ctx.User.UserID, subscription); err != nil {
+		log.Println("error saving push subscription:", err)
+		http.Error(w, "Error saving subscription", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *NotificationHandler) SendPushTest(w http.ResponseWriter, r *http.Request) {
+	if env.IsProduction() {
+		http.NotFound(w, r)
+		return
+	}
+
+	ctx := reqcontext.GetContext(r)
+	if ctx.User.UserID == 0 {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var payload model.PushNotificationPayload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	payload.Title = strings.TrimSpace(payload.Title)
+	payload.Body = strings.TrimSpace(payload.Body)
+	payload.URL = strings.TrimSpace(payload.URL)
+
+	if payload.Title == "" {
+		payload.Title = "Test notification"
+	}
+	if payload.Body == "" {
+		payload.Body = "This is a test push notification."
+	}
+	if payload.URL == "" {
+		payload.URL = "/notifications"
+	}
+
+	if err := h.notificationService.SendPushNotification(r.Context(), ctx.User.UserID, payload); err != nil {
+		log.Println("error sending push notification:", err)
+		http.Error(w, "Error sending push notification", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func vapidPublicKeyForEnv() string {
+	if env.IsProduction() {
+		return ""
+	}
+	return strings.TrimSpace(os.Getenv("VAPID_PUBLIC_KEY"))
 }
 
 type notificationsPageURLVals struct {

@@ -177,6 +177,15 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+// Service worker registration for push notifications.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker
+      .register("/static/sw.js")
+      .catch((err) => console.error("Service Worker Error", err));
+  });
+}
+
 function injectHTML(selector, html) {
   const element = document.querySelector(selector);
 

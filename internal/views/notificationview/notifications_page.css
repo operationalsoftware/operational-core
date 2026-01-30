@@ -41,6 +41,21 @@
   }
 }
 
+.notifications-push-action {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.notifications-push-status {
+  font-size: var(--font-size-xs);
+  color: var(--text-color-light);
+
+  &.error {
+    color: var(--danger-color);
+  }
+}
+
 .notifications-layout {
   display: grid;
   grid-template-columns: minmax(220px, 280px) 1fr;

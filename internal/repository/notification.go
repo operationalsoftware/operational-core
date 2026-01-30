@@ -222,6 +222,91 @@ WHERE
 	return err
 }
 
+func (r *NotificationRepository) UpsertPushSubscription(
+	ctx context.Context,
+	exec db.PGExecutor,
+	userID int,
+	subscription model.PushSubscription,
+) error {
+	query := `
+INSERT INTO notification_subscription (
+	user_id,
+	endpoint,
+	p256dh,
+	auth,
+	created_at,
+	updated_at
+)
+VALUES ($1, $2, $3, $4, NOW(), NOW())
+ON CONFLICT (user_id, endpoint)
+DO UPDATE SET
+	p256dh = EXCLUDED.p256dh,
+	auth = EXCLUDED.auth,
+	updated_at = NOW()
+`
+
+	_, err := exec.Exec(
+		ctx,
+		query,
+		userID,
+		subscription.Endpoint,
+		subscription.Keys.P256dh,
+		subscription.Keys.Auth,
+	)
+	return err
+}
+
+func (r *NotificationRepository) ListPushSubscriptions(
+	ctx context.Context,
+	exec db.PGExecutor,
+	userID int,
+) ([]model.PushSubscription, error) {
+	query := `
+SELECT
+	endpoint,
+	p256dh,
+	auth
+FROM
+	notification_subscription
+WHERE
+	user_id = $1
+`
+
+	rows, err := exec.Query(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var subscriptions []model.PushSubscription
+	for rows.Next() {
+		var sub model.PushSubscription
+		if err := rows.Scan(&sub.Endpoint, &sub.Keys.P256dh, &sub.Keys.Auth); err != nil {
+			return nil, err
+		}
+		subscriptions = append(subscriptions, sub)
+	}
+
+	return subscriptions, nil
+}
+
+func (r *NotificationRepository) DeletePushSubscription(
+	ctx context.Context,
+	exec db.PGExecutor,
+	userID int,
+	endpoint string,
+) error {
+	query := `
+DELETE FROM notification_subscription
+WHERE
+	user_id = $1
+	AND endpoint = $2
+`
+
+	_, err := exec.Exec(ctx, query, userID, endpoint)
+	return err
+}
+
 func generateNotificationWhereClause(userID int, filter string) (string, []any) {
 	where := []string{"notification_view.user_id = $1"}
 	args := []any{userID}

@@ -87,3 +87,20 @@ type NotificationItem struct {
 	ReasonType     string
 	Unread         bool
 }
+
+type PushSubscription struct {
+	Endpoint       string               `json:"endpoint"`
+	ExpirationTime *int64               `json:"expirationTime"`
+	Keys           PushSubscriptionKeys `json:"keys"`
+}
+
+type PushSubscriptionKeys struct {
+	P256dh string `json:"p256dh"`
+	Auth   string `json:"auth"`
+}
+
+type PushNotificationPayload struct {
+	Title string `json:"title"`
+	Body  string `json:"body"`
+	URL   string `json:"url"`
+}

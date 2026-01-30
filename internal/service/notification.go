@@ -4,8 +4,14 @@ import (
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
+	"encoding/json"
+	"errors"
+	"log"
+	"net/http"
+	"os"
 	"strings"
 
+	webpush "github.com/SherClockHolmes/webpush-go"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -73,6 +79,80 @@ func (s *NotificationService) MarkRead(ctx context.Context, userID int, notifica
 
 func (s *NotificationService) MarkUnread(ctx context.Context, userID int, notificationID int) error {
 	return s.notificationRepo.MarkUnread(ctx, s.db, userID, notificationID)
+}
+
+func (s *NotificationService) SavePushSubscription(
+	ctx context.Context,
+	userID int,
+	subscription model.PushSubscription,
+) error {
+	return s.notificationRepo.UpsertPushSubscription(ctx, s.db, userID, subscription)
+}
+
+func (s *NotificationService) SendPushNotification(
+	ctx context.Context,
+	userID int,
+	payload model.PushNotificationPayload,
+) error {
+	vapidPublicKey := strings.TrimSpace(os.Getenv("VAPID_PUBLIC_KEY"))
+	vapidPrivateKey := strings.TrimSpace(os.Getenv("VAPID_PRIVATE_KEY"))
+	if vapidPublicKey == "" || vapidPrivateKey == "" {
+		return errors.New("missing VAPID keys")
+	}
+
+	subject := strings.TrimSpace(os.Getenv("VAPID_SUBJECT"))
+	if subject == "" {
+		subject = "mailto:notifications@localhost"
+	}
+
+	subscriptions, err := s.notificationRepo.ListPushSubscriptions(ctx, s.db, userID)
+	if err != nil {
+		return err
+	}
+	if len(subscriptions) == 0 {
+		return nil
+	}
+
+	message, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	var firstErr error
+	for _, subscription := range subscriptions {
+		resp, err := webpush.SendNotification(
+			message,
+			&webpush.Subscription{
+				Endpoint: subscription.Endpoint,
+				Keys: webpush.Keys{
+					P256dh: subscription.Keys.P256dh,
+					Auth:   subscription.Keys.Auth,
+				},
+			},
+			&webpush.Options{
+				Subscriber:      subject,
+				VAPIDPublicKey:  vapidPublicKey,
+				VAPIDPrivateKey: vapidPrivateKey,
+				TTL:             300,
+			},
+		)
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		if resp != nil {
+			if resp.StatusCode == http.StatusGone || resp.StatusCode == http.StatusNotFound {
+				if deleteErr := s.notificationRepo.DeletePushSubscription(ctx, s.db, userID, subscription.Endpoint); deleteErr != nil {
+					log.Println("failed to delete push subscription:", deleteErr)
+				}
+			}
+			_ = resp.Body.Close()
+		}
+	}
+
+	return firstErr
 }
 
 func (s *NotificationService) normalizeQuery(q model.ListNotificationsQuery) model.ListNotificationsQuery {
