@@ -2,7 +2,6 @@
 // block scoping
 {
   const buttonEl = document.getElementById("notifications-push-button");
-  const testButtonEl = document.getElementById("notifications-push-test");
   const statusEl = document.getElementById("notifications-push-status");
 
   function initPush() {
@@ -24,14 +23,6 @@
     function setButton(label, disabled) {
       buttonEl.textContent = label;
       buttonEl.disabled = disabled;
-    }
-
-    function setTestButton(label, disabled) {
-      if (!testButtonEl) {
-        return;
-      }
-      testButtonEl.textContent = label;
-      testButtonEl.disabled = disabled;
     }
 
     function isSupported() {
@@ -86,7 +77,6 @@
     async function updatePermissionUI() {
       if (!isSupported() || vapidPublicKey === "") {
         setButton("Push not supported", true);
-        setTestButton("Send test notification", true);
         setStatus("Push notifications are unavailable.", true);
         return;
       }
@@ -94,14 +84,12 @@
       const permission = Notification.permission;
       if (permission === "denied") {
         setButton("Notifications blocked", true);
-        setTestButton("Send test notification", true);
         setStatus("Enable notifications in your browser settings.", true);
         return;
       }
 
       if (permission === "granted") {
         setButton("Notifications enabled", true);
-        setTestButton("Send test notification", false);
         setStatus("Enabled.");
         try {
           await ensureSubscription();
@@ -113,7 +101,6 @@
       }
 
       setButton("Enable notifications", false);
-      setTestButton("Send test notification", true);
       setStatus("");
     }
 
@@ -124,54 +111,23 @@
       }
 
       setButton("Enabling...", true);
-      setTestButton("Send test notification", true);
       try {
         const permission = await Notification.requestPermission();
         if (permission !== "granted") {
           setButton("Notifications blocked", true);
-          setTestButton("Send test notification", true);
           setStatus("Enable notifications in your browser settings.", true);
           return;
         }
 
         await ensureSubscription();
         setButton("Notifications enabled", true);
-        setTestButton("Send test notification", false);
         setStatus("Enabled.");
       } catch (err) {
         console.error(err);
         setButton("Enable notifications", false);
-        setTestButton("Send test notification", true);
         setStatus("Failed to register notifications.", true);
       }
     });
-
-    if (testButtonEl) {
-      testButtonEl.addEventListener("click", async () => {
-        setTestButton("Sending...", true);
-        setStatus("");
-        try {
-          const res = await fetch("/notifications/push-test-self", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: "Test notification",
-              body: "Hello from Operational Core.",
-              url: "/notifications",
-            }),
-          });
-          if (!res.ok) {
-            throw new Error(`Failed to send test: ${res.status}`);
-          }
-          setStatus("Test notification sent.");
-        } catch (err) {
-          console.error(err);
-          setStatus("Failed to send test notification.", true);
-        } finally {
-          setTestButton("Send test notification", false);
-        }
-      });
-    }
 
     updatePermissionUI();
   }
