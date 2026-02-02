@@ -123,6 +123,12 @@ func notificationsPushAction(vapidPublicKey string) g.Node {
 			h.Data("vapid-public-key", vapidPublicKey),
 			g.Text("Enable notifications"),
 		),
+		h.Button(
+			h.ID("notifications-push-test"),
+			h.Type("button"),
+			h.Class("button small"),
+			g.Text("Send test notification"),
+		),
 		h.Span(
 			h.ID("notifications-push-status"),
 			h.Class("notifications-push-status"),
