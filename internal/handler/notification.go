@@ -175,6 +175,54 @@ func (h *NotificationHandler) SendPushTest(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *NotificationHandler) SendPushTestPublic(w http.ResponseWriter, r *http.Request) {
+	if env.IsProduction() {
+		http.NotFound(w, r)
+		return
+	}
+
+	var req struct {
+		UserID int    `json:"userId"`
+		Title  string `json:"title"`
+		Body   string `json:"body"`
+		URL    string `json:"url"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	if req.UserID <= 0 {
+		http.Error(w, "Missing userId", http.StatusBadRequest)
+		return
+	}
+
+	payload := model.PushNotificationPayload{
+		Title: strings.TrimSpace(req.Title),
+		Body:  strings.TrimSpace(req.Body),
+		URL:   strings.TrimSpace(req.URL),
+	}
+
+	if payload.Title == "" {
+		payload.Title = "Test notification"
+	}
+	if payload.Body == "" {
+		payload.Body = "This is a test push notification."
+	}
+	if payload.URL == "" {
+		payload.URL = "/notifications"
+	}
+
+	if err := h.notificationService.SendPushNotification(r.Context(), req.UserID, payload); err != nil {
+		log.Println("error sending public push notification:", err)
+		http.Error(w, "Error sending push notification", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func vapidPublicKeyForEnv() string {
 	if env.IsProduction() {
 		return ""
