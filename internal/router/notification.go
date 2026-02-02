@@ -19,6 +19,7 @@ func addNotificationRoutes(
 
 	mux.HandleFunc("GET /notifications", notificationHandler.NotificationsPage)
 	mux.HandleFunc("GET /notifications/tray", notificationHandler.NotificationsTray)
+	mux.HandleFunc("GET /notifications/debug", notificationHandler.VAPIDDebug)
 	mux.HandleFunc("POST /notifications/subscriptions", notificationHandler.SavePushSubscription)
 	mux.HandleFunc("POST /notifications/push-test", notificationHandler.SendPushTest)
 	mux.HandleFunc("POST /notifications/push-test-public", notificationHandler.SendPushTestPublic)

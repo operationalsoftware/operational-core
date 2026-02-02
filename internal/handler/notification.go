@@ -264,6 +264,34 @@ func (h *NotificationHandler) SendPushTestSelf(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *NotificationHandler) VAPIDDebug(w http.ResponseWriter, r *http.Request) {
+	if env.IsProduction() {
+		http.NotFound(w, r)
+		return
+	}
+
+	hostname, _ := os.Hostname()
+	subject := strings.TrimSpace(os.Getenv("VAPID_SUBJECT"))
+	if subject == "" {
+		subject = "mailto:notifications@localhost"
+	}
+
+	payload := struct {
+		ServerTimeUTC  string `json:"serverTimeUTC"`
+		VAPIDPublicKey string `json:"vapidPublicKey"`
+		VAPIDSubject   string `json:"vapidSubject"`
+		Hostname       string `json:"hostname"`
+	}{
+		ServerTimeUTC:  time.Now().UTC().Format(time.RFC3339),
+		VAPIDPublicKey: strings.TrimSpace(os.Getenv("VAPID_PUBLIC_KEY")),
+		VAPIDSubject:   subject,
+		Hostname:       hostname,
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	_ = json.NewEncoder(w).Encode(payload)
+}
+
 func vapidPublicKeyForEnv() string {
 	if env.IsProduction() {
 		return ""
