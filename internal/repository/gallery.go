@@ -49,6 +49,26 @@ RETURNING gallery_id
 	return newGalleryID, nil
 }
 
+func (r *GalleryRepository) DeleteGallery(
+	ctx context.Context,
+	exec db.PGExecutor,
+	galleryID int,
+) error {
+	query := `
+DELETE FROM
+	gallery
+WHERE
+	gallery_id = $1
+`
+
+	_, err := exec.Exec(ctx, query, galleryID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *GalleryRepository) CreateGalleryItem(
 	ctx context.Context,
 	exec db.PGExecutor,

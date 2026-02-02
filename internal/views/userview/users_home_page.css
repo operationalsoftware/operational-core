@@ -16,3 +16,14 @@
   color: var(--muted-text-color);
   margin-top: var(--spacing-md);
 }
+
+.users-filters {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+}
+
+.users-filters .input-container {
+  min-width: 280px;
+}

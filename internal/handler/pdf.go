@@ -112,23 +112,10 @@ func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	printLogIDStr := r.FormValue("PrintLogID")
-	printerIDStr := r.FormValue("PrinterID")
-	printerName := r.FormValue("PrinterName")
 	requirementName := r.FormValue("RequirementName")
 	templateName := r.FormValue("TemplateName")
 	inputData := r.FormValue("InputData")
-
-	printerID, _ := strconv.Atoi(printerIDStr)
-	if printerID != 0 && strings.TrimSpace(printerName) == "" {
-		if printers, err := h.printNodeService.Printers(r.Context()); err == nil {
-			for _, pr := range printers {
-				if pr.ID == printerID {
-					printerName = pr.Name
-					break
-				}
-			}
-		}
-	}
+	overridePrinterName := r.FormValue("PrinterName")
 
 	var err error
 	if printLogIDStr != "" {
@@ -137,13 +124,13 @@ func (h *PDFHandler) PDFPrintHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid PrintLogID", http.StatusBadRequest)
 			return
 		}
-		_, err = h.pdfService.Reprint(r.Context(), printLogID, printerID, printerName, ctx.User.UserID)
+		_, err = h.pdfService.Reprint(r.Context(), printLogID, overridePrinterName, ctx.User.UserID)
 	} else {
-		if templateName == "" || inputData == "" || printerID == 0 {
-			http.Error(w, "TemplateName, InputData, and PrinterID are required", http.StatusBadRequest)
+		if templateName == "" || inputData == "" || strings.TrimSpace(requirementName) == "" {
+			http.Error(w, "TemplateName, InputData, and RequirementName are required", http.StatusBadRequest)
 			return
 		}
-		_, err = h.pdfService.PrintAndLog(r.Context(), templateName, inputData, printerID, printerName, requirementName, ctx.User.UserID)
+		_, _, err = h.pdfService.PrintAndLog(r.Context(), templateName, inputData, requirementName, ctx.User.UserID)
 	}
 
 	if err != nil {
@@ -241,8 +228,8 @@ func (h *PDFHandler) PDFPrintJobsPage(w http.ResponseWriter, r *http.Request) {
 
 	pdfview.PDFPrintJobsPage(pdfview.PDFPrintJobsPageProps{
 		Ctx:             ctx,
-		Printers:        printers,
 		PrintLogs:       printLogs,
+		Printers:        printers,
 		PrintNodeStatus: printNodeStatus,
 	}).Render(w)
 }
@@ -261,9 +248,12 @@ func (h *PDFHandler) PrinterAssignmentEditPage(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	ctx = reqcontext.GetContext(r)
 	printNodeStatus, err := h.printNodeService.Status(r.Context())
 	if err != nil {
 		log.Println("An error occurred checking PrintNode status:", err)
+		http.Error(w, "Unable to check PrintNode status", http.StatusInternalServerError)
+		return
 	}
 	printers := []printnode.Printer{}
 	if printNodeStatus.Configured {
@@ -289,58 +279,41 @@ func (h *PDFHandler) PrinterAssignmentEditPage(w http.ResponseWriter, r *http.Re
 		Ctx:            ctx,
 		Requirement:    reqName,
 		Printers:       availablePrinters,
-		SelectedID:     current.PrinterID,
+		SelectedName:   current.PrinterName,
 		PrintNodeReady: printNodeStatus.Configured,
 	}).Render(w)
 }
 
 // PrinterAssignmentsSave updates a requirement → printer mapping.
 func (h *PDFHandler) PrinterAssignmentsSave(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
 	ctx := reqcontext.GetContext(r)
 	if !ctx.User.Permissions.Printing.Admin {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
 	requirement := r.FormValue("RequirementName")
-	printerIDStr := r.FormValue("PrinterID")
+	printerName := strings.TrimSpace(r.FormValue("PrinterName"))
 
 	if requirement == "" {
 		http.Error(w, "RequirementName is required", http.StatusBadRequest)
 		return
 	}
-	printerID, _ := strconv.Atoi(printerIDStr)
-
-	printerName := ""
-	if printerID > 0 {
-		if printers, err := h.printNodeService.Printers(r.Context()); err == nil {
-			for _, pr := range printers {
-				if pr.ID == printerID {
-					printerName = pr.Name
-					break
-				}
-			}
-		}
+	if printerName == "" {
+		http.Error(w, "PrinterName is required", http.StatusBadRequest)
+		return
 	}
 
-	_, err := h.pdfService.SavePrintRequirement(r.Context(), model.PrintRequirement{
-		RequirementName: requirement,
-		PrinterID:       printerID,
-		PrinterName:     printerName,
-		AssignedBy:      ctx.User.UserID,
-	})
+	_, err := h.pdfService.SavePrintRequirement(r.Context(), requirement, printerName, ctx.User.UserID)
 	if err != nil {
 		log.Println("An error occurred saving print requirement:", err)
-		if strings.Contains(err.Error(), "printer already assigned") {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		http.Error(w, "Save failed", http.StatusInternalServerError)
+		err := fmt.Errorf("Failed to assign printer %w", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

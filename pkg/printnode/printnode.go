@@ -36,10 +36,6 @@ type Printer struct {
 	ComputerName string
 }
 
-type PrintJobResponse struct {
-	ID int `json:"id"`
-}
-
 func NewClient(apiKey string) *Client {
 	return &Client{
 		apiKey:  strings.TrimSpace(apiKey),
@@ -180,7 +176,8 @@ func (c *Client) SubmitPrintJob(ctx context.Context,
 	printerID int,
 	title string,
 	contentType string,
-	content string) (int, error) {
+	content string,
+	options json.RawMessage) (int64, error) {
 	if c.apiKey == "" {
 		return 0, fmt.Errorf("printnode api key is not configured")
 	}
@@ -190,6 +187,7 @@ func (c *Client) SubmitPrintJob(ctx context.Context,
 		"title":       title,
 		"contentType": contentType,
 		"content":     content,
+		"options":     options,
 	}
 
 	body, err := json.Marshal(payload)
@@ -220,10 +218,19 @@ func (c *Client) SubmitPrintJob(ctx context.Context,
 		return 0, fmt.Errorf("printnode printjob failed with status %d: %s", resp.StatusCode, strings.TrimSpace(string(respBody)))
 	}
 
-	var job PrintJobResponse
-	if err := json.NewDecoder(resp.Body).Decode(&job); err != nil {
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 1024))
+	if err != nil {
 		return 0, err
 	}
 
-	return job.ID, nil
+	var jobID int64
+	if err := json.Unmarshal(respBody, &jobID); err != nil {
+		return 0, fmt.Errorf("printnode printjob invalid response: %s", strings.TrimSpace(string(respBody)))
+	}
+
+	if jobID == 0 {
+		return 0, fmt.Errorf("printnode printjob invalid response: %s", strings.TrimSpace(string(respBody)))
+	}
+
+	return jobID, nil
 }

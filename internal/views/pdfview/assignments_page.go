@@ -5,7 +5,6 @@ import (
 	"app/internal/layout"
 	"app/internal/model"
 	"app/pkg/reqcontext"
-	"fmt"
 	"net/url"
 
 	g "maragu.dev/gomponents"
@@ -24,8 +23,8 @@ func PrinterAssignmentsPage(p PrinterAssignmentsPageProps) g.Node {
 
 	for _, pr := range p.Assignments {
 		printerName := pr.PrinterName
-		if printerName == "" && pr.PrinterID != 0 {
-			printerName = fmt.Sprintf("Printer %d", pr.PrinterID)
+		if printerName == "" {
+			printerName = "-"
 		}
 
 		cells := []components.TableCell{

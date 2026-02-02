@@ -209,16 +209,21 @@ func newAndonsTable(p *newAndonsTableProps) g.Node {
 				Contents: g.Group([]g.Node{
 					h.Div(
 						h.Class("andon-actions"),
-						acknowledgeButton(&acknowledgeButtonProps{
+						g.If(a.CanUserAcknowledge, acknowledgeButton(&acknowledgeButtonProps{
 							andonID:  a.AndonID,
 							returnTo: p.returnTo,
 							isSmall:  true,
-						}),
-						cancelButton(&cancelButtonProps{
+						})),
+						g.If(a.CanUserResolve && !a.CanUserAcknowledge, resolveButton(&resolveButtonProps{
 							andonID:  a.AndonID,
 							returnTo: p.returnTo,
 							isSmall:  true,
-						}),
+						})),
+						g.If(a.CanUserCancel, cancelButton(&cancelButtonProps{
+							andonID:  a.AndonID,
+							returnTo: p.returnTo,
+							isSmall:  true,
+						})),
 					),
 				}),
 			},
@@ -286,15 +291,15 @@ func ackAndonsTable(p *ackAndonsTableProps) g.Node {
 					h.Div(
 						h.Class("andon-actions"),
 
-						resolveButton(&resolveButtonProps{
+						g.If(a.CanUserResolve && !a.CanUserAcknowledge, resolveButton(&resolveButtonProps{
 							andonID: a.AndonID,
 							isSmall: true,
-						}),
+						})),
 
-						cancelButton(&cancelButtonProps{
+						g.If(a.CanUserCancel, cancelButton(&cancelButtonProps{
 							andonID: a.AndonID,
 							isSmall: true,
-						}),
+						})),
 					),
 				}),
 			},

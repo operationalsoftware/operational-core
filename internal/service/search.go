@@ -13,18 +13,15 @@ import (
 
 type SearchService struct {
 	db         *pgxpool.Pool
-	UserRepo   *repository.UserRepository
 	SearchRepo *repository.SearchRepository
 }
 
 func NewSearchService(
 	db *pgxpool.Pool,
-	UserRepository *repository.UserRepository,
 	searchRepository *repository.SearchRepository,
 ) *SearchService {
 	return &SearchService{
 		db:         db,
-		UserRepo:   UserRepository,
 		SearchRepo: searchRepository,
 	}
 }
@@ -74,7 +71,7 @@ func (s *SearchService) Search(
 	// User Search
 	if len(searchEntities) == 0 || searchEntitiesFilter["user"] {
 		group.run(func() error {
-			users, err := s.UserRepo.SearchUsers(ctx, s.db, searchTerm)
+			users, err := s.SearchRepo.SearchUsers(ctx, s.db, searchTerm)
 			if err != nil {
 				return err
 			}
@@ -86,6 +83,72 @@ func (s *SearchService) Search(
 			if len(results.Users) > 0 {
 				sort.Slice(results.Users, func(i, j int) bool {
 					return results.Users[i].Relevance > results.Users[j].Relevance
+				})
+			}
+
+			return nil
+		})
+	}
+
+	// Stock Item Search
+	if len(searchEntities) == 0 || searchEntitiesFilter["stock-item"] {
+		group.run(func() error {
+			stockItems, err := s.SearchRepo.SearchStockItems(ctx, s.db, searchTerm)
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			results.StockItems = stockItems
+			mu.Unlock()
+
+			if len(results.StockItems) > 0 {
+				sort.Slice(results.StockItems, func(i, j int) bool {
+					return results.StockItems[i].Relevance > results.StockItems[j].Relevance
+				})
+			}
+
+			return nil
+		})
+	}
+
+	// Resource Search
+	if len(searchEntities) == 0 || searchEntitiesFilter["resource"] {
+		group.run(func() error {
+			resources, err := s.SearchRepo.SearchResources(ctx, s.db, searchTerm)
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			results.Resources = resources
+			mu.Unlock()
+
+			if len(results.Resources) > 0 {
+				sort.Slice(results.Resources, func(i, j int) bool {
+					return results.Resources[i].Relevance > results.Resources[j].Relevance
+				})
+			}
+
+			return nil
+		})
+	}
+
+	// Service Search
+	if len(searchEntities) == 0 || searchEntitiesFilter["service"] {
+		group.run(func() error {
+			services, err := s.SearchRepo.SearchServices(ctx, s.db, searchTerm)
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			results.Services = services
+			mu.Unlock()
+
+			if len(results.Services) > 0 {
+				sort.Slice(results.Services, func(i, j int) bool {
+					return results.Services[i].Relevance > results.Services[j].Relevance
 				})
 			}
 

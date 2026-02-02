@@ -16,6 +16,7 @@ type Resource struct {
 	ServiceScheduleNames     []string
 	IsArchived               bool
 	LastServicedAt           *time.Time `sortable:"true"`
+	CanUserManage            bool
 }
 
 type NewResource struct {

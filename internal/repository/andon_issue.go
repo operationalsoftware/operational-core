@@ -29,6 +29,7 @@ INSERT INTO andon_issue (
 	parent_id,
 	assigned_team,
 	severity,
+	require_acknowledgement,
 	created_by
 )
 VALUES (
@@ -36,7 +37,8 @@ VALUES (
 	$2,
 	$3,
 	$4,
-	$5
+	$5,
+	$6
 )
 `
 	_, err := exec.Exec(
@@ -46,6 +48,7 @@ VALUES (
 		andonIssue.ParentID,
 		andonIssue.AssignedTeam,
 		andonIssue.Severity,
+		andonIssue.RequireAcknowledgement,
 		userID,
 	)
 
@@ -97,6 +100,7 @@ SELECT
 	is_archived,
 	children_count,
 	severity,
+	require_acknowledgement,
 	assigned_team,
 	assigned_team_name,
 
@@ -126,6 +130,7 @@ SELECT
 	is_group,
 	children_count,
 	severity,
+	require_acknowledgement,
 	assigned_team,
 	assigned_team_name,
 
@@ -154,6 +159,7 @@ WHERE
 		&andonIssue.IsGroup,
 		&andonIssue.ChildrenCount,
 		&andonIssue.Severity,
+		&andonIssue.RequireAcknowledgement,
 		&andonIssue.AssignedTeam,
 		&andonIssue.AssignedTeamName,
 		&andonIssue.CreatedAt,
@@ -187,6 +193,7 @@ SELECT
 	parent_id,
 	is_archived,
 	severity,
+	require_acknowledgement,
 	assigned_team,
 	assigned_team_name,
 
@@ -212,6 +219,7 @@ WHERE
 		&andonIssue.ParentID,
 		&andonIssue.IsArchived,
 		&andonIssue.Severity,
+		&andonIssue.RequireAcknowledgement,
 		&andonIssue.AssignedTeam,
 		&andonIssue.AssignedTeamName,
 		&andonIssue.CreatedAt,
@@ -297,6 +305,7 @@ SELECT
 	is_archived,
 	children_count,
 	severity,
+	require_acknowledgement,
 	assigned_team,
 	assigned_team_name,
 
@@ -334,6 +343,7 @@ LIMIT $1 OFFSET $2
 			&andonIssue.IsArchived,
 			&andonIssue.ChildrenCount,
 			&andonIssue.Severity,
+			&andonIssue.RequireAcknowledgement,
 			&andonIssue.AssignedTeam,
 			&andonIssue.AssignedTeamName,
 			&andonIssue.CreatedAt,
@@ -397,6 +407,7 @@ LIMIT $1 OFFSET $2
 			&andonIssue.IsArchived,
 			&andonIssue.ChildrenCount,
 			&andonIssue.Severity,
+			&andonIssue.RequireAcknowledgement,
 			&andonIssue.AssignedTeam,
 			&andonIssue.AssignedTeamName,
 			&andonIssue.CreatedAt,
@@ -570,7 +581,8 @@ func (r *AndonIssueRepository) Update(
 		update.ParentID != existing.ParentID ||
 		update.IsArchived != existing.IsArchived ||
 		update.AssignedTeam != existing.AssignedTeam ||
-		severityChanged
+		severityChanged ||
+		update.RequireAcknowledgement != existing.RequireAcknowledgement
 
 	if !hasChange {
 		return nil
@@ -584,6 +596,7 @@ SET
 	is_archived = :is_archived,
 	assigned_team = :assigned_team,
 	severity = :severity,
+	require_acknowledgement = :require_acknowledgement,
 	updated_by = :updated_by,
 	updated_at = NOW()
 WHERE
@@ -591,13 +604,14 @@ WHERE
 `
 
 	query, params, err := db.BindNamed(namedQuery, map[string]any{
-		"issue_name":     update.IssueName,
-		"parent_id":      update.ParentID,
-		"is_archived":    update.IsArchived,
-		"assigned_team":  update.AssignedTeam,
-		"severity":       update.Severity,
-		"updated_by":     userID,
-		"andon_issue_id": andonIssueID,
+		"issue_name":              update.IssueName,
+		"parent_id":               update.ParentID,
+		"is_archived":             update.IsArchived,
+		"assigned_team":           update.AssignedTeam,
+		"severity":                update.Severity,
+		"require_acknowledgement": update.RequireAcknowledgement,
+		"updated_by":              userID,
+		"andon_issue_id":          andonIssueID,
 	})
 	if err != nil {
 		return err

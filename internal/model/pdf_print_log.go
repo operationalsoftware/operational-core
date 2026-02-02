@@ -1,40 +1,57 @@
 package model
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type PDFGenerationLog struct {
 	PDFGenerationLogID int
 	TemplateName       string
-	InputData          string
-	FileID             string
+	InputData          json.RawMessage
+	FileID             *string
 	PDFTitle           string
-	FileURL            string
-	UserID             int
+	PrintNodeOptions   json.RawMessage
+	FileURL            *string
+	CreatedByUsername  string
 	CreatedAt          time.Time
+}
+
+type CreatePDFGenerationLogParams struct {
+	TemplateName     string
+	InputData        json.RawMessage
+	PrintNodeOptions json.RawMessage
+	CreatedBy        int
 }
 
 type PDFPrintLog struct {
 	PDFPrintLogID      int
 	PDFGenerationLogID int
 	TemplateName       string
-	InputData          string
+	InputData          json.RawMessage
+	PrintRequirementID int
 	RequirementName    string
-	PrinterID          int
-	PrinterName        string
-	PrintNodeJobID     int
-	Status             string
-	ErrorMessage       string
-	FileID             string
+	PrintNodeJobID     *int64
+	ErrorMessage       *string
+	FileID             *string
+	FileURL            *string
 	PDFTitle           string
-	FileURL            string
-	UserID             int
+	CreatedByUsername  string
 	CreatedAt          time.Time
+}
+
+type CreatePDFPrintLogParams struct {
+	PDFGenerationLogID int
+	TemplateName       string
+	InputData          json.RawMessage
+	PrintRequirementID int
+	RequirementName    string
+	CreatedBy          int
 }
 
 type PrintRequirement struct {
 	PrintRequirementID int
 	RequirementName    string
-	PrinterID          int
 	PrinterName        string
 	AssignedBy         int
 	AssignedAt         time.Time

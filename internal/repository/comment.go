@@ -32,6 +32,26 @@ func (r *CommentRepository) CreateCommentThread(
 	return id, err
 }
 
+func (r *CommentRepository) DeleteCommentThread(
+	ctx context.Context,
+	exec db.PGExecutor,
+	commentThreadID int,
+) error {
+	query := `
+DELETE FROM
+	comment_thread
+WHERE
+	comment_thread_id = $1
+`
+
+	_, err := exec.Exec(ctx, query, commentThreadID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *CommentRepository) AddComment(
 	ctx context.Context,
 	exec db.PGExecutor,

@@ -97,6 +97,7 @@ type GetUsersQuery struct {
 	Sort     appsort.Sort
 	Page     int
 	PageSize int
+	Search   string
 }
 
 var GetUsersSortableKeys = []string{

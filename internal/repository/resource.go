@@ -84,7 +84,7 @@ func (r *ResourceRepository) UpdateResource(
 	update model.ResourceUpdate,
 ) error {
 
-	resource, err := r.GetResourceByID(ctx, exec, resourceID)
+	resource, err := r.GetResourceByID(ctx, exec, resourceID, nil)
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (r *ResourceRepository) CloseOpenMetricRecords(
 	serviceID int,
 ) error {
 
-	resource, err := r.GetResourceByID(ctx, exec, resourceID)
+	resource, err := r.GetResourceByID(ctx, exec, resourceID, nil)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func (r *ResourceRepository) ReopenClosedMetricRecords(
 	serviceID int,
 ) error {
 
-	resource, err := r.GetResourceByID(ctx, exec, resourceID)
+	resource, err := r.GetResourceByID(ctx, exec, resourceID, nil)
 	if err != nil {
 		return err
 	}
@@ -232,6 +232,7 @@ func (r *ResourceRepository) GetResourceByID(
 	ctx context.Context,
 	exec db.PGExecutor,
 	resourceID int,
+	userID *int,
 ) (*model.Resource, error) {
 	query := `
 SELECT
@@ -241,7 +242,18 @@ SELECT
     is_archived,
 	service_ownership_team_id,
 	service_ownership_team_name,
-	last_serviced_at
+	last_serviced_at,
+	(
+		$2::int IS NOT NULL
+		AND
+		service_ownership_team_id IS NOT NULL
+		AND
+		service_ownership_team_id IN (
+			SELECT team_id
+			FROM user_team
+			WHERE user_id = $2::int
+		)
+	) AS can_user_manage
 FROM
     resource_view
 WHERE
@@ -249,7 +261,11 @@ WHERE
 	`
 
 	resource := model.Resource{}
-	err := exec.QueryRow(ctx, query, resourceID).Scan(
+	var userIDValue int
+	if userID != nil {
+		userIDValue = *userID
+	}
+	err := exec.QueryRow(ctx, query, resourceID, userIDValue).Scan(
 		&resource.ResourceID,
 		&resource.Type,
 		&resource.Reference,
@@ -257,6 +273,7 @@ WHERE
 		&resource.ServiceOwnershipTeamID,
 		&resource.ServiceOwnershipTeamName,
 		&resource.LastServicedAt,
+		&resource.CanUserManage,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil

@@ -131,6 +131,7 @@ type ResourceServiceMetricStatus struct {
 	LastServicedAt           *time.Time
 	ScheduleIsArchived       bool
 	MetricIsArchived         bool
+	CanUserManage            bool
 }
 
 type ServiceMetricLifetimeTotal struct {

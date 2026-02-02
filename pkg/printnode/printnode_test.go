@@ -203,7 +203,7 @@ func TestSubmitPrintJobUnauthorized(t *testing.T) {
 	client.baseURL = server.URL
 	client.httpClient = server.Client()
 
-	_, err := client.SubmitPrintJob(context.Background(), 1, "Test", "pdf_base64", "data")
+	_, err := client.SubmitPrintJob(context.Background(), 1, "Test", "pdf_base64", "data", nil)
 	if err == nil || !strings.Contains(err.Error(), "unauthorized") {
 		t.Fatalf("expected unauthorized error, got %v", err)
 	}
@@ -220,7 +220,7 @@ func TestSubmitPrintJobSuccess(t *testing.T) {
 	client.baseURL = server.URL
 	client.httpClient = server.Client()
 
-	jobID, err := client.SubmitPrintJob(context.Background(), 1, "Test", "pdf_base64", "data")
+	jobID, err := client.SubmitPrintJob(context.Background(), 1, "Test", "pdf_base64", "data", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

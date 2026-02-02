@@ -12,6 +12,8 @@ type SearchInput struct {
 type SearchResults struct {
 	StockItems     []StockItemSearchResult
 	Users          []UserSearchResult
+	Resources      []ResourceSearchResult
+	Services       []ServiceSearchResult
 	RecentSearches []RecentSearch
 }
 
@@ -21,6 +23,7 @@ type BaseSearchResult struct {
 
 type StockItemSearchResult struct {
 	BaseSearchResult
+	StockItemID int
 	StockCode   string
 	Description string
 }
@@ -32,6 +35,26 @@ type UserSearchResult struct {
 	Username  string
 	FirstName string
 	LastName  string
+}
+
+type ResourceSearchResult struct {
+	BaseSearchResult
+	ResourceID               int
+	Type                     string
+	Reference                string
+	ServiceOwnershipTeamName string
+	IsArchived               bool
+}
+
+type ServiceSearchResult struct {
+	BaseSearchResult
+	ResourceServiceID int
+	ResourceID        int
+	ResourceType      string
+	ResourceReference string
+	Status            ResourceServiceStatus
+	StartedAt         time.Time
+	StartedByUsername string
 }
 
 // Recent Search

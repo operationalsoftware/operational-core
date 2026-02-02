@@ -76,11 +76,6 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 		h.Form(
 			h.Method("GET"),
 
-			// resourceServicingFilters(&resourceServicingFiltersProps{
-			// 	availableFilters: p.AvailableFilters,
-			// 	activeFilters:    p.ActiveFilters,
-			// }),
-
 			resourceServicingTable(&resourceServicingProps{
 				sort:      p.Sort,
 				resources: p.Resources,
@@ -224,7 +219,7 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 					h.Class("andon-actions"),
 
 					g.If(
-						!r.HasWIPService,
+						!r.HasWIPService && r.CanUserManage,
 						components.Button(&components.ButtonProps{
 							Size:       "small",
 							ButtonType: "primary",

@@ -5,7 +5,7 @@ import (
 	"app/internal/layout"
 	"app/pkg/printnode"
 	"app/pkg/reqcontext"
-	"fmt"
+	"strings"
 
 	g "maragu.dev/gomponents"
 	h "maragu.dev/gomponents/html"
@@ -15,23 +15,19 @@ type PrinterAssignmentEditPageProps struct {
 	Ctx            reqcontext.ReqContext
 	Requirement    string
 	Printers       []printnode.Printer
-	SelectedID     int
+	SelectedName   string
 	PrintNodeReady bool
 }
 
 func PrinterAssignmentEditPage(p PrinterAssignmentEditPageProps) g.Node {
+	selected := p.SelectedName
 	options := []components.SearchSelectOption{}
 	for _, pr := range p.Printers {
 		options = append(options, components.SearchSelectOption{
 			Text:     pr.Name,
-			Value:    fmt.Sprintf("%d", pr.ID),
-			Selected: pr.ID == p.SelectedID,
+			Value:    pr.Name,
+			Selected: strings.EqualFold(pr.Name, selected),
 		})
-	}
-
-	selected := ""
-	if p.SelectedID != 0 {
-		selected = fmt.Sprintf("%d", p.SelectedID)
 	}
 
 	form := h.Form(
@@ -41,7 +37,7 @@ func PrinterAssignmentEditPage(p PrinterAssignmentEditPageProps) g.Node {
 		h.Div(
 			h.Label(g.Text("Printer")),
 			components.SearchSelect(&components.SearchSelectProps{
-				Name:        "PrinterID",
+				Name:        "PrinterName",
 				Placeholder: "Select printer",
 				Mode:        "single",
 				Options:     options,

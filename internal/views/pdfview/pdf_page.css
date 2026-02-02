@@ -115,6 +115,10 @@
   margin-left: auto;
 }
 
+.print-log-error-row td {
+  background-color: var(--red-3);
+}
+
 .printer-assignment-edit {
   max-width: var(--narrow-form-width);
 }
@@ -180,7 +184,7 @@
   }
 }
 
-form {
+.pdf-template-form {
   max-width: 600px;
   margin: 0 auto;
 
