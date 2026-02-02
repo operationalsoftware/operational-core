@@ -103,8 +103,11 @@ func (s *NotificationService) SendPushNotification(
 	}
 
 	subject := strings.TrimSpace(os.Getenv("VAPID_SUBJECT"))
+	if strings.HasPrefix(strings.ToLower(subject), "mailto:") {
+		subject = strings.TrimSpace(strings.TrimPrefix(subject, "mailto:"))
+	}
 	if subject == "" {
-		subject = "mailto:notifications@localhost"
+		subject = "notifications@localhost"
 	}
 
 	subscriptions, err := s.notificationRepo.ListPushSubscriptions(ctx, s.db, userID)
