@@ -65,10 +65,6 @@ func (h *NotificationHandler) NotificationsPage(w http.ResponseWriter, r *http.R
 
 func (h *NotificationHandler) NotificationsTray(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if ctx.User.UserID == 0 {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
 
 	const trayPageSize = 6
 	notifications, counts, _, err := h.notificationService.ListNotifications(
@@ -128,95 +124,6 @@ func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *htt
 	if err := h.notificationService.SavePushSubscription(r.Context(), ctx.User.UserID, subscription); err != nil {
 		log.Println("error saving push subscription:", err)
 		http.Error(w, "Error saving subscription", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
-}
-
-func (h *NotificationHandler) SendPushTest(w http.ResponseWriter, r *http.Request) {
-	if env.IsProduction() {
-		http.NotFound(w, r)
-		return
-	}
-
-	ctx := reqcontext.GetContext(r)
-	if ctx.User.UserID == 0 {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	var payload model.PushNotificationPayload
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	payload.Title = strings.TrimSpace(payload.Title)
-	payload.Body = strings.TrimSpace(payload.Body)
-	payload.URL = strings.TrimSpace(payload.URL)
-
-	if payload.Title == "" {
-		payload.Title = "Test notification"
-	}
-	if payload.Body == "" {
-		payload.Body = "This is a test push notification."
-	}
-	if payload.URL == "" {
-		payload.URL = "/notifications"
-	}
-
-	if err := h.notificationService.SendPushNotification(r.Context(), ctx.User.UserID, payload); err != nil {
-		log.Println("error sending push notification:", err)
-		http.Error(w, "Error sending push notification", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
-}
-
-func (h *NotificationHandler) SendPushTestPublic(w http.ResponseWriter, r *http.Request) {
-	if env.IsProduction() {
-		http.NotFound(w, r)
-		return
-	}
-
-	var req struct {
-		UserID int    `json:"userId"`
-		Title  string `json:"title"`
-		Body   string `json:"body"`
-		URL    string `json:"url"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	if req.UserID <= 0 {
-		http.Error(w, "Missing userId", http.StatusBadRequest)
-		return
-	}
-
-	payload := model.PushNotificationPayload{
-		Title: strings.TrimSpace(req.Title),
-		Body:  strings.TrimSpace(req.Body),
-		URL:   strings.TrimSpace(req.URL),
-	}
-
-	if payload.Title == "" {
-		payload.Title = "Test notification"
-	}
-	if payload.Body == "" {
-		payload.Body = "This is a test push notification."
-	}
-	if payload.URL == "" {
-		payload.URL = "/notifications"
-	}
-
-	if err := h.notificationService.SendPushNotification(r.Context(), req.UserID, payload); err != nil {
-		log.Println("error sending public push notification:", err)
-		http.Error(w, "Error sending push notification", http.StatusInternalServerError)
 		return
 	}
 

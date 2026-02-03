@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -150,11 +149,6 @@ func (s *NotificationService) SendPushNotification(
 			if resp.StatusCode == http.StatusGone || resp.StatusCode == http.StatusNotFound {
 				if deleteErr := s.notificationRepo.DeletePushSubscription(ctx, s.db, userID, subscription.Endpoint); deleteErr != nil {
 					log.Println("failed to delete push subscription:", deleteErr)
-				}
-			}
-			if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-				if firstErr == nil {
-					firstErr = fmt.Errorf("push failed: status %d", resp.StatusCode)
 				}
 			}
 			_ = resp.Body.Close()
