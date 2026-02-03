@@ -137,7 +137,9 @@ func (s *AndonService) notifyAndonCreated(ctx context.Context, andonID int, user
 	reasonType := mapAndonSeverityToNotificationReason(andon.Severity)
 
 	for _, recipientID := range userIDs {
-
+		if recipientID == userID {
+			continue
+		}
 		_, err := s.notificationService.CreateNotification(ctx, model.NewNotification{
 			UserID:      recipientID,
 			ActorUserID: &userID,
