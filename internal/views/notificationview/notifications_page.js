@@ -1,28 +1,47 @@
 "use strict";
 // block scoping
 {
-  const buttonEl = document.getElementById("notifications-push-button");
-  const statusEl = document.getElementById("notifications-push-status");
+  const buttonEl = document.querySelector("[data-push-toggle]");
 
   function initPush() {
     if (!buttonEl) {
       return;
     }
 
+    const textEl = buttonEl.querySelector(".notifications-push-button-text");
     const vapidPublicKey = buttonEl.dataset.vapidPublicKey || "";
 
-    function setStatus(message, isError) {
-      if (!statusEl) {
-        return;
+    function setButtonState(label, disabled, isOn, isError) {
+      if (textEl) {
+        textEl.textContent = label || "";
       }
-
-      statusEl.textContent = message || "";
-      statusEl.classList.toggle("error", Boolean(isError));
+      buttonEl.disabled = Boolean(disabled);
+      buttonEl.setAttribute("aria-pressed", isOn ? "true" : "false");
+      buttonEl.classList.toggle("success", Boolean(isOn));
+      buttonEl.classList.toggle("danger", Boolean(isError));
     }
 
-    function setButton(label, disabled) {
-      buttonEl.textContent = label;
-      buttonEl.disabled = disabled;
+    function setError(message) {
+      setButtonState(message, true, false, true);
+    }
+
+    function setOff() {
+      setButtonState("Notifications: Off", false, false, false);
+    }
+
+    function setOn() {
+      setButtonState("Notifications: On", false, true, false);
+    }
+
+    function setBusy(message, isOn) {
+      setButtonState(message, true, isOn, false);
+    }
+
+    function ensureText(label) {
+      if (!textEl) {
+        return;
+      }
+      textEl.textContent = label || "";
     }
 
     function isSupported() {
@@ -60,8 +79,17 @@
       }
     }
 
+    async function registerServiceWorker() {
+      return navigator.serviceWorker.register("/static/sw.js");
+    }
+
+    async function getSubscription() {
+      const registration = await registerServiceWorker();
+      return registration.pushManager.getSubscription();
+    }
+
     async function ensureSubscription() {
-      const registration = await navigator.serviceWorker.register("/static/sw.js");
+      const registration = await registerServiceWorker();
       let subscription = await registration.pushManager.getSubscription();
 
       if (!subscription) {
@@ -74,58 +102,75 @@
       await saveSubscription(subscription);
     }
 
+    async function removeSubscription() {
+      const registration = await registerServiceWorker();
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        await subscription.unsubscribe();
+      }
+    }
+
     async function updatePermissionUI() {
       if (!isSupported() || vapidPublicKey === "") {
-        setButton("Push not supported", true);
-        setStatus("Push notifications are unavailable.", true);
+        setError("Push unsupported");
         return;
       }
 
       const permission = Notification.permission;
       if (permission === "denied") {
-        setButton("Notifications blocked", true);
-        setStatus("Enable notifications in your browser settings.", true);
+        setError("Notifications blocked");
         return;
       }
 
-      if (permission === "granted") {
-        setButton("Notifications enabled", true);
-        setStatus("Enabled.");
-        try {
-          await ensureSubscription();
-        } catch (err) {
-          console.error(err);
-          setStatus("Failed to register notifications.", true);
-        }
-        return;
+      let subscription = null;
+      try {
+        subscription = await getSubscription();
+      } catch (err) {
+        console.error(err);
       }
 
-      setButton("Enable notifications", false);
-      setStatus("");
+      if (subscription) {
+        setOn();
+      } else {
+        setOff();
+      }
     }
 
     buttonEl.addEventListener("click", async () => {
       if (!isSupported() || vapidPublicKey === "") {
-        setStatus("Push notifications are unavailable.", true);
+        setError("Push unsupported");
         return;
       }
 
-      setButton("Enabling...", true);
       try {
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") {
-          setButton("Notifications blocked", true);
-          setStatus("Enable notifications in your browser settings.", true);
-          return;
-        }
+        const subscription = await getSubscription();
+        const isEnabled = Boolean(subscription);
 
-        await ensureSubscription();
-        setButton("Notifications enabled", true);
-        setStatus("Enabled.");
+        if (!isEnabled) {
+          setBusy("Enabling...", false);
+          let permission = Notification.permission;
+          if (permission !== "granted") {
+            permission = await Notification.requestPermission();
+          }
+          if (permission !== "granted") {
+            if (permission === "denied") {
+              setError("Notifications blocked");
+            } else {
+              setOff();
+            }
+            return;
+          }
+
+          await ensureSubscription();
+          setOn();
+        } else {
+          setBusy("Disabling...", true);
+          await removeSubscription();
+          setOff();
+        }
       } catch (err) {
         console.error(err);
-        setButton("Enable notifications", false);
-        setStatus("Failed to register notifications.", true);
+        setButtonState("Update failed", false, true, true);
       }
     });
 

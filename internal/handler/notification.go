@@ -6,6 +6,7 @@ import (
 	"app/internal/service"
 	"app/internal/views/notificationview"
 	"app/pkg/appurl"
+	"app/pkg/cookie"
 	"app/pkg/env"
 	"app/pkg/reqcontext"
 	"encoding/json"
@@ -125,6 +126,10 @@ func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *htt
 		log.Println("error saving push subscription:", err)
 		http.Error(w, "Error saving subscription", http.StatusInternalServerError)
 		return
+	}
+
+	if err := cookie.SetPushSubscriptionCookie(w, subscription.Endpoint); err != nil {
+		log.Println("error setting push subscription cookie:", err)
 	}
 
 	w.WriteHeader(http.StatusNoContent)

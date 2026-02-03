@@ -33,6 +33,7 @@
   display: flex;
   gap: var(--spacing-md);
   flex-wrap: wrap;
+  align-items: center;
 
   .button {
     display: inline-flex;
@@ -44,16 +45,34 @@
 .notifications-push-action {
   display: flex;
   align-items: center;
+  gap: var(--spacing-md);
+}
+
+.notifications-mark-all {
+  margin-left: auto;
+}
+
+.notifications-push-button {
+  display: inline-flex;
+  align-items: center;
   gap: var(--spacing-sm);
 }
 
-.notifications-push-status {
-  font-size: var(--font-size-xs);
-  color: var(--text-color-light);
+.notifications-push-icon {
+  display: inline-flex;
+  align-items: center;
+}
 
-  &.error {
-    color: var(--danger-color);
-  }
+.notifications-push-button .icon-on {
+  display: none;
+}
+
+.notifications-push-button.success .icon-on {
+  display: inline-block;
+}
+
+.notifications-push-button.success .icon-off {
+  display: none;
 }
 
 .notifications-layout {

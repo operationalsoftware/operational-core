@@ -54,7 +54,7 @@ func NewRouter(services *Services, appHMAC apphmac.AppHMAC) http.Handler {
 	mux.Handle("/static/", staticFS)
 
 	// add routes
-	addAuthRoutes(mux, services.AuthService)
+	addAuthRoutes(mux, services.AuthService, services.NotificationService)
 	addAndonRoutes(
 		mux,
 		services.AndonService,

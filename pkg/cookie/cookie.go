@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,6 +25,7 @@ const (
 )
 
 const DefaultSessionDurationMinutes = time.Hour * 24 * 30
+const pushSubscriptionCookieName = "push-subscription"
 
 type SessionData struct {
 	UserID    int
@@ -87,6 +89,20 @@ func SetSessionCookie(w http.ResponseWriter, userID int, duration time.Duration)
 	return nil
 }
 
+func GetSessionData(r *http.Request) (SessionData, error) {
+	sessCookie, err := r.Cookie("login-session")
+	if err != nil {
+		return SessionData{}, err
+	}
+
+	var data SessionData
+	if err := CookieInstance.Decode("login-session", sessCookie.Value, &data); err != nil {
+		return SessionData{}, err
+	}
+
+	return data, nil
+}
+
 func SetLastLoginCookie(w http.ResponseWriter, method string) {
 	cookie := &http.Cookie{
 		Name:     "last-login-method",
@@ -104,6 +120,58 @@ func SetLastLoginCookie(w http.ResponseWriter, method string) {
 func ClearLastLoginCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "last-login-method",
+		Value:    "",
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+	})
+}
+
+func SetPushSubscriptionCookie(w http.ResponseWriter, endpoint string) error {
+	if strings.TrimSpace(endpoint) == "" {
+		return nil
+	}
+
+	encoded, err := CookieInstance.Encode(pushSubscriptionCookieName, endpoint)
+	if err != nil {
+		return err
+	}
+
+	cookie := &http.Cookie{
+		Name:     pushSubscriptionCookieName,
+		Value:    encoded,
+		HttpOnly: true,
+		Secure:   true,
+		Expires:  time.Now().Add(DefaultSessionDurationMinutes),
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w, cookie)
+
+	return nil
+}
+
+func GetPushSubscriptionEndpoint(r *http.Request) (string, error) {
+	endpointCookie, err := r.Cookie(pushSubscriptionCookieName)
+	if err != nil {
+		return "", err
+	}
+
+	var endpoint string
+	if err := CookieInstance.Decode(pushSubscriptionCookieName, endpointCookie.Value, &endpoint); err != nil {
+		return "", err
+	}
+
+	return endpoint, nil
+}
+
+func ClearPushSubscriptionCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     pushSubscriptionCookieName,
 		Value:    "",
 		HttpOnly: true,
 		Secure:   true,

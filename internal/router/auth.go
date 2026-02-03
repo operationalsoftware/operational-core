@@ -9,8 +9,9 @@ import (
 func addAuthRoutes(
 	mux *http.ServeMux,
 	authService service.AuthService,
+	notificationService service.NotificationService,
 ) {
-	authHandler := handler.NewAuthHandler(authService)
+	authHandler := handler.NewAuthHandler(authService, notificationService)
 
 	mux.HandleFunc("GET /auth/password", authHandler.PasswordLogInPage)
 	mux.HandleFunc("POST /auth/password", authHandler.PasswordLogIn)

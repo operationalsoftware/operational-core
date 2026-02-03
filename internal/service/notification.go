@@ -89,6 +89,18 @@ func (s *NotificationService) SavePushSubscription(
 	return s.notificationRepo.UpsertPushSubscription(ctx, s.db, userID, subscription)
 }
 
+func (s *NotificationService) DeletePushSubscription(
+	ctx context.Context,
+	userID int,
+	endpoint string,
+) error {
+	endpoint = strings.TrimSpace(endpoint)
+	if userID == 0 || endpoint == "" {
+		return nil
+	}
+	return s.notificationRepo.DeletePushSubscription(ctx, s.db, userID, endpoint)
+}
+
 func (s *NotificationService) SendPushNotification(
 	ctx context.Context,
 	userID int,

@@ -89,10 +89,12 @@ func notificationsHeader(unreadCount int, activeFilter string, vapidPublicKey st
 			showMarkAll || showPush,
 			h.Div(
 				h.Class("notifications-actions"),
+				g.If(showPush, notificationsPushAction(vapidPublicKey)),
 				g.If(showMarkAll,
 					h.Form(
 						h.Method("POST"),
 						h.Action("/notifications/mark-all-read"),
+						h.Class("notifications-mark-all"),
 						components.Button(&components.ButtonProps{
 							ButtonType: components.ButtonPrimary,
 							Size:       components.ButtonSm,
@@ -102,7 +104,6 @@ func notificationsHeader(unreadCount int, activeFilter string, vapidPublicKey st
 						),
 					),
 				),
-				g.If(showPush, notificationsPushAction(vapidPublicKey)),
 			),
 		),
 	)
@@ -117,15 +118,25 @@ func notificationsPushAction(vapidPublicKey string) g.Node {
 	return h.Div(
 		h.Class("notifications-push-action"),
 		h.Button(
-			h.ID("notifications-push-button"),
 			h.Type("button"),
-			h.Class("button small"),
+			h.Class("button small notifications-push-button"),
+			h.Data("push-toggle", "true"),
 			h.Data("vapid-public-key", vapidPublicKey),
-			g.Text("Enable notifications"),
-		),
-		h.Span(
-			h.ID("notifications-push-status"),
-			h.Class("notifications-push-status"),
+			h.Span(
+				h.Class("notifications-push-icon"),
+				components.Icon(&components.IconProps{
+					Identifier: "bell-outline",
+					Classes:    c.Classes{"icon-off": true},
+				}),
+				components.Icon(&components.IconProps{
+					Identifier: "bell",
+					Classes:    c.Classes{"icon-on": true},
+				}),
+			),
+			h.Span(
+				h.Class("notifications-push-button-text"),
+				g.Text("Notifications: Off"),
+			),
 		),
 	)
 }

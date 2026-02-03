@@ -25,12 +25,16 @@ import (
 )
 
 type AuthHandler struct {
-	authService   service.AuthService
-	msOauthConfig *oauth2.Config
+	authService         service.AuthService
+	notificationService service.NotificationService
+	msOauthConfig       *oauth2.Config
 }
 
-func NewAuthHandler(authService service.AuthService) *AuthHandler {
-	h := &AuthHandler{authService: authService}
+func NewAuthHandler(authService service.AuthService, notificationService service.NotificationService) *AuthHandler {
+	h := &AuthHandler{
+		authService:         authService,
+		notificationService: notificationService,
+	}
 
 	// Initialize Microsoft OAuth config from environment if available
 	clientID := os.Getenv("MS_OAUTH_CLIENT_ID")
@@ -246,6 +250,17 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	session, err := cookie.GetSessionData(r)
+	if err == nil && session.UserID != 0 {
+		if endpoint, err := cookie.GetPushSubscriptionEndpoint(r); err == nil && endpoint != "" {
+			if err := h.notificationService.DeletePushSubscription(r.Context(), session.UserID, endpoint); err != nil {
+				log.Println("error deleting push subscription:", err)
+			}
+		}
+	}
+
+	cookie.ClearPushSubscriptionCookie(w)
+
 	// Delete cookie
 	cookie := &http.Cookie{
 		Name:     "login-session",
