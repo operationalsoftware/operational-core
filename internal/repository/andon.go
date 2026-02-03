@@ -22,7 +22,7 @@ func (r *AndonRepository) CreateAndonEvent(
 	exec db.PGExecutor,
 	andon model.NewAndon,
 	userID int,
-) error {
+) (int, error) {
 
 	andonQuery := `
 INSERT INTO andon (
@@ -70,7 +70,7 @@ VALUES ($1, $2, $3, $1)
 		userID,
 	).Scan(&newAndonID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	_, err = exec.Exec(
@@ -81,10 +81,10 @@ VALUES ($1, $2, $3, $1)
 		andon.Description,
 	)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return newAndonID, nil
 }
 
 func andonSelectClause(currentUserIDPlaceholder int) string {

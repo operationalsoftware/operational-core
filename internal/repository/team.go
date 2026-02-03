@@ -259,6 +259,42 @@ WHERE
 	return count, nil
 }
 
+func (r *TeamRepository) ListTeamUserIDs(
+	ctx context.Context,
+	exec db.PGExecutor,
+	teamID int,
+) ([]int, error) {
+	query := `
+SELECT
+	user_id
+FROM
+	user_team
+WHERE
+	team_id = $1
+`
+
+	rows, err := exec.Query(ctx, query, teamID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userIDs []int
+	for rows.Next() {
+		var userID int
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
+}
+
 func (r *TeamRepository) AssignUser(
 	ctx context.Context,
 	exec db.PGExecutor,

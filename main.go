@@ -100,14 +100,16 @@ func main() {
 	searchRepository := repository.NewSearchRepository()
 
 	// Instantiate services
+	notificationService := service.NewNotificationService(pgPool, notificationRepository)
+
 	services := &router.Services{
-		AndonService:            *service.NewAndonService(pgPool, swiftConn, andonRepository, commentRepository, galleryRepository),
+		AndonService:            *service.NewAndonService(pgPool, swiftConn, andonRepository, commentRepository, galleryRepository, teamRepository, notificationService),
 		AndonIssueService:       *service.NewAndonIssueService(pgPool, andonIssueRepository),
 		AuthService:             *service.NewAuthService(pgPool, authRepository),
 		CommentService:          *service.NewCommentService(pgPool, swiftConn, commentRepository),
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		GalleryService:          *service.NewGalleryService(pgPool, swiftConn, appHMAC, fileRepository, galleryRepository),
-		NotificationService:     *service.NewNotificationService(pgPool, notificationRepository),
+		NotificationService:     *notificationService,
 		PDFService:              *pdfService,
 		PrintNodeService:        *printNodeService,
 		ResourceService:         *service.NewResourceService(pgPool, commentRepository, galleryRepository, resourceRepository, serviceRepository),

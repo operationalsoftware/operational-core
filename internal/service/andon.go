@@ -4,17 +4,22 @@ import (
 	"app/internal/model"
 	"app/internal/repository"
 	"context"
+	"fmt"
+	"log"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ncw/swift/v2"
 )
 
 type AndonService struct {
-	db                *pgxpool.Pool
-	swiftConn         *swift.Connection
-	andonRepository   *repository.AndonRepository
-	commentRepository *repository.CommentRepository
-	galleryRepository *repository.GalleryRepository
+	db                  *pgxpool.Pool
+	swiftConn           *swift.Connection
+	andonRepository     *repository.AndonRepository
+	commentRepository   *repository.CommentRepository
+	galleryRepository   *repository.GalleryRepository
+	teamRepository      *repository.TeamRepository
+	notificationService *NotificationService
 }
 
 func NewAndonService(
@@ -23,13 +28,17 @@ func NewAndonService(
 	andonRepo *repository.AndonRepository,
 	commentRepository *repository.CommentRepository,
 	galleryRepository *repository.GalleryRepository,
+	teamRepository *repository.TeamRepository,
+	notificationService *NotificationService,
 ) *AndonService {
 	return &AndonService{
-		db:                db,
-		swiftConn:         swiftConn,
-		andonRepository:   andonRepo,
-		commentRepository: commentRepository,
-		galleryRepository: galleryRepository,
+		db:                  db,
+		swiftConn:           swiftConn,
+		andonRepository:     andonRepo,
+		commentRepository:   commentRepository,
+		galleryRepository:   galleryRepository,
+		teamRepository:      teamRepository,
+		notificationService: notificationService,
 	}
 }
 
@@ -64,7 +73,7 @@ func (s *AndonService) CreateAndon(
 	}
 	andon.CommentThreadID = threadID
 
-	err = s.andonRepository.CreateAndonEvent(
+	andonID, err := s.andonRepository.CreateAndonEvent(
 		ctx,
 		tx,
 		andon,
@@ -79,7 +88,86 @@ func (s *AndonService) CreateAndon(
 		return err
 	}
 
+	if err := s.notifyAndonCreated(ctx, andonID, userID); err != nil {
+		log.Println("error sending andon notifications:", err)
+	}
+
 	return nil
+}
+
+func (s *AndonService) notifyAndonCreated(ctx context.Context, andonID int, userID int) error {
+	andon, err := s.andonRepository.GetAndonByID(ctx, s.db, andonID, userID)
+	if err != nil {
+		return err
+	}
+	if andon == nil || andon.AssignedTeam == 0 {
+		return nil
+	}
+
+	userIDs, err := s.teamRepository.ListTeamUserIDs(ctx, s.db, andon.AssignedTeam)
+	if err != nil {
+		return err
+	}
+	if len(userIDs) == 0 {
+		return nil
+	}
+
+	title := fmt.Sprintf("New Andon: %s", strings.TrimSpace(andon.IssueName))
+	summary := strings.TrimSpace(andon.Description)
+	if summary == "" {
+		parts := make([]string, 0, 2)
+		if strings.TrimSpace(andon.Location) != "" {
+			parts = append(parts, strings.TrimSpace(andon.Location))
+		}
+		if strings.TrimSpace(andon.Source) != "" {
+			parts = append(parts, strings.TrimSpace(andon.Source))
+		}
+		summary = strings.Join(parts, " · ")
+	}
+	if summary == "" {
+		summary = "New andon raised."
+	}
+
+	payload := model.PushNotificationPayload{
+		Title: title,
+		Body:  summary,
+		URL:   fmt.Sprintf("/andons/%d", andon.AndonID),
+	}
+
+	reasonType := mapAndonSeverityToNotificationReason(andon.Severity)
+
+	for _, recipientID := range userIDs {
+
+		_, err := s.notificationService.CreateNotification(ctx, model.NewNotification{
+			UserID:      recipientID,
+			ActorUserID: &userID,
+			Category:    "andon",
+			Title:       title,
+			Summary:     summary,
+			URL:         payload.URL,
+			Reason:      andon.IssueName,
+			ReasonType:  reasonType,
+		})
+		if err != nil {
+			log.Println("error creating andon notification:", err)
+		}
+		if err := s.notificationService.SendPushNotification(ctx, recipientID, payload); err != nil {
+			log.Println("error sending andon push notification:", err)
+		}
+	}
+
+	return nil
+}
+
+func mapAndonSeverityToNotificationReason(severity model.AndonSeverity) string {
+	switch severity {
+	case model.AndonSeverityRequiresIntervention:
+		return model.NotificationReasonDanger
+	case model.AndonSeveritySelfResolvable:
+		return model.NotificationReasonWarning
+	default:
+		return model.NotificationReasonInfo
+	}
 }
 
 func (s *AndonService) GetAndonByID(
