@@ -135,6 +135,32 @@ func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *NotificationHandler) DeletePushSubscription(w http.ResponseWriter, r *http.Request) {
+	if env.IsProduction() {
+		http.NotFound(w, r)
+		return
+	}
+
+	ctx := reqcontext.GetContext(r)
+	if ctx.User.UserID == 0 {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	endpoint, err := cookie.GetPushSubscriptionEndpoint(r)
+	if err == nil && endpoint != "" {
+		if err := h.notificationService.DeletePushSubscription(r.Context(), ctx.User.UserID, endpoint); err != nil {
+			log.Println("error deleting push subscription:", err)
+			http.Error(w, "Error deleting subscription", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	cookie.ClearPushSubscriptionCookie(w)
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func vapidPublicKeyForEnv() string {
 	if env.IsProduction() {
 		return ""
