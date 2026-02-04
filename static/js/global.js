@@ -186,6 +186,60 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+// Rebind push subscription to current user once after login.
+(function () {
+  function getCookieValue(name) {
+    const nameEq = `${name}=`;
+    const parts = document.cookie.split("; ");
+    for (const part of parts) {
+      if (part.indexOf(nameEq) === 0) {
+        return part.slice(nameEq.length);
+      }
+    }
+    return "";
+  }
+
+  function clearCookie(name) {
+    document.cookie = `${name}=; Path=/; Max-Age=-1; SameSite=Lax; Secure`;
+  }
+
+  const rebindFlag = getCookieValue("push-rebind");
+  if (!rebindFlag) {
+    return;
+  }
+
+  clearCookie("push-rebind");
+
+  if (
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window) ||
+    !("Notification" in window)
+  ) {
+    return;
+  }
+
+  if (Notification.permission === "denied") {
+    return;
+  }
+
+  (async function rebindPush() {
+    try {
+      const registration = await navigator.serviceWorker.register("/static/sw.js");
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        return;
+      }
+      await fetch("/notifications/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(subscription),
+      });
+    } catch (err) {
+      console.error("Push rebind failed", err);
+    }
+  })();
+})();
+
 function injectHTML(selector, html) {
   const element = document.querySelector(selector);
 

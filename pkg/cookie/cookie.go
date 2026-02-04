@@ -26,6 +26,7 @@ const (
 
 const DefaultSessionDurationMinutes = time.Hour * 24 * 30
 const pushSubscriptionCookieName = "push-subscription"
+const pushRebindCookieName = "push-rebind"
 
 type SessionData struct {
 	UserID    int
@@ -174,6 +175,31 @@ func ClearPushSubscriptionCookie(w http.ResponseWriter) {
 		Name:     pushSubscriptionCookieName,
 		Value:    "",
 		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+	})
+}
+
+func SetPushRebindCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     pushRebindCookieName,
+		Value:    "1",
+		HttpOnly: false,
+		Secure:   true,
+		Expires:  time.Now().Add(10 * time.Minute),
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func ClearPushRebindCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     pushRebindCookieName,
+		Value:    "",
+		HttpOnly: false,
 		Secure:   true,
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,

@@ -164,6 +164,7 @@ func (h *AuthHandler) PasswordLogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie.SetLastLoginCookie(w, attemptedMethod)
+	cookie.SetPushRebindCookie(w)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -245,6 +246,7 @@ func (h *AuthHandler) QRcodeLogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie.SetLastLoginCookie(w, cookie.LoginMethodQRCODE)
+	cookie.SetPushRebindCookie(w)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -260,6 +262,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie.ClearPushSubscriptionCookie(w)
+	cookie.ClearPushRebindCookie(w)
 
 	// Delete cookie
 	cookie := &http.Cookie{
@@ -450,6 +453,7 @@ func (h *AuthHandler) MicrosoftCallback(w http.ResponseWriter, r *http.Request) 
 	}
 
 	cookie.SetLastLoginCookie(w, cookie.LoginMethodMicrosoft)
+	cookie.SetPushRebindCookie(w)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
