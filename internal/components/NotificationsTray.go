@@ -61,10 +61,7 @@ func notificationsTrayBadge(unreadCount int) g.Node {
 }
 
 func notificationTrayItem(item model.NotificationItem) g.Node {
-	itemURL := strings.TrimSpace(item.URL)
-	if itemURL == "" {
-		itemURL = "/notifications"
-	}
+	itemURL := notificationOpenURL(item)
 
 	title := strings.TrimSpace(item.Title)
 	if title == "" {
@@ -115,6 +112,17 @@ func notificationsTrayEmpty() g.Node {
 		Icon(&IconProps{Identifier: "inbox-outline"}),
 		h.P(g.Text("You're all caught up.")),
 	)
+}
+
+func notificationOpenURL(item model.NotificationItem) string {
+	if item.NotificationID > 0 {
+		return fmt.Sprintf("/notifications/%d/open", item.NotificationID)
+	}
+	itemURL := strings.TrimSpace(item.URL)
+	if itemURL == "" {
+		return "/notifications"
+	}
+	return itemURL
 }
 
 func NotificationIconIdentifier(item model.NotificationItem) string {

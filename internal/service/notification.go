@@ -69,6 +69,14 @@ func (s *NotificationService) ListNotifications(
 	return notifications, counts, q, nil
 }
 
+func (s *NotificationService) GetNotificationURL(
+	ctx context.Context,
+	userID int,
+	notificationID int,
+) (string, error) {
+	return s.notificationRepo.GetNotificationURL(ctx, s.db, userID, notificationID)
+}
+
 func (s *NotificationService) MarkAllRead(ctx context.Context, userID int) error {
 	return s.notificationRepo.MarkAllRead(ctx, s.db, userID)
 }

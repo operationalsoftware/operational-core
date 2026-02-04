@@ -327,6 +327,41 @@ func (h *NotificationHandler) MarkUnread(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
 
+func (h *NotificationHandler) OpenNotification(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if ctx.User.UserID == 0 {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	notificationID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || notificationID <= 0 {
+		if err != nil {
+			log.Println("invalid notification id:", err)
+		}
+		http.Error(w, "Invalid notification id", http.StatusBadRequest)
+		return
+	}
+
+	url, err := h.notificationService.GetNotificationURL(r.Context(), ctx.User.UserID, notificationID)
+	if err != nil {
+		log.Println("error fetching notification url:", err)
+		http.Error(w, "Error fetching notification", http.StatusInternalServerError)
+		return
+	}
+
+	if err := h.notificationService.MarkRead(r.Context(), ctx.User.UserID, notificationID); err != nil {
+		log.Println("error marking notification read:", err)
+	}
+
+	target := strings.TrimSpace(url)
+	if target == "" {
+		target = "/notifications"
+	}
+
+	http.Redirect(w, r, target, http.StatusSeeOther)
+}
+
 func notificationRedirect(redirect string) string {
 	if redirect == "" {
 		return "/notifications"

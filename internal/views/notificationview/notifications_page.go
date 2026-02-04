@@ -302,6 +302,7 @@ func notificationGroup(group model.NotificationGroup, p *NotificationPageProps) 
 
 func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.Node {
 	iconIdentifier := components.NotificationIconIdentifier(item)
+	linkURL := notificationOpenURL(item)
 	titleClasses := c.Classes{
 		"notification-title": true,
 	}
@@ -309,10 +310,10 @@ func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.N
 		titleClasses,
 		g.Text(item.Title),
 	)
-	if item.URL != "" {
+	if linkURL != "" {
 		titleNode = h.A(
 			titleClasses,
-			h.Href(item.URL),
+			h.Href(linkURL),
 			g.Text(item.Title),
 		)
 	}
@@ -343,6 +344,17 @@ func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.N
 		),
 		notificationActions(item, p),
 	)
+}
+
+func notificationOpenURL(item model.NotificationItem) string {
+	if item.NotificationID > 0 {
+		return fmt.Sprintf("/notifications/%d/open", item.NotificationID)
+	}
+	url := strings.TrimSpace(item.URL)
+	if url == "" {
+		return "/notifications"
+	}
+	return url
 }
 
 func notificationBadge(item model.NotificationItem) g.Node {

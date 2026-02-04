@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type NotificationRepository struct{}
@@ -161,6 +163,34 @@ WHERE
 	}
 
 	return counts, nil
+}
+
+func (r *NotificationRepository) GetNotificationURL(
+	ctx context.Context,
+	exec db.PGExecutor,
+	userID int,
+	notificationID int,
+) (string, error) {
+	query := `
+SELECT
+	url
+FROM
+	notification
+WHERE
+	user_id = $1
+	AND notification_id = $2
+`
+
+	var url string
+	err := exec.QueryRow(ctx, query, userID, notificationID).Scan(&url)
+	if err == pgx.ErrNoRows {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return url, nil
 }
 
 func (r *NotificationRepository) MarkAllRead(
