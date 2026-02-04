@@ -91,7 +91,14 @@
       return;
     }
     const subscription = await getSubscription().catch(() => null);
-    setState(subscription ? "Notifications: On" : "Notifications: Off", subscription ? "success" : "", false);
+    if (subscription) {
+      saveSubscription(subscription).catch((err) => console.error(err));
+    }
+    setState(
+      subscription ? "Notifications: On" : "Notifications: Off",
+      subscription ? "success" : "",
+      false
+    );
   };
 
     buttonEl.addEventListener("click", async () => {
