@@ -112,10 +112,13 @@ func (s *AndonService) notifyAndonCreated(ctx context.Context, andonID int, user
 		return nil
 	}
 
-	title := fmt.Sprintf("New Andon: %s", strings.TrimSpace(andon.IssueName))
+	title := "New Andon"
 	summary := strings.TrimSpace(andon.Description)
 	if summary == "" {
 		parts := make([]string, 0, 2)
+		if strings.TrimSpace(andon.IssueName) != "" {
+			parts = append(parts, strings.TrimSpace(andon.IssueName))
+		}
 		if strings.TrimSpace(andon.Location) != "" {
 			parts = append(parts, strings.TrimSpace(andon.Location))
 		}
