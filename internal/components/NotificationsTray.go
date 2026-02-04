@@ -68,41 +68,60 @@ func notificationTrayItem(item model.NotificationItem) g.Node {
 		title = "Notification"
 	}
 
+	linkContent := g.Group([]g.Node{
+		h.Span(h.Class("notifications-tray-dot")),
+		h.Span(
+			NotificationIconClasses(item),
+			Icon(&IconProps{
+				Identifier: NotificationIconIdentifier(item),
+			}),
+		),
+		h.Span(
+			h.Class("notifications-tray-content"),
+			h.Span(
+				h.Class("notifications-tray-item-title"),
+				g.Text(title),
+			),
+			g.If(item.Summary != "",
+				h.Span(
+					h.Class("notifications-tray-summary"),
+					g.Text(item.Summary),
+				),
+			),
+			g.If(item.Time != "",
+				h.Span(
+					h.Class("notifications-tray-time"),
+					g.Text(item.Time),
+				),
+			),
+		),
+	})
+
+	linkNode := h.A(
+		h.Class("notifications-tray-link"),
+		h.Href(itemURL),
+		linkContent,
+	)
+
+	if item.NotificationID > 0 {
+		linkNode = h.Form(
+			h.Method("POST"),
+			h.Action(itemURL),
+			h.Class("notifications-tray-form"),
+			h.Button(
+				h.Type("submit"),
+				h.Class("notifications-tray-link notifications-tray-button"),
+				linkContent,
+			),
+		)
+	}
+
 	return h.Li(
 		c.Classes{
 			"notifications-tray-item": true,
 			"unread":                  item.Unread,
 		},
-		h.A(
-			h.Class("notifications-tray-link"),
-			h.Href(itemURL),
-			h.Span(h.Class("notifications-tray-dot")),
-			h.Div(
-				NotificationIconClasses(item),
-				Icon(&IconProps{
-					Identifier: NotificationIconIdentifier(item),
-				}),
-			),
-			h.Div(
-				h.Class("notifications-tray-content"),
-				h.Span(
-					h.Class("notifications-tray-item-title"),
-					g.Text(title),
-				),
-				g.If(item.Summary != "",
-					h.P(
-						h.Class("notifications-tray-summary"),
-						g.Text(item.Summary),
-					),
-				),
-				g.If(item.Time != "",
-					h.Span(
-						h.Class("notifications-tray-time"),
-						g.Text(item.Time),
-					),
-				),
-			),
-		),
+		linkNode,
 	)
 }
 

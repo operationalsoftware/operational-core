@@ -310,7 +310,18 @@ func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.N
 		titleClasses,
 		g.Text(item.Title),
 	)
-	if linkURL != "" {
+	if linkURL != "" && item.NotificationID > 0 {
+		titleNode = h.Form(
+			h.Method("POST"),
+			h.Action(linkURL),
+			h.Class("notification-title-form"),
+			h.Button(
+				h.Type("submit"),
+				h.Class("notification-title notification-title-button"),
+				g.Text(item.Title),
+			),
+		)
+	} else if linkURL != "" {
 		titleNode = h.A(
 			titleClasses,
 			h.Href(linkURL),

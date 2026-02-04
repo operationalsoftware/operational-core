@@ -299,6 +299,19 @@
   }
 }
 
+.notification-title-form {
+  display: inline;
+}
+
+.notification-title-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
 .notification-summary {
   margin: 0;
   color: var(--text-color-light);

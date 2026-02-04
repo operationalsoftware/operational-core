@@ -354,11 +354,7 @@ func (h *NotificationHandler) OpenNotification(w http.ResponseWriter, r *http.Re
 		log.Println("error marking notification read:", err)
 	}
 
-	target := strings.TrimSpace(url)
-	if target == "" {
-		target = "/notifications"
-	}
-
+	target := notificationRedirect(url)
 	http.Redirect(w, r, target, http.StatusSeeOther)
 }
 

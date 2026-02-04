@@ -288,6 +288,11 @@ body {
         text-decoration: none;
         color: inherit;
         transition: background-color 0.2s ease-in-out;
+        border: 0;
+        background: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
 
         &:hover {
           background-color: var(--background-color-grey);
