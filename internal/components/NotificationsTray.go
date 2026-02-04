@@ -3,6 +3,7 @@ package components
 import (
 	"app/internal/model"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -62,6 +63,7 @@ func notificationsTrayBadge(unreadCount int) g.Node {
 
 func notificationTrayItem(item model.NotificationItem) g.Node {
 	itemURL := notificationOpenURL(item)
+	actionURL := notificationOpenActionURL(item)
 
 	title := strings.TrimSpace(item.Title)
 	if title == "" {
@@ -106,7 +108,7 @@ func notificationTrayItem(item model.NotificationItem) g.Node {
 	if item.NotificationID > 0 {
 		linkNode = h.Form(
 			h.Method("POST"),
-			h.Action(itemURL),
+			h.Action(actionURL),
 			h.Class("notifications-tray-form"),
 			h.Button(
 				h.Type("submit"),
@@ -134,14 +136,23 @@ func notificationsTrayEmpty() g.Node {
 }
 
 func notificationOpenURL(item model.NotificationItem) string {
-	if item.NotificationID > 0 {
-		return fmt.Sprintf("/notifications/%d/open", item.NotificationID)
-	}
 	itemURL := strings.TrimSpace(item.URL)
 	if itemURL == "" {
 		return "/notifications"
 	}
 	return itemURL
+}
+
+func notificationOpenActionURL(item model.NotificationItem) string {
+	if item.NotificationID == 0 {
+		return notificationOpenURL(item)
+	}
+	target := notificationOpenURL(item)
+	query := url.Values{}
+	if target != "" {
+		query.Set("Redirect", target)
+	}
+	return fmt.Sprintf("/notifications/%d/read?%s", item.NotificationID, query.Encode())
 }
 
 func NotificationIconIdentifier(item model.NotificationItem) string {
