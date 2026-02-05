@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -43,7 +44,12 @@ func (s *NotificationService) CreateNotification(
 		notification.Category = "general"
 	}
 	notification.ReasonType = model.NormalizeNotificationReasonType(notification.ReasonType)
-	return s.notificationRepo.CreateNotification(ctx, s.db, notification)
+	newID, err := s.notificationRepo.CreateNotification(ctx, s.db, notification)
+	if err != nil {
+		return 0, fmt.Errorf("error creating notification: %v", err)
+	}
+
+	return newID, nil
 }
 
 func (s *NotificationService) ListNotifications(
@@ -61,7 +67,7 @@ func (s *NotificationService) ListNotifications(
 		notifications[i].ReasonType = model.NormalizeNotificationReasonType(notifications[i].ReasonType)
 	}
 
-	counts, err := s.notificationRepo.CountNotifications(ctx, s.db, userID)
+	counts, err := s.notificationRepo.Count(ctx, s.db, userID)
 	if err != nil {
 		return nil, model.NotificationCounts{}, q, err
 	}
@@ -74,15 +80,27 @@ func (s *NotificationService) GetNotificationURL(
 	userID int,
 	notificationID int,
 ) (string, error) {
-	return s.notificationRepo.GetNotificationURL(ctx, s.db, userID, notificationID)
+	url, err := s.notificationRepo.GetNotificationURL(ctx, s.db, userID, notificationID)
+	if err != nil {
+		return "", fmt.Errorf("error getting notification URL: %v", err)
+	}
+	return url, nil
 }
 
 func (s *NotificationService) MarkAllRead(ctx context.Context, userID int) error {
-	return s.notificationRepo.MarkAllRead(ctx, s.db, userID)
+	err := s.notificationRepo.MarkAllRead(ctx, s.db, userID)
+	if err != nil {
+		return fmt.Errorf("error marking all notifications as read: %v", err)
+	}
+	return nil
 }
 
 func (s *NotificationService) MarkRead(ctx context.Context, userID int, notificationID int) error {
-	return s.notificationRepo.MarkRead(ctx, s.db, userID, notificationID)
+	err := s.notificationRepo.MarkRead(ctx, s.db, userID, notificationID)
+	if err != nil {
+		return fmt.Errorf("error marking notification as read: %v", err)
+	}
+	return nil
 }
 
 func (s *NotificationService) MarkUnread(ctx context.Context, userID int, notificationID int) error {
@@ -94,7 +112,11 @@ func (s *NotificationService) SavePushSubscription(
 	userID int,
 	subscription model.PushSubscription,
 ) error {
-	return s.notificationRepo.UpsertPushSubscription(ctx, s.db, userID, subscription)
+	err := s.notificationRepo.UpsertPushSubscription(ctx, s.db, userID, subscription)
+	if err != nil {
+		return fmt.Errorf("error saving push subscription: %v", err)
+	}
+	return nil
 }
 
 func (s *NotificationService) DeletePushSubscription(
@@ -106,7 +128,11 @@ func (s *NotificationService) DeletePushSubscription(
 	if userID == 0 || endpoint == "" {
 		return nil
 	}
-	return s.notificationRepo.DeletePushSubscription(ctx, s.db, userID, endpoint)
+	err := s.notificationRepo.DeletePushSubscription(ctx, s.db, userID, endpoint)
+	if err != nil {
+		return fmt.Errorf("error deleting push subscription: %v", err)
+	}
+	return nil
 }
 
 func (s *NotificationService) SendPushNotification(

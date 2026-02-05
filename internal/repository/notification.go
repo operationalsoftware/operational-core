@@ -141,7 +141,7 @@ LIMIT $` + strconv.Itoa(len(args)-1) + ` OFFSET $` + strconv.Itoa(len(args)) + `
 	return notifications, nil
 }
 
-func (r *NotificationRepository) CountNotifications(
+func (r *NotificationRepository) Count(
 	ctx context.Context,
 	exec db.PGExecutor,
 	userID int,

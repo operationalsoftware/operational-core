@@ -42,7 +42,7 @@ func NotificationPage(p NotificationPageProps) g.Node {
 	content := h.Div(
 		h.Class("notifications-page"),
 
-		notificationsHeader(p.UnreadCount, activeFilter, p.VAPIDPublicKey),
+		notificationsHeader(activeFilter, p.VAPIDPublicKey),
 
 		h.Div(
 			h.Class("notifications-layout"),
@@ -73,7 +73,7 @@ func NotificationPage(p NotificationPageProps) g.Node {
 	})
 }
 
-func notificationsHeader(unreadCount int, activeFilter string, vapidPublicKey string) g.Node {
+func notificationsHeader(activeFilter string, vapidPublicKey string) g.Node {
 	subtitle := "Activity across the platform."
 	showMarkAll := strings.ToLower(activeFilter) != "read"
 	showPush := strings.TrimSpace(vapidPublicKey) != ""
@@ -302,7 +302,7 @@ func notificationGroup(group model.NotificationGroup, p *NotificationPageProps) 
 
 func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.Node {
 	iconIdentifier := components.NotificationIconIdentifier(item)
-	linkURL := notificationOpenActionURL(item, p)
+	linkURL := notificationOpenActionURL(item)
 	titleClasses := c.Classes{
 		"notification-title": true,
 	}
@@ -365,7 +365,7 @@ func notificationOpenURL(item model.NotificationItem) string {
 	return url
 }
 
-func notificationOpenActionURL(item model.NotificationItem, p *NotificationPageProps) string {
+func notificationOpenActionURL(item model.NotificationItem) string {
 	if item.NotificationID == 0 {
 		return notificationOpenURL(item)
 	}
@@ -463,32 +463,31 @@ func notificationToggleForm(item model.NotificationItem, p *NotificationPageProp
 		label = "Mark as unread"
 	}
 
+	redirectURL := notificationsListURL(p)
+	query := url.Values{}
+	query.Set("Redirect", redirectURL)
+
 	return h.Form(
 		h.Method("POST"),
-		h.Action(notificationToggleActionURL(item.NotificationID, action, p)),
+		h.Action(fmt.Sprintf("/notifications/%d/%s?%s", item.NotificationID, action, query.Encode())),
 		h.Button(
 			h.Type("submit"),
 			h.Class("notification-toggle"),
 			h.Aria("label", label),
-			components.Icon(&components.IconProps{
-				Identifier: notificationToggleIcon(item),
-			}),
+			g.If(
+				item.Unread,
+				components.Icon(&components.IconProps{
+					Identifier: "email-open-outline",
+				}),
+			),
+			g.If(
+				!item.Unread,
+				components.Icon(&components.IconProps{
+					Identifier: "email-outline",
+				}),
+			),
 		),
 	)
-}
-
-func notificationToggleIcon(item model.NotificationItem) string {
-	if item.Unread {
-		return "email-open-outline"
-	}
-	return "email-outline"
-}
-
-func notificationToggleActionURL(notificationID int, action string, p *NotificationPageProps) string {
-	redirectURL := notificationsListURL(p)
-	query := url.Values{}
-	query.Set("Redirect", redirectURL)
-	return fmt.Sprintf("/notifications/%d/%s?%s", notificationID, action, query.Encode())
 }
 
 func notificationsListURL(p *NotificationPageProps) string {
