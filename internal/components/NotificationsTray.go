@@ -63,7 +63,6 @@ func notificationsTrayBadge(unreadCount int) g.Node {
 
 func notificationTrayItem(item model.NotificationItem) g.Node {
 	itemURL := notificationOpenURL(item)
-	actionURL := notificationOpenActionURL(item)
 
 	title := strings.TrimSpace(item.Title)
 	if title == "" {
@@ -105,19 +104,6 @@ func notificationTrayItem(item model.NotificationItem) g.Node {
 		linkContent,
 	)
 
-	if item.NotificationID > 0 {
-		linkNode = h.Form(
-			h.Method("POST"),
-			h.Action(actionURL),
-			h.Class("notifications-tray-form"),
-			h.Button(
-				h.Type("submit"),
-				h.Class("notifications-tray-link notifications-tray-button"),
-				linkContent,
-			),
-		)
-	}
-
 	return h.Li(
 		c.Classes{
 			"notifications-tray-item": true,
@@ -136,23 +122,22 @@ func notificationsTrayEmpty() g.Node {
 }
 
 func notificationOpenURL(item model.NotificationItem) string {
-	itemURL := strings.TrimSpace(item.URL)
-	if itemURL == "" {
+	if item.NotificationID > 0 {
+		query := url.Values{}
+		trimmed := strings.TrimSpace(item.URL)
+		if trimmed != "" {
+			query.Set("Redirect", trimmed)
+		}
+		if len(query) > 0 {
+			return fmt.Sprintf("/notifications/%d?%s", item.NotificationID, query.Encode())
+		}
+		return fmt.Sprintf("/notifications/%d", item.NotificationID)
+	}
+	trimmed := strings.TrimSpace(item.URL)
+	if trimmed == "" {
 		return "/notifications"
 	}
-	return itemURL
-}
-
-func notificationOpenActionURL(item model.NotificationItem) string {
-	if item.NotificationID == 0 {
-		return notificationOpenURL(item)
-	}
-	target := notificationOpenURL(item)
-	query := url.Values{}
-	if target != "" {
-		query.Set("Redirect", target)
-	}
-	return fmt.Sprintf("/notifications/%d/read?%s", item.NotificationID, query.Encode())
+	return trimmed
 }
 
 func NotificationIconIdentifier(item model.NotificationItem) string {

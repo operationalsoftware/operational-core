@@ -280,6 +280,15 @@ func (h *NotificationHandler) MarkAllRead(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Error marking notifications as read", http.StatusInternalServerError)
 		return
 	}
+	endpoint, _ := cookie.GetPushSubscriptionEndpoint(r)
+	if pushErr := h.notificationService.SendPushNotification(
+		r.Context(),
+		ctx.User.UserID,
+		model.PushNotificationPayload{Type: "tray_refresh"},
+		endpoint,
+	); pushErr != nil {
+		log.Println("error refreshing notification tray:", pushErr)
+	}
 	http.Redirect(w, r, "/notifications?Filter=unread", http.StatusSeeOther)
 }
 
@@ -287,9 +296,7 @@ func (h *NotificationHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 	notificationID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || notificationID <= 0 {
-		if err != nil {
-			log.Println("invalid notification id:", err)
-		}
+		log.Println("invalid notification id:", err)
 		http.Error(w, "Invalid notification id", http.StatusBadRequest)
 		return
 	}
@@ -301,6 +308,16 @@ func (h *NotificationHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	endpoint, _ := cookie.GetPushSubscriptionEndpoint(r)
+	if pushErr := h.notificationService.SendPushNotification(
+		r.Context(),
+		ctx.User.UserID,
+		model.PushNotificationPayload{Type: "tray_refresh"},
+		endpoint,
+	); pushErr != nil {
+		log.Println("error refreshing notification tray:", pushErr)
+	}
+
 	redirectURL := notificationRedirect(r.URL.Query().Get("Redirect"))
 	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
@@ -309,9 +326,7 @@ func (h *NotificationHandler) MarkUnread(w http.ResponseWriter, r *http.Request)
 	ctx := reqcontext.GetContext(r)
 	notificationID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || notificationID <= 0 {
-		if err != nil {
-			log.Println("invalid notification id:", err)
-		}
+		log.Println("invalid notification id:", err)
 		http.Error(w, "Invalid notification id", http.StatusBadRequest)
 		return
 	}
@@ -325,6 +340,57 @@ func (h *NotificationHandler) MarkUnread(w http.ResponseWriter, r *http.Request)
 
 	redirectURL := notificationRedirect(r.URL.Query().Get("Redirect"))
 	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+}
+
+func (h *NotificationHandler) OpenNotification(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+	if ctx.User.UserID == 0 {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	notificationID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || notificationID <= 0 {
+		log.Println("invalid notification id:", err)
+		http.Error(w, "Invalid notification id", http.StatusBadRequest)
+		return
+	}
+
+	storedURL, found, err := h.notificationService.GetNotificationURL(r.Context(), ctx.User.UserID, notificationID)
+	if err != nil {
+		log.Println("error fetching notification url:", err)
+		http.Error(w, "Error fetching notification", http.StatusInternalServerError)
+		return
+	}
+	if !found {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err := h.notificationService.MarkRead(r.Context(), ctx.User.UserID, notificationID); err != nil {
+		log.Println("error marking notification read:", err)
+	}
+
+	endpoint, _ := cookie.GetPushSubscriptionEndpoint(r)
+	if pushErr := h.notificationService.SendPushNotification(
+		r.Context(),
+		ctx.User.UserID,
+		model.PushNotificationPayload{Type: "tray_refresh"},
+		endpoint,
+	); pushErr != nil {
+		log.Println("error refreshing notification tray:", pushErr)
+	}
+
+	redirectParam := strings.TrimSpace(r.URL.Query().Get("Redirect"))
+	target := strings.TrimSpace(storedURL)
+	if redirectParam != "" && (target == "" || redirectParam == target) {
+		target = redirectParam
+	}
+	if target == "" {
+		target = "/notifications"
+	}
+
+	http.Redirect(w, r, notificationRedirect(target), http.StatusSeeOther)
 }
 
 func notificationRedirect(redirect string) string {

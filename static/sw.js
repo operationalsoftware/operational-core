@@ -19,6 +19,19 @@ self.addEventListener("push", (event) => {
     }
   }
 
+  if (payload.type === "tray_refresh") {
+    event.waitUntil(
+      self.clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((clientList) => {
+          clientList.forEach((client) => {
+            client.postMessage({ type: "notifications:refresh" });
+          });
+        })
+    );
+    return;
+  }
+
   const title = payload.title || "Notification";
   const options = {
     body: payload.body || "",

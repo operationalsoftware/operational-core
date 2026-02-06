@@ -79,12 +79,12 @@ func (s *NotificationService) GetNotificationURL(
 	ctx context.Context,
 	userID int,
 	notificationID int,
-) (string, error) {
-	url, err := s.notificationRepo.GetNotificationURL(ctx, s.db, userID, notificationID)
+) (string, bool, error) {
+	url, found, err := s.notificationRepo.GetNotificationURL(ctx, s.db, userID, notificationID)
 	if err != nil {
-		return "", fmt.Errorf("error getting notification URL: %v", err)
+		return "", false, fmt.Errorf("error getting notification URL: %v", err)
 	}
-	return url, nil
+	return url, found, nil
 }
 
 func (s *NotificationService) MarkAllRead(ctx context.Context, userID int) error {
@@ -104,7 +104,11 @@ func (s *NotificationService) MarkRead(ctx context.Context, userID int, notifica
 }
 
 func (s *NotificationService) MarkUnread(ctx context.Context, userID int, notificationID int) error {
-	return s.notificationRepo.MarkUnread(ctx, s.db, userID, notificationID)
+	err := s.notificationRepo.MarkUnread(ctx, s.db, userID, notificationID)
+	if err != nil {
+		return fmt.Errorf("error marking notification as unread: %w", err)
+	}
+	return nil
 }
 
 func (s *NotificationService) SavePushSubscription(
@@ -139,6 +143,7 @@ func (s *NotificationService) SendPushNotification(
 	ctx context.Context,
 	userID int,
 	payload model.PushNotificationPayload,
+	excludeEndpoint string,
 ) error {
 	vapidPublicKey := strings.TrimSpace(os.Getenv("VAPID_PUBLIC_KEY"))
 	vapidPrivateKey := strings.TrimSpace(os.Getenv("VAPID_PRIVATE_KEY"))
@@ -167,8 +172,13 @@ func (s *NotificationService) SendPushNotification(
 		return err
 	}
 
+	excludeEndpoint = strings.TrimSpace(excludeEndpoint)
+
 	var firstErr error
 	for _, subscription := range subscriptions {
+		if excludeEndpoint != "" && subscription.Endpoint == excludeEndpoint {
+			continue
+		}
 		resp, err := webpush.SendNotification(
 			message,
 			&webpush.Subscription{

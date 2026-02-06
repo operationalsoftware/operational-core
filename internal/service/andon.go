@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -131,11 +132,7 @@ func (s *AndonService) notifyAndonCreated(ctx context.Context, andonID int, user
 		summary = "New andon raised."
 	}
 
-	payload := model.PushNotificationPayload{
-		Title: title,
-		Body:  summary,
-		URL:   fmt.Sprintf("/andons/%d", andon.AndonID),
-	}
+	targetURL := fmt.Sprintf("/andons/%d", andon.AndonID)
 
 	reasonType := mapAndonSeverityToNotificationReason(andon.Severity)
 
@@ -143,20 +140,34 @@ func (s *AndonService) notifyAndonCreated(ctx context.Context, andonID int, user
 		if recipientID == userID {
 			continue
 		}
-		_, err := s.notificationService.CreateNotification(ctx, model.NewNotification{
+		notificationID, err := s.notificationService.CreateNotification(ctx, model.NewNotification{
 			UserID:      recipientID,
 			ActorUserID: &userID,
 			Category:    "andon",
 			Title:       title,
 			Summary:     summary,
-			URL:         payload.URL,
+			URL:         targetURL,
 			Reason:      andon.IssueName,
 			ReasonType:  reasonType,
 		})
 		if err != nil {
 			log.Println("error creating andon notification:", err)
 		}
-		if err := s.notificationService.SendPushNotification(ctx, recipientID, payload); err != nil {
+
+		pushURL := targetURL
+		if notificationID > 0 {
+			query := url.Values{}
+			query.Set("Redirect", targetURL)
+			pushURL = fmt.Sprintf("/notifications/%d?%s", notificationID, query.Encode())
+		}
+
+		payload := model.PushNotificationPayload{
+			Title: title,
+			Body:  summary,
+			URL:   pushURL,
+		}
+
+		if err := s.notificationService.SendPushNotification(ctx, recipientID, payload, ""); err != nil {
 			log.Println("error sending andon push notification:", err)
 		}
 	}

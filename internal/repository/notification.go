@@ -170,7 +170,7 @@ func (r *NotificationRepository) GetNotificationURL(
 	exec db.PGExecutor,
 	userID int,
 	notificationID int,
-) (string, error) {
+) (string, bool, error) {
 	query := `
 SELECT
 	url
@@ -184,13 +184,13 @@ WHERE
 	var url string
 	err := exec.QueryRow(ctx, query, userID, notificationID).Scan(&url)
 	if err == pgx.ErrNoRows {
-		return "", nil
+		return "", false, nil
 	}
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
-	return url, nil
+	return url, true, nil
 }
 
 func (r *NotificationRepository) MarkAllRead(

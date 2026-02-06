@@ -302,7 +302,7 @@ func notificationGroup(group model.NotificationGroup, p *NotificationPageProps) 
 
 func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.Node {
 	iconIdentifier := components.NotificationIconIdentifier(item)
-	linkURL := notificationOpenActionURL(item)
+	linkURL := notificationOpenURL(item)
 	titleClasses := c.Classes{
 		"notification-title": true,
 	}
@@ -310,18 +310,7 @@ func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.N
 		titleClasses,
 		g.Text(item.Title),
 	)
-	if linkURL != "" && item.NotificationID > 0 {
-		titleNode = h.Form(
-			h.Method("POST"),
-			h.Action(linkURL),
-			h.Class("notification-title-form"),
-			h.Button(
-				h.Type("submit"),
-				h.Class("notification-title notification-title-button"),
-				g.Text(item.Title),
-			),
-		)
-	} else if linkURL != "" {
+	if linkURL != "" {
 		titleNode = h.A(
 			titleClasses,
 			h.Href(linkURL),
@@ -358,23 +347,22 @@ func notificationItem(item model.NotificationItem, p *NotificationPageProps) g.N
 }
 
 func notificationOpenURL(item model.NotificationItem) string {
-	url := strings.TrimSpace(item.URL)
-	if url == "" {
+	if item.NotificationID > 0 {
+		query := url.Values{}
+		trimmed := strings.TrimSpace(item.URL)
+		if trimmed != "" {
+			query.Set("Redirect", trimmed)
+		}
+		if len(query) > 0 {
+			return fmt.Sprintf("/notifications/%d?%s", item.NotificationID, query.Encode())
+		}
+		return fmt.Sprintf("/notifications/%d", item.NotificationID)
+	}
+	trimmed := strings.TrimSpace(item.URL)
+	if trimmed == "" {
 		return "/notifications"
 	}
-	return url
-}
-
-func notificationOpenActionURL(item model.NotificationItem) string {
-	if item.NotificationID == 0 {
-		return notificationOpenURL(item)
-	}
-	target := notificationOpenURL(item)
-	query := url.Values{}
-	if target != "" {
-		query.Set("Redirect", target)
-	}
-	return fmt.Sprintf("/notifications/%d/read?%s", item.NotificationID, query.Encode())
+	return trimmed
 }
 
 func notificationBadge(item model.NotificationItem) g.Node {

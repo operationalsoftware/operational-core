@@ -70,6 +70,13 @@
       }
     }
 
+    function handlePushMessage(event) {
+      if (!event.data || event.data.type !== "notifications:refresh") {
+        return;
+      }
+      loadTray(true);
+    }
+
     buttonEl.addEventListener("click", () => {
       panelEl.classList.toggle("show");
       if (panelEl.classList.contains("show")) {
@@ -88,6 +95,10 @@
       document.addEventListener("DOMContentLoaded", () => loadTray(false));
     } else {
       loadTray(false);
+    }
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", handlePushMessage);
     }
   }
 }
