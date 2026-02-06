@@ -20,12 +20,22 @@ function broadcastTrayRefresh() {
 
 function closeTaggedNotifications(tag) {
   if (!tag) {
-    return Promise.resolve();
+    return Promise.resolve(0);
   }
+  if (!self.registration.getNotifications) {
+    return Promise.resolve(0);
+  }
+  return self.registration.getNotifications({ tag }).then((list) => {
+    list.forEach((notification) => notification.close());
+    return list.length;
+  });
+}
+
+function closeAllNotifications() {
   if (!self.registration.getNotifications) {
     return Promise.resolve();
   }
-  return self.registration.getNotifications({ tag }).then((list) => {
+  return self.registration.getNotifications().then((list) => {
     list.forEach((notification) => notification.close());
   });
 }
@@ -51,7 +61,15 @@ self.addEventListener("push", (event) => {
       ? `notification:${payload.notificationId}`
       : "";
     event.waitUntil(
-      Promise.all([closeTaggedNotifications(tag), broadcastTrayRefresh()])
+      closeTaggedNotifications(tag)
+        .then((count) => {
+          if (count === 0) {
+            // Fallback: clear all app notifications when tag-based lookup isn't supported.
+            return closeAllNotifications();
+          }
+          return null;
+        })
+        .then(() => broadcastTrayRefresh())
     );
     return;
   }
