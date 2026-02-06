@@ -8,6 +8,28 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+function broadcastTrayRefresh() {
+  return self.clients
+    .matchAll({ type: "window", includeUncontrolled: true })
+    .then((clientList) => {
+      clientList.forEach((client) => {
+        client.postMessage({ type: "notifications:refresh" });
+      });
+    });
+}
+
+function closeTaggedNotifications(tag) {
+  if (!tag) {
+    return Promise.resolve();
+  }
+  if (!self.registration.getNotifications) {
+    return Promise.resolve();
+  }
+  return self.registration.getNotifications({ tag }).then((list) => {
+    list.forEach((notification) => notification.close());
+  });
+}
+
 self.addEventListener("push", (event) => {
   let payload = {};
 
@@ -20,14 +42,16 @@ self.addEventListener("push", (event) => {
   }
 
   if (payload.type === "tray_refresh") {
+    event.waitUntil(broadcastTrayRefresh());
+    return;
+  }
+
+  if (payload.type === "notification_read") {
+    const tag = payload.notificationId
+      ? `notification:${payload.notificationId}`
+      : "";
     event.waitUntil(
-      self.clients
-        .matchAll({ type: "window", includeUncontrolled: true })
-        .then((clientList) => {
-          clientList.forEach((client) => {
-            client.postMessage({ type: "notifications:refresh" });
-          });
-        })
+      Promise.all([closeTaggedNotifications(tag), broadcastTrayRefresh()])
     );
     return;
   }
@@ -41,6 +65,10 @@ self.addEventListener("push", (event) => {
       url: payload.url || "/",
     },
   };
+
+  if (payload.notificationId) {
+    options.tag = `notification:${payload.notificationId}`;
+  }
 
   event.waitUntil(self.registration.showNotification(title, options));
 });

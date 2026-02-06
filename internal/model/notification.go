@@ -100,8 +100,9 @@ type PushSubscriptionKeys struct {
 }
 
 type PushNotificationPayload struct {
-	Type  string `json:"type,omitempty"`
-	Title string `json:"title,omitempty"`
-	Body  string `json:"body,omitempty"`
-	URL   string `json:"url,omitempty"`
+	Type           string `json:"type,omitempty"`
+	NotificationID int    `json:"notificationId,omitempty"`
+	Title          string `json:"title,omitempty"`
+	Body           string `json:"body,omitempty"`
+	URL            string `json:"url,omitempty"`
 }

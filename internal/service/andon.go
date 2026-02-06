@@ -154,17 +154,16 @@ func (s *AndonService) notifyAndonCreated(ctx context.Context, andonID int, user
 			log.Println("error creating andon notification:", err)
 		}
 
-		pushURL := targetURL
+		payload := model.PushNotificationPayload{
+			Title:          title,
+			Body:           summary,
+			URL:            targetURL,
+			NotificationID: notificationID,
+		}
 		if notificationID > 0 {
 			query := url.Values{}
 			query.Set("Redirect", targetURL)
-			pushURL = fmt.Sprintf("/notifications/%d?%s", notificationID, query.Encode())
-		}
-
-		payload := model.PushNotificationPayload{
-			Title: title,
-			Body:  summary,
-			URL:   pushURL,
+			payload.URL = fmt.Sprintf("/notifications/%d?%s", notificationID, query.Encode())
 		}
 
 		if err := s.notificationService.SendPushNotification(ctx, recipientID, payload, ""); err != nil {

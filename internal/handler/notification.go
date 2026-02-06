@@ -284,7 +284,10 @@ func (h *NotificationHandler) MarkAllRead(w http.ResponseWriter, r *http.Request
 	if pushErr := h.notificationService.SendPushNotification(
 		r.Context(),
 		ctx.User.UserID,
-		model.PushNotificationPayload{Type: "tray_refresh"},
+		model.PushNotificationPayload{
+			Type:           "notification_read",
+			NotificationID: notificationID,
+		},
 		endpoint,
 	); pushErr != nil {
 		log.Println("error refreshing notification tray:", pushErr)
@@ -312,7 +315,10 @@ func (h *NotificationHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
 	if pushErr := h.notificationService.SendPushNotification(
 		r.Context(),
 		ctx.User.UserID,
-		model.PushNotificationPayload{Type: "tray_refresh"},
+		model.PushNotificationPayload{
+			Type:           "notification_read",
+			NotificationID: notificationID,
+		},
 		endpoint,
 	); pushErr != nil {
 		log.Println("error refreshing notification tray:", pushErr)
