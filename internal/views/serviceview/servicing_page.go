@@ -168,9 +168,9 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 		{TitleContents: g.Text("Current Value")},
 		{TitleContents: g.Text("Threshold")},
 		{TitleContents: g.Text("Threshold Utilisation (%)")},
-		{TitleContents: g.Text("Tracked Since")},
 		{TitleContents: g.Text("Last Recorded At")},
 		{TitleContents: g.Text("Last Serviced At")},
+		{TitleContents: g.Text("Tracked Since")},
 		{TitleContents: g.Text("Actions")},
 	}
 
@@ -217,9 +217,9 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 			{Contents: g.Text(r.NormalisedPercentage.String()), Classes: c.Classes{
 				"text-right": true,
 			}},
-			{Contents: g.Text(trackedSince)},
 			{Contents: g.Text(lastRecordedAt)},
 			{Contents: g.Text(lastServicedAt)},
+			{Contents: g.Text(trackedSince)},
 			{Contents: g.Group([]g.Node{
 
 				h.Div(
