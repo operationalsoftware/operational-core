@@ -329,6 +329,7 @@ func lifetimeTotalsTable(p *lifetimeTotalsTableProps) g.Node {
 	var columns = components.TableColumns{
 		{TitleContents: g.Text("Metric")},
 		{TitleContents: g.Text("Lifetime Total"), Classes: c.Classes{"text-right": true}},
+		{TitleContents: g.Text("Tracked Since")},
 	}
 
 	var tableRows components.TableRows
@@ -339,10 +340,16 @@ func lifetimeTotalsTable(p *lifetimeTotalsTableProps) g.Node {
 			lifetime = format.DecimalWithCommas(r.LifetimeTotal.String())
 		}
 
+		trackedSince := "\u2013"
+		if r.TrackedSince != nil {
+			trackedSince = r.TrackedSince.Format("2006-01-02 15:04:05")
+		}
+
 		tableRows = append(tableRows, components.TableRow{
 			Cells: []components.TableCell{
 				{Contents: g.Text(r.MetricName)},
 				{Contents: g.Text(lifetime), Classes: c.Classes{"text-right": true}},
+				{Contents: g.Text(trackedSince)},
 			},
 		})
 	}
