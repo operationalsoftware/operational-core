@@ -170,6 +170,7 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 		{TitleContents: g.Text("Threshold Utilisation (%)")},
 		{TitleContents: g.Text("Last Recorded At")},
 		{TitleContents: g.Text("Last Serviced At")},
+		{TitleContents: g.Text("Tracked Since")},
 		{TitleContents: g.Text("Actions")},
 	}
 
@@ -179,6 +180,11 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 		lastRecordedAt := "\u2013"
 		if r.LastRecordedAt != nil {
 			lastRecordedAt = r.LastRecordedAt.Format("2006-01-02 15:04:05")
+		}
+
+		trackedSince := "\u2013"
+		if r.TrackedSince != nil {
+			trackedSince = r.TrackedSince.Format("2006-01-02 15:04:05")
 		}
 
 		lastServicedAt := "\u2013"
@@ -213,6 +219,7 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 			}},
 			{Contents: g.Text(lastRecordedAt)},
 			{Contents: g.Text(lastServicedAt)},
+			{Contents: g.Text(trackedSince)},
 			{Contents: g.Group([]g.Node{
 
 				h.Div(

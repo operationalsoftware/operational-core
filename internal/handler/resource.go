@@ -216,6 +216,7 @@ func (h *ResourceHandler) ResourcePage(w http.ResponseWriter, r *http.Request) {
 	currentMetrics, err := h.resourceService.GetResourceServiceSchedules(
 		r.Context(),
 		resourceID,
+		ctx.User.UserID,
 	)
 	if err != nil {
 		log.Println("error fetching resource metrics summary:", err)

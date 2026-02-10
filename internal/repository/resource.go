@@ -559,7 +559,8 @@ SELECT
     resource_type,
     reference,
     metric_name,
-    lifetime_total
+    lifetime_total,
+    tracked_since
 FROM
     service_metric_lifetime_total_view
 WHERE
@@ -584,6 +585,7 @@ ORDER BY metric_name ASC
 			&total.ResourceReference,
 			&total.MetricName,
 			&total.LifetimeTotal,
+			&total.TrackedSince,
 		)
 		if err != nil {
 			return nil, err
@@ -602,6 +604,7 @@ func (r *ResourceRepository) ListResourceMetricSchedules(
 	ctx context.Context,
 	exec db.PGExecutor,
 	resourceID int,
+	userID int,
 ) ([]model.ResourceServiceMetricStatus, error) {
 
 	query := `
@@ -621,11 +624,21 @@ SELECT
 	normalised_percentage,
 	is_due,
 	last_recorded_at,
+	tracked_since,
 	schedule_is_archived,
 	metric_is_archived,
 	last_serviced_at,
 	wip_service_id,
-	has_wip_service
+	has_wip_service,
+	(
+		service_ownership_team_id IS NOT NULL
+		AND
+		service_ownership_team_id IN (
+			SELECT team_id
+			FROM user_team
+			WHERE user_id = $2
+		)
+	) AS can_user_manage
 FROM
     resource_service_metric_status_view
 WHERE
@@ -640,7 +653,7 @@ WHERE
 ORDER BY metric_name ASC
 `
 
-	rows, err := exec.Query(ctx, query, resourceID)
+	rows, err := exec.Query(ctx, query, resourceID, userID)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -667,11 +680,13 @@ ORDER BY metric_name ASC
 			&metric.NormalisedPercentage,
 			&metric.IsDue,
 			&metric.LastRecordedAt,
+			&metric.TrackedSince,
 			&metric.ScheduleIsArchived,
 			&metric.MetricIsArchived,
 			&metric.LastServicedAt,
 			&metric.WIPServiceID,
 			&metric.HasWIPService,
+			&metric.CanUserManage,
 		)
 		if err != nil {
 			return nil, err

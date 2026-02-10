@@ -1150,7 +1150,7 @@ func (h *ServiceHandler) AddResourceServiceSchedulePage(
 		return
 	}
 
-	assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID)
+	assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID, ctx.User.UserID)
 	if err != nil {
 		log.Println("error fetching assigned service schedules:", err)
 		http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)
@@ -1216,7 +1216,7 @@ func (h *ServiceHandler) AssignServiceSchedule(w http.ResponseWriter, r *http.Re
 			return
 		}
 
-		assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID)
+		assignedSchedules, err := h.resourceService.GetResourceServiceSchedules(r.Context(), resourceID, ctx.User.UserID)
 		if err != nil {
 			log.Println("error fetching assigned service schedules:", err)
 			http.Error(w, "Error fetching service schedules", http.StatusInternalServerError)

@@ -162,6 +162,7 @@ func (s *ResourceService) GetResourceServiceMetrics(
 func (s *ResourceService) GetResourceServiceSchedules(
 	ctx context.Context,
 	resourceID int,
+	userID int,
 ) (
 	[]model.ResourceServiceMetricStatus,
 	error,
@@ -171,6 +172,7 @@ func (s *ResourceService) GetResourceServiceSchedules(
 		ctx,
 		s.db,
 		resourceID,
+		userID,
 	)
 	if err != nil {
 		return []model.ResourceServiceMetricStatus{},

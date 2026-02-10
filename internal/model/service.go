@@ -128,6 +128,7 @@ type ResourceServiceMetricStatus struct {
 	WIPServiceID             *int
 	HasWIPService            bool
 	LastRecordedAt           *time.Time
+	TrackedSince             *time.Time
 	LastServicedAt           *time.Time
 	ScheduleIsArchived       bool
 	MetricIsArchived         bool
@@ -140,6 +141,7 @@ type ServiceMetricLifetimeTotal struct {
 	ResourceReference string
 	MetricName        string
 	LifetimeTotal     decimal.Decimal
+	TrackedSince      *time.Time
 }
 
 type ResourceServiceMetricStatusesQuery struct {
