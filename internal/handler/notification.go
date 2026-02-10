@@ -9,7 +9,6 @@ import (
 	"app/pkg/cookie"
 	"app/pkg/env"
 	"app/pkg/reqcontext"
-	"app/pkg/validate"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -100,64 +99,34 @@ func (h *NotificationHandler) NotificationsTray(w http.ResponseWriter, r *http.R
 func (h *NotificationHandler) NotificationTestPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	successText := ""
-	if r.URL.Query().Get("Sent") == "1" {
-		successText = "Test notification sent."
-	}
-
 	_ = notificationview.NotificationTestPage(notificationview.NotificationTestPageProps{
-		Ctx:              ctx,
-		Values:           url.Values{},
-		ValidationErrors: validate.ValidationErrors{},
-		SuccessText:      successText,
+		Ctx: ctx,
 	}).Render(w)
 }
 
 func (h *NotificationHandler) SendTestNotification(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form submission", http.StatusBadRequest)
-		return
-	}
-
-	values := r.PostForm
-	message := strings.TrimSpace(values.Get("Message"))
-	validationErrors := validate.ValidationErrors{}
-	if message == "" {
-		validationErrors.Add("Message", "is required")
-	}
-
-	if validationErrors.HasErrors() {
-		_ = notificationview.NotificationTestPage(notificationview.NotificationTestPageProps{
-			Ctx:              ctx,
-			Values:           values,
-			ValidationErrors: validationErrors,
-		}).Render(w)
-		return
-	}
+	message := "This is a test notification."
 
 	notificationID, err := h.notificationService.CreateNotification(r.Context(), model.NewNotification{
 		UserID:     ctx.User.UserID,
 		Category:   "test",
 		Title:      "Test notification",
 		Summary:    message,
-		URL:        "/notifications",
+		URL:        "/notifications/test",
 		Reason:     "Test",
 		ReasonType: model.NotificationReasonInfo,
 	})
 	if err != nil {
 		log.Println("error creating test notification:", err)
 		_ = notificationview.NotificationTestPage(notificationview.NotificationTestPageProps{
-			Ctx:         ctx,
-			Values:      values,
-			ErrorText:   "Unable to create test notification.",
-			SuccessText: "",
+			Ctx: ctx,
 		}).Render(w)
 		return
 	}
 
-	targetURL := "/notifications"
+	targetURL := "/notifications/test"
 	pushURL := targetURL
 	if notificationID > 0 {
 		query := url.Values{}
@@ -175,15 +144,12 @@ func (h *NotificationHandler) SendTestNotification(w http.ResponseWriter, r *htt
 	if err := h.notificationService.SendPushNotification(r.Context(), ctx.User.UserID, payload, ""); err != nil {
 		log.Println("error sending test push notification:", err)
 		_ = notificationview.NotificationTestPage(notificationview.NotificationTestPageProps{
-			Ctx:         ctx,
-			Values:      values,
-			ErrorText:   "Notification saved, but push failed to send.",
-			SuccessText: "",
+			Ctx: ctx,
 		}).Render(w)
 		return
 	}
 
-	http.Redirect(w, r, "/notifications/test?Sent=1", http.StatusSeeOther)
+	http.Redirect(w, r, "/notifications/test", http.StatusSeeOther)
 }
 
 func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *http.Request) {

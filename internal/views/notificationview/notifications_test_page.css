@@ -5,12 +5,7 @@
 
 .notification-test {
   width: 100%;
-  max-width: var(--narrow-form-width);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-}
-
-.notification-test form {
-  width: 100%;
 }

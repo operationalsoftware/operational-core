@@ -42,14 +42,6 @@ func NotificationPage(p NotificationPageProps) g.Node {
 	content := h.Div(
 		h.Class("notifications-page"),
 
-		h.Nav(
-			h.Class("notifications-nav"),
-			h.A(
-				h.Href("/notifications/test"),
-				g.Text("Test notification"),
-			),
-		),
-
 		notificationsHeader(activeFilter, p.VAPIDPublicKey),
 
 		h.Div(
@@ -95,6 +87,14 @@ func notificationsHeader(activeFilter string, vapidPublicKey string) g.Node {
 		),
 		h.Div(
 			h.Class("notifications-actions"),
+			h.Form(
+				h.Method("POST"),
+				h.Action("/notifications/test"),
+				h.Class("notifications-test-form"),
+				components.Button(&components.ButtonProps{
+					Size: components.ButtonSm,
+				}, g.Text("Test notification")),
+			),
 			g.If(showPush, notificationsPushAction(vapidPublicKey)),
 			g.If(showMarkAll,
 				h.Form(
