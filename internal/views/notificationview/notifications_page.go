@@ -42,6 +42,14 @@ func NotificationPage(p NotificationPageProps) g.Node {
 	content := h.Div(
 		h.Class("notifications-page"),
 
+		h.Nav(
+			h.Class("notifications-nav"),
+			h.A(
+				h.Href("/notifications/test"),
+				g.Text("Test notification"),
+			),
+		),
+
 		notificationsHeader(activeFilter, p.VAPIDPublicKey),
 
 		h.Div(
@@ -85,23 +93,20 @@ func notificationsHeader(activeFilter string, vapidPublicKey string) g.Node {
 			h.H1(g.Text("Notifications")),
 			h.P(g.Text(subtitle)),
 		),
-		g.If(
-			showMarkAll || showPush,
-			h.Div(
-				h.Class("notifications-actions"),
-				g.If(showPush, notificationsPushAction(vapidPublicKey)),
-				g.If(showMarkAll,
-					h.Form(
-						h.Method("POST"),
-						h.Action("/notifications/mark-all-read"),
-						h.Class("notifications-mark-all"),
-						components.Button(&components.ButtonProps{
-							ButtonType: components.ButtonPrimary,
-							Size:       components.ButtonSm,
-						},
-							components.Icon(&components.IconProps{Identifier: "text-box-check-outline"}),
-							g.Text("Mark all as read"),
-						),
+		h.Div(
+			h.Class("notifications-actions"),
+			g.If(showPush, notificationsPushAction(vapidPublicKey)),
+			g.If(showMarkAll,
+				h.Form(
+					h.Method("POST"),
+					h.Action("/notifications/mark-all-read"),
+					h.Class("notifications-mark-all"),
+					components.Button(&components.ButtonProps{
+						ButtonType: components.ButtonPrimary,
+						Size:       components.ButtonSm,
+					},
+						components.Icon(&components.IconProps{Identifier: "text-box-check-outline"}),
+						g.Text("Mark all as read"),
 					),
 				),
 			),

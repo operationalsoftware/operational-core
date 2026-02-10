@@ -4,6 +4,16 @@
   gap: var(--spacing-xl);
 }
 
+.notifications-nav {
+  display: flex;
+  gap: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+}
+
+.notifications-nav a.active {
+  text-decoration: underline;
+}
+
 .notifications-header {
   display: flex;
   align-items: center;

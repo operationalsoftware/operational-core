@@ -9,10 +9,12 @@ import (
 	"app/pkg/cookie"
 	"app/pkg/env"
 	"app/pkg/reqcontext"
+	"app/pkg/validate"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -95,6 +97,95 @@ func (h *NotificationHandler) NotificationsTray(w http.ResponseWriter, r *http.R
 	}).Render(w)
 }
 
+func (h *NotificationHandler) NotificationTestPage(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	successText := ""
+	if r.URL.Query().Get("Sent") == "1" {
+		successText = "Test notification sent."
+	}
+
+	_ = notificationview.NotificationTestPage(notificationview.NotificationTestPageProps{
+		Ctx:              ctx,
+		Values:           url.Values{},
+		ValidationErrors: validate.ValidationErrors{},
+		SuccessText:      successText,
+	}).Render(w)
+}
+
+func (h *NotificationHandler) SendTestNotification(w http.ResponseWriter, r *http.Request) {
+	ctx := reqcontext.GetContext(r)
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form submission", http.StatusBadRequest)
+		return
+	}
+
+	values := r.PostForm
+	message := strings.TrimSpace(values.Get("Message"))
+	validationErrors := validate.ValidationErrors{}
+	if message == "" {
+		validationErrors.Add("Message", "is required")
+	}
+
+	if validationErrors.HasErrors() {
+		_ = notificationview.NotificationTestPage(notificationview.NotificationTestPageProps{
+			Ctx:              ctx,
+			Values:           values,
+			ValidationErrors: validationErrors,
+		}).Render(w)
+		return
+	}
+
+	notificationID, err := h.notificationService.CreateNotification(r.Context(), model.NewNotification{
+		UserID:     ctx.User.UserID,
+		Category:   "test",
+		Title:      "Test notification",
+		Summary:    message,
+		URL:        "/notifications",
+		Reason:     "Test",
+		ReasonType: model.NotificationReasonInfo,
+	})
+	if err != nil {
+		log.Println("error creating test notification:", err)
+		_ = notificationview.NotificationTestPage(notificationview.NotificationTestPageProps{
+			Ctx:         ctx,
+			Values:      values,
+			ErrorText:   "Unable to create test notification.",
+			SuccessText: "",
+		}).Render(w)
+		return
+	}
+
+	targetURL := "/notifications"
+	pushURL := targetURL
+	if notificationID > 0 {
+		query := url.Values{}
+		query.Set("Redirect", targetURL)
+		pushURL = fmt.Sprintf("/notifications/%d?%s", notificationID, query.Encode())
+	}
+
+	payload := model.PushNotificationPayload{
+		Title:          "Test notification",
+		Body:           message,
+		URL:            pushURL,
+		NotificationID: notificationID,
+	}
+
+	if err := h.notificationService.SendPushNotification(r.Context(), ctx.User.UserID, payload, ""); err != nil {
+		log.Println("error sending test push notification:", err)
+		_ = notificationview.NotificationTestPage(notificationview.NotificationTestPageProps{
+			Ctx:         ctx,
+			Values:      values,
+			ErrorText:   "Notification saved, but push failed to send.",
+			SuccessText: "",
+		}).Render(w)
+		return
+	}
+
+	http.Redirect(w, r, "/notifications/test?Sent=1", http.StatusSeeOther)
+}
+
 func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *http.Request) {
 	if env.IsProduction() {
 		http.NotFound(w, r)
@@ -102,10 +193,6 @@ func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *htt
 	}
 
 	ctx := reqcontext.GetContext(r)
-	if ctx.User.UserID == 0 {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
 
 	var subscription model.PushSubscription
 	if err := json.NewDecoder(r.Body).Decode(&subscription); err != nil {
@@ -142,10 +229,6 @@ func (h *NotificationHandler) DeletePushSubscription(w http.ResponseWriter, r *h
 	}
 
 	ctx := reqcontext.GetContext(r)
-	if ctx.User.UserID == 0 {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
 
 	endpoint, err := cookie.GetPushSubscriptionEndpoint(r)
 	if err == nil && endpoint != "" {
@@ -347,10 +430,6 @@ func (h *NotificationHandler) MarkUnread(w http.ResponseWriter, r *http.Request)
 
 func (h *NotificationHandler) OpenNotification(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
-	if ctx.User.UserID == 0 {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
 
 	notificationID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || notificationID <= 0 {
