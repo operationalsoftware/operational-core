@@ -69,6 +69,14 @@ hr {
     vertical-align: middle;
   }
 
+  .alert-close {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+  }
+
   &.hide {
     display: none;
   }

@@ -2,6 +2,16 @@
 // block scoping
 {
   const buttonEl = document.querySelector("[data-push-toggle]");
+  const clearTestSentParam = () => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("TestSent") === "1") {
+      url.searchParams.delete("TestSent");
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
+
+  clearTestSentParam();
+
   if (!buttonEl) {
     // No push toggle on this page.
   } else {

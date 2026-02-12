@@ -25,6 +25,7 @@ type NotificationPageProps struct {
 	PageSize       int
 	TotalRecords   int
 	VAPIDPublicKey string
+	ShowTestSent   bool
 }
 
 func NotificationPage(p NotificationPageProps) g.Node {
@@ -41,6 +42,13 @@ func NotificationPage(p NotificationPageProps) g.Node {
 
 	content := h.Div(
 		h.Class("notifications-page"),
+
+		g.If(p.ShowTestSent,
+			components.Alert(&components.AlertProps{
+				AlertType: components.AlertSuccess,
+				Message:   "Test notification sent to all devices.",
+			}),
+		),
 
 		notificationsHeader(activeFilter, p.VAPIDPublicKey),
 

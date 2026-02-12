@@ -62,6 +62,7 @@ func (h *NotificationHandler) NotificationsPage(w http.ResponseWriter, r *http.R
 		PageSize:       normalizedQuery.PageSize,
 		TotalRecords:   notificationTotalRecords(counts, normalizedQuery.Filter),
 		VAPIDPublicKey: vapidPublicKeyForEnv(),
+		ShowTestSent:   r.URL.Query().Get("TestSent") == "1",
 	}).Render(w)
 }
 
@@ -149,7 +150,7 @@ func (h *NotificationHandler) SendTestNotification(w http.ResponseWriter, r *htt
 		return
 	}
 
-	http.Redirect(w, r, "/notifications/test", http.StatusSeeOther)
+	http.Redirect(w, r, "/notifications?TestSent=1", http.StatusSeeOther)
 }
 
 func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *http.Request) {

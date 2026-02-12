@@ -33,10 +33,14 @@ func Alert(p *AlertProps) g.Node {
 	return h.Div(
 		classes,
 		g.Text(p.Message),
-		h.Div(
+		h.Button(
+			h.Type("button"),
+			h.Class("alert-close"),
+			h.Data("alert-close", "true"),
 			Icon(&IconProps{
 				Identifier: "close",
 			}),
 		),
+		InlineScript("/internal/components/Alert.js"),
 	)
 }
