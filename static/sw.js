@@ -18,19 +18,6 @@ function broadcastTrayRefresh() {
     });
 }
 
-function closeTaggedNotifications(tag) {
-  if (!tag) {
-    return Promise.resolve(0);
-  }
-  if (!self.registration.getNotifications) {
-    return Promise.resolve(0);
-  }
-  return self.registration.getNotifications({ tag }).then((list) => {
-    list.forEach((notification) => notification.close());
-    return list.length;
-  });
-}
-
 function closeAllNotifications() {
   if (!self.registration.getNotifications) {
     return Promise.resolve();
@@ -57,19 +44,8 @@ self.addEventListener("push", (event) => {
   }
 
   if (payload.type === "notification_read") {
-    const tag = payload.notificationId
-      ? `notification:${payload.notificationId}`
-      : "";
     event.waitUntil(
-      closeTaggedNotifications(tag)
-        .then((count) => {
-          if (count === 0) {
-            // Fallback: clear all app notifications when tag-based lookup isn't supported.
-            return closeAllNotifications();
-          }
-          return null;
-        })
-        .then(() => broadcastTrayRefresh())
+      Promise.all([closeAllNotifications(), broadcastTrayRefresh()])
     );
     return;
   }
@@ -83,10 +59,6 @@ self.addEventListener("push", (event) => {
       url: payload.url || "/",
     },
   };
-
-  if (payload.notificationId) {
-    options.tag = `notification:${payload.notificationId}`;
-  }
 
   event.waitUntil(self.registration.showNotification(title, options));
 });

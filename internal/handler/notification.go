@@ -330,12 +330,11 @@ func (h *NotificationHandler) MarkAllRead(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Error marking notifications as read", http.StatusInternalServerError)
 		return
 	}
-	endpoint, _ := cookie.GetPushSubscriptionEndpoint(r)
 	if pushErr := h.notificationService.SendPushNotification(
 		r.Context(),
 		ctx.User.UserID,
-		model.PushNotificationPayload{Type: "tray_refresh"},
-		endpoint,
+		model.PushNotificationPayload{Type: "notification_read"},
+		"",
 	); pushErr != nil {
 		log.Println("error refreshing notification tray:", pushErr)
 	}
@@ -358,7 +357,6 @@ func (h *NotificationHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	endpoint, _ := cookie.GetPushSubscriptionEndpoint(r)
 	if pushErr := h.notificationService.SendPushNotification(
 		r.Context(),
 		ctx.User.UserID,
@@ -366,7 +364,7 @@ func (h *NotificationHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
 			Type:           "notification_read",
 			NotificationID: notificationID,
 		},
-		endpoint,
+		"",
 	); pushErr != nil {
 		log.Println("error refreshing notification tray:", pushErr)
 	}
@@ -420,12 +418,14 @@ func (h *NotificationHandler) OpenNotification(w http.ResponseWriter, r *http.Re
 		log.Println("error marking notification read:", err)
 	}
 
-	endpoint, _ := cookie.GetPushSubscriptionEndpoint(r)
 	if pushErr := h.notificationService.SendPushNotification(
 		r.Context(),
 		ctx.User.UserID,
-		model.PushNotificationPayload{Type: "tray_refresh"},
-		endpoint,
+		model.PushNotificationPayload{
+			Type:           "notification_read",
+			NotificationID: notificationID,
+		},
+		"",
 	); pushErr != nil {
 		log.Println("error refreshing notification tray:", pushErr)
 	}
