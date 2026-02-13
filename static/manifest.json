@@ -15,7 +15,7 @@
       "purpose": "maskable"
     },
     {
-      "src": "favicon.ico",
+      "src": "/static/favicon/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
@@ -28,6 +28,6 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "theme_color": "#23897a",
+  "theme_color": "#2684ba",
   "background_color": "#ffffff"
 }
