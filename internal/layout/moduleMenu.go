@@ -39,6 +39,11 @@ var AppMenu = []components.GridMenuGroup{
 				Name: "Andons",
 				Link: "/andons",
 			},
+			{
+				Icon: "camera",
+				Name: "Image to Text",
+				Link: "/image-to-text",
+			},
 		},
 	},
 	{

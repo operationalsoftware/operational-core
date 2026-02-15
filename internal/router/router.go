@@ -66,6 +66,7 @@ func NewRouter(services *Services, appHMAC apphmac.AppHMAC) http.Handler {
 	)
 	addAndonIssueRoutes(mux, services.AndonIssueService, services.TeamService)
 	addCameraScannerRoutes(mux)
+	addImageToTextRoutes(mux)
 	addFileRoutes(mux, services.FileService)
 	addGalleryRoutes(mux, services.GalleryService, appHMAC)
 	addNotificationRoutes(mux, services.NotificationService)
