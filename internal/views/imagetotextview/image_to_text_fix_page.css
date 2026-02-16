@@ -1,0 +1,40 @@
+.image-to-text-fix-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxl);
+}
+
+.image-to-text-fix-hero h1 {
+  margin-bottom: var(--spacing-md);
+}
+
+.image-to-text-fix-hero p {
+  color: var(--text-color-light);
+}
+
+.image-to-text-fix-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.image-to-text-fix-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.image-to-text-fix-status {
+  font-size: var(--font-size-sm);
+  color: var(--text-color-light);
+}
+
+.image-to-text-fix-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.image-to-text-fix-error {
+  color: var(--error-color);
+  font-size: var(--font-size-sm);
+}

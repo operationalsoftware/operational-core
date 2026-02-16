@@ -91,12 +91,15 @@ func addStockItemForm(p *addStockItemFormProps) g.Node {
 			h.ID("sku-preview"),
 			h.Class("sku-preview"),
 
-			components.Input(&components.InputProps{
-				Label:       stockCodeLabel,
-				Name:        stockCodeKey,
-				Placeholder: "Stock code",
-				HelperText:  stockCodeError,
-				HelperType:  stockCodeHelperType,
+			components.OcrInput(&components.OcrInputProps{
+				Label:        stockCodeLabel,
+				Name:         stockCodeKey,
+				Placeholder:  "Stock code",
+				HelperText:   stockCodeError,
+				HelperType:   stockCodeHelperType,
+				RegexPattern: `(?<stockcode>SKU-[A-Z0-9]{6,10})`,
+				RegexFlags:   "i",
+				ParamName:    stockCodeKey,
 				InputProps: []g.Node{
 					h.Value(stockCodeValue),
 					h.AutoComplete("off"),

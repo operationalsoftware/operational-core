@@ -1,0 +1,35 @@
+.ocr-input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.ocr-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ocr-input-button {
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.ocr-input-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ocr-input-file {
+  display: none !important; /* Hide the file input */
+}
+
+.ocr-input-meta {
+  margin-top: var(--spacing-xs);
+  display: flex;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--text-color-light);
+}
+
+.ocr-input-error {
+  color: var(--error-color);
+}

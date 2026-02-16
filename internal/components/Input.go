@@ -26,6 +26,7 @@ type InputProps struct {
 	Classes     c.Classes
 }
 
+// Deprecated: Use components.Form and components.OcrInput instead for better accessibility and OCR functionality.
 func Input(p *InputProps, children ...g.Node) g.Node {
 	classes := c.Classes{}
 
