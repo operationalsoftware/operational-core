@@ -20,7 +20,7 @@ func ImageToTextFixPage(p *ImageToTextFixPageProps) g.Node {
 		h.Div(
 			h.Class("image-to-text-fix-hero"),
 			h.H1(g.Text("Fix OCR")),
-			h.P(g.Text("Review the extracted text, adjust the regex if needed, and apply the result back to your form.")),
+			h.P(g.Text("Review the extracted text and apply the result back to your form.")),
 		),
 		components.Card(
 			c.Classes{"image-to-text-fix-card": true},
@@ -31,23 +31,9 @@ func ImageToTextFixPage(p *ImageToTextFixPageProps) g.Node {
 					h.ID("ocr-fix-text"),
 					h.Rows("10"),
 				),
-			),
-			h.Div(
-				h.Class("image-to-text-fix-field"),
-				h.Label(h.For("ocr-fix-pattern"), g.Text("Regex pattern")),
-				h.Textarea(
-					h.ID("ocr-fix-pattern"),
-					h.Rows("4"),
-				),
-			),
-			h.Div(
-				h.Class("image-to-text-fix-field"),
-				h.Label(h.For("ocr-fix-flags"), g.Text("Regex flags (optional)")),
-				h.Input(
-					h.Type("text"),
-					h.ID("ocr-fix-flags"),
-					h.Placeholder("i, m, s"),
-					h.AutoComplete("off"),
+				h.P(
+					h.Class("image-to-text-fix-example"),
+					h.ID("ocr-fix-example"),
 				),
 			),
 			h.Div(
@@ -76,7 +62,7 @@ func ImageToTextFixPage(p *ImageToTextFixPageProps) g.Node {
 		Content: content,
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/imagetotextview/image_to_text_fix_page.css"),
-			components.InlineScript("/internal/components/OcrClient.js"),
+			h.Script(h.Src("/static/js/lib/ocr-client.js")),
 		},
 		AppendBody: []g.Node{
 			components.InlineScript("/internal/views/imagetotextview/image_to_text_fix_page.js"),

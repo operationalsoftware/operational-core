@@ -91,33 +91,60 @@ func addStockItemForm(p *addStockItemFormProps) g.Node {
 			h.ID("sku-preview"),
 			h.Class("sku-preview"),
 
-			components.OcrInput(&components.OcrInputProps{
-				Label:        stockCodeLabel,
-				Name:         stockCodeKey,
-				Placeholder:  "Stock code",
-				HelperText:   stockCodeError,
-				HelperType:   stockCodeHelperType,
-				RegexPattern: `(?<stockcode>SKU-[A-Z0-9]{6,10})`,
-				RegexFlags:   "i",
-				ParamName:    stockCodeKey,
-				InputProps: []g.Node{
-					h.Value(stockCodeValue),
-					h.AutoComplete("off"),
-				},
-			}),
+			h.Div(
+				h.Class("ocr-input-container"),
+				h.Label(h.For(stockCodeKey), g.Text(stockCodeLabel)),
+				h.Div(
+					h.Class("ocr-input-row-inline"),
+					h.Input(
+						h.Name(stockCodeKey),
+						h.ID(stockCodeKey),
+						h.Placeholder("Stock code"),
+						h.Type("text"),
+						h.Value(stockCodeValue),
+						h.AutoComplete("off"),
+					),
+					components.OCRInput(&components.OCRInputProps{
+						Name:         stockCodeKey,
+						Placeholder:  "Example Format: ABC1234 (3 letters + 4 numbers, 7 characters total)",
+						RegexPattern: `(?<stockcode>[A-Z]{3}\d{4})`,
+						RegexFlags:   "i",
+						ParamName:    stockCodeKey,
+					}),
+				),
+				g.If(stockCodeError != "", components.InputHelper(&components.InputHelperProps{
+					Label: stockCodeError,
+					Type:  stockCodeHelperType,
+				})),
+			),
 		),
 
-		components.Input(&components.InputProps{
-			Label:       descriptionLabel,
-			Name:        descriptionKey,
-			Placeholder: "Enter description",
-			HelperText:  descriptionError,
-			HelperType:  descriptionHelperType,
-			InputProps: []g.Node{
-				h.Value(descriptionValue),
-				h.AutoComplete("off"),
-			},
-		}),
+		h.Div(
+			h.Class("ocr-input-container"),
+			h.Label(h.For(descriptionKey), g.Text(descriptionLabel)),
+			h.Div(
+				h.Class("ocr-input-row-inline"),
+				h.Input(
+					h.Name(descriptionKey),
+					h.ID(descriptionKey),
+					h.Placeholder("Description"),
+					h.Type("text"),
+					h.Value(descriptionValue),
+					h.AutoComplete("off"),
+				),
+				components.OCRInput(&components.OCRInputProps{
+					Name:         descriptionKey,
+					Placeholder:  "Example Format: Red T-Shirt",
+					RegexPattern: `(?<description>\S.*)`, // Matches any non-empty string that starts with a non-whitespace character
+					RegexFlags:   "im",
+					ParamName:    descriptionKey,
+				}),
+			),
+			g.If(descriptionError != "", components.InputHelper(&components.InputHelperProps{
+				Label: descriptionError,
+				Type:  descriptionHelperType,
+			})),
+		),
 
 		components.Button(
 			&components.ButtonProps{},

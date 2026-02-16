@@ -5,16 +5,9 @@
   const containers = document.querySelectorAll("[data-ocr-input]");
   if (!containers.length) return;
 
-  const setStatus = (el, message) => {
-    if (el) {
-      el.textContent = message || "";
-    }
-  };
-
-  const setError = (el, message) => {
-    if (el) {
-      el.textContent = message || "";
-    }
+  const findTargetInput = (name) => {
+    if (!name) return null;
+    return document.querySelector(`[name="${CSS.escape(name)}"]`);
   };
 
   const updateInputValue = (input, value) => {
@@ -28,17 +21,16 @@
     let changed = false;
 
     containers.forEach((container) => {
-      const input = container.querySelector("[data-ocr-field]");
+      const param = container.getAttribute("data-ocr-param") || "";
+      if (!param || !url.searchParams.has(param)) return;
+
+      const targetName = container.getAttribute("data-ocr-name") || param;
+      const input = findTargetInput(targetName);
       if (!input) return;
 
-      const param = container.getAttribute("data-ocr-param") || input.name;
-      if (!param) return;
-
-      if (url.searchParams.has(param)) {
-        updateInputValue(input, url.searchParams.get(param) || "");
-        url.searchParams.delete(param);
-        changed = true;
-      }
+      updateInputValue(input, url.searchParams.get(param) || "");
+      url.searchParams.delete(param);
+      changed = true;
     });
 
     if (changed) {
@@ -54,20 +46,24 @@
     return url.toString();
   };
 
-  const storeOcrText = (text) => {
+  const storeOcrText = (text, example) => {
     const key = `ocr-text-${Date.now()}-${Math.random()
       .toString(16)
       .slice(2)}`;
     try {
-      window.sessionStorage.setItem(key, text);
+      const payload = { text };
+      if (example) {
+        payload.example = example;
+      }
+      window.sessionStorage.setItem(key, JSON.stringify(payload));
     } catch (err) {
       return "";
     }
     return key;
   };
 
-  const sendToFixPage = ({ text, pattern, flags, param }) => {
-    const storageKey = storeOcrText(text);
+  const sendToFixPage = ({ text, pattern, flags, param, example }) => {
+    const storageKey = storeOcrText(text, example);
     const returnTo = buildReturnUrl(param);
 
     const fixUrl = new URL("/image-to-text/fix", window.location.origin);
@@ -88,22 +84,20 @@
     window.location.assign(fixUrl.toString());
   };
 
-  const handleFile = async ({ file, input, container, statusEl, errorEl }) => {
-    setError(errorEl, "");
-
+  const handleFile = async ({ file, container }) => {
     if (!file) return;
 
+    const targetName = container.getAttribute("data-ocr-name") || "";
+    const input = findTargetInput(targetName);
+    if (!input) return;
     const pattern = (container.getAttribute("data-ocr-pattern") || "").trim();
     const flags = (container.getAttribute("data-ocr-flags") || "").trim();
-    const param = container.getAttribute("data-ocr-param") || input.name;
+    const param = container.getAttribute("data-ocr-param") || targetName;
+    const example = (container.getAttribute("data-ocr-example") || "").trim();
 
-    if (!pattern) {
-      setError(errorEl, "OCR regex pattern is required.");
-      return;
-    }
+    if (!pattern) return;
 
     try {
-      setStatus(statusEl, "Preparing image...");
       const prepared = await ocrClient.preprocessImage(file);
 
       const worker = await ocrClient.getWorker();
@@ -112,7 +106,6 @@
         tessedit_pageseg_mode: "6",
       });
 
-      setStatus(statusEl, "Extracting text...");
       const primaryResult = await worker.recognize(prepared.blob);
       let finalResult = primaryResult;
 
@@ -136,29 +129,22 @@
 
       if (value) {
         updateInputValue(input, value);
-        setStatus(statusEl, "Captured.");
         return;
       }
 
-      setStatus(statusEl, "Needs review...");
-      sendToFixPage({ text, pattern, flags, param });
+      sendToFixPage({ text, pattern, flags, param, example });
     } catch (err) {
       const message = err && err.message ? err.message : "OCR failed.";
-      setStatus(statusEl, "Ready.");
-      setError(errorEl, message);
+      console.error("OCR error:", message);
     }
   };
 
   applyReturnValues();
 
   containers.forEach((container) => {
-    const input = container.querySelector("[data-ocr-field]");
     const trigger = container.querySelector("[data-ocr-trigger]");
     const fileInput = container.querySelector("[data-ocr-file]");
-    const statusEl = container.querySelector("[data-ocr-status]");
-    const errorEl = container.querySelector("[data-ocr-error]");
-
-    if (!input || !trigger || !fileInput) return;
+    if (!trigger || !fileInput) return;
 
     trigger.addEventListener("click", () => {
       fileInput.click();
@@ -166,7 +152,7 @@
 
     fileInput.addEventListener("change", (event) => {
       const file = event.target.files && event.target.files[0];
-      handleFile({ file, input, container, statusEl, errorEl });
+      handleFile({ file, container });
       fileInput.value = "";
     });
   });

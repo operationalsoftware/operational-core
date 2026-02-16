@@ -229,23 +229,13 @@
 
   const extractFirstValue = (text, regex) => {
     const match = regex.exec(text || "");
-    if (!match) return "";
+    if (!match || !match.groups) return "";
 
-    if (match.groups) {
-      for (const key of Object.keys(match.groups)) {
-        const value = match.groups[key];
-        if (value != null && String(value).trim()) {
-          return String(value).trim();
-        }
+    for (const key of Object.keys(match.groups)) {
+      const value = match.groups[key];
+      if (value != null && String(value).trim()) {
+        return String(value).trim();
       }
-    }
-
-    if (match[1] && String(match[1]).trim()) {
-      return String(match[1]).trim();
-    }
-
-    if (match[0] && String(match[0]).trim()) {
-      return String(match[0]).trim();
     }
 
     return "";

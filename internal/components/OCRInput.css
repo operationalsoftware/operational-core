@@ -1,0 +1,14 @@
+.ocr-input-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.ocr-input-button .icon {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.ocr-input-file {
+  display: none !important; /* Hide the file input */
+}

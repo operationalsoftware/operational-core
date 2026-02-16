@@ -7,3 +7,20 @@
     max-width: var(--narrow-form-width);
   }
 }
+
+.ocr-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.ocr-input-row-inline {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.ocr-input-row-inline input {
+  flex: 1;
+  min-width: 0;
+}

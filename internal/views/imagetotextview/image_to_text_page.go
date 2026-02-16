@@ -131,7 +131,7 @@ func ImageToTextPage(p *ImageToTextPageProps) g.Node {
 		Content: content,
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/imagetotextview/image_to_text_page.css"),
-			components.InlineScript("/internal/components/OcrClient.js"),
+			h.Script(h.Src("/static/js/lib/ocr-client.js")),
 			h.Script(h.Src("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"), g.Attr("defer", "")),
 		},
 		AppendBody: []g.Node{

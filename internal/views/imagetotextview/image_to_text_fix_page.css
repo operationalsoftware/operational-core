@@ -24,6 +24,12 @@
   gap: var(--spacing-sm);
 }
 
+.image-to-text-fix-example {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-color-light);
+}
+
 .image-to-text-fix-status {
   font-size: var(--font-size-sm);
   color: var(--text-color-light);

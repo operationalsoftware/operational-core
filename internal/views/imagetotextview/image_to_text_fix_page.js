@@ -1,13 +1,12 @@
 (() => {
   const textArea = document.querySelector("#ocr-fix-text");
-  const patternInput = document.querySelector("#ocr-fix-pattern");
-  const flagsInput = document.querySelector("#ocr-fix-flags");
+  const exampleEl = document.querySelector("#ocr-fix-example");
   const statusEl = document.querySelector("#ocr-fix-status");
   const errorEl = document.querySelector("#ocr-fix-error");
   const submitBtn = document.querySelector("#ocr-fix-submit");
   const ocrClient = window.OperationalOcr;
 
-  if (!textArea || !patternInput || !submitBtn || !ocrClient) {
+  if (!textArea || !submitBtn || !ocrClient) {
     return;
   }
 
@@ -19,19 +18,24 @@
   const storageKey = params.get("storage") || "";
   const fallbackText = params.get("text") || "";
 
-  if (pattern) {
-    patternInput.value = pattern;
-  }
-  if (flags && flagsInput) {
-    flagsInput.value = flags;
-  }
-
   let extractedText = "";
+  let exampleText = "";
   if (storageKey) {
     try {
-      extractedText = window.sessionStorage.getItem(storageKey) || "";
+      const stored = window.sessionStorage.getItem(storageKey) || "";
+      const parsed = stored ? JSON.parse(stored) : null;
+      if (parsed && typeof parsed === "object") {
+        extractedText = parsed.text || "";
+        exampleText = parsed.example || "";
+      } else {
+        extractedText = stored;
+      }
     } catch (err) {
-      extractedText = "";
+      try {
+        extractedText = window.sessionStorage.getItem(storageKey) || "";
+      } catch (innerErr) {
+        extractedText = "";
+      }
     }
   }
   if (!extractedText) {
@@ -39,6 +43,9 @@
   }
   if (extractedText) {
     textArea.value = extractedText;
+  }
+  if (exampleEl && exampleText) {
+    exampleEl.textContent = exampleText
   }
 
   const setStatus = (message) => {
@@ -77,10 +84,7 @@
 
     let regex;
     try {
-      regex = ocrClient.parseRegex(
-        patternInput.value,
-        flagsInput ? flagsInput.value : ""
-      );
+      regex = ocrClient.parseRegex(pattern, flags);
     } catch (err) {
       setError(err && err.message ? err.message : "Invalid regex.");
       return;
@@ -88,7 +92,7 @@
 
     const value = ocrClient.extractFirstValue(text, regex);
     if (!value) {
-      setError("No match found. Update the text or regex and try again.");
+      setError("No match found. Update the text and try again.");
       return;
     }
 
