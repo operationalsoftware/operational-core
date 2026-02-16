@@ -200,8 +200,14 @@ func (h *StockItemHandler) AddStockItemPage(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
 	_ = stockitemview.AddStockItemPage(&stockitemview.AddStockItemPageProps{
-		Ctx: ctx,
+		Ctx:    ctx,
+		Values: r.Form,
 	}).Render(w)
 }
 

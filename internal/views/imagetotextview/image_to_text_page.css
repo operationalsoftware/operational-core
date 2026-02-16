@@ -68,9 +68,12 @@
 
 .image-to-text-preview {
   display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
 }
 
-#ocr-preview {
+#ocr-preview,
+#ocr-preview-processed {
   max-width: 100%;
   max-height: 260px;
   border-radius: var(--border-radius-sm);

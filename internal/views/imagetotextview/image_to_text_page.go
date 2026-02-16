@@ -95,6 +95,11 @@ func ImageToTextPage(p *ImageToTextPageProps) g.Node {
 						h.Class("is-hidden"),
 						h.Alt("Selected document preview"),
 					),
+					h.Img(
+						h.ID("ocr-preview-processed"),
+						h.Class("is-hidden"),
+						h.Alt("Processed document preview"),
+					),
 				),
 				h.Div(
 					h.Class("image-to-text-status"),
