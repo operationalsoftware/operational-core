@@ -116,27 +116,28 @@
         previewProcessedImg.classList.remove("is-hidden");
       }
 
-      const worker = await ocrClient.getWorker();
-      await worker.setParameters({
-        preserve_interword_spaces: "1",
-        tessedit_pageseg_mode: "6",
-      });
-
       setStatus("Extracting text...");
-      const primaryResult = await worker.recognize(prepared.blob);
-      let finalResult = primaryResult;
+      const { text, refinedBlob } = await ocrClient.recognizeWithBoxRefine(
+        prepared.blob,
+        {
+          firstPassPSM: "11",
+          secondPassPSM: "6",
+          minConfidence: 45,
+          margin: 16,
+          imageWidth: prepared.width,
+          imageHeight: prepared.height,
+        }
+      );
 
-      const primaryText =
-        (primaryResult && primaryResult.data && primaryResult.data.text) || "";
-      const primaryConfidence = ocrClient.computeMeanConfidence(primaryResult);
-
-      if (!primaryText.trim() || primaryConfidence < 45) {
-        await worker.setParameters({ tessedit_pageseg_mode: "11" }); // Sparse text. May improve detection of small amounts of text or single lines.
-        const fallbackResult = await worker.recognize(prepared.blob);
-        finalResult = ocrClient.pickBestResult(primaryResult, fallbackResult);
+      if (refinedBlob && previewProcessedImg) {
+        if (activeProcessedUrl) {
+          URL.revokeObjectURL(activeProcessedUrl);
+          activeProcessedUrl = null;
+        }
+        activeProcessedUrl = URL.createObjectURL(refinedBlob);
+        previewProcessedImg.src = activeProcessedUrl;
+        previewProcessedImg.classList.remove("is-hidden");
       }
-
-      const text = (finalResult && finalResult.data && finalResult.data.text) || "";
 
       if (textOutput) {
         textOutput.value = text.trim();

@@ -26,10 +26,17 @@ func ImageToTextFixPage(p *ImageToTextFixPageProps) g.Node {
 			c.Classes{"image-to-text-fix-card": true},
 			h.Div(
 				h.Class("image-to-text-fix-field"),
-				h.Label(h.For("ocr-fix-text"), g.Text("Extracted text")),
-				h.Textarea(
-					h.ID("ocr-fix-text"),
-					h.Rows("10"),
+				h.Label(g.Text("Extracted text tokens")),
+				h.Div(
+					h.ID("ocr-fix-tags"),
+					h.Class("image-to-text-fix-tags"),
+				),
+				h.Label(h.For("ocr-fix-input"), g.Text("Selected text")),
+				h.Input(
+					h.Type("text"),
+					h.ID("ocr-fix-input"),
+					h.Placeholder("Click tokens or type to build the value"),
+					h.AutoComplete("off"),
 				),
 				h.P(
 					h.Class("image-to-text-fix-example"),

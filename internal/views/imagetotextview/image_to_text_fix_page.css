@@ -24,6 +24,28 @@
   gap: var(--spacing-sm);
 }
 
+.image-to-text-fix-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.image-to-text-fix-tag {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 4px 8px;
+  font-size: var(--font-size-xs);
+  background: var(--primary-color);
+  color: var(--text-color);
+  cursor: pointer;
+  user-select: none;
+}
+
+.image-to-text-fix-tag.is-active {
+  background: var(--background-color);
+  color: var(--text-color);
+}
+
 .image-to-text-fix-example {
   margin: 0;
   font-size: var(--font-size-xs);

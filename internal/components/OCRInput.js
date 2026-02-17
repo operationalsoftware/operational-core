@@ -100,26 +100,14 @@
     try {
       const prepared = await ocrClient.preprocessImage(file);
 
-      const worker = await ocrClient.getWorker();
-      await worker.setParameters({
-        preserve_interword_spaces: "1",
-        tessedit_pageseg_mode: "6",
+      const { text } = await ocrClient.recognizeWithBoxRefine(prepared.blob, {
+        firstPassPSM: "11",
+        secondPassPSM: "6",
+        minConfidence: 45,
+        margin: 16,
+        imageWidth: prepared.width,
+        imageHeight: prepared.height,
       });
-
-      const primaryResult = await worker.recognize(prepared.blob);
-      let finalResult = primaryResult;
-
-      const primaryText =
-        (primaryResult && primaryResult.data && primaryResult.data.text) || "";
-      const primaryConfidence = ocrClient.computeMeanConfidence(primaryResult);
-
-      if (!primaryText.trim() || primaryConfidence < 45) {
-        await worker.setParameters({ tessedit_pageseg_mode: "11" });
-        const fallbackResult = await worker.recognize(prepared.blob);
-        finalResult = ocrClient.pickBestResult(primaryResult, fallbackResult);
-      }
-
-      const text = (finalResult && finalResult.data && finalResult.data.text) || "";
       if (!text.trim()) {
         throw new Error("No text detected. Try a clearer photo.");
       }

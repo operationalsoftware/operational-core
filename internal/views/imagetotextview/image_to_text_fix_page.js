@@ -1,12 +1,13 @@
 (() => {
-  const textArea = document.querySelector("#ocr-fix-text");
+  const tagsContainer = document.querySelector("#ocr-fix-tags");
+  const inputEl = document.querySelector("#ocr-fix-input");
   const exampleEl = document.querySelector("#ocr-fix-example");
   const statusEl = document.querySelector("#ocr-fix-status");
   const errorEl = document.querySelector("#ocr-fix-error");
   const submitBtn = document.querySelector("#ocr-fix-submit");
   const ocrClient = window.OperationalOcr;
 
-  if (!textArea || !submitBtn || !ocrClient) {
+  if (!tagsContainer || !inputEl || !submitBtn || !ocrClient) {
     return;
   }
 
@@ -41,11 +42,63 @@
   if (!extractedText) {
     extractedText = fallbackText;
   }
-  if (extractedText) {
-    textArea.value = extractedText;
-  }
+
+  const tokenize = (text) =>
+    text
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter(Boolean);
+
+  const uniqueTokens = (tokens) => Array.from(new Set(tokens));
+
+  const updateActiveTags = () => {
+    const currentTokens = tokenize(inputEl.value);
+    const tokenSet = new Set(currentTokens);
+    tagsContainer.querySelectorAll("[data-token]").forEach((tag) => {
+      const token = tag.getAttribute("data-token");
+      if (tokenSet.has(token)) {
+        tag.classList.add("is-active");
+      } else {
+        tag.classList.remove("is-active");
+      }
+    });
+  };
+
+  const renderTags = (tokens) => {
+    tagsContainer.innerHTML = "";
+    if (!tokens.length) {
+      const empty = document.createElement("span");
+      empty.className = "image-to-text-fix-example";
+      empty.textContent = "No tokens detected from OCR.";
+      tagsContainer.appendChild(empty);
+      return;
+    }
+
+    tokens.forEach((token) => {
+      const tag = document.createElement("button");
+      tag.type = "button";
+      tag.className = "image-to-text-fix-tag";
+      tag.textContent = token;
+      tag.setAttribute("data-token", token);
+      tag.addEventListener("click", () => {
+        const currentTokens = tokenize(inputEl.value);
+        const exists = currentTokens.includes(token);
+        const nextTokens = exists
+          ? currentTokens.filter((t) => t !== token)
+          : currentTokens.concat(token);
+        inputEl.value = nextTokens.join(" ");
+        updateActiveTags();
+      });
+      tagsContainer.appendChild(tag);
+    });
+
+    updateActiveTags();
+  };
+
+  renderTags(uniqueTokens(tokenize(extractedText)));
+
   if (exampleEl && exampleText) {
-    exampleEl.textContent = exampleText
+    exampleEl.textContent = exampleText;
   }
 
   const setStatus = (message) => {
@@ -76,9 +129,9 @@
   submitBtn.addEventListener("click", () => {
     setError("");
 
-    const text = textArea.value || "";
+    const text = inputEl.value || "";
     if (!text.trim()) {
-      setError("Extracted text is required.");
+      setError("Selected text is required.");
       return;
     }
 
@@ -92,7 +145,7 @@
 
     const value = ocrClient.extractFirstValue(text, regex);
     if (!value) {
-      setError("No match found. Update the text and try again.");
+      setError("No match found. Update the selected text and try again.");
       return;
     }
 
@@ -110,5 +163,9 @@
     } catch (err) {
       setError(err && err.message ? err.message : "Unable to return to form.");
     }
+  });
+
+  inputEl.addEventListener("input", () => {
+    updateActiveTags();
   });
 })();

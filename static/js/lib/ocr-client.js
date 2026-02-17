@@ -131,13 +131,13 @@
 
     ctx.putImageData(imageData, 0, 0);
 
-    const croppedCanvas = autoCropCanvas(canvas);
-    const blob = await canvasToBlob(croppedCanvas);
+    // Auto-crop disabled: rely on box-refine crop after first OCR pass.
+    const blob = await canvasToBlob(canvas);
 
     return {
       blob,
-      width: croppedCanvas.width,
-      height: croppedCanvas.height,
+      width: canvas.width,
+      height: canvas.height,
     };
   };
 
@@ -241,6 +241,153 @@
     return "";
   };
 
+  // Pull bounding boxes from lines (preferred) or words and keep the ones
+  // above a confidence threshold to avoid noise.
+  const getHighConfidenceBoxes = (result, minConfidence) => {
+    if (!result || !result.data) return [];
+    const lines = result.data.lines || [];
+    const words = result.data.words || [];
+    const source = lines.length ? lines : words;
+    return source
+      .filter(
+        (item) =>
+          item &&
+          item.bbox &&
+          typeof item.confidence === "number" &&
+          item.confidence >= minConfidence
+      )
+      .map((item) => item.bbox);
+  };
+
+  // Merge bounding boxes into a single rectangle and add a margin.
+  const mergeBoxes = (boxes, width, height, margin) => {
+    if (!boxes || !boxes.length) return null;
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = 0;
+    let maxY = 0;
+
+    boxes.forEach((bbox) => {
+      minX = Math.min(minX, bbox.x0);
+      minY = Math.min(minY, bbox.y0);
+      maxX = Math.max(maxX, bbox.x1);
+      maxY = Math.max(maxY, bbox.y1);
+    });
+
+    if (!Number.isFinite(minX) || !Number.isFinite(minY)) return null;
+
+    const paddedMinX = Math.max(0, Math.floor(minX - margin));
+    const paddedMinY = Math.max(0, Math.floor(minY - margin));
+    const paddedMaxX = Math.min(width, Math.ceil(maxX + margin));
+    const paddedMaxY = Math.min(height, Math.ceil(maxY + margin));
+
+    const cropWidth = paddedMaxX - paddedMinX;
+    const cropHeight = paddedMaxY - paddedMinY;
+
+    if (cropWidth <= 0 || cropHeight <= 0) return null;
+
+    return {
+      x: paddedMinX,
+      y: paddedMinY,
+      width: cropWidth,
+      height: cropHeight,
+    };
+  };
+
+  const cropBlobToBox = async (blob, box) => {
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement("canvas");
+    canvas.width = box.width;
+    canvas.height = box.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Unable to prepare image.");
+    }
+    ctx.drawImage(
+      bitmap,
+      box.x,
+      box.y,
+      box.width,
+      box.height,
+      0,
+      0,
+      box.width,
+      box.height
+    );
+    return await canvasToBlob(canvas);
+  };
+
+  // Two-pass OCR using bounding boxes to refine the crop between passes.
+  const recognizeWithBoxRefine = async (
+    blob,
+    {
+      firstPassPSM = "11",
+      secondPassPSM = "6",
+      minConfidence = 45,
+      margin = 16,
+      imageWidth,
+      imageHeight,
+    } = {}
+  ) => {
+    const worker = await getWorker();
+
+    // Pass 1: sparse text mode to discover bounding boxes.
+    await worker.setParameters({
+      preserve_interword_spaces: "1",
+      tessedit_pageseg_mode: firstPassPSM,
+    });
+    const firstResult = await worker.recognize(blob);
+
+    const firstText =
+      (firstResult && firstResult.data && firstResult.data.text) || "";
+
+    const boxes = getHighConfidenceBoxes(firstResult, minConfidence);
+    const size = firstResult.data && firstResult.data.imageSize;
+    const width = size && size.width ? size.width : imageWidth;
+    const height = size && size.height ? size.height : imageHeight;
+
+    if (!width || !height) {
+      return {
+        text: firstText.trim(),
+        result: firstResult,
+      };
+    }
+
+    const box = mergeBoxes(boxes, width, height, margin);
+
+    if (!box) {
+      return {
+        text: firstText.trim(),
+        result: firstResult,
+      };
+    }
+
+    // Pass 2: crop to detected region and re-run OCR in block mode.
+    const croppedBlob = await cropBlobToBox(blob, box);
+    await worker.setParameters({
+      preserve_interword_spaces: "1",
+      tessedit_pageseg_mode: secondPassPSM,
+    });
+    const secondResult = await worker.recognize(croppedBlob);
+    const secondText =
+      (secondResult && secondResult.data && secondResult.data.text) || "";
+    const secondConfidence = computeMeanConfidence(secondResult);
+
+    if (secondText.trim() && secondConfidence >= minConfidence) {
+      return {
+        text: secondText.trim(),
+        result: secondResult,
+        refinedBlob: croppedBlob,
+      };
+    }
+
+    return {
+      text: firstText.trim(),
+      result: firstResult,
+      refinedBlob: croppedBlob,
+    };
+  };
+
   window.OperationalOcr = {
     getWorker,
     preprocessImage,
@@ -249,5 +396,6 @@
     parseRegex,
     extractNamedGroups,
     extractFirstValue,
+    recognizeWithBoxRefine,
   };
 })();
