@@ -55,6 +55,12 @@ func ImageToTextFixPage(p *ImageToTextFixPageProps) g.Node {
 					h.ID("ocr-fix-submit"),
 					g.Text("Apply to form"),
 				),
+				h.A(
+					h.Class("button secondary"),
+					h.ID("ocr-fix-back"),
+					h.Href("#"),
+					g.Text("Go back"),
+				),
 			),
 			h.Div(
 				h.Class("image-to-text-fix-error"),

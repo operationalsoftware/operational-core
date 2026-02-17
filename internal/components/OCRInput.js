@@ -46,14 +46,14 @@
     return url.toString();
   };
 
-  const storeOcrText = (text, example) => {
+  const storeOcrText = (text, regexList) => {
     const key = `ocr-text-${Date.now()}-${Math.random()
       .toString(16)
       .slice(2)}`;
     try {
       const payload = { text };
-      if (example) {
-        payload.example = example;
+      if (Array.isArray(regexList) && regexList.length) {
+        payload.regexList = regexList;
       }
       window.sessionStorage.setItem(key, JSON.stringify(payload));
     } catch (err) {
@@ -62,21 +62,17 @@
     return key;
   };
 
-  const sendToFixPage = ({ text, pattern, flags, param, example }) => {
-    const storageKey = storeOcrText(text, example);
+  const sendToFixPage = ({ text, param, regexList }) => {
+    const storageKey = storeOcrText(text, regexList);
     const returnTo = buildReturnUrl(param);
 
     const fixUrl = new URL("/image-to-text/fix", window.location.origin);
-    fixUrl.searchParams.set("return_to", returnTo);
+    fixUrl.searchParams.set("ReturnTo", returnTo);
     if (param) {
-      fixUrl.searchParams.set("param", param);
-    }
-    fixUrl.searchParams.set("pattern", pattern);
-    if (flags) {
-      fixUrl.searchParams.set("flags", flags);
+      fixUrl.searchParams.set("ParamName", param);
     }
     if (storageKey) {
-      fixUrl.searchParams.set("storage", storageKey);
+      fixUrl.searchParams.set("Storage", storageKey);
     } else {
       fixUrl.searchParams.set("text", text);
     }
@@ -90,12 +86,25 @@
     const targetName = container.getAttribute("data-ocr-name") || "";
     const input = findTargetInput(targetName);
     if (!input) return;
-    const pattern = (container.getAttribute("data-ocr-pattern") || "").trim();
-    const flags = (container.getAttribute("data-ocr-flags") || "").trim();
     const param = container.getAttribute("data-ocr-param") || targetName;
-    const example = (container.getAttribute("data-ocr-example") || "").trim();
-
-    if (!pattern) return;
+    const regexListRaw = container.getAttribute("data-ocr-regex-list") || "";
+    let regexList = [];
+    if (regexListRaw) {
+      try {
+        const parsed = JSON.parse(regexListRaw);
+        if (Array.isArray(parsed)) {
+          regexList = parsed.filter(
+            (item) =>
+              item &&
+              typeof item.pattern === "string" &&
+              item.pattern.trim()
+          );
+        }
+      } catch (err) {
+        regexList = [];
+      }
+    }
+    if (!regexList.length) return;
 
     try {
       const prepared = await ocrClient.preprocessImage(file);
@@ -112,15 +121,22 @@
         throw new Error("No text detected. Try a clearer photo.");
       }
 
-      const regex = ocrClient.parseRegex(pattern, flags);
-      const value = ocrClient.extractFirstValue(text, regex);
+      let value = "";
+      for (const entry of regexList) {
+        const regex = ocrClient.parseRegex(entry.pattern, entry.flags || "");
+        const matched = ocrClient.extractFirstValue(text, regex);
+        if (matched) {
+          value = matched;
+          break;
+        }
+      }
 
       if (value) {
         updateInputValue(input, value);
         return;
       }
 
-      sendToFixPage({ text, pattern, flags, param, example });
+      sendToFixPage({ text, param, regexList });
     } catch (err) {
       const message = err && err.message ? err.message : "OCR failed.";
       console.error("OCR error:", message);
@@ -130,11 +146,14 @@
   applyReturnValues();
 
   containers.forEach((container) => {
+    if (container.dataset.ocrInitialized === "true") return;
+    container.dataset.ocrInitialized = "true";
     const trigger = container.querySelector("[data-ocr-trigger]");
     const fileInput = container.querySelector("[data-ocr-file]");
     if (!trigger || !fileInput) return;
 
-    trigger.addEventListener("click", () => {
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
       fileInput.click();
     });
 

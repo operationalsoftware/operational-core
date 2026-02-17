@@ -1,6 +1,7 @@
 package components
 
 import (
+	"encoding/json"
 	"fmt"
 
 	g "maragu.dev/gomponents"
@@ -8,14 +9,16 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
+type OCRPatterns struct {
+	Pattern string `json:"pattern"`
+	Example string `json:"example"`
+	Flags   string `json:"flags"`
+}
+
 type OCRInputProps struct {
-	Size         InputSize
-	Name         string
-	Placeholder  string
-	Classes      c.Classes
-	RegexPattern string
-	RegexFlags   string
-	ParamName    string
+	Target  string
+	Classes c.Classes
+	Regex   []OCRPatterns
 }
 
 func OCRInput(p *OCRInputProps, children ...g.Node) g.Node {
@@ -23,26 +26,22 @@ func OCRInput(p *OCRInputProps, children ...g.Node) g.Node {
 		p.Classes = c.Classes{}
 	}
 
-	if p.Size == "" {
-		p.Size = InputSizeMedium
-	}
-
-	if p.ParamName == "" {
-		p.ParamName = p.Name
-	}
-
 	p.Classes["ocr-input"] = true
 
-	fileID := fmt.Sprintf("%s-ocr-file", p.Name)
+	fileID := fmt.Sprintf("%s-ocr-file", p.Target)
+	regexJSON := ""
+	if len(p.Regex) > 0 {
+		if payload, err := json.Marshal(p.Regex); err == nil {
+			regexJSON = string(payload)
+		}
+	}
 
 	return h.Div(
 		p.Classes,
 		g.Attr("data-ocr-input", ""),
-		g.Attr("data-ocr-pattern", p.RegexPattern),
-		g.Attr("data-ocr-flags", p.RegexFlags),
-		g.Attr("data-ocr-param", p.ParamName),
-		g.Attr("data-ocr-name", p.Name),
-		g.If(p.Placeholder != "", g.Attr("data-ocr-example", p.Placeholder)),
+		g.If(regexJSON != "", g.Attr("data-ocr-regex-list", regexJSON)),
+		g.Attr("data-ocr-param", p.Target),
+		g.Attr("data-ocr-name", p.Target),
 		h.Div(
 			h.Class("ocr-input-row"),
 			h.Button(

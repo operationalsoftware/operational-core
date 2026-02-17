@@ -4,6 +4,7 @@
   const exampleEl = document.querySelector("#ocr-fix-example");
   const statusEl = document.querySelector("#ocr-fix-status");
   const errorEl = document.querySelector("#ocr-fix-error");
+  const backBtn = document.querySelector("#ocr-fix-back");
   const submitBtn = document.querySelector("#ocr-fix-submit");
   const ocrClient = window.OperationalOcr;
 
@@ -12,22 +13,27 @@
   }
 
   const params = new URLSearchParams(window.location.search);
-  const returnTo = params.get("return_to") || "";
-  const param = params.get("param") || "";
-  const pattern = params.get("pattern") || "";
-  const flags = params.get("flags") || "";
-  const storageKey = params.get("storage") || "";
+  const returnTo = params.get("ReturnTo") || "";
+  const param = params.get("ParamName") || "";
+  const storageKey = params.get("Storage") || "";
   const fallbackText = params.get("text") || "";
 
   let extractedText = "";
-  let exampleText = "";
+  let regexList = [];
   if (storageKey) {
     try {
       const stored = window.sessionStorage.getItem(storageKey) || "";
       const parsed = stored ? JSON.parse(stored) : null;
       if (parsed && typeof parsed === "object") {
         extractedText = parsed.text || "";
-        exampleText = parsed.example || "";
+        if (Array.isArray(parsed.regexList)) {
+          regexList = parsed.regexList.filter(
+            (item) =>
+              item &&
+              typeof item.pattern === "string" &&
+              item.pattern.trim()
+          );
+        }
       } else {
         extractedText = stored;
       }
@@ -43,19 +49,27 @@
     extractedText = fallbackText;
   }
 
+  const sanitizeToken = (token) => {
+    const cleaned = token.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "");
+    if (!cleaned || cleaned === "|") return "";
+    return cleaned;
+  };
+
+  const normalizeToken = (token) => sanitizeToken(token).toLowerCase();
+
   const tokenize = (text) =>
     text
       .split(/\s+/)
-      .map((token) => token.trim())
+      .map((token) => sanitizeToken(token))
       .filter(Boolean);
 
   const uniqueTokens = (tokens) => Array.from(new Set(tokens));
 
   const updateActiveTags = () => {
     const currentTokens = tokenize(inputEl.value);
-    const tokenSet = new Set(currentTokens);
+    const tokenSet = new Set(currentTokens.map((token) => token.toLowerCase()));
     tagsContainer.querySelectorAll("[data-token]").forEach((tag) => {
-      const token = tag.getAttribute("data-token");
+      const token = tag.getAttribute("data-token-normalized");
       if (tokenSet.has(token)) {
         tag.classList.add("is-active");
       } else {
@@ -80,13 +94,21 @@
       tag.className = "image-to-text-fix-tag";
       tag.textContent = token;
       tag.setAttribute("data-token", token);
+      tag.setAttribute("data-token-normalized", normalizeToken(token));
       tag.addEventListener("click", () => {
+        tag.classList.add("is-animating");
+        setTimeout(() => tag.classList.remove("is-animating"), 140);
         const currentTokens = tokenize(inputEl.value);
-        const exists = currentTokens.includes(token);
+        const normalized = normalizeToken(token);
+        const exists = currentTokens.some(
+          (current) => normalizeToken(current) === normalized
+        );
         const nextTokens = exists
-          ? currentTokens.filter((t) => t !== token)
+          ? currentTokens.filter(
+              (current) => normalizeToken(current) !== normalized
+            )
           : currentTokens.concat(token);
-        inputEl.value = nextTokens.join(" ");
+        inputEl.value = nextTokens.join("");
         updateActiveTags();
       });
       tagsContainer.appendChild(tag);
@@ -97,8 +119,13 @@
 
   renderTags(uniqueTokens(tokenize(extractedText)));
 
-  if (exampleEl && exampleText) {
-    exampleEl.textContent = exampleText;
+  if (exampleEl) {
+    const examples = regexList
+      .map((entry) => entry && entry.example)
+      .filter((entry) => typeof entry === "string" && entry.trim());
+    if (examples.length) {
+      exampleEl.textContent = `Examples: ${examples.join(", ")}`;
+    }
   }
 
   const setStatus = (message) => {
@@ -135,15 +162,24 @@
       return;
     }
 
-    let regex;
+    let value = "";
     try {
-      regex = ocrClient.parseRegex(pattern, flags);
+      if (!regexList.length) {
+        setError("No regex patterns available for matching.");
+        return;
+      }
+      for (const entry of regexList) {
+        const regex = ocrClient.parseRegex(entry.pattern, entry.flags || "");
+        const matched = ocrClient.extractFirstValue(text, regex);
+        if (matched) {
+          value = matched;
+          break;
+        }
+      }
     } catch (err) {
       setError(err && err.message ? err.message : "Invalid regex.");
       return;
     }
-
-    const value = ocrClient.extractFirstValue(text, regex);
     if (!value) {
       setError("No match found. Update the selected text and try again.");
       return;
@@ -168,4 +204,8 @@
   inputEl.addEventListener("input", () => {
     updateActiveTags();
   });
+
+  if (backBtn && returnTo) {
+    backBtn.setAttribute("href", returnTo);
+  }
 })();

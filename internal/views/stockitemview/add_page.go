@@ -105,11 +105,15 @@ func addStockItemForm(p *addStockItemFormProps) g.Node {
 						h.AutoComplete("off"),
 					),
 					components.OCRInput(&components.OCRInputProps{
-						Name:         stockCodeKey,
-						Placeholder:  "Example Format: ABC1234 (3 letters + 4 numbers, 7 characters total)",
-						RegexPattern: `(?<stockcode>[A-Z]{3}\d{4})`,
-						RegexFlags:   "i",
-						ParamName:    stockCodeKey,
+						Target: stockCodeKey,
+						Regex: []components.OCRPatterns{
+							{Pattern: `(?<stockcode>[A-Z]{3}\d{4})`, Flags: "i", Example: "ABC1234 (3 letters + 4 numbers, 7 characters total)"},
+							{
+								Pattern: `(?<stockcode>\S{3,10})`,
+								Flags:   "i",
+								Example: "Any non-whitespace string between 3 and 10 characters",
+							},
+						},
 					}),
 				),
 				g.If(stockCodeError != "", components.InputHelper(&components.InputHelperProps{
@@ -133,11 +137,10 @@ func addStockItemForm(p *addStockItemFormProps) g.Node {
 					h.AutoComplete("off"),
 				),
 				components.OCRInput(&components.OCRInputProps{
-					Name:         descriptionKey,
-					Placeholder:  "Example Format: Red T-Shirt",
-					RegexPattern: `(?<description>\S.*)`, // Matches any non-empty string that starts with a non-whitespace character
-					RegexFlags:   "im",
-					ParamName:    descriptionKey,
+					Target: descriptionKey,
+					Regex: []components.OCRPatterns{
+						{Pattern: `(?<description>\S.*)`, Flags: "im", Example: "Red T-Shirt"},
+					},
 				}),
 			),
 			g.If(descriptionError != "", components.InputHelper(&components.InputHelperProps{

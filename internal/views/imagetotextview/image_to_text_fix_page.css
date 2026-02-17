@@ -39,11 +39,17 @@
   color: var(--text-color);
   cursor: pointer;
   user-select: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
 .image-to-text-fix-tag.is-active {
   background: var(--background-color);
   color: var(--text-color);
+}
+
+.image-to-text-fix-tag.is-animating {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 2px rgba(38, 132, 186, 0.15);
 }
 
 .image-to-text-fix-example {
@@ -60,6 +66,7 @@
 .image-to-text-fix-actions {
   display: flex;
   justify-content: flex-start;
+  gap: var(--spacing-sm);
 }
 
 .image-to-text-fix-error {
