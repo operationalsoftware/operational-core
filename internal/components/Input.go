@@ -26,7 +26,7 @@ type InputProps struct {
 	Classes     c.Classes
 }
 
-// Deprecated: Use components.Form and components.OcrInput instead for better accessibility and OCR functionality.
+// Deprecated: Use Normal Input with InputHelper instead of this component, as it is more flexible and reduces the number of components in the codebase.
 func Input(p *InputProps, children ...g.Node) g.Node {
 	classes := c.Classes{}
 
