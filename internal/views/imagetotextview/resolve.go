@@ -10,16 +10,16 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
-type ImageToTextFixPageProps struct {
+type ImageToTextResolvePageProps struct {
 	Ctx reqcontext.ReqContext
 }
 
-func ImageToTextFixPage(p *ImageToTextFixPageProps) g.Node {
+func ImageToTextResolvePage(p *ImageToTextResolvePageProps) g.Node {
 	content := h.Div(
 		h.Class("image-to-text-fix-page"),
 		h.Div(
 			h.Class("image-to-text-fix-hero"),
-			h.H1(g.Text("Fix OCR")),
+			h.H1(g.Text("Resolve OCR")),
 			h.P(g.Text("Review the extracted text and apply the result back to your form.")),
 		),
 		components.Card(
@@ -71,14 +71,14 @@ func ImageToTextFixPage(p *ImageToTextFixPageProps) g.Node {
 
 	return layout.Page(layout.PageProps{
 		Ctx:     p.Ctx,
-		Title:   "Fix OCR",
+		Title:   "Resolve OCR",
 		Content: content,
 		AppendHead: []g.Node{
-			components.InlineStyle("/internal/views/imagetotextview/image_to_text_fix_page.css"),
+			components.InlineStyle("/internal/views/imagetotextview/resolve.css"),
 			h.Script(h.Src("/static/js/lib/ocr-client.js")),
 		},
 		AppendBody: []g.Node{
-			components.InlineScript("/internal/views/imagetotextview/image_to_text_fix_page.js"),
+			components.InlineScript("/internal/views/imagetotextview/resolve.js"),
 		},
 	})
 }

@@ -66,15 +66,13 @@
     const storageKey = storeOcrText(text, regexList);
     const returnTo = buildReturnUrl(param);
 
-    const fixUrl = new URL("/image-to-text/fix", window.location.origin);
+    const fixUrl = new URL("/image-to-text/resolve", window.location.origin);
     fixUrl.searchParams.set("ReturnTo", returnTo);
     if (param) {
       fixUrl.searchParams.set("ParamName", param);
     }
     if (storageKey) {
       fixUrl.searchParams.set("Storage", storageKey);
-    } else {
-      fixUrl.searchParams.set("text", text);
     }
 
     window.location.assign(fixUrl.toString());
@@ -124,7 +122,7 @@
       let value = "";
       for (const entry of regexList) {
         const regex = ocrClient.parseRegex(entry.pattern, entry.flags || "");
-        const matched = ocrClient.extractFirstValue(text, regex);
+        const matched = ocrClient.extractBestValue(text, regex);
         if (matched) {
           value = matched;
           break;

@@ -212,31 +212,45 @@
     }
   };
 
-  const extractNamedGroups = (text, regex) => {
-    const match = regex.exec(text || "");
-    if (!match || !match.groups) return {};
-
-    const groups = {};
-    Object.entries(match.groups).forEach(([key, value]) => {
-      if (value == null) return;
-      const cleaned = String(value).trim();
-      if (!cleaned) return;
-      groups[key] = cleaned;
-    });
-
-    return groups;
+  // Just to avoid duplicate flags in regexp
+  const normalizeFlags = (flags, required) => {
+    const set = new Set((flags || "").split(""));
+    (required || []).forEach((flag) => set.add(flag));
+    return Array.from(set).join("");
   };
 
-  const extractFirstValue = (text, regex) => {
-    const match = regex.exec(text || "");
-    if (!match || !match.groups) return "";
-
-    for (const key of Object.keys(match.groups)) {
-      const value = match.groups[key];
-      if (value != null && String(value).trim()) {
-        return String(value).trim();
+  const collectMatches = (text, regex, strict) => {
+    const values = [];
+    if (!regex) return values;
+    const flags = normalizeFlags(
+      regex.flags,
+      strict ? ["g", "m"] : ["g"]
+    );
+    const source = strict ? `^(?:${regex.source})$` : regex.source;
+    const matcher = new RegExp(source, flags);
+    let match = matcher.exec(text || "");
+    while (match) {
+      const value =
+        match && match[0] != null && String(match[0]).trim()
+          ? String(match[0]).trim()
+          : "";
+      if (value) {
+        values.push(value);
       }
+      if (match[0] === "") {
+        matcher.lastIndex += 1; // lastIndex doesn't advance on empty match, so move forward manually to avoid infinite loop
+      }
+      match = matcher.exec(text || "");
     }
+    return values;
+  };
+
+  const extractBestValue = (text, regex) => {
+    const values = collectMatches(text, regex, false);
+    if (values.length === 1) return values[0];
+
+    const strictValues = collectMatches(text, regex, true);
+    if (strictValues.length >= 1) return strictValues[0];
 
     return "";
   };
@@ -394,8 +408,7 @@
     computeMeanConfidence,
     pickBestResult,
     parseRegex,
-    extractNamedGroups,
-    extractFirstValue,
+    extractBestValue,
     recognizeWithBoxRefine,
   };
 })();

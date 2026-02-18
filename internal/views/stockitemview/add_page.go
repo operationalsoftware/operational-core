@@ -92,29 +92,14 @@ func addStockItemForm(p *addStockItemFormProps) g.Node {
 			h.Class("sku-preview"),
 
 			h.Div(
-				h.Class("ocr-input-container"),
 				h.Label(h.For(stockCodeKey), g.Text(stockCodeLabel)),
-				h.Div(
-					h.Class("ocr-input-row-inline"),
-					h.Input(
-						h.Name(stockCodeKey),
-						h.ID(stockCodeKey),
-						h.Placeholder("Stock code"),
-						h.Type("text"),
-						h.Value(stockCodeValue),
-						h.AutoComplete("off"),
-					),
-					components.OCRInput(&components.OCRInputProps{
-						Target: stockCodeKey,
-						Regex: []components.OCRPatterns{
-							{Pattern: `(?<stockcode>[A-Z]{3}\d{4})`, Flags: "i", Example: "ABC1234 (3 letters + 4 numbers, 7 characters total)"},
-							{
-								Pattern: `(?<stockcode>\S{3,10})`,
-								Flags:   "i",
-								Example: "Any non-whitespace string between 3 and 10 characters",
-							},
-						},
-					}),
+				h.Input(
+					h.Name(stockCodeKey),
+					h.ID(stockCodeKey),
+					h.Placeholder("Stock code"),
+					h.Type("text"),
+					h.Value(stockCodeValue),
+					h.AutoComplete("off"),
 				),
 				g.If(stockCodeError != "", components.InputHelper(&components.InputHelperProps{
 					Label: stockCodeError,
@@ -124,24 +109,14 @@ func addStockItemForm(p *addStockItemFormProps) g.Node {
 		),
 
 		h.Div(
-			h.Class("ocr-input-container"),
 			h.Label(h.For(descriptionKey), g.Text(descriptionLabel)),
-			h.Div(
-				h.Class("ocr-input-row-inline"),
-				h.Input(
-					h.Name(descriptionKey),
-					h.ID(descriptionKey),
-					h.Placeholder("Description"),
-					h.Type("text"),
-					h.Value(descriptionValue),
-					h.AutoComplete("off"),
-				),
-				components.OCRInput(&components.OCRInputProps{
-					Target: descriptionKey,
-					Regex: []components.OCRPatterns{
-						{Pattern: `(?<description>\S.*)`, Flags: "im", Example: "Red T-Shirt"},
-					},
-				}),
+			h.Input(
+				h.Name(descriptionKey),
+				h.ID(descriptionKey),
+				h.Placeholder("Description"),
+				h.Type("text"),
+				h.Value(descriptionValue),
+				h.AutoComplete("off"),
 			),
 			g.If(descriptionError != "", components.InputHelper(&components.InputHelperProps{
 				Label: descriptionError,

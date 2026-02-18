@@ -16,7 +16,6 @@
   const returnTo = params.get("ReturnTo") || "";
   const param = params.get("ParamName") || "";
   const storageKey = params.get("Storage") || "";
-  const fallbackText = params.get("text") || "";
 
   let extractedText = "";
   let regexList = [];
@@ -34,19 +33,10 @@
               item.pattern.trim()
           );
         }
-      } else {
-        extractedText = stored;
       }
     } catch (err) {
-      try {
-        extractedText = window.sessionStorage.getItem(storageKey) || "";
-      } catch (innerErr) {
-        extractedText = "";
-      }
+      extractedText = "";
     }
-  }
-  if (!extractedText) {
-    extractedText = fallbackText;
   }
 
   const sanitizeToken = (token) => {
@@ -169,10 +159,10 @@
         return;
       }
       for (const entry of regexList) {
-        const regex = ocrClient.parseRegex(entry.pattern, entry.flags || "");
-        const matched = ocrClient.extractFirstValue(text, regex);
-        if (matched) {
-          value = matched;
+        const regex = ocrClient.parseRegex(`^(?:${entry.pattern})$`, entry.flags || "");
+        regex.lastIndex = 0; // reset regex state in case of global flag
+        if (regex.test(text)) {
+          value = text.trim();
           break;
         }
       }
