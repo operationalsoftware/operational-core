@@ -351,6 +351,48 @@ WHERE
 	return &user, nil
 }
 
+func (r *UserRepository) ResolveUserIDsByUsernames(
+	ctx context.Context,
+	exec db.PGExecutor,
+	usernames []string,
+) (map[string]int, error) {
+	result := map[string]int{}
+	if len(usernames) == 0 {
+		return result, nil
+	}
+
+	query := `
+SELECT
+	user_id,
+	username
+FROM
+	app_user
+WHERE
+	username = ANY($1)
+`
+
+	rows, err := exec.Query(ctx, query, usernames)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userID int
+		var username string
+		if err := rows.Scan(&userID, &username); err != nil {
+			return nil, err
+		}
+		result[username] = userID
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (r *UserRepository) GetUsers(
 	ctx context.Context,
 	exec db.PGExecutor,

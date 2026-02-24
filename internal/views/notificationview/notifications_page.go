@@ -379,8 +379,8 @@ func notificationOpenURL(item model.NotificationItem) string {
 }
 
 func notificationBadge(item model.NotificationItem) g.Node {
-	if isMentionNotification(item) {
-		return notificationBadgeWithLabel(item, mentionBadgeLabel(item))
+	if isCommentNotification(item) {
+		return notificationBadgeWithLabel(item, commentBadgeLabel(item))
 	}
 	if strings.TrimSpace(item.Reason) == "" {
 		return g.Group(nil)
@@ -412,22 +412,22 @@ func notificationBadgeWithLabel(item model.NotificationItem, label string) g.Nod
 	}, g.Text(label))
 }
 
-func isMentionNotification(item model.NotificationItem) bool {
+func isCommentNotification(item model.NotificationItem) bool {
 	switch strings.ToLower(strings.TrimSpace(item.Category)) {
-	case "mention", "mentions":
+	case "comment", "comments", "mention", "mentions":
 		return true
 	default:
 		return false
 	}
 }
 
-func mentionBadgeLabel(item model.NotificationItem) string {
+func commentBadgeLabel(item model.NotificationItem) string {
 	if strings.TrimSpace(item.ActorUsername) != "" {
 		return "@" + strings.TrimSpace(item.ActorUsername)
 	}
 	trimmed := strings.TrimSpace(item.Reason)
 	if trimmed == "" {
-		return "@ Mention"
+		return "@ Comment"
 	}
 	if strings.HasPrefix(trimmed, "@") {
 		return trimmed

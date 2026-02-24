@@ -146,6 +146,15 @@ func (s *StockItemService) CreateStockItem(
 		return validate.ValidationErrors{}, err
 	}
 
+	if err := s.commentRepository.SetCommentThreadTargetURL(
+		ctx,
+		tx,
+		commentThreadID,
+		fmt.Sprintf("/stock-items/%d", newStockItemID),
+	); err != nil {
+		return validate.ValidationErrors{}, err
+	}
+
 	err = s.stockItemRepository.AddStockItemChange(ctx, tx, model.PostStockItemChange{
 		StockItemID: newStockItemID,
 		StockCode:   &input.StockCode,

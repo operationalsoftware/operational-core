@@ -55,6 +55,7 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 
 		commentNode := h.Div(
 			h.Class("comment"),
+			h.ID(fmt.Sprintf("comment-%d", comment.CommentID)),
 
 			h.Div(
 				h.Class("comment-details"),

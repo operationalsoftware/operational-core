@@ -117,6 +117,15 @@ func (s *ResourceService) CreateResourceService(
 		return 0, err
 	}
 
+	if err := s.commentRepository.SetCommentThreadTargetURL(
+		ctx,
+		tx,
+		threadID,
+		fmt.Sprintf("/services/%d", serviceID),
+	); err != nil {
+		return 0, err
+	}
+
 	err = s.resourceRepository.CloseOpenMetricRecords(
 		ctx,
 		tx,

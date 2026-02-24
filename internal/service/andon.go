@@ -84,6 +84,15 @@ func (s *AndonService) CreateAndon(
 		return err
 	}
 
+	if err := s.commentRepository.SetCommentThreadTargetURL(
+		ctx,
+		tx,
+		threadID,
+		fmt.Sprintf("/andons/%d", andonID),
+	); err != nil {
+		return err
+	}
+
 	err = tx.Commit(ctx)
 	if err != nil {
 		return err

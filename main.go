@@ -106,7 +106,7 @@ func main() {
 		AndonService:            *service.NewAndonService(pgPool, swiftConn, andonRepository, commentRepository, galleryRepository, teamRepository, notificationService),
 		AndonIssueService:       *service.NewAndonIssueService(pgPool, andonIssueRepository),
 		AuthService:             *service.NewAuthService(pgPool, authRepository),
-		CommentService:          *service.NewCommentService(pgPool, swiftConn, commentRepository),
+		CommentService:          *service.NewCommentService(pgPool, swiftConn, commentRepository, userRepository, notificationService),
 		FileService:             *service.NewFileService(pgPool, swiftConn, fileRepository),
 		GalleryService:          *service.NewGalleryService(pgPool, swiftConn, appHMAC, fileRepository, galleryRepository),
 		NotificationService:     *notificationService,

@@ -5,6 +5,7 @@ import (
 	"app/pkg/db"
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/ncw/swift/v2"
@@ -30,6 +31,29 @@ func (r *CommentRepository) CreateCommentThread(
 	var id int
 	err := exec.QueryRow(ctx, `INSERT INTO comment_thread DEFAULT VALUES RETURNING comment_thread_id`).Scan(&id)
 	return id, err
+}
+
+func (r *CommentRepository) SetCommentThreadTargetURL(
+	ctx context.Context,
+	exec db.PGExecutor,
+	commentThreadID int,
+	targetURL string,
+) error {
+	query := `
+UPDATE comment_thread
+SET
+	target_url = $2
+WHERE
+	comment_thread_id = $1
+`
+	result, err := exec.Exec(ctx, query, commentThreadID, targetURL)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("comment thread %d not found", commentThreadID)
+	}
+	return nil
 }
 
 func (r *CommentRepository) DeleteCommentThread(
@@ -147,4 +171,29 @@ WHERE comment_thread_id = $1
 	}
 
 	return comments, nil
+}
+
+func (r *CommentRepository) ResolveCommentThreadURL(
+	ctx context.Context,
+	exec db.PGExecutor,
+	commentThreadID int,
+) (string, bool, error) {
+	query := `
+SELECT
+	target_url
+FROM
+	comment_thread
+WHERE
+	comment_thread_id = $1
+	`
+
+	var url *string
+	if err := exec.QueryRow(ctx, query, commentThreadID).Scan(&url); err != nil {
+		return "", false, err
+	}
+	if url == nil || *url == "" {
+		return "", false, nil
+	}
+
+	return *url, true, nil
 }
