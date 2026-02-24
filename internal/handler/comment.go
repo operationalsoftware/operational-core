@@ -16,17 +16,20 @@ import (
 
 type CommentHandler struct {
 	commentService service.CommentService
+	userService    service.UserService
 	fileService    service.FileService
 	appHMAC        apphmac.AppHMAC
 }
 
 func NewCommentHandler(
 	commentService service.CommentService,
+	userService service.UserService,
 	fileService service.FileService,
 	appHMAC apphmac.AppHMAC,
 ) *CommentHandler {
 	return &CommentHandler{
 		commentService: commentService,
+		userService:    userService,
 		fileService:    fileService,
 		appHMAC:        appHMAC,
 	}
@@ -171,4 +174,23 @@ func (h *CommentHandler) AddAttachment(w http.ResponseWriter, r *http.Request) {
 		"fileId":    file.FileID,
 		"signedUrl": signedURL,
 	})
+}
+
+func (h *CommentHandler) MentionUsers(w http.ResponseWriter, r *http.Request) {
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	if query == "" {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]model.MentionUserSuggestion{})
+		return
+	}
+
+	const suggestionLimit = 8
+	users, err := h.userService.SearchMentionUsers(r.Context(), query, suggestionLimit)
+	if err != nil {
+		http.Error(w, "Error searching mention users", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(users)
 }

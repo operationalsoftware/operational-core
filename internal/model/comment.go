@@ -18,3 +18,9 @@ type NewComment struct {
 	CommentThreadID int
 	Comment         string
 }
+
+type MentionUserSuggestion struct {
+	UserID      int    `json:"userId"`
+	Username    string `json:"username"`
+	DisplayName string `json:"displayName,omitempty"`
+}

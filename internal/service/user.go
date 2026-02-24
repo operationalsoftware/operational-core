@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -236,6 +237,23 @@ func (s *UserService) GetUsers(
 	}
 
 	return users, count, nil
+}
+
+func (s *UserService) SearchMentionUsers(
+	ctx context.Context,
+	query string,
+	limit int,
+) ([]model.MentionUserSuggestion, error) {
+	search := strings.TrimSpace(query)
+	if search == "" {
+		return []model.MentionUserSuggestion{}, nil
+	}
+
+	if limit <= 0 || limit > 20 {
+		limit = 8
+	}
+
+	return s.userRepository.SearchMentionUsers(ctx, s.db, search, limit)
 }
 
 func (s *UserService) GetActiveUserCountSince(ctx context.Context, since time.Time) (int, error) {

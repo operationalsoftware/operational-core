@@ -114,6 +114,7 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 				h.Class("comment-form"),
 				h.Data("thread-id", fmt.Sprintf("%d", p.CommentThreadID)),
 				h.Data("hmac-envelope", p.HMACEnvelope),
+				h.Data("mention-endpoint", "/comments/mentions/users"),
 				h.Name("comment-form"),
 				h.Method("POST"),
 				h.EncType("multipart/form-data"),
@@ -127,6 +128,12 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 						h.Name("Comment"),
 
 						h.Placeholder("Enter Comment"),
+					),
+					h.Div(
+						h.Class("mention-suggestions"),
+						h.Hidden("true"),
+						h.Aria("label", "Mention suggestions"),
+						h.Role("listbox"),
 					),
 
 					h.Div(
@@ -154,7 +161,6 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 							),
 
 							h.Div(
-								h.ID("selected-files"),
 								h.Class("selected-files"),
 							),
 						),

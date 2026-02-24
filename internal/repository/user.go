@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -391,6 +392,67 @@ WHERE
 	}
 
 	return result, nil
+}
+
+func (r *UserRepository) SearchMentionUsers(
+	ctx context.Context,
+	exec db.PGExecutor,
+	query string,
+	limit int,
+) ([]model.MentionUserSuggestion, error) {
+	if limit <= 0 {
+		limit = 8
+	}
+
+	search := strings.TrimSpace(query)
+	if search == "" {
+		return []model.MentionUserSuggestion{}, nil
+	}
+
+	sql := `
+SELECT
+	user_id,
+	username,
+	COALESCE(NULLIF(TRIM(CONCAT_WS(' ', first_name, last_name)), ''), '') AS display_name
+FROM
+	app_user
+WHERE
+	is_api_user = FALSE
+	AND (
+		username ILIKE $1 || '%'
+		OR username ILIKE '%' || $1 || '%'
+		OR COALESCE(first_name, '') ILIKE '%' || $1 || '%'
+		OR COALESCE(last_name, '') ILIKE '%' || $1 || '%'
+	)
+ORDER BY
+	CASE
+		WHEN username ILIKE $1 || '%' THEN 0
+		ELSE 1
+	END,
+	username ASC
+LIMIT $2
+`
+
+	rows, err := exec.Query(ctx, sql, search, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make([]model.MentionUserSuggestion, 0, limit)
+	for rows.Next() {
+		var item model.MentionUserSuggestion
+		if err := rows.Scan(&item.UserID, &item.Username, &item.DisplayName); err != nil {
+			return nil, err
+		}
+		out = append(out, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
 func (r *UserRepository) GetUsers(
