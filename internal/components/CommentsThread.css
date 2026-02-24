@@ -73,6 +73,7 @@
       width: 100%;
       border: 0;
       background: transparent;
+      color: var(--text-color);
       cursor: pointer;
       text-align: left;
       padding: var(--spacing-md) var(--spacing-lg);
