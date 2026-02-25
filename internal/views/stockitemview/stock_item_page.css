@@ -2,11 +2,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: var(--spacing-lg);
+
 
   @media (max-width: 1024px) {
-    flex-direction: column;
-    align-items: start;
-    justify-content: start;
     gap: var(--spacing-sm);
 
     & > * {
@@ -16,33 +15,31 @@
 
   .actions {
     display: flex;
-    gap: var(--spacing-md);
+    justify-content: flex-end;
   }
 }
 
 .two-column-flex {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--spacing-md);
-  align-items: flex-start;
+  align-items: start;
 
   & > * {
-    flex: 1 1;
+    min-width: 0;
   }
 
   @media (max-width: 1024px) {
-    flex-direction: column;
-
-    & > * {
-      flex: 1 1 auto;
-    }
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 .properties {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: var(--spacing-lg);
-  align-items: center;
+  column-gap: var(--spacing-lg);
+  row-gap: var(--spacing-sm);
+  align-items: start;
 }
 
 .gallery-container {
