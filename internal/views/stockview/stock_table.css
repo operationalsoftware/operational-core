@@ -1,17 +1,15 @@
 .stock-levels-filters {
   margin-top: var(--spacing-sm);
   margin-bottom: var(--spacing-xl);
-
   display: grid;
-  grid-template-columns: repeat(auto-fill, 220px);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--spacing-lg);
-  justify-content: start;
 
-  .filter {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
   }
+
+  
 
   .go-button-wrapper {
     display: flex;

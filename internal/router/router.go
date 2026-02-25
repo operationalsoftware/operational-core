@@ -82,7 +82,7 @@ func NewRouter(services *Services, appHMAC apphmac.AppHMAC) http.Handler {
 		appHMAC,
 	)
 	addSearchRoutes(mux, services.SearchService)
-	addCommentRoutes(mux, services.CommentService, services.FileService, appHMAC)
+	addCommentRoutes(mux, services.CommentService, services.UserService, services.FileService, appHMAC)
 	addServiceRoutes(
 		mux,
 		services.GalleryService,

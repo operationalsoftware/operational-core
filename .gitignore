@@ -8,6 +8,7 @@
 # compiled go binaries (dev and prod/staging)
 app-dev
 app
+.gocache/
 
 # Phase CLI
 .phase.json
