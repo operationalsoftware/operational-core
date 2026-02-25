@@ -9,8 +9,10 @@
   } else {
     const badgeEl = buttonEl.querySelector(".notifications-badge");
     const defaultLabel = "Notifications";
+    const pollIntervalMs = 5000;
     let hasLoaded = false;
     let isLoading = false;
+    let pollTimer = null;
 
     function setBadge(count) {
       if (!badgeEl) {
@@ -77,6 +79,18 @@
       loadTray(true);
     }
 
+    function startPolling() {
+      if (pollTimer !== null) {
+        return;
+      }
+
+      pollTimer = window.setInterval(() => {
+        if (document.visibilityState === "visible") {
+          loadTray(true);
+        }
+      }, pollIntervalMs);
+    }
+
     buttonEl.addEventListener("click", () => {
       panelEl.classList.toggle("show");
       if (panelEl.classList.contains("show")) {
@@ -91,10 +105,24 @@
       }
     });
 
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        loadTray(true);
+      }
+    });
+
+    window.addEventListener("focus", () => {
+      loadTray(true);
+    });
+
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => loadTray(false));
+      document.addEventListener("DOMContentLoaded", () => {
+        loadTray(false);
+        startPolling();
+      });
     } else {
       loadTray(false);
+      startPolling();
     }
 
     if ("serviceWorker" in navigator) {
