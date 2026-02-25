@@ -15,11 +15,11 @@
 - Repository layer owns SQL; services should call repository methods instead of issuing raw queries directly.
 
 ## Testing Guidelines
-- run `build.sh` to check if app compiles.
+- run `bash build.sh app` to check if app compiles.
+- run `rm -f app` after the test build to clean up the generated executable.
 
 ## Commit & Pull Request Guidelines
 - Commit messages follow the format `type(scope1,scope2): summary`, e.g., `feat(service,resource): add resource service metric edit/archiving`. Use lowercase type verbs (`feat`, `fix`, `refactor`, etc.).
 
 ## Agent-Specific Instructions
 - Never run destructive git commands (`reset --hard`, `checkout -- <file>`) without explicit approval.
-
