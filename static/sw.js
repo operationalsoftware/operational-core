@@ -61,7 +61,7 @@ self.addEventListener("push", (event) => {
   };
 
   event.waitUntil(
-    Promise.all([
+    Promise.allSettled([
       self.registration.showNotification(title, options),
       broadcastTrayRefresh(),
     ])

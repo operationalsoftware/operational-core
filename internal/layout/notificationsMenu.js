@@ -9,8 +9,10 @@
   } else {
     const badgeEl = buttonEl.querySelector(".notifications-badge");
     const defaultLabel = "Notifications";
+    const fallbackPollIntervalMs = 60000;
     let hasLoaded = false;
     let isLoading = false;
+    let fallbackPollTimer = null;
 
     function setBadge(count) {
       if (!badgeEl) {
@@ -77,6 +79,57 @@
       loadTray(true);
     }
 
+    function startFallbackPolling() {
+      if (fallbackPollTimer !== null) {
+        return;
+      }
+
+      fallbackPollTimer = window.setInterval(() => {
+        if (document.visibilityState === "visible") {
+          loadTray(true);
+        }
+      }, fallbackPollIntervalMs);
+    }
+
+    function stopFallbackPolling() {
+      if (fallbackPollTimer === null) {
+        return;
+      }
+      window.clearInterval(fallbackPollTimer);
+      fallbackPollTimer = null;
+    }
+
+    async function hasPushSubscription() {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+        return false;
+      }
+
+      try {
+        let registration = await navigator.serviceWorker.getRegistration("/static/sw.js");
+        if (!registration) {
+          registration = await navigator.serviceWorker.ready;
+        }
+        if (!registration || !registration.pushManager) {
+          return false;
+        }
+
+        const subscription = await registration.pushManager.getSubscription();
+        return !!subscription;
+      } catch (err) {
+        console.warn("Unable to check push subscription", err);
+        return false;
+      }
+    }
+
+    async function updateFallbackPollingMode() {
+      const subscribed = await hasPushSubscription();
+      if (subscribed) {
+        stopFallbackPolling();
+      } else {
+        startFallbackPolling();
+      }
+    }
+
     buttonEl.addEventListener("click", () => {
       panelEl.classList.toggle("show");
       if (panelEl.classList.contains("show")) {
@@ -95,18 +148,27 @@
       if (document.visibilityState === "visible") {
         loadTray(true);
       }
+      updateFallbackPollingMode();
     });
 
     window.addEventListener("focus", () => {
       loadTray(true);
+      updateFallbackPollingMode();
+    });
+
+    window.addEventListener("pageshow", () => {
+      loadTray(true);
+      updateFallbackPollingMode();
     });
 
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", () => {
         loadTray(false);
+        updateFallbackPollingMode();
       });
     } else {
       loadTray(false);
+      updateFallbackPollingMode();
     }
 
     if ("serviceWorker" in navigator) {
