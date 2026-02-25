@@ -389,6 +389,18 @@ func (h *NotificationHandler) MarkUnread(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if pushErr := h.notificationService.SendPushNotification(
+		r.Context(),
+		ctx.User.UserID,
+		model.PushNotificationPayload{
+			Type:           "tray_refresh",
+			NotificationID: notificationID,
+		},
+		"",
+	); pushErr != nil {
+		log.Println("error refreshing notification tray:", pushErr)
+	}
+
 	redirectURL := notificationRedirect(r.URL.Query().Get("Redirect"))
 	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
