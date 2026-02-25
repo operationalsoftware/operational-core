@@ -74,6 +74,7 @@ func AndonPage(p *AndonPageProps) g.Node {
 					h.Class("button primary"),
 					h.Href(p.GalleryURL),
 
+					g.Text("Gallery"),
 					components.Icon(&components.IconProps{
 						Identifier: "arrow-right-thin",
 					}),
