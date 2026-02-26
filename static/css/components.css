@@ -420,7 +420,7 @@ hr {
   .grid-menu-group {
     .grid-menu-items {
       display: grid;
-      justify-items: center;
+      justify-items: stretch;
       grid-template-columns: repeat(5, minmax(50px, 1fr));
       row-gap: var(--spacing-md);
       column-gap: var(--spacing-sm);
@@ -428,27 +428,30 @@ hr {
       padding-bottom: var(--spacing-lg);
 
       .grid-menu-item {
-        display: block;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
         text-decoration: none;
         color: var(--text-color);
         padding: var(--spacing-sm);
         border-radius: var(--border-radius);
         text-align: center;
-        transition: background-color 0.2s ease-in-out;
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 
         svg {
           width: 30px;
           height: 30px;
-          fill: var(--text-color);
+          fill: currentColor;
           transition: fill 0.2s ease-in-out;
-
-          &:hover {
-            fill: var(--primary-color);
-          }
         }
 
-        &:hover {
+        &:hover,
+        &:focus-visible {
           background-color: var(--background-color);
+          color: var(--primary-color);
         }
       }
 
