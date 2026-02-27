@@ -6,6 +6,7 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
+// Deprecated: Build file input markup directly with h.Input and existing input CSS classes instead of this props wrapper.
 type FileInputProps struct {
 	Name       string
 	Label      string
@@ -15,6 +16,7 @@ type FileInputProps struct {
 	Classes    c.Classes
 }
 
+// Deprecated: Build file input markup directly and apply "input-container" CSS class instead of this wrapper component.
 func FileInput(p *FileInputProps, children ...g.Node) g.Node {
 	if p.Classes == nil {
 		p.Classes = c.Classes{}

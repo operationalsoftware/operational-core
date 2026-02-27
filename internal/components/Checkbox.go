@@ -6,6 +6,7 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
+// Deprecated: Build checkbox markup directly with h.Label/h.Input and the "checkbox" CSS class.
 type CheckboxProps struct {
 	Name    string
 	Label   string
@@ -14,6 +15,7 @@ type CheckboxProps struct {
 	Classes c.Classes
 }
 
+// Deprecated: Use h.Label and h.Input directly and apply the "checkbox" CSS class instead of this wrapper component.
 func Checkbox(p *CheckboxProps, children ...g.Node) g.Node {
 	if p.Classes == nil {
 		p.Classes = c.Classes{}

@@ -6,6 +6,7 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
+// Deprecated: Use string CSS class names directly on input markup.
 type InputSize string
 
 const (
@@ -14,6 +15,7 @@ const (
 	InputSizeLarge  InputSize = "lg"
 )
 
+// Deprecated: Build input markup directly with h.Input and CSS classes instead of this props wrapper.
 type InputProps struct {
 	Size        InputSize
 	Name        string
@@ -26,7 +28,7 @@ type InputProps struct {
 	Classes     c.Classes
 }
 
-// Deprecated: Use Normal Input with InputHelper instead of this component, as it is more flexible and reduces the number of components in the codebase.
+// Deprecated: Build input markup directly and apply "input-container" and size CSS classes instead of this wrapper component.
 func Input(p *InputProps, children ...g.Node) g.Node {
 	classes := c.Classes{}
 

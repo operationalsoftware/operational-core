@@ -6,12 +6,14 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
+// Deprecated: Use native browser dialogs (window.confirm/window.alert/window.prompt) instead of this props wrapper.
 type ModalProps struct {
 	Title         string
 	FooterContent g.Node
 	Classes       c.Classes
 }
 
+// Deprecated: Use native browser dialogs (window.confirm/window.alert/window.prompt) instead of this wrapper component.
 func Modal(p *ModalProps, children ...g.Node) g.Node {
 	if p.Classes == nil {
 		p.Classes = c.Classes{}
