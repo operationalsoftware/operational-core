@@ -3,7 +3,6 @@ package router
 import (
 	"app/internal/handler"
 	"app/internal/service"
-	"app/pkg/env"
 	"net/http"
 )
 
@@ -11,10 +10,6 @@ func addNotificationRoutes(
 	mux *http.ServeMux,
 	notificationService service.NotificationService,
 ) {
-	if env.IsProduction() {
-		return
-	}
-
 	notificationHandler := handler.NewNotificationHandler(notificationService)
 
 	mux.HandleFunc("GET /notifications", notificationHandler.NotificationsPage)

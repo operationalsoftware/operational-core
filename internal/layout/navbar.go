@@ -1,7 +1,6 @@
 package layout
 
 import (
-	"app/pkg/env"
 	"app/pkg/reqcontext"
 
 	g "maragu.dev/gomponents"
@@ -29,11 +28,9 @@ func navbar(p *navbarProps) g.Node {
 			avatarMenu(&avatarMenuProps{
 				Ctx: p.ctx,
 			}),
-			g.If(!env.IsProduction(),
-				notificationsMenu(&notificationsMenuProps{
-					Ctx: p.ctx,
-				}),
-			),
+			notificationsMenu(&notificationsMenuProps{
+				Ctx: p.ctx,
+			}),
 			g.If(
 				p.ctx.User.UserID != 0,
 				moduleMenu(&moduleMenuProps{
