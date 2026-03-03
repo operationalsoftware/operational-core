@@ -23,3 +23,20 @@
 
 ## Agent-Specific Instructions
 - Never run destructive git commands (`reset --hard`, `checkout -- <file>`) without explicit approval.
+
+## Migration Numbering Policy (Operational Core vs Forks)
+
+When creating a new migration script:
+
+- If working in the **upstream operational core repo**, increment migration IDs by **100**.
+- Example: `00001800.sql` -> `00001900.sql`.
+
+- If working in a **fork of operational core**, increment by **1** from the latest `xx00` baseline from upstream core.
+- Example: if latest upstream core migration is `00001800.sql`, fork migrations should be:
+  - `00001801.sql`, `00001802.sql`, `00001803.sql`, ...
+
+Additional rules:
+- Never reuse or renumber existing migration IDs.
+- Keep filenames zero-padded to 8 digits (e.g. `00001805.sql`).
+- Before adding a migration, check existing scripts to avoid collisions.
+- If upstream advances to the next `xx00` baseline, continue fork numbering from that new baseline.
