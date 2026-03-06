@@ -12,3 +12,91 @@
 .ocr-input-file {
   display: none !important; /* Hide the file input */
 }
+
+.ocr-camera-open {
+  overflow: hidden;
+}
+
+.ocr-camera-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  background: rgba(8, 12, 16, 0.85);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+
+.ocr-camera-modal[hidden] {
+  display: none !important;
+}
+
+.ocr-camera-sheet {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 16px;
+  background: #111;
+  color: #fff;
+  padding: var(--spacing-sm);
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.ocr-camera-header {
+  font-size: 14px;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+}
+
+.ocr-camera-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #000;
+}
+
+.ocr-camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ocr-camera-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.ocr-camera-crop-rect {
+  position: absolute;
+  left: 8%;
+  width: 84%;
+  top: 29%;
+  height: 42%;
+  border: 2px solid rgba(120, 236, 150, 0.98);
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.3) inset;
+}
+
+.ocr-camera-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.ocr-camera-actions .button {
+  flex: 1 1 0;
+}
+
+.ocr-camera-status {
+  min-height: 1.2em;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  text-align: center;
+}
