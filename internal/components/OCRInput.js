@@ -46,6 +46,7 @@
   const createMobileCameraCapture = () => {
     let stream = null;
     let pendingResolve = null;
+    let onCaptured = null;
 
     const modal = el("div", "ocr-camera-modal");
     modal.hidden = true;
@@ -64,13 +65,29 @@
     const captureBtn = el("button", "button", "Capture");
     captureBtn.type = "button";
     const status = el("div", "ocr-camera-status", "");
+    const loader = el("div", "ocr-camera-loader", "Processing...");
+    loader.hidden = true;
 
     actions.append(cancelBtn, captureBtn);
     overlay.append(cropRect);
     preview.append(video, overlay);
-    sheet.append(header, preview, actions, status);
+    sheet.append(header, preview, actions, loader, status);
     modal.append(sheet);
     document.body.appendChild(modal);
+
+    const setUiState = ({ busy = false, showLoader = false, message = "" } = {}) => {
+      const processingOnly = busy && showLoader;
+      sheet.classList.toggle("is-processing", processingOnly);
+      captureBtn.disabled = busy;
+      cancelBtn.disabled = busy;
+      loader.hidden = !showLoader;
+      status.textContent = message;
+      if (processingOnly) {
+        video.pause();
+      } else if (stream && video.paused) {
+        video.play().catch(() => {});
+      }
+    };
 
     const close = (value = null) => {
       modal.hidden = true;
@@ -79,8 +96,10 @@
       stream = null;
       video.srcObject = null;
       status.textContent = "";
+      loader.hidden = true;
       const resolve = pendingResolve;
       pendingResolve = null;
+      onCaptured = null;
       if (resolve) resolve(value);
     };
 
@@ -157,24 +176,31 @@
     window.addEventListener("pagehide", () => close());
 
     captureBtn.addEventListener("click", async () => {
-      captureBtn.disabled = true;
-      status.textContent = "Capturing...";
+      setUiState({ busy: true, showLoader: true, message: "Capturing..." });
       try {
         const blob = await capture();
-        close(blob);
+        setUiState({ busy: true, showLoader: true, message: "Running OCR..." });
+        let shouldClose = true;
+        if (typeof onCaptured === "function") {
+          shouldClose = await onCaptured(blob);
+        }
+        if (shouldClose !== false) {
+          close(blob);
+          return;
+        }
+        setUiState({ busy: false, showLoader: false, message: "OCR failed. Try again." });
       } catch (err) {
-        status.textContent = "Could not capture image. Try again.";
-      } finally {
-        captureBtn.disabled = false;
+        setUiState({ busy: false, showLoader: false, message: "Could not capture image. Try again." });
       }
     });
 
     return {
-      open: async () => {
+      open: async (opts = {}) => {
         if (pendingResolve) return null;
+        onCaptured = opts.onCaptured || null;
         modal.hidden = false;
         document.body.classList.add("ocr-camera-open");
-        status.textContent = "Opening camera...";
+        setUiState({ busy: true, showLoader: false, message: "" });
 
         const openPromise = new Promise((resolve) => {
           pendingResolve = resolve;
@@ -191,9 +217,9 @@
           });
           video.srcObject = stream;
           await video.play();
-          status.textContent = "";
+          setUiState({ busy: false, showLoader: false, message: "" });
         } catch (err) {
-          status.textContent = "Camera access failed.";
+          setUiState({ busy: false, showLoader: false, message: "Camera access failed." });
           close();
         }
 
@@ -203,11 +229,11 @@
   };
 
   let mobileCameraCapture = null;
-  const openMobileCamera = async () => {
+  const openMobileCamera = async (opts) => {
     if (!mobileCameraCapture) {
       mobileCameraCapture = createMobileCameraCapture();
     }
-    return await mobileCameraCapture.open();
+    return await mobileCameraCapture.open(opts);
   };
 
   const applyReturnValues = () => {
@@ -289,14 +315,14 @@
   };
 
   const handleImageSource = async ({ source, container }) => {
-    if (!source) return;
+    if (!source) return false;
 
     const targetName = container.getAttribute("data-ocr-name") || "";
     const input = findTargetInput(targetName);
-    if (!input) return;
+    if (!input) return false;
     const param = container.getAttribute("data-ocr-param") || targetName;
     const regexList = parseRegexList(container);
-    if (!regexList.length) return;
+    if (!regexList.length) return false;
 
     try {
       const prepared = await ocrClient.preprocessImage(source);
@@ -325,13 +351,15 @@
 
       if (value) {
         updateInputValue(input, value);
-        return;
+        return true;
       }
 
       sendToFixPage({ text, param, regexList });
+      return true;
     } catch (err) {
       const message = err && err.message ? err.message : "OCR failed.";
       console.error("OCR error:", message);
+      return false;
     }
   };
 
@@ -347,10 +375,10 @@
     trigger.addEventListener("click", async (event) => {
       event.preventDefault();
       if (isMobileCameraFlow()) {
-        const capturedBlob = await openMobileCamera();
-        if (capturedBlob) {
-          await handleImageSource({ source: capturedBlob, container });
-        }
+        await openMobileCamera({
+          onCaptured: async (capturedBlob) =>
+            await handleImageSource({ source: capturedBlob, container }),
+        });
         return;
       }
       fileInput.click();
