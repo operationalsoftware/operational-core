@@ -16,20 +16,22 @@
     input.dispatchEvent(new Event("change", { bubbles: true }));
   };
 
-  const isMobileCameraFlow = () => {
-    const hasTouch = window.matchMedia("(pointer: coarse)").matches;
-    const hasMediaCamera =
-      !!navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === "function";
-    return hasTouch && hasMediaCamera && window.isSecureContext;
+  const el = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
   };
-
+  const isMobileCameraFlow = () =>
+    window.matchMedia("(pointer: coarse)").matches &&
+    !!navigator.mediaDevices &&
+    typeof navigator.mediaDevices.getUserMedia === "function" &&
+    window.isSecureContext;
   const stopStream = (stream) => {
     if (!stream) return;
     stream.getTracks().forEach((track) => track.stop());
   };
-
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-
   const canvasToBlob = (canvas) =>
     new Promise((resolve, reject) => {
       canvas.toBlob((blob) => {
@@ -45,63 +47,32 @@
     let stream = null;
     let pendingResolve = null;
 
-    const modal = document.createElement("div");
-    modal.className = "ocr-camera-modal";
+    const modal = el("div", "ocr-camera-modal");
     modal.hidden = true;
-
-    const sheet = document.createElement("div");
-    sheet.className = "ocr-camera-sheet";
-
-    const header = document.createElement("div");
-    header.className = "ocr-camera-header";
-    header.textContent = "Align text inside the rectangle";
-
-    const preview = document.createElement("div");
-    preview.className = "ocr-camera-preview";
-
-    const video = document.createElement("video");
-    video.className = "ocr-camera-video";
+    const sheet = el("div", "ocr-camera-sheet");
+    const header = el("div", "ocr-camera-header", "Align text inside the rectangle");
+    const preview = el("div", "ocr-camera-preview");
+    const video = el("video", "ocr-camera-video");
     video.autoplay = true;
     video.playsInline = true;
     video.muted = true;
-
-    const overlay = document.createElement("div");
-    overlay.className = "ocr-camera-overlay";
-
-    const cropRect = document.createElement("div");
-    cropRect.className = "ocr-camera-crop-rect";
-
-    const actions = document.createElement("div");
-    actions.className = "ocr-camera-actions";
-
-    const cancelBtn = document.createElement("button");
-    cancelBtn.className = "button secondary";
+    const overlay = el("div", "ocr-camera-overlay");
+    const cropRect = el("div", "ocr-camera-crop-rect");
+    const actions = el("div", "ocr-camera-actions");
+    const cancelBtn = el("button", "button secondary", "Cancel");
     cancelBtn.type = "button";
-    cancelBtn.textContent = "Cancel";
-
-    const captureBtn = document.createElement("button");
-    captureBtn.className = "button";
+    const captureBtn = el("button", "button", "Capture");
     captureBtn.type = "button";
-    captureBtn.textContent = "Capture";
+    const status = el("div", "ocr-camera-status", "");
 
-    const status = document.createElement("div");
-    status.className = "ocr-camera-status";
-    status.textContent = "";
-
-    actions.appendChild(cancelBtn);
-    actions.appendChild(captureBtn);
-
-    overlay.appendChild(cropRect);
-    preview.appendChild(video);
-    preview.appendChild(overlay);
-    sheet.appendChild(header);
-    sheet.appendChild(preview);
-    sheet.appendChild(actions);
-    sheet.appendChild(status);
-    modal.appendChild(sheet);
+    actions.append(cancelBtn, captureBtn);
+    overlay.append(cropRect);
+    preview.append(video, overlay);
+    sheet.append(header, preview, actions, status);
+    modal.append(sheet);
     document.body.appendChild(modal);
 
-    const close = (value) => {
+    const close = (value = null) => {
       modal.hidden = true;
       document.body.classList.remove("ocr-camera-open");
       stopStream(stream);
@@ -110,7 +81,7 @@
       status.textContent = "";
       const resolve = pendingResolve;
       pendingResolve = null;
-      if (resolve) resolve(value || null);
+      if (resolve) resolve(value);
     };
 
     const getCropSourceBox = () => {
@@ -154,17 +125,13 @@
 
     const capture = async () => {
       const cropBox = getCropSourceBox();
-      if (!cropBox) {
-        throw new Error("Unable to compute crop area.");
-      }
+      if (!cropBox) throw new Error("Unable to compute crop area.");
 
-      const canvas = document.createElement("canvas");
+      const canvas = el("canvas");
       canvas.width = cropBox.sw;
       canvas.height = cropBox.sh;
       const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        throw new Error("Unable to capture image.");
-      }
+      if (!ctx) throw new Error("Unable to capture image.");
 
       ctx.drawImage(
         video,
@@ -180,18 +147,14 @@
       return await canvasToBlob(canvas);
     };
 
-    cancelBtn.addEventListener("click", () => close(null));
+    cancelBtn.addEventListener("click", () => close());
     modal.addEventListener("click", (event) => {
-      if (event.target === modal) {
-        close(null);
-      }
+      if (event.target === modal) close();
     });
     document.addEventListener("keydown", (event) => {
-      if (!modal.hidden && event.key === "Escape") {
-        close(null);
-      }
+      if (!modal.hidden && event.key === "Escape") close();
     });
-    window.addEventListener("pagehide", () => close(null));
+    window.addEventListener("pagehide", () => close());
 
     captureBtn.addEventListener("click", async () => {
       captureBtn.disabled = true;
@@ -208,7 +171,7 @@
 
     return {
       open: async () => {
-        if (pendingResolve) return await Promise.resolve(null);
+        if (pendingResolve) return null;
         modal.hidden = false;
         document.body.classList.add("ocr-camera-open");
         status.textContent = "Opening camera...";
@@ -231,7 +194,7 @@
           status.textContent = "";
         } catch (err) {
           status.textContent = "Camera access failed.";
-          close(null);
+          close();
         }
 
         return await openPromise;
@@ -311,19 +274,18 @@
 
   const parseRegexList = (container) => {
     const regexListRaw = container.getAttribute("data-ocr-regex-list") || "";
-    let regexList = [];
-    if (!regexListRaw) return regexList;
+    if (!regexListRaw) return [];
     try {
       const parsed = JSON.parse(regexListRaw);
       if (Array.isArray(parsed)) {
-        regexList = parsed.filter(
+        return parsed.filter(
           (item) => item && typeof item.pattern === "string" && item.pattern.trim()
         );
       }
     } catch (err) {
-      regexList = [];
+      return [];
     }
-    return regexList;
+    return [];
   };
 
   const handleImageSource = async ({ source, container }) => {
@@ -387,7 +349,7 @@
       if (isMobileCameraFlow()) {
         const capturedBlob = await openMobileCamera();
         if (capturedBlob) {
-          handleImageSource({ source: capturedBlob, container });
+          await handleImageSource({ source: capturedBlob, container });
         }
         return;
       }
