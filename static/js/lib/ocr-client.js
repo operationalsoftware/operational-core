@@ -16,74 +16,74 @@
       }, "image/png");
     });
 
-  const autoCropCanvas = (sourceCanvas) => {
-    const ctx = sourceCanvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return sourceCanvas;
+  // const autoCropCanvas = (sourceCanvas) => {
+  //   const ctx = sourceCanvas.getContext("2d", { willReadFrequently: true });
+  //   if (!ctx) return sourceCanvas;
 
-    const width = sourceCanvas.width;
-    const height = sourceCanvas.height;
-    const imageData = ctx.getImageData(0, 0, width, height);
-    const data = imageData.data;
+  //   const width = sourceCanvas.width;
+  //   const height = sourceCanvas.height;
+  //   const imageData = ctx.getImageData(0, 0, width, height);
+  //   const data = imageData.data;
 
-    let minX = width;
-    let minY = height;
-    let maxX = 0;
-    let maxY = 0;
-    let inkPixels = 0;
+  //   let minX = width;
+  //   let minY = height;
+  //   let maxX = 0;
+  //   let maxY = 0;
+  //   let inkPixels = 0;
 
-    for (let y = 0; y < height; y++) {
-      const rowStart = y * width * 4;
-      for (let x = 0; x < width; x++) {
-        const idx = rowStart + x * 4;
-        const gray = data[idx];
-        if (gray < 200) {
-          inkPixels += 1;
-          if (x < minX) minX = x;
-          if (x > maxX) maxX = x;
-          if (y < minY) minY = y;
-          if (y > maxY) maxY = y;
-        }
-      }
-    }
+  //   for (let y = 0; y < height; y++) {
+  //     const rowStart = y * width * 4;
+  //     for (let x = 0; x < width; x++) {
+  //       const idx = rowStart + x * 4;
+  //       const gray = data[idx];
+  //       if (gray < 200) {
+  //         inkPixels += 1;
+  //         if (x < minX) minX = x;
+  //         if (x > maxX) maxX = x;
+  //         if (y < minY) minY = y;
+  //         if (y > maxY) maxY = y;
+  //       }
+  //     }
+  //   }
 
-    if (inkPixels < width * height * 0.001) {
-      return sourceCanvas;
-    }
+  //   if (inkPixels < width * height * 0.001) {
+  //     return sourceCanvas;
+  //   }
 
-    const marginX = Math.floor(width * 0.03);
-    const marginY = Math.floor(height * 0.03);
-    minX = Math.max(0, minX - marginX);
-    maxX = Math.min(width - 1, maxX + marginX);
-    minY = Math.max(0, minY - marginY);
-    maxY = Math.min(height - 1, maxY + marginY);
+  //   const marginX = Math.floor(width * 0.03);
+  //   const marginY = Math.floor(height * 0.03);
+  //   minX = Math.max(0, minX - marginX);
+  //   maxX = Math.min(width - 1, maxX + marginX);
+  //   minY = Math.max(0, minY - marginY);
+  //   maxY = Math.min(height - 1, maxY + marginY);
 
-    const cropWidth = maxX - minX + 1;
-    const cropHeight = maxY - minY + 1;
+  //   const cropWidth = maxX - minX + 1;
+  //   const cropHeight = maxY - minY + 1;
 
-    if (cropWidth <= 0 || cropHeight <= 0) {
-      return sourceCanvas;
-    }
+  //   if (cropWidth <= 0 || cropHeight <= 0) {
+  //     return sourceCanvas;
+  //   }
 
-    const cropped = document.createElement("canvas");
-    cropped.width = cropWidth;
-    cropped.height = cropHeight;
-    const croppedCtx = cropped.getContext("2d");
-    if (!croppedCtx) return sourceCanvas;
+  //   const cropped = document.createElement("canvas");
+  //   cropped.width = cropWidth;
+  //   cropped.height = cropHeight;
+  //   const croppedCtx = cropped.getContext("2d");
+  //   if (!croppedCtx) return sourceCanvas;
 
-    croppedCtx.drawImage(
-      sourceCanvas,
-      minX,
-      minY,
-      cropWidth,
-      cropHeight,
-      0,
-      0,
-      cropWidth,
-      cropHeight
-    );
+  //   croppedCtx.drawImage(
+  //     sourceCanvas,
+  //     minX,
+  //     minY,
+  //     cropWidth,
+  //     cropHeight,
+  //     0,
+  //     0,
+  //     cropWidth,
+  //     cropHeight
+  //   );
 
-    return cropped;
-  };
+  //   return cropped;
+  // };
 
   const preprocess = async (imageBitmap) => {
     const maxWidth = 1600;
@@ -247,7 +247,19 @@
 
   const extractBestValue = (text, regex) => {
     const values = collectMatches(text, regex, false);
-    if (values.length === 1) return values[0];
+    if (values.length === 1) return values[0];    
+    if (values.length > 1) {
+      const normalized = values
+        .map((value) => (value || "").trim())
+        .filter((value) => value !== "");
+      const unique = Array.from(new Set(normalized));
+      // If OCR sees the same label content twice (e.g. duplicated tags),
+      // accept the single unique value without forcing manual resolve.
+      if (unique.length === 1) {
+        return unique[0];
+      }
+    }
+
 
     const strictValues = collectMatches(text, regex, true);
     if (strictValues.length >= 1) return strictValues[0];
