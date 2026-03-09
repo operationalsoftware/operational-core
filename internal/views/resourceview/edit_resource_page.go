@@ -25,18 +25,25 @@ type EditResourcePageProps struct {
 func EditResourcePage(p *EditResourcePageProps) g.Node {
 
 	content := g.Group([]g.Node{
-		editResourceForm(&editResourceFormProps{
-			resource:         p.Resource,
-			teams:            p.Teams,
-			values:           p.Values,
-			validationErrors: p.ValidationErrors,
-			isSubmission:     p.IsSubmission,
-		}),
+		h.Div(
+			h.Class("add-resource-page"),
+			editResourceForm(&editResourceFormProps{
+				resource:         p.Resource,
+				teams:            p.Teams,
+				values:           p.Values,
+				validationErrors: p.ValidationErrors,
+				isSubmission:     p.IsSubmission,
+			}),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Edit Resource",
+		Ctx:   p.Ctx,
+		Title: "Edit Resource",
+		Header: &layout.PageHeaderProps{
+			BackToText: "Resources",
+			BackToLink: "/resources",
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

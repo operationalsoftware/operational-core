@@ -4,7 +4,6 @@ import (
 	"app/internal/components"
 
 	g "maragu.dev/gomponents"
-	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
@@ -26,13 +25,9 @@ func PageHeader(p *PageHeaderProps) g.Node {
 			p.BackToText != "" && p.BackToLink != "",
 			h.Div(
 				h.Class("page-header-back"),
-				components.Button(&components.ButtonProps{
-					ButtonType: components.ButtonPrimary,
-					Link:       p.BackToLink,
-					Classes: c.Classes{
-						"page-header-back-button": true,
-					},
-				},
+				h.A(
+					h.Class("button primary page-header-back-button"),
+					h.Href(p.BackToLink),
 					components.Icon(&components.IconProps{
 						Identifier: "arrow-left-thin",
 					}),

@@ -1,9 +1,9 @@
-.main {
+.add-resource-page {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
-.main form {
+.add-resource-page .form {
   width: 100%;
   max-width: var(--narrow-form-width);
 }

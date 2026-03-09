@@ -1,22 +1,3 @@
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-
-  .actions {
-    display: flex;
-    gap: var(--spacing-md);
-  }
-}
-
-.servicing-nav {
-  text-align: right;
-  margin: var(--spacing-lg) 0;
-  a {
-    margin-right: var(--spacing-lg);
-  }
-}
-
 .servicing-team-select {
   display: flex;
   justify-content: flex-end;
@@ -25,10 +6,6 @@
   form {
     width: min(360px, 100%);
   }
-}
-
-.link {
-  margin-right: var(--spacing-lg);
 }
 
 .resources-filters {

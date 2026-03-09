@@ -1,9 +1,9 @@
-.main {
+.add-resource-service-schedule-page {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
-.main form {
+.add-resource-service-schedule-page .form {
   width: 100%;
   max-width: var(--narrow-form-width);
 }

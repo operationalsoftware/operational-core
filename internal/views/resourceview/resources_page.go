@@ -53,10 +53,9 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 				),
 				h.Div(
 					h.Class("resources-bulk-actions"),
-					components.Button(&components.ButtonProps{
-						ButtonType: components.ButtonPrimary,
-						Disabled:   true,
-					},
+					h.Button(
+						h.Class("button primary"),
+						h.Disabled(),
 						h.Type("button"),
 						h.Data("resource-bulk-edit-button", "true"),
 						h.Data("bulk-edit-url", "/resources/bulk-edit-service-schedules"),
@@ -80,11 +79,12 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 		Ctx:   p.Ctx,
 		Title: "Resource Management",
 		Header: &layout.PageHeaderProps{
+			BackToText: "Home",
+			BackToLink: "/",
 			Actions: []g.Node{
-				components.Button(&components.ButtonProps{
-					ButtonType: components.ButtonPrimary,
-					Link:       "/resources/add",
-				},
+				h.A(
+					h.Class("button primary"),
+					h.Href("/resources/add"),
 					components.Icon(&components.IconProps{
 						Identifier: "plus",
 					}),

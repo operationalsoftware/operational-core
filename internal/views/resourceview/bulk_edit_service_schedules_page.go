@@ -30,31 +30,37 @@ func BulkEditServiceSchedulesPage(p *BulkEditServiceSchedulesPageProps) g.Node {
 
 	content := g.Group([]g.Node{
 		h.Div(
-			h.Class("bulk-edit-header"),
-			h.H3(g.Text("Bulk Edit Service Schedules")),
-			h.P(
-				h.Class("bulk-edit-count"),
-				g.Text(fmt.Sprintf("%d %s selected", selectedCount, resourceLabel)),
-			),
-			g.If(
-				selectedCount == 0,
+			h.Class("bulk-edit-service-schedules-page"),
+			h.Div(
+				h.Class("bulk-edit-content"),
 				h.P(
-					h.Class("bulk-edit-warning"),
-					g.Text("No resources selected. Return to Resources to pick resources for bulk edit."),
+					h.Class("bulk-edit-count"),
+					g.Text(fmt.Sprintf("%d %s selected", selectedCount, resourceLabel)),
+				),
+				g.If(
+					selectedCount == 0,
+					h.P(
+						h.Class("bulk-edit-warning"),
+						g.Text("No resources selected. Return to Resources to pick resources for bulk edit."),
+					),
 				),
 			),
+			bulkEditServiceSchedulesForm(&bulkEditServiceSchedulesFormProps{
+				resourceIDs:      p.ResourceIDs,
+				serviceSchedules: p.ServiceSchedules,
+				assignSelected:   p.Values["AssignServiceScheduleIDs"],
+				unassignSelected: p.Values["UnassignServiceScheduleIDs"],
+			}),
 		),
-		bulkEditServiceSchedulesForm(&bulkEditServiceSchedulesFormProps{
-			resourceIDs:      p.ResourceIDs,
-			serviceSchedules: p.ServiceSchedules,
-			assignSelected:   p.Values["AssignServiceScheduleIDs"],
-			unassignSelected: p.Values["UnassignServiceScheduleIDs"],
-		}),
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Bulk Edit Service Schedules",
+		Ctx:   p.Ctx,
+		Title: "Bulk Edit Service Schedules",
+		Header: &layout.PageHeaderProps{
+			BackToText: "Resources",
+			BackToLink: "/resources",
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
@@ -124,10 +130,9 @@ func bulkEditServiceSchedulesForm(p *bulkEditServiceSchedulesFormProps) g.Node {
 			}),
 		),
 
-		components.Button(
-			&components.ButtonProps{
-				Disabled: disabled,
-			},
+		h.Button(
+			h.Class("button primary"),
+			g.If(disabled, h.Disabled()),
 			h.Type("submit"),
 			g.Text("Apply changes"),
 		),

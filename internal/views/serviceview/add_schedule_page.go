@@ -25,18 +25,24 @@ type AddSchedulePageProps struct {
 func AddSchedulePage(p *AddSchedulePageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		scheduleForm(&scheduleFormProps{
-			values:           p.Values,
-			validationErrors: p.ValidationErrors,
-			isSubmission:     p.IsSubmission,
-			serviceMetrics:   p.ServiceMetrics,
-		}),
+		h.Div(
+			h.Class("service-schedule-form-page"),
+			scheduleForm(&scheduleFormProps{
+				values:           p.Values,
+				validationErrors: p.ValidationErrors,
+				isSubmission:     p.IsSubmission,
+				serviceMetrics:   p.ServiceMetrics,
+			}),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Add Service Schedule",
+		Ctx:   p.Ctx,
+		Title: "Add Service Schedule",
+		Header: &layout.PageHeaderProps{
+			BackToText: "Schedules",
+			BackToLink: "/services/schedules",
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

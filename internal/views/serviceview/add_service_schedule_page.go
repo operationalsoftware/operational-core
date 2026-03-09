@@ -26,18 +26,24 @@ type AddResourceServiceSchedulePageProps struct {
 func AddServiceSchedulePage(p *AddResourceServiceSchedulePageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		addServiceScheduleForm(&addServiceScheduleFormProps{
-			values:           p.Values,
-			validationErrors: p.ValidationErrors,
-			isSubmission:     p.IsSubmission,
-			serviceSchedules: p.ServiceSchedules,
-		}),
+		h.Div(
+			h.Class("add-resource-service-schedule-page"),
+			addServiceScheduleForm(&addServiceScheduleFormProps{
+				values:           p.Values,
+				validationErrors: p.ValidationErrors,
+				isSubmission:     p.IsSubmission,
+				serviceSchedules: p.ServiceSchedules,
+			}),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Assign Service Schedule",
+		Ctx:   p.Ctx,
+		Title: "Assign Service Schedule",
+		Header: &layout.PageHeaderProps{
+			BackToText: p.Resource.Reference,
+			BackToLink: fmt.Sprintf("/resources/%d", p.Resource.ResourceID),
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

@@ -36,37 +36,6 @@ type ResourceServicingPageProps struct {
 func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		h.Div(
-			h.Class("header"),
-
-			h.Div(
-				h.Class("actions"),
-				h.A(
-					h.Class("link"),
-					h.Href("/services/metrics"),
-					g.Text("Manage Metrics"),
-				),
-
-				h.A(
-					h.Class("link"),
-					h.Href("/services/schedules"),
-					g.Text("Manage Schedules"),
-				),
-
-				h.A(
-					h.Class("link"),
-					h.Href("/services/all"),
-					g.Text("All Services"),
-				),
-			),
-
-			h.Div(
-				h.Class("title"),
-				h.H3(g.Text("Resource Servicing Priority List")),
-			),
-		),
-
 		servicingTeamFilter(&servicingTeamFilterProps{
 			teams:           p.Teams,
 			selectedTeamIDs: p.SelectedTeamIDs,
@@ -88,8 +57,17 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Resource Servicing Priority List",
+		Ctx:   p.Ctx,
+		Title: "Resource Servicing Priority List",
+		Header: &layout.PageHeaderProps{
+			BackToText: "Home",
+			BackToLink: "/",
+			Actions: []g.Node{
+				h.A(h.Class("button primary"), h.Href("/services/metrics"), g.Text("Manage Metrics")),
+				h.A(h.Class("button primary"), h.Href("/services/schedules"), g.Text("Manage Schedules")),
+				h.A(h.Class("button primary"), h.Href("/services/all"), g.Text("All Services")),
+			},
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
@@ -227,12 +205,10 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 
 					g.If(
 						!r.HasWIPService && r.CanUserManage,
-						components.Button(&components.ButtonProps{
-							Size:       "small",
-							ButtonType: "primary",
-							Link: fmt.Sprintf("/resources/%d/services/new",
-								r.ResourceID),
-						},
+						h.A(
+							h.Class("button primary small"),
+							h.Href(fmt.Sprintf("/resources/%d/services/new",
+								r.ResourceID)),
 							g.Attr("title", "Start Service"),
 
 							components.Icon(&components.IconProps{
@@ -245,12 +221,10 @@ func resourceServicingTable(p *resourceServicingProps) g.Node {
 					),
 					g.If(
 						r.HasWIPService,
-						components.Button(&components.ButtonProps{
-							Size:       "small",
-							ButtonType: "primary",
-							Link: fmt.Sprintf("/services/%d",
-								nilsafe.Int(r.WIPServiceID)),
-						},
+						h.A(
+							h.Class("button primary small"),
+							h.Href(fmt.Sprintf("/services/%d",
+								nilsafe.Int(r.WIPServiceID))),
 							g.Attr("title", "Service In Progress"),
 
 							components.Icon(&components.IconProps{

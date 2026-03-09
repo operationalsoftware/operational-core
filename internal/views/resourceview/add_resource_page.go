@@ -24,18 +24,24 @@ type AddResourcePageProps struct {
 func AddResourcePage(p *AddResourcePageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		addResourceForm(&addResourceFormProps{
-			values:           p.Values,
-			teams:            p.Teams,
-			validationErrors: p.ValidationErrors,
-			isSubmission:     p.IsSubmission,
-		}),
+		h.Div(
+			h.Class("add-resource-page"),
+			addResourceForm(&addResourceFormProps{
+				values:           p.Values,
+				teams:            p.Teams,
+				validationErrors: p.ValidationErrors,
+				isSubmission:     p.IsSubmission,
+			}),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Add Resource",
+		Ctx:   p.Ctx,
+		Title: "Add Resource",
+		Header: &layout.PageHeaderProps{
+			BackToText: "Resources",
+			BackToLink: "/resources",
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

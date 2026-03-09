@@ -28,9 +28,6 @@ type ServicesPageProps struct {
 func ServicesPage(p *ServicesPageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		h.H3(g.Text("All Services")),
-
 		h.Form(
 			g.Attr("method", "GET"),
 
@@ -50,8 +47,12 @@ func ServicesPage(p *ServicesPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "All Services",
+		Ctx:   p.Ctx,
+		Title: "All Services",
+		Header: &layout.PageHeaderProps{
+			BackToText: "Services",
+			BackToLink: "/services",
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

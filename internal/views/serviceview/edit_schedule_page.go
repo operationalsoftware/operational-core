@@ -26,18 +26,25 @@ type EditSchedulePageProps struct {
 func EditSchedulePage(p *EditSchedulePageProps) g.Node {
 
 	content := g.Group([]g.Node{
-		editScheduleForm(&editScheduleFormProps{
-			schedule:         p.Schedule,
-			serviceMetrics:   p.ServiceMetrics,
-			values:           p.Values,
-			validationErrors: p.ValidationErrors,
-			isSubmission:     p.IsSubmission,
-		}),
+		h.Div(
+			h.Class("service-schedule-form-page"),
+			editScheduleForm(&editScheduleFormProps{
+				schedule:         p.Schedule,
+				serviceMetrics:   p.ServiceMetrics,
+				values:           p.Values,
+				validationErrors: p.ValidationErrors,
+				isSubmission:     p.IsSubmission,
+			}),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   fmt.Sprintf("Edit Schedule: %s", p.Schedule.Name),
+		Ctx:   p.Ctx,
+		Title: fmt.Sprintf("Edit Schedule: %s", p.Schedule.Name),
+		Header: &layout.PageHeaderProps{
+			BackToText: "Schedules",
+			BackToLink: "/services/schedules",
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
