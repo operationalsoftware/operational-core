@@ -10,6 +10,7 @@ import (
 
 type PageProps struct {
 	Title             string
+	Header            *PageHeaderProps
 	Breadcrumbs       []Breadcrumb
 	Content           g.Node
 	LayoutMainPadding *bool
@@ -19,6 +20,15 @@ type PageProps struct {
 }
 
 func Page(p PageProps) g.Node {
+	header := p.Header
+	if header != nil && header.Title == nil {
+		header = &PageHeaderProps{
+			BackToText: header.BackToText,
+			BackToLink: header.BackToLink,
+			Title:      h.H1(g.Text(p.Title)),
+			Actions:    header.Actions,
+		}
+	}
 
 	// Construct head
 	head := []g.Node{
@@ -51,7 +61,10 @@ func Page(p PageProps) g.Node {
 		h.Div(h.ID("loading-message"), g.Text("Loading...")),
 		layout(&layoutProps{
 			breadcrumbs: p.Breadcrumbs,
-			content:     p.Content,
+			content: g.Group([]g.Node{
+				g.If(header != nil, PageHeader(header)),
+				p.Content,
+			}),
 			mainPadding: p.LayoutMainPadding,
 			ctx:         p.Ctx,
 		}),

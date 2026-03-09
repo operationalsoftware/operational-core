@@ -29,13 +29,6 @@ type ResourcesPageProps struct {
 func ResourcesPage(p *ResourcesPageProps) g.Node {
 
 	content := g.Group([]g.Node{
-		h.Div(
-			h.Class("resources-header"),
-
-			h.H3(g.Text("Resource Management")),
-			resourcesHomeNav(),
-		),
-
 		h.Form(
 			h.Method("GET"),
 
@@ -84,8 +77,21 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Resource Management",
+		Ctx:   p.Ctx,
+		Title: "Resource Management",
+		Header: &layout.PageHeaderProps{
+			Actions: []g.Node{
+				components.Button(&components.ButtonProps{
+					ButtonType: components.ButtonPrimary,
+					Link:       "/resources/add",
+				},
+					components.Icon(&components.IconProps{
+						Identifier: "plus",
+					}),
+					g.Text("Resource"),
+				),
+			},
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
@@ -104,21 +110,6 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 type resourcesFiltersProps struct {
 	availableFilters model.ResourceAvailableFilters
 	activeFilters    model.ResourceFilters
-}
-
-func resourcesHomeNav() g.Node {
-	return h.Nav(
-		h.Class("resources-nav"),
-
-		h.A(
-			h.Class("button primary"),
-			h.Href("/resources/add"),
-			components.Icon(&components.IconProps{
-				Identifier: "plus",
-			}),
-			g.Text("Resource"),
-		),
-	)
 }
 
 func resourcesFilters(p *resourcesFiltersProps) g.Node {
