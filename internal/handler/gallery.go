@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"app/internal/layout"
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/galleryview"
@@ -11,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"slices"
 	"strconv"
 )
@@ -34,6 +36,7 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 	ctx := reqcontext.GetContext(r)
 
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
+	breadcrumbContext := r.URL.Query().Get("Breadcrumbs")
 
 	envelope := r.URL.Query().Get("Envelope")
 	if envelope == "" {
@@ -62,12 +65,21 @@ func (h *GalleryHandler) GalleryPage(w http.ResponseWriter, r *http.Request) {
 	}
 	if slices.Contains(permissions, "edit") {
 		editURL = h.galleryService.GenerateEditTempURL(galleryID, true)
+		editURL = appendQueryParams(editURL, map[string]string{
+			"Breadcrumbs": breadcrumbContext,
+		})
+	}
+
+	parentBreadcrumbs, err := layout.DecodeBreadcrumbs(breadcrumbContext)
+	if err != nil {
+		parentBreadcrumbs = nil
 	}
 
 	_ = galleryview.GalleryPage(&galleryview.GalleryPageProps{
 		Ctx:               ctx,
 		Gallery:           gallery,
 		EditURL:           editURL,
+		ParentBreadcrumbs: parentBreadcrumbs,
 		AllowedOperations: permissions,
 	}).
 		Render(w)
@@ -231,6 +243,7 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 	galleryID, _ := strconv.Atoi(r.PathValue("galleryID"))
 
 	queryPath := r.URL.Query().Encode()
+	breadcrumbContext := r.URL.Query().Get("Breadcrumbs")
 
 	// Parse envelope and require edit
 	envelope := r.URL.Query().Get("Envelope")
@@ -258,11 +271,39 @@ func (h *GalleryHandler) EditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	parentBreadcrumbs, err := layout.DecodeBreadcrumbs(breadcrumbContext)
+	if err != nil {
+		parentBreadcrumbs = nil
+	}
+
 	_ = galleryview.EditGalleryPage(&galleryview.EditGalleryPageProps{
-		Ctx:            ctx,
-		Gallery:        gallery,
-		GalleryID:      galleryID,
-		GalleryPageURL: queryPath,
+		Ctx:               ctx,
+		Gallery:           gallery,
+		GalleryID:         galleryID,
+		GalleryPageURL:    queryPath,
+		ParentBreadcrumbs: parentBreadcrumbs,
 	}).
 		Render(w)
+}
+
+func appendQueryParams(rawURL string, params map[string]string) string {
+	if rawURL == "" {
+		return ""
+	}
+
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+
+	query := parsedURL.Query()
+	for key, value := range params {
+		if value == "" {
+			continue
+		}
+		query.Set(key, value)
+	}
+
+	parsedURL.RawQuery = query.Encode()
+	return parsedURL.String()
 }

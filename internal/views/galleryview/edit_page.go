@@ -21,6 +21,7 @@ type EditGalleryPageProps struct {
 	AllowedOperations []string
 	Expires           int64
 	GalleryPageURL    string
+	ParentBreadcrumbs []layout.Breadcrumb
 }
 
 func EditGalleryPage(p *EditGalleryPageProps) g.Node {
@@ -160,22 +161,27 @@ func EditGalleryPage(p *EditGalleryPageProps) g.Node {
 		),
 	})
 
-	return layout.Page(layout.PageProps{
-		Title: "Edit Gallery",
-		Breadcrumbs: []layout.Breadcrumb{
-			layout.HomeBreadcrumb,
-			{
-				IconIdentifier: "package-variant-closed",
-				Title:          "Gallery",
-				URLPart:        fmt.Sprintf("gallery/%d?%s", p.GalleryID, p.GalleryPageURL),
-			},
-			{
-				IconIdentifier: "pencil",
-				Title:          "Edit",
-			},
+	breadcrumbs := append([]layout.Breadcrumb{}, p.ParentBreadcrumbs...)
+	if len(breadcrumbs) == 0 {
+		breadcrumbs = append(breadcrumbs, layout.HomeBreadcrumb)
+	}
+	breadcrumbs = append(breadcrumbs,
+		layout.Breadcrumb{
+			IconIdentifier: "package-variant-closed",
+			Title:          "Gallery",
+			URL:            fmt.Sprintf("/gallery/%d?%s", p.GalleryID, p.GalleryPageURL),
 		},
-		Content: content,
-		Ctx:     p.Ctx,
+		layout.Breadcrumb{
+			IconIdentifier: "pencil",
+			Title:          "Edit",
+		},
+	)
+
+	return layout.Page(layout.PageProps{
+		Title:       "Edit Gallery",
+		Breadcrumbs: breadcrumbs,
+		Content:     content,
+		Ctx:         p.Ctx,
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/galleryview/edit_page.css"),
 			components.InlineScript("/internal/views/galleryview/edit_page.js"),
