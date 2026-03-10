@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"app/internal/layout"
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/andonview"
@@ -536,6 +537,27 @@ func (h *AndonHandler) AndonPage(w http.ResponseWriter, r *http.Request) {
 		galleryURL = h.galleryService.GenerateEditTempURL(andon.GalleryID, true)
 	} else {
 		galleryURL = h.galleryService.GenerateTempURL(andon.GalleryID, true)
+	}
+	breadcrumbContext, err := layout.EncodeBreadcrumbs([]layout.Breadcrumb{
+		{
+			Title:          "Home",
+			URL:            "/",
+			IconIdentifier: "home",
+		},
+		{
+			Title:          "Andons",
+			URL:            "/andons",
+			IconIdentifier: "alert-octagon-outline",
+		},
+		{
+			Title: "Details",
+			URL:   fmt.Sprintf("/andons/%d", andon.AndonID),
+		},
+	})
+	if err == nil {
+		galleryURL = appendQueryParams(galleryURL, map[string]string{
+			"Breadcrumbs": breadcrumbContext,
+		})
 	}
 
 	comments, err := h.commentService.GetComments(r.Context(), andon.CommentThreadID, ctx.User.UserID)
