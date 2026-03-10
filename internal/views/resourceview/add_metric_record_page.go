@@ -38,12 +38,9 @@ func AddResourceMetricRecordPage(p *AddResourceMetricRecordPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:   p.Ctx,
-		Title: "Add Resource Recording",
-		Header: &layout.PageHeaderProps{
-			BackToText: p.Resource.Reference,
-			BackToLink: fmt.Sprintf("/resources/%d", p.Resource.ResourceID),
-		},
+		Ctx:     p.Ctx,
+		Title:   "Add Resource Recording",
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

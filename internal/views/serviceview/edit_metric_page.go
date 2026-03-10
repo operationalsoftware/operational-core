@@ -36,12 +36,9 @@ func EditServiceMetricPage(p *EditServiceMetricPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:   p.Ctx,
-		Title: fmt.Sprintf("Edit Metric: %s", p.Metric.Name),
-		Header: &layout.PageHeaderProps{
-			BackToText: "Metrics",
-			BackToLink: "/services/metrics",
-		},
+		Ctx:     p.Ctx,
+		Title:   fmt.Sprintf("Edit Metric: %s", p.Metric.Name),
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

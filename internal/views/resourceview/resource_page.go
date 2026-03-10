@@ -121,8 +121,6 @@ func ResourcePage(p *ResourcePageProps) g.Node {
 		Ctx:   p.Ctx,
 		Title: fmt.Sprintf("Resource - %s", p.Resource.Reference),
 		Header: &layout.PageHeaderProps{
-			BackToText: "Resources",
-			BackToLink: "/resources",
 			Title: h.Div(
 				h.Class("resource-page-title"),
 				h.H1(g.Textf("%s \u2013 %s", p.Resource.Type, p.Resource.Reference)),

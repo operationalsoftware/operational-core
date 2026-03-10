@@ -79,8 +79,6 @@ func ResourcesPage(p *ResourcesPageProps) g.Node {
 		Ctx:   p.Ctx,
 		Title: "Resource Management",
 		Header: &layout.PageHeaderProps{
-			BackToText: "Home",
-			BackToLink: "/",
 			Actions: []g.Node{
 				h.A(
 					h.Class("button primary"),

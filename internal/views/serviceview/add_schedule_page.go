@@ -37,12 +37,9 @@ func AddSchedulePage(p *AddSchedulePageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:   p.Ctx,
-		Title: "Add Service Schedule",
-		Header: &layout.PageHeaderProps{
-			BackToText: "Schedules",
-			BackToLink: "/services/schedules",
-		},
+		Ctx:     p.Ctx,
+		Title:   "Add Service Schedule",
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

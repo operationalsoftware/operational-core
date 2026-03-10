@@ -23,10 +23,8 @@ func Page(p PageProps) g.Node {
 	header := p.Header
 	if header != nil && header.Title == nil {
 		header = &PageHeaderProps{
-			BackToText: header.BackToText,
-			BackToLink: header.BackToLink,
-			Title:      h.H1(g.Text(p.Title)),
-			Actions:    header.Actions,
+			Title:   h.H1(g.Text(p.Title)),
+			Actions: header.Actions,
 		}
 	}
 

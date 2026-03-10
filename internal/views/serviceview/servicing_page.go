@@ -60,8 +60,6 @@ func ResourceServicingPage(p *ResourceServicingPageProps) g.Node {
 		Ctx:   p.Ctx,
 		Title: "Resource Servicing Priority List",
 		Header: &layout.PageHeaderProps{
-			BackToText: "Home",
-			BackToLink: "/",
 			Actions: []g.Node{
 				h.A(h.Class("button primary"), h.Href("/services/metrics"), g.Text("Manage Metrics")),
 				h.A(h.Class("button primary"), h.Href("/services/schedules"), g.Text("Manage Schedules")),

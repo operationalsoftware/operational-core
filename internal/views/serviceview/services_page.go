@@ -47,12 +47,9 @@ func ServicesPage(p *ServicesPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:   p.Ctx,
-		Title: "All Services",
-		Header: &layout.PageHeaderProps{
-			BackToText: "Services",
-			BackToLink: "/services",
-		},
+		Ctx:     p.Ctx,
+		Title:   "All Services",
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

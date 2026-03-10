@@ -55,8 +55,6 @@ func ServiceSchedulesPage(p *ServiceSchedulesPageProps) g.Node {
 		Ctx:   p.Ctx,
 		Title: "Service Schedules",
 		Header: &layout.PageHeaderProps{
-			BackToText: "Services",
-			BackToLink: "/services",
 			Actions: []g.Node{
 				h.A(
 					h.Class("button primary"),

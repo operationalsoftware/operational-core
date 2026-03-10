@@ -131,9 +131,7 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 		Ctx:   p.Ctx,
 		Title: pageTitle,
 		Header: &layout.PageHeaderProps{
-			BackToText: servicePageBackText(p.ReturnTo),
-			BackToLink: servicePageBackLink(p.ReturnTo),
-			Title:      h.H1(g.Textf("Service of %s", service.ResourceReference)),
+			Title: h.H1(g.Textf("Service of %s", service.ResourceReference)),
 			Actions: servicePageActions(&servicePageActionsProps{
 				resourceID:        p.ResourceService.ResourceID,
 				resourceServiceID: p.ResourceService.ResourceServiceID,
@@ -167,20 +165,6 @@ type servicePageActionsProps struct {
 	canManage         bool
 	canDelete         bool
 	isWIPService      bool
-}
-
-func servicePageBackLink(returnTo string) string {
-	if returnTo != "" {
-		return returnTo
-	}
-	return "/services"
-}
-
-func servicePageBackText(returnTo string) string {
-	if returnTo != "" {
-		return "Back"
-	}
-	return "Services"
 }
 
 func servicePageActions(p *servicePageActionsProps) []g.Node {

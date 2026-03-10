@@ -38,12 +38,9 @@ func EditResourcePage(p *EditResourcePageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:   p.Ctx,
-		Title: "Edit Resource",
-		Header: &layout.PageHeaderProps{
-			BackToText: "Resources",
-			BackToLink: "/resources",
-		},
+		Ctx:     p.Ctx,
+		Title:   "Edit Resource",
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

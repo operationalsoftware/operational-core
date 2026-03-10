@@ -6,7 +6,6 @@ import (
 	"app/internal/model"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
-	"fmt"
 	"net/url"
 
 	g "maragu.dev/gomponents"
@@ -35,12 +34,9 @@ func AddResourceServicePage(p *AddResourceServicePageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:   p.Ctx,
-		Title: "Add Resource Service Metric",
-		Header: &layout.PageHeaderProps{
-			BackToText: p.Resource.Reference,
-			BackToLink: fmt.Sprintf("/resources/%d", p.Resource.ResourceID),
-		},
+		Ctx:     p.Ctx,
+		Title:   "Add Resource Service Metric",
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

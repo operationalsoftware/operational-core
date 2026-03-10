@@ -32,12 +32,9 @@ func AddServiceMetricPage(p *AddServiceMetricPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:   p.Ctx,
-		Title: "Add Service Metric",
-		Header: &layout.PageHeaderProps{
-			BackToText: "Metrics",
-			BackToLink: "/services/metrics",
-		},
+		Ctx:     p.Ctx,
+		Title:   "Add Service Metric",
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

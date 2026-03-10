@@ -55,8 +55,6 @@ func ServiceMetricsPage(p *ServiceMetricsPageProps) g.Node {
 		Ctx:   p.Ctx,
 		Title: "Service Metrics",
 		Header: &layout.PageHeaderProps{
-			BackToText: "Services",
-			BackToLink: "/services",
 			Actions: []g.Node{
 				h.A(
 					h.Class("button primary"),

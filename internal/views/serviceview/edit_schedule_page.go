@@ -39,12 +39,9 @@ func EditSchedulePage(p *EditSchedulePageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:   p.Ctx,
-		Title: fmt.Sprintf("Edit Schedule: %s", p.Schedule.Name),
-		Header: &layout.PageHeaderProps{
-			BackToText: "Schedules",
-			BackToLink: "/services/schedules",
-		},
+		Ctx:     p.Ctx,
+		Title:   fmt.Sprintf("Edit Schedule: %s", p.Schedule.Name),
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

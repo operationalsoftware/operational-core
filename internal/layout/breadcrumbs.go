@@ -48,6 +48,7 @@ func breadcrumbs(breadcrumbs []Breadcrumb) g.Node {
 	)
 
 	return h.Nav(
+		h.ID("breadcrumbs"),
 		h.Class("breadcrumbs"),
 		h.Aria("label", "breadcrumbs"),
 		h.Ol(
