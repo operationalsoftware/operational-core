@@ -623,6 +623,17 @@ body {
       }
     }
   }
+
+  @media (max-width: 768px) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+
+    ol {
+      flex-wrap: nowrap;
+      min-width: max-content;
+    }
+  }
 }
 
 /* End Breadcrumbs */
