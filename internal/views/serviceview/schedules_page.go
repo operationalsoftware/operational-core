@@ -27,14 +27,6 @@ type ServiceSchedulesPageProps struct {
 func ServiceSchedulesPage(p *ServiceSchedulesPageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		h.Div(
-			h.Class("header"),
-
-			h.H3(g.Text("Service Schedules")),
-			schedulesNav(),
-		),
-
 		h.Form(
 			h.ID("service-schedules-form"),
 			h.Method("GET"),
@@ -60,8 +52,20 @@ func ServiceSchedulesPage(p *ServiceSchedulesPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Service Schedules",
+		Ctx:   p.Ctx,
+		Title: "Service Schedules",
+		Header: &layout.PageHeaderProps{
+			Actions: []g.Node{
+				h.A(
+					h.Class("button primary"),
+					h.Href("/services/schedules/add"),
+					components.Icon(&components.IconProps{
+						Identifier: "plus",
+					}),
+					g.Text("Schedule"),
+				),
+			},
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
@@ -79,22 +83,6 @@ func ServiceSchedulesPage(p *ServiceSchedulesPageProps) g.Node {
 			components.InlineStyle("/internal/views/serviceview/schedules_page.css"),
 		},
 	})
-}
-
-func schedulesNav() g.Node {
-	return h.Nav(
-		h.Class("schedules-nav"),
-
-		h.A(
-			h.Class("button primary"),
-			h.Href("/services/schedules/add"),
-			components.Icon(&components.IconProps{
-				Identifier: "plus",
-			}),
-			g.Text("Schedule"),
-		),
-	)
-
 }
 
 type schedulesProps struct {
@@ -135,11 +123,9 @@ func schedulesTable(p *schedulesProps) g.Node {
 			{Contents: g.Text(s.Threshold.String())},
 			{Contents: status},
 			{
-				Contents: components.Button(&components.ButtonProps{
-					Size:       "small",
-					ButtonType: "primary",
-					Link:       fmt.Sprintf("/services/schedules/%d/edit", s.ServiceScheduleID),
-				},
+				Contents: h.A(
+					h.Class("button primary small"),
+					h.Href(fmt.Sprintf("/services/schedules/%d/edit", s.ServiceScheduleID)),
 					components.Icon(&components.IconProps{
 						Identifier: "pencil",
 					}),

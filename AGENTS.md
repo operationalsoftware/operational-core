@@ -3,10 +3,9 @@
 ## Project Structure & Module Organization
 - `internal/` holds Go domain logic, grouped by layer: `handler/`, `service/`, `repository/`, `views/`, etc. UI assets (CSS/JS/templates) also live under `internal/views/...` and are embedded via `go-assets`.
 - Browser-delivered static artifacts reside in `static/`. Database migrations are in `internal/migrate/scripts/` and are embedded into `assets/assets.go` (regenerated via `go-assets-builder`).
-- Top-level helper scripts: `build.sh`, `start-dev.sh`, `gen-dev-certs.sh`. Local Postgres connection details are managed via env vars consumed by `internal/migrate/migrate.go`.
+- Top-level helper scripts: `build.sh`, `start-dev.sh`, `gen-dev-certs.sh`.
 
 ## Build, Test, and Development Commands
-- `go test ./...` — run the full Go test suite. Resolve any Go build cache permission issues before running in CI.
 - `go build -o app` — default binary build; `build.sh` wraps this and also refreshes embedded assets via `go-assets-builder`.
 - `./start-dev.sh` — spins up the dev server with live assets.
 
@@ -16,14 +15,28 @@
 - Repository layer owns SQL; services should call repository methods instead of issuing raw queries directly.
 
 ## Testing Guidelines
-- Go’s standard `testing` package is used; place tests alongside source files. Name tests `TestXxx` reflecting the function/behavior.
-- Run targeted tests with `go test ./internal/handler` when iterating; ensure `go test ./...` passes before pushing.
+- run `bash build.sh app` to check if app compiles.
+- run `rm -f app` after the test build to clean up the generated executable.
 
 ## Commit & Pull Request Guidelines
 - Commit messages follow the format `type(scope1,scope2): summary`, e.g., `feat(service,resource): add resource service metric edit/archiving`. Use lowercase type verbs (`feat`, `fix`, `refactor`, etc.).
-- PRs should include: summary of changes, testing evidence (`go test ./...` output), linked issues/tickets, and screenshots for UI updates when practical.
 
 ## Agent-Specific Instructions
 - Never run destructive git commands (`reset --hard`, `checkout -- <file>`) without explicit approval.
-- When adding migrations, append the next sequential script (currently `00000400.sql`) and regenerate `assets/assets.go`.
-- Surface sandbox limitations (e.g., Go build cache permissions) in PR descriptions or task notes.
+
+## Migration Numbering Policy (Operational Core vs Forks)
+
+When creating a new migration script:
+
+- If working in the **upstream operational core repo**, increment migration IDs by **100**.
+- Example: `00001800.sql` -> `00001900.sql`.
+
+- If working in a **fork of operational core**, increment by **1** from the latest `xx00` baseline from upstream core.
+- Example: if latest upstream core migration is `00001800.sql`, fork migrations should be:
+  - `00001801.sql`, `00001802.sql`, `00001803.sql`, ...
+
+Additional rules:
+- Never reuse or renumber existing migration IDs.
+- Keep filenames zero-padded to 8 digits (e.g. `00001805.sql`).
+- Before adding a migration, check existing scripts to avoid collisions.
+- If upstream advances to the next `xx00` baseline, continue fork numbering from that new baseline.

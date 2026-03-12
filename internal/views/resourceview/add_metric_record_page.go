@@ -26,18 +26,21 @@ type AddResourceMetricRecordPageProps struct {
 func AddResourceMetricRecordPage(p *AddResourceMetricRecordPageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		addResourceMetricRecordForm(&addResourceMetricRecordFormProps{
-			values:           p.Values,
-			validationErrors: p.ValidationErrors,
-			isSubmission:     p.IsSubmission,
-			serviceMetrics:   p.ServiceMetrics,
-		}),
+		h.Div(
+			h.Class("add-resource-metric-record-page"),
+			addResourceMetricRecordForm(&addResourceMetricRecordFormProps{
+				values:           p.Values,
+				validationErrors: p.ValidationErrors,
+				isSubmission:     p.IsSubmission,
+				serviceMetrics:   p.ServiceMetrics,
+			}),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
 		Ctx:     p.Ctx,
 		Title:   "Add Resource Recording",
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

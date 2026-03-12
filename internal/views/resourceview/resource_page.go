@@ -63,18 +63,6 @@ func ResourcePage(p *ResourcePageProps) g.Node {
 	}
 
 	content := g.Group([]g.Node{
-
-		h.Div(
-			h.Class("header"),
-			h.H3(g.Textf("%s \u2013 %s", p.Resource.Type, p.Resource.Reference)),
-
-			resourceNav(&resourceNavProps{
-				resourceID: p.Resource.ResourceID,
-				canManage:  p.CanManage,
-				isArchived: p.Resource.IsArchived,
-			}),
-		),
-
 		h.Div(
 			h.Class("attributes-list"),
 
@@ -130,8 +118,20 @@ func ResourcePage(p *ResourcePageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   fmt.Sprintf("Resource - %s", p.Resource.Reference),
+		Ctx:   p.Ctx,
+		Title: fmt.Sprintf("Resource - %s", p.Resource.Reference),
+		Header: &layout.PageHeaderProps{
+			Title: h.Div(
+				h.Class("resource-page-title"),
+				h.H1(g.Textf("%s \u2013 %s", p.Resource.Type, p.Resource.Reference)),
+				statusNode,
+			),
+			Actions: resourceActions(&resourceActionsProps{
+				resourceID: p.Resource.ResourceID,
+				canManage:  p.CanManage,
+				isArchived: p.Resource.IsArchived,
+			}),
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
@@ -159,13 +159,13 @@ func serviceOwnershipTeamLabel(name *string) string {
 	return *name
 }
 
-type resourceNavProps struct {
+type resourceActionsProps struct {
 	resourceID int
 	canManage  bool
 	isArchived bool
 }
 
-func resourceNav(p *resourceNavProps) g.Node {
+func resourceActions(p *resourceActionsProps) []g.Node {
 	actions := []g.Node{}
 
 	if !p.isArchived {
@@ -209,10 +209,7 @@ func resourceNav(p *resourceNavProps) g.Node {
 		}
 	}
 
-	return h.Nav(
-		h.Class("resource-nav"),
-		g.Group(actions),
-	)
+	return actions
 }
 
 type currentMetricsTableProps struct {

@@ -12,6 +12,7 @@ func CopyButton(textToCopy string) g.Node {
 		h.DataAttr("text", textToCopy),
 		h.Button(
 			h.Class("button"),
+			h.Type("button"),
 			Icon(&IconProps{Identifier: "content-copy"}),
 		),
 

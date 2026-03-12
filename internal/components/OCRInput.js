@@ -16,6 +16,226 @@
     input.dispatchEvent(new Event("change", { bubbles: true }));
   };
 
+  const el = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  };
+  const isMobileCameraFlow = () =>
+    window.matchMedia("(pointer: coarse)").matches &&
+    !!navigator.mediaDevices &&
+    typeof navigator.mediaDevices.getUserMedia === "function" &&
+    window.isSecureContext;
+  const stopStream = (stream) => {
+    if (!stream) return;
+    stream.getTracks().forEach((track) => track.stop());
+  };
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const canvasToBlob = (canvas) =>
+    new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Unable to capture image."));
+          return;
+        }
+        resolve(blob);
+      }, "image/png");
+    });
+
+  const createMobileCameraCapture = () => {
+    let stream = null;
+    let pendingResolve = null;
+    let onCaptured = null;
+
+    const modal = el("div", "ocr-camera-modal");
+    modal.hidden = true;
+    const sheet = el("div", "ocr-camera-sheet");
+    const header = el("div", "ocr-camera-header", "Align text inside the rectangle");
+    const preview = el("div", "ocr-camera-preview");
+    const video = el("video", "ocr-camera-video");
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = true;
+    const overlay = el("div", "ocr-camera-overlay");
+    const cropRect = el("div", "ocr-camera-crop-rect");
+    const actions = el("div", "ocr-camera-actions");
+    const cancelBtn = el("button", "button secondary", "Cancel");
+    cancelBtn.type = "button";
+    const captureBtn = el("button", "button", "Capture");
+    captureBtn.type = "button";
+    const status = el("div", "ocr-camera-status", "");
+    const loader = el("div", "ocr-camera-loader", "Processing...");
+    loader.hidden = true;
+
+    actions.append(cancelBtn, captureBtn);
+    overlay.append(cropRect);
+    preview.append(video, overlay);
+    sheet.append(header, preview, actions, loader, status);
+    modal.append(sheet);
+    document.body.appendChild(modal);
+
+    const setUiState = ({ busy = false, showLoader = false, message = "" } = {}) => {
+      const processingOnly = busy && showLoader;
+      sheet.classList.toggle("is-processing", processingOnly);
+      captureBtn.disabled = busy;
+      cancelBtn.disabled = busy;
+      loader.hidden = !showLoader;
+      status.textContent = message;
+      if (processingOnly) {
+        video.pause();
+      } else if (stream && video.paused) {
+        video.play().catch(() => {});
+      }
+    };
+
+    const close = (value = null) => {
+      modal.hidden = true;
+      document.body.classList.remove("ocr-camera-open");
+      stopStream(stream);
+      stream = null;
+      video.srcObject = null;
+      status.textContent = "";
+      loader.hidden = true;
+      const resolve = pendingResolve;
+      pendingResolve = null;
+      onCaptured = null;
+      if (resolve) resolve(value);
+    };
+
+    const getCropSourceBox = () => {
+      const previewRect = preview.getBoundingClientRect();
+      const frameRect = cropRect.getBoundingClientRect();
+      const sourceWidth = video.videoWidth;
+      const sourceHeight = video.videoHeight;
+      if (!sourceWidth || !sourceHeight || previewRect.width <= 0 || previewRect.height <= 0) {
+        return null;
+      }
+
+      const sourceAspect = sourceWidth / sourceHeight;
+      const previewAspect = previewRect.width / previewRect.height;
+      let scale = 1;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (sourceAspect > previewAspect) {
+        scale = previewRect.height / sourceHeight;
+        const drawnWidth = sourceWidth * scale;
+        offsetX = (drawnWidth - previewRect.width) / 2;
+      } else {
+        scale = previewRect.width / sourceWidth;
+        const drawnHeight = sourceHeight * scale;
+        offsetY = (drawnHeight - previewRect.height) / 2;
+      }
+
+      const frameX = frameRect.left - previewRect.left;
+      const frameY = frameRect.top - previewRect.top;
+      const frameW = frameRect.width;
+      const frameH = frameRect.height;
+
+      const sx = clamp(Math.round((frameX + offsetX) / scale), 0, sourceWidth - 1);
+      const sy = clamp(Math.round((frameY + offsetY) / scale), 0, sourceHeight - 1);
+      const sw = clamp(Math.round(frameW / scale), 1, sourceWidth - sx);
+      const sh = clamp(Math.round(frameH / scale), 1, sourceHeight - sy);
+
+      if (sw <= 0 || sh <= 0) return null;
+      return { sx, sy, sw, sh };
+    };
+
+    const capture = async () => {
+      const cropBox = getCropSourceBox();
+      if (!cropBox) throw new Error("Unable to compute crop area.");
+
+      const canvas = el("canvas");
+      canvas.width = cropBox.sw;
+      canvas.height = cropBox.sh;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Unable to capture image.");
+
+      ctx.drawImage(
+        video,
+        cropBox.sx,
+        cropBox.sy,
+        cropBox.sw,
+        cropBox.sh,
+        0,
+        0,
+        cropBox.sw,
+        cropBox.sh
+      );
+      return await canvasToBlob(canvas);
+    };
+
+    cancelBtn.addEventListener("click", () => close());
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) close();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (!modal.hidden && event.key === "Escape") close();
+    });
+    window.addEventListener("pagehide", () => close());
+
+    captureBtn.addEventListener("click", async () => {
+      setUiState({ busy: true, showLoader: true, message: "Capturing..." });
+      try {
+        const blob = await capture();
+        setUiState({ busy: true, showLoader: true, message: "Running OCR..." });
+        let shouldClose = true;
+        if (typeof onCaptured === "function") {
+          shouldClose = await onCaptured(blob);
+        }
+        if (shouldClose !== false) {
+          close(blob);
+          return;
+        }
+        setUiState({ busy: false, showLoader: false, message: "OCR failed. Try again." });
+      } catch (err) {
+        setUiState({ busy: false, showLoader: false, message: "Could not capture image. Try again." });
+      }
+    });
+
+    return {
+      open: async (opts = {}) => {
+        if (pendingResolve) return null;
+        onCaptured = opts.onCaptured || null;
+        modal.hidden = false;
+        document.body.classList.add("ocr-camera-open");
+        setUiState({ busy: true, showLoader: false, message: "" });
+
+        const openPromise = new Promise((resolve) => {
+          pendingResolve = resolve;
+        });
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
+            audio: false,
+          });
+          video.srcObject = stream;
+          await video.play();
+          setUiState({ busy: false, showLoader: false, message: "" });
+        } catch (err) {
+          setUiState({ busy: false, showLoader: false, message: "Camera access failed." });
+          close();
+        }
+
+        return await openPromise;
+      },
+    };
+  };
+
+  let mobileCameraCapture = null;
+  const openMobileCamera = async (opts) => {
+    if (!mobileCameraCapture) {
+      mobileCameraCapture = createMobileCameraCapture();
+    }
+    return await mobileCameraCapture.open(opts);
+  };
+
   const applyReturnValues = () => {
     const url = new URL(window.location.href);
     let changed = false;
@@ -78,34 +298,34 @@
     window.location.assign(fixUrl.toString());
   };
 
-  const handleFile = async ({ file, container }) => {
-    if (!file) return;
+  const parseRegexList = (container) => {
+    const regexListRaw = container.getAttribute("data-ocr-regex-list") || "";
+    if (!regexListRaw) return [];
+    try {
+      const parsed = JSON.parse(regexListRaw);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(
+          (item) => item && typeof item.pattern === "string" && item.pattern.trim()
+        );
+      }
+    } catch (err) {
+      return [];
+    }
+    return [];
+  };
+
+  const handleImageSource = async ({ source, container }) => {
+    if (!source) return false;
 
     const targetName = container.getAttribute("data-ocr-name") || "";
     const input = findTargetInput(targetName);
-    if (!input) return;
+    if (!input) return false;
     const param = container.getAttribute("data-ocr-param") || targetName;
-    const regexListRaw = container.getAttribute("data-ocr-regex-list") || "";
-    let regexList = [];
-    if (regexListRaw) {
-      try {
-        const parsed = JSON.parse(regexListRaw);
-        if (Array.isArray(parsed)) {
-          regexList = parsed.filter(
-            (item) =>
-              item &&
-              typeof item.pattern === "string" &&
-              item.pattern.trim()
-          );
-        }
-      } catch (err) {
-        regexList = [];
-      }
-    }
-    if (!regexList.length) return;
+    const regexList = parseRegexList(container);
+    if (!regexList.length) return false;
 
     try {
-      const prepared = await ocrClient.preprocessImage(file);
+      const prepared = await ocrClient.preprocessImage(source);
 
       const { text } = await ocrClient.recognizeWithBoxRefine(prepared.blob, {
         firstPassPSM: "11",
@@ -131,13 +351,15 @@
 
       if (value) {
         updateInputValue(input, value);
-        return;
+        return true;
       }
 
       sendToFixPage({ text, param, regexList });
+      return true;
     } catch (err) {
       const message = err && err.message ? err.message : "OCR failed.";
       console.error("OCR error:", message);
+      return false;
     }
   };
 
@@ -150,14 +372,21 @@
     const fileInput = container.querySelector("[data-ocr-file]");
     if (!trigger || !fileInput) return;
 
-    trigger.addEventListener("click", (event) => {
+    trigger.addEventListener("click", async (event) => {
       event.preventDefault();
+      if (isMobileCameraFlow()) {
+        await openMobileCamera({
+          onCaptured: async (capturedBlob) =>
+            await handleImageSource({ source: capturedBlob, container }),
+        });
+        return;
+      }
       fileInput.click();
     });
 
     fileInput.addEventListener("change", (event) => {
       const file = event.target.files && event.target.files[0];
-      handleFile({ file, container });
+      handleImageSource({ source: file, container });
       fileInput.value = "";
     });
   });

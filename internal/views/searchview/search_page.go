@@ -41,6 +41,7 @@ func SearchPage(p SearchPageProps) g.Node {
 						h.Type("text"),
 						h.Name("Q"),
 						h.ID("search-input"),
+						h.AutoFocus(),
 						h.Placeholder("Search"),
 						h.Value(p.SearchTerm),
 						h.AutoComplete("off"),

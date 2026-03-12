@@ -7,7 +7,6 @@ import (
 	"app/pkg/reqcontext"
 
 	g "maragu.dev/gomponents"
-	c "maragu.dev/gomponents/components"
 	h "maragu.dev/gomponents/html"
 )
 
@@ -16,6 +15,7 @@ type GalleryPageProps struct {
 	Ctx               reqcontext.ReqContext
 	Gallery           model.Gallery
 	EditURL           string
+	ParentBreadcrumbs []layout.Breadcrumb
 	AllowedOperations []string
 }
 
@@ -43,13 +43,9 @@ func GalleryPage(p *GalleryPageProps) g.Node {
 
 			g.If(
 				p.EditURL != "",
-				components.Button(&components.ButtonProps{
-					ButtonType: "primary",
-					Classes: c.Classes{
-						"edit-button": true,
-					},
-					Link: p.EditURL,
-				},
+				h.A(
+					h.Class("button primary edit-button"),
+					h.Href(p.EditURL),
 					components.Icon(&components.IconProps{
 						Identifier: "pencil",
 					}),
@@ -60,18 +56,20 @@ func GalleryPage(p *GalleryPageProps) g.Node {
 		components.Gallery(galleryImages),
 	})
 
+	breadcrumbs := append([]layout.Breadcrumb{}, p.ParentBreadcrumbs...)
+	if len(breadcrumbs) == 0 {
+		breadcrumbs = append(breadcrumbs, layout.HomeBreadcrumb)
+	}
+	breadcrumbs = append(breadcrumbs, layout.Breadcrumb{
+		IconIdentifier: "package-variant-closed",
+		Title:          "Gallery",
+	})
+
 	return layout.Page(layout.PageProps{
-		Title: "Stock Item Details",
-		Breadcrumbs: []layout.Breadcrumb{
-			layout.HomeBreadcrumb,
-			{
-				IconIdentifier: "package-variant-closed",
-				Title:          "Gallery",
-				URLPart:        "gallery",
-			},
-		},
-		Content: content,
-		Ctx:     p.Ctx,
+		Title:       "Gallery",
+		Breadcrumbs: breadcrumbs,
+		Content:     content,
+		Ctx:         p.Ctx,
 		AppendHead: []g.Node{
 			components.InlineStyle("/internal/views/galleryview/gallery_page.css"),
 		},

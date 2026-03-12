@@ -2,6 +2,7 @@ package handler
 
 import (
 	"app/internal/components"
+	"app/internal/layout"
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/stockitemview"
@@ -141,6 +142,27 @@ func (h *StockItemHandler) StockItemPage(w http.ResponseWriter, r *http.Request)
 		galleryURL = h.galleryService.GenerateEditTempURL(stockItem.GalleryID, true)
 	} else {
 		galleryURL = h.galleryService.GenerateTempURL(stockItem.GalleryID, canUserEdit)
+	}
+	breadcrumbContext, err := layout.EncodeBreadcrumbs([]layout.Breadcrumb{
+		{
+			Title:          "Home",
+			URL:            "/",
+			IconIdentifier: "home",
+		},
+		{
+			Title:          "Stock Items",
+			URL:            "/stock-items",
+			IconIdentifier: "package-variant-closed",
+		},
+		{
+			Title: stockItem.StockCode,
+			URL:   fmt.Sprintf("/stock-items/%d", stockItem.StockItemID),
+		},
+	})
+	if err == nil {
+		galleryURL = appendQueryParams(galleryURL, map[string]string{
+			"Breadcrumbs": breadcrumbContext,
+		})
 	}
 
 	png, err := qrcode.Encode(stockItem.StockCode, qrcode.Medium, 256)

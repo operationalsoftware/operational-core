@@ -15,9 +15,7 @@
     );
 
     if (makeNavbarCollapse) {
-      navbarEl.classList.add("hidden");
-      navbarEl.style.height = "0px";
-      navbarEl.style.padding = "0";
+      setChromeCollapsed(true);
       navbarExpandEl.classList.add("hidden");
     }
   });
@@ -30,6 +28,20 @@
 
   // Add click event listener to the document to close the panel on click outside
   document.addEventListener("click", closePanel);
+
+  function setChromeCollapsed(collapsed) {
+    const breadcrumbsEl = document.getElementById("breadcrumbs");
+
+    if (navbarEl) {
+      navbarEl.classList.toggle("hidden", collapsed);
+      navbarEl.style.height = collapsed ? "0px" : "50px";
+      navbarEl.style.padding = collapsed ? "0" : "8px";
+    }
+
+    if (breadcrumbsEl) {
+      breadcrumbsEl.classList.toggle("hidden", collapsed);
+    }
+  }
 
   function closePanel(event) {
     // Check if the click is outside both the button and the panel
@@ -130,22 +142,14 @@
   });
 
   navbarCollapseEl.addEventListener("click", (e) => {
-    if (navbarEl) {
-      navbarEl.classList.add("hidden");
-      navbarEl.style.height = "0px";
-      navbarEl.style.padding = "0";
-      localStorage.setItem("navbar-collapse", true);
-    }
+    setChromeCollapsed(true);
+    localStorage.setItem("navbar-collapse", true);
   });
 
   navbarExpandEl.addEventListener("click", (e) => {
-    if (navbarEl) {
-      navbarEl.classList.remove("hidden");
-      navbarEl.style.height = "50px";
-      navbarEl.style.padding = "8px";
-      localStorage.setItem("navbar-collapse", false);
-      navbarExpandEl.classList.add("hidden");
-    }
+    setChromeCollapsed(false);
+    localStorage.setItem("navbar-collapse", false);
+    navbarExpandEl.classList.add("hidden");
   });
 
   document.addEventListener("mousemove", (e) => {

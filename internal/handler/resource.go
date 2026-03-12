@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"app/internal/layout"
 	"app/internal/model"
 	"app/internal/service"
 	"app/internal/views/resourceview"
@@ -252,6 +253,27 @@ func (h *ResourceHandler) ResourcePage(w http.ResponseWriter, r *http.Request) {
 			services[i].GalleryURL = h.galleryService.GenerateEditTempURL(service.GalleryID, true)
 		} else {
 			services[i].GalleryURL = h.galleryService.GenerateTempURL(service.GalleryID, false)
+		}
+		breadcrumbContext, err := layout.EncodeBreadcrumbs([]layout.Breadcrumb{
+			{
+				Title:          "Home",
+				URL:            "/",
+				IconIdentifier: "home",
+			},
+			{
+				Title:          "Resources",
+				URL:            "/resources",
+				IconIdentifier: "cube-scan",
+			},
+			{
+				Title: resource.Reference,
+				URL:   fmt.Sprintf("/resources/%d", resource.ResourceID),
+			},
+		})
+		if err == nil {
+			services[i].GalleryURL = appendQueryParams(services[i].GalleryURL, map[string]string{
+				"Breadcrumbs": breadcrumbContext,
+			})
 		}
 	}
 

@@ -6,7 +6,6 @@ import (
 	"app/internal/model"
 	"app/pkg/reqcontext"
 	"app/pkg/validate"
-	"fmt"
 	"net/url"
 
 	g "maragu.dev/gomponents"
@@ -24,18 +23,20 @@ type AddResourceServicePageProps struct {
 func AddResourceServicePage(p *AddResourceServicePageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		addServiceForm(&addServiceFormProps{
-			values:           p.Values,
-			validationErrors: p.ValidationErrors,
-			isSubmission:     p.IsSubmission,
-			resource:         p.Resource,
-		}),
+		h.Div(
+			h.Class("add-resource-service-page"),
+			addServiceForm(&addServiceFormProps{
+				values:           p.Values,
+				validationErrors: p.ValidationErrors,
+				isSubmission:     p.IsSubmission,
+			}),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
 		Ctx:     p.Ctx,
 		Title:   "Add Resource Service Metric",
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
@@ -59,7 +60,6 @@ type addServiceFormProps struct {
 	values           url.Values
 	validationErrors validate.ValidationErrors
 	isSubmission     bool
-	resource         model.Resource
 }
 
 func addServiceForm(p *addServiceFormProps) g.Node {
@@ -76,12 +76,9 @@ func addServiceForm(p *addServiceFormProps) g.Node {
 		notesHelperType = components.InputHelperTypeError
 	}
 
-	return components.Form(
+	return h.Form(
 		h.Method("POST"),
-
-		h.H3(
-			g.Text(fmt.Sprintf("Add Service for %s", p.resource.Reference)),
-		),
+		h.Class("form"),
 
 		h.Div(
 			h.Label(
@@ -108,8 +105,8 @@ func addServiceForm(p *addServiceFormProps) g.Node {
 			),
 		),
 
-		components.Button(
-			&components.ButtonProps{},
+		h.Button(
+			h.Class("button primary"),
 			h.Type("submit"),
 			g.Text("Start Service"),
 		),

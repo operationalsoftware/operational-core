@@ -35,8 +35,14 @@ func SearchSelectOptions(options []SearchSelectOption) g.Node {
 		selectOption := h.Div(
 			h.Class(classes),
 			h.Data("value", o.Value),
-			g.Group(o.Nodes),
-			g.Text(o.Text),
+			g.If(
+				len(o.Nodes) > 0,
+				g.Group(o.Nodes),
+			),
+			g.If(
+				len(o.Nodes) == 0,
+				g.Text(o.Text),
+			),
 		)
 
 		listOptions = append(listOptions, selectOption)

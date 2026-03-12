@@ -42,94 +42,6 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 	}
 
 	content := g.Group([]g.Node{
-
-		h.Div(
-			h.Class("header"),
-
-			h.Div(
-				h.Class("title"),
-				h.H3(g.Textf("Service of %s", service.ResourceReference)),
-			),
-
-			h.Div(
-				h.Class("actions"),
-
-				g.If(
-					p.CanManage,
-					g.Group([]g.Node{
-						g.If(
-							!isWIPService,
-
-							h.Button(
-								c.Classes{"button": true},
-								g.Attr("onclick", "updateService(event)"),
-								h.Title("Reopen"),
-								h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
-								h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
-								h.Data("action", "reopen"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "restore",
-								}),
-
-								g.Text("Reopen"),
-							),
-						),
-
-						g.If(
-							isWIPService,
-
-							h.Button(
-								c.Classes{"button": true, "resolve": true},
-								g.Attr("onclick", "updateService(event)"),
-								h.Title("Complete"),
-								h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
-								h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
-								h.Data("action", "complete"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "check",
-								}),
-
-								g.Text("Complete"),
-							),
-						),
-						g.If(
-							isWIPService,
-							h.Button(
-								c.Classes{"button": true, "danger": true},
-								g.Attr("onclick", "updateService(event)"),
-								h.Title("Cancel"),
-								h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
-								h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
-								h.Data("action", "cancel"),
-
-								components.Icon(&components.IconProps{
-									Identifier: "cancel",
-								}),
-
-								g.Text("Cancel"),
-							),
-						),
-						components.Button(&components.ButtonProps{
-							ButtonType: components.ButtonDanger,
-							Disabled:   !p.CanDelete,
-						},
-							g.Attr("onclick", "deleteService(event)"),
-							g.Attr("title", "The service can only be deleted if it is the most recent service on the resource."),
-							h.Title("Delete"),
-							h.Data("id", strconv.Itoa(p.ResourceService.ResourceID)),
-							h.Data("service-id", strconv.Itoa(p.ResourceService.ResourceServiceID)),
-							components.Icon(&components.IconProps{
-								Identifier: "alert-octagon-outline",
-							}),
-							g.Text("Delete"),
-						),
-					}),
-				),
-			),
-		),
-
 		h.Div(
 			h.Class("two-column-flex"),
 
@@ -218,6 +130,16 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 	return layout.Page(layout.PageProps{
 		Ctx:   p.Ctx,
 		Title: pageTitle,
+		Header: &layout.PageHeaderProps{
+			Title: h.H1(g.Textf("Service of %s", service.ResourceReference)),
+			Actions: servicePageActions(&servicePageActionsProps{
+				resourceID:        p.ResourceService.ResourceID,
+				resourceServiceID: p.ResourceService.ResourceServiceID,
+				canManage:         p.CanManage,
+				canDelete:         p.CanDelete,
+				isWIPService:      isWIPService,
+			}),
+		},
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
 			{
@@ -235,6 +157,92 @@ func ResourceServicePage(p *ResourceServicePageProps) g.Node {
 			components.InlineScript("/internal/views/serviceview/service_page.js"),
 		},
 	})
+}
+
+type servicePageActionsProps struct {
+	resourceID        int
+	resourceServiceID int
+	canManage         bool
+	canDelete         bool
+	isWIPService      bool
+}
+
+func servicePageActions(p *servicePageActionsProps) []g.Node {
+	if !p.canManage {
+		return nil
+	}
+
+	actions := []g.Node{}
+
+	if !p.isWIPService {
+		actions = append(actions, h.Button(
+			c.Classes{"button": true},
+			h.Type("button"),
+			g.Attr("onclick", "updateService(event)"),
+			h.Title("Reopen"),
+			h.Data("id", strconv.Itoa(p.resourceID)),
+			h.Data("service-id", strconv.Itoa(p.resourceServiceID)),
+			h.Data("action", "reopen"),
+
+			components.Icon(&components.IconProps{
+				Identifier: "restore",
+			}),
+
+			g.Text("Reopen"),
+		))
+	}
+
+	if p.isWIPService {
+		actions = append(actions,
+			h.Button(
+				c.Classes{"button": true, "resolve": true},
+				h.Type("button"),
+				g.Attr("onclick", "updateService(event)"),
+				h.Title("Complete"),
+				h.Data("id", strconv.Itoa(p.resourceID)),
+				h.Data("service-id", strconv.Itoa(p.resourceServiceID)),
+				h.Data("action", "complete"),
+
+				components.Icon(&components.IconProps{
+					Identifier: "check",
+				}),
+
+				g.Text("Complete"),
+			),
+			h.Button(
+				c.Classes{"button": true, "danger": true},
+				h.Type("button"),
+				g.Attr("onclick", "updateService(event)"),
+				h.Title("Cancel"),
+				h.Data("id", strconv.Itoa(p.resourceID)),
+				h.Data("service-id", strconv.Itoa(p.resourceServiceID)),
+				h.Data("action", "cancel"),
+
+				components.Icon(&components.IconProps{
+					Identifier: "cancel",
+				}),
+
+				g.Text("Cancel"),
+			),
+		)
+	}
+
+	actions = append(actions, h.Button(
+		c.Classes{"button": true, "danger": true},
+		g.If(!p.canDelete, h.Disabled()),
+		h.Type("button"),
+		g.Attr("onclick", "deleteService(event)"),
+		g.Attr("title", "The service can only be deleted if it is the most recent service on the resource."),
+		h.Title("Delete"),
+		h.Data("id", strconv.Itoa(p.resourceID)),
+		h.Data("service-id", strconv.Itoa(p.resourceServiceID)),
+		components.Icon(&components.IconProps{
+			Identifier: "alert-octagon-outline",
+		}),
+		g.Text("Delete"),
+	))
+
+	return actions
 }
 
 type serviceAttributesListProps struct {

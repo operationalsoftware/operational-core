@@ -8,7 +8,9 @@ import (
 )
 
 type Breadcrumb struct {
-	Title          string
+	Title string
+	URL   string
+	// Deprecated: Prefer URL. URLPart builds links incrementally relative to "/".
 	URLPart        string
 	IconIdentifier string
 }
@@ -22,7 +24,7 @@ func breadcrumbs(breadcrumbs []Breadcrumb) g.Node {
 		g.Map(breadcrumbs, func(b Breadcrumb) g.Node {
 			index++
 
-			if b.URLPart != "" {
+			if b.URL == "" && b.URLPart != "" {
 				if link != "/" {
 					link += "/"
 				}
@@ -40,7 +42,12 @@ func breadcrumbs(breadcrumbs []Breadcrumb) g.Node {
 				g.If(index > 1, h.Span(h.Class("divider"), g.Text("/"))),
 				g.If(index == numBreadcrumbs, h.Div(crumbContent)),
 				g.If(index < numBreadcrumbs, h.A(
-					h.Href(link),
+					h.Href(func() string {
+						if b.URL != "" {
+							return b.URL
+						}
+						return link
+					}()),
 					crumbContent,
 				)),
 			)
@@ -48,6 +55,7 @@ func breadcrumbs(breadcrumbs []Breadcrumb) g.Node {
 	)
 
 	return h.Nav(
+		h.ID("breadcrumbs"),
 		h.Class("breadcrumbs"),
 		h.Aria("label", "breadcrumbs"),
 		h.Ol(

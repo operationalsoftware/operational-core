@@ -8,6 +8,7 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
+// Deprecated: Build number input markup directly with h.Input and CSS classes instead of this props wrapper.
 type InputNumberProps struct {
 	Size        InputSize
 	Name        string
@@ -20,6 +21,7 @@ type InputNumberProps struct {
 	Classes     c.Classes
 }
 
+// Deprecated: Build number input markup directly and apply "input-container" and size CSS classes.
 func InputNumber(p *InputNumberProps, children ...g.Node) g.Node {
 	classes := c.Classes{}
 	if p.Classes == nil {

@@ -7,7 +7,6 @@ import (
 	"app/internal/views/notificationview"
 	"app/pkg/appurl"
 	"app/pkg/cookie"
-	"app/pkg/env"
 	"app/pkg/reqcontext"
 	"encoding/json"
 	"fmt"
@@ -154,11 +153,6 @@ func (h *NotificationHandler) SendTestNotification(w http.ResponseWriter, r *htt
 }
 
 func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *http.Request) {
-	if env.IsProduction() {
-		http.NotFound(w, r)
-		return
-	}
-
 	ctx := reqcontext.GetContext(r)
 
 	var subscription model.PushSubscription
@@ -190,11 +184,6 @@ func (h *NotificationHandler) SavePushSubscription(w http.ResponseWriter, r *htt
 }
 
 func (h *NotificationHandler) DeletePushSubscription(w http.ResponseWriter, r *http.Request) {
-	if env.IsProduction() {
-		http.NotFound(w, r)
-		return
-	}
-
 	ctx := reqcontext.GetContext(r)
 
 	endpoint, err := cookie.GetPushSubscriptionEndpoint(r)
@@ -212,9 +201,6 @@ func (h *NotificationHandler) DeletePushSubscription(w http.ResponseWriter, r *h
 }
 
 func vapidPublicKeyForEnv() string {
-	if env.IsProduction() {
-		return ""
-	}
 	return strings.TrimSpace(os.Getenv("VAPID_PUBLIC_KEY"))
 }
 

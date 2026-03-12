@@ -6,7 +6,10 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
+// Deprecated: Use string CSS class names directly with h.Span and related HTML markup.
 type BadgeSize string
+
+// Deprecated: Use string CSS class names directly with h.Span and related HTML markup.
 type BadgeType string
 
 const (
@@ -22,12 +25,14 @@ const (
 	BadgeWarning   BadgeType = "warning"
 )
 
+// Deprecated: Build badge markup directly with h.Span and CSS classes instead of this props wrapper.
 type BadgeProps struct {
 	Classes c.Classes
 	Size    BadgeSize
 	Type    BadgeType
 }
 
+// Deprecated: Use h.Span directly and apply the "badge" CSS class with existing type/size classes instead of this wrapper component.
 func Badge(p *BadgeProps, children ...g.Node) g.Node {
 
 	if p.Classes == nil {

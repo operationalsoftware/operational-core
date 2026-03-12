@@ -24,18 +24,21 @@ type EditServiceMetricPageProps struct {
 func EditServiceMetricPage(p *EditServiceMetricPageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		editServiceMetricForm(&editServiceMetricFormProps{
-			metric:           p.Metric,
-			values:           p.Values,
-			validationErrors: p.ValidationErrors,
-			isSubmission:     p.IsSubmission,
-		}),
+		h.Div(
+			h.Class("service-metric-form-page"),
+			editServiceMetricForm(&editServiceMetricFormProps{
+				metric:           p.Metric,
+				values:           p.Values,
+				validationErrors: p.ValidationErrors,
+				isSubmission:     p.IsSubmission,
+			}),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
 		Ctx:     p.Ctx,
 		Title:   fmt.Sprintf("Edit Metric: %s", p.Metric.Name),
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,

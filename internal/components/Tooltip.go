@@ -6,6 +6,7 @@ import (
 	h "maragu.dev/gomponents/html"
 )
 
+// Deprecated: Use native HTML title text and standard positioning/CSS when needed.
 type Position string
 
 const (
@@ -15,12 +16,14 @@ const (
 	Left   Position = "left"
 )
 
+// Deprecated: Use the native HTML title attribute on the target element instead of this props wrapper.
 type TooltipProps struct {
 	Text     string
 	Position Position
 	Classes  c.Classes
 }
 
+// Deprecated: Use the native HTML title attribute on the target element instead of this tooltip wrapper component.
 func Tooltip(p *TooltipProps, children ...g.Node) g.Node {
 	if p.Classes == nil {
 		p.Classes = c.Classes{}

@@ -27,14 +27,6 @@ type ServiceMetricsPageProps struct {
 func ServiceMetricsPage(p *ServiceMetricsPageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		h.Div(
-			h.Class("header"),
-
-			h.H3(g.Text("Service Metrics")),
-			metricsNav(),
-		),
-
 		h.Form(
 			h.ID("service-metrics-form"),
 			h.Method("GET"),
@@ -60,8 +52,20 @@ func ServiceMetricsPage(p *ServiceMetricsPageProps) g.Node {
 	})
 
 	return layout.Page(layout.PageProps{
-		Ctx:     p.Ctx,
-		Title:   "Service Metrics",
+		Ctx:   p.Ctx,
+		Title: "Service Metrics",
+		Header: &layout.PageHeaderProps{
+			Actions: []g.Node{
+				h.A(
+					h.Class("button primary"),
+					h.Href("/services/metrics/add"),
+					components.Icon(&components.IconProps{
+						Identifier: "plus",
+					}),
+					g.Text("Metric"),
+				),
+			},
+		},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
@@ -82,22 +86,6 @@ func ServiceMetricsPage(p *ServiceMetricsPageProps) g.Node {
 			components.InlineScript("/internal/views/serviceview/metrics_page.js"),
 		},
 	})
-}
-
-func metricsNav() g.Node {
-	return h.Nav(
-		h.Class("metrics-nav"),
-
-		h.A(
-			h.Class("button primary"),
-			h.Href("/services/metrics/add"),
-			components.Icon(&components.IconProps{
-				Identifier: "plus",
-			}),
-			g.Text("Metric"),
-		),
-	)
-
 }
 
 type metricsProps struct {
@@ -142,11 +130,9 @@ func metricsTable(p *metricsProps) g.Node {
 			{Contents: isCumulative},
 			{Contents: status},
 			{
-				Contents: components.Button(&components.ButtonProps{
-					Size:       "small",
-					ButtonType: "primary",
-					Link:       fmt.Sprintf("/services/metrics/%d/edit", m.ServiceMetricID),
-				},
+				Contents: h.A(
+					h.Class("button primary small"),
+					h.Href(fmt.Sprintf("/services/metrics/%d/edit", m.ServiceMetricID)),
 					components.Icon(&components.IconProps{
 						Identifier: "pencil",
 					}),

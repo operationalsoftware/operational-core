@@ -21,17 +21,20 @@ type AddServiceMetricPageProps struct {
 func AddServiceMetricPage(p *AddServiceMetricPageProps) g.Node {
 
 	content := g.Group([]g.Node{
-
-		addResourceMetricForm(&addResourceMetricFormProps{
-			values:           p.Values,
-			validationErrors: p.ValidationErrors,
-			isSubmission:     p.IsSubmission,
-		}),
+		h.Div(
+			h.Class("service-metric-form-page"),
+			addResourceMetricForm(&addResourceMetricFormProps{
+				values:           p.Values,
+				validationErrors: p.ValidationErrors,
+				isSubmission:     p.IsSubmission,
+			}),
+		),
 	})
 
 	return layout.Page(layout.PageProps{
 		Ctx:     p.Ctx,
 		Title:   "Add Service Metric",
+		Header:  &layout.PageHeaderProps{},
 		Content: content,
 		Breadcrumbs: []layout.Breadcrumb{
 			layout.HomeBreadcrumb,
