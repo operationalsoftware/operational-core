@@ -118,7 +118,6 @@ func CommentsThread(p *CommentsThreadProps) g.Node {
 				h.Name("comment-form"),
 				h.Method("POST"),
 				h.EncType("multipart/form-data"),
-				g.Attr("onsubmit", "submitComment(event)"),
 
 				h.Div(
 					h.Class("comment-box"),
