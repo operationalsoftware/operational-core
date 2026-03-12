@@ -3,6 +3,7 @@ package layout
 import (
 	"app/internal/components"
 	"app/internal/model"
+	"app/pkg/env"
 	"app/pkg/reqcontext"
 
 	g "maragu.dev/gomponents"
@@ -37,6 +38,19 @@ var AppMenu = []components.GridMenuGroup{
 				Link: "/printing",
 				Show: func(permissions model.UserPermissions) bool {
 					return permissions.Automation.PrinterAssignmentsEditor
+				},
+			},
+		},
+	},
+	{
+		GroupName: "AI",
+		Items: []components.GridMenuItem{
+			{
+				Icon: "ocr",
+				Name: "AI Docs",
+				Link: "/ai/docs",
+				Show: func(permissions model.UserPermissions) bool {
+					return !env.IsProduction()
 				},
 			},
 		},
